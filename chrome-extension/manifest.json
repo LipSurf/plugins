@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+
+  "name": "Reddit No Hands",
+  "description": "Control reddit with your voice. Great for browsing reddit while you eat or do \"other\" things.",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_title": "Click to enable Reddit No Hands",
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://www.reddit.com/*", "https://www.reddit.com/"],
+      "css": ["rnh.css"],
+      //"js": ["zepto.min.js", "rnh.js"]
+      "js": ["jquery-3.2.1.min.js", "rnh.js"]
+    }
+  ],
+  "author": "Miko Borys",
+  "permissions": [
+    "activeTab",
+	"ttsEngine",
+    "https://ajax.googleapis.com/"
+  ]
+}
