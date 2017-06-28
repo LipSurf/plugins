@@ -12,7 +12,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://www.reddit.com/*", "https://www.reddit.com/"],
+      "matches": [
+        "http://www.reddit.com/*",
+        "https://www.reddit.com/*"
+      ],
       "css": ["rnh.css"],
       //"js": ["zepto.min.js", "rnh.js"]
       "js": ["jquery-3.2.1.min.js", "rnh.js"]

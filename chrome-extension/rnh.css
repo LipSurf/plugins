@@ -1,5 +1,5 @@
 
-.cont 
+.cont
 {
 	width: 100%;
 	position: fixed;
@@ -9,12 +9,25 @@
 	text-align: center;
 }
 
-.preview-command 
+.preview-command.success {
+	background-color: #378a52;
+}
+
+.preview-command.failure {
+}
+
+.preview-command.visible {
+	opacity: 0.8;
+}
+
+.preview-command
 {
 	transition: opacity 0.2s ease-in;
+	display: inline-block;
+	padding: 5px 15px;
 	background-color: black;
 	margin: 0 auto;
-	opacity: 0.8;
+	opacity: 0.0;
 	color: white;
 	font-size: 5em;
 }
