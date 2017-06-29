@@ -1,6 +1,6 @@
 var $previewCommandBox = $('<div class="cont"><div class="preview-command">Hi</div></div>');
 var $previewCommandLbl = $previewCommandBox.find('.preview-command');
-var ORDINALS_TO_DIGITS = {
+const ORDINALS_TO_DIGITS = {
 	"first": 1,
 	"1st": 1,
 	"I": 1,
@@ -65,7 +65,7 @@ var ORDINALS_TO_DIGITS = {
 	"20th": 20,
 	"XX": 20
 };
-var NUMBERS_TO_DIGITS = {
+const NUMBERS_TO_DIGITS = {
 	"one": 1,
 	"two": 2,
 	"three": 3,
@@ -129,8 +129,19 @@ function init() {
 	// recognition.onspee
 }
 
-function stop() {
-	recognition.stop();
+function destroy() {
+	try {
+		recognition.stop();
+	} catch(e) {}
+	try {
+		recognition.onresult = null;
+		recognition.onerror = null;
+		recognition.onend = null;
+	} catch (e) {}
+	recognition = null;
+	try {
+		$previewCommandBox.remove();
+	} catch(e) {}
 }
 
 function showLabel(text) {
@@ -340,7 +351,14 @@ function getCmdForUserInput(input) {
 	}
 }
 
-
-$(document).ready(function() {
-	init();
+chrome.runtime.onMessage.addListener(function(msg) {
+	if (typeof msg.toggleOn != "undefined") {
+		$(document).ready(function() {
+			if (msg.toggleOn) {
+				init();
+			} else {
+				destroy();
+			}
+		});
+	}
 });

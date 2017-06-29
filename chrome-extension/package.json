@@ -1,0 +1,24 @@
+{
+  "name": "reddit-no-hands",
+  "version": "1.0.0",
+  "description": "Control reddit.com with voice.",
+  "main": "rnh.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikob/reddit-no-hands.git"
+  },
+  "author": "Miko Borys",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mikob/reddit-no-hands/issues"
+  },
+  "homepage": "https://github.com/mikob/reddit-no-hands#readme",
+  "devDependencies": {
+    "jsdom": "11.0.0",
+    "jsdom-global": "3.0.2",
+    "mocha": "^3.4.2"
+  }
+}
