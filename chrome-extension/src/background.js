@@ -23,7 +23,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 chrome.tabs.onActivated.addListener(function(activeInfo) {
 	if (typeof currentActiveTabId !== 'undefined') {
-		chrome.tabs.sendMessage(activeInfo.tabId, {"toggleActive": false });
+		chrome.tabs.sendMessage(currentActiveTabId, {"toggleActive": false });
 	}
 	chrome.tabs.sendMessage(activeInfo.tabId, {"toggleActive": true });
 });
@@ -49,7 +49,7 @@ var Recognizer = (function() {
 					chrome.tabs.sendMessage(tabs[0].id, { 'userInput': {
 						'isFinal': lastE.isFinal,
 						'confidence': lastE[0].confidence,
-						'transcript': lastE[0].transcript,
+						'transcript': lastE[0].transcript.trim(),
 					} });
 				});
 			};

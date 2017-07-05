@@ -1,3 +1,4 @@
+var on = false;
 const ORDINALS_TO_DIGITS = {
 	"first": 1,
 	"1st": 1,
@@ -93,7 +94,7 @@ var lblTimeout;
 
 
 // prefix or suffix match
-function ordinalMatch(input, keywords) {
+function ordinalOrNumberToDigit(input, keywords) {
 	for (let i = 0; i < keywords.length; i++) {
 		let keyword = keywords[i];
 		let startI = input.indexOf(keyword);
@@ -101,20 +102,28 @@ function ordinalMatch(input, keywords) {
 			let ordinal = input.replace(keyword, "").trim();
 			console.log(`ordinal ${ordinal} keyword: ${keyword}`);
 			try {
-				return ORDINALS_TO_DIGITS[ordinal];
+				return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
 			} catch(e) { console.error(e); }
 		}
 	}
 }
 
+function thingAtIndex(i) {
+	return `#siteTable>div.thing:not(.promoted):eq(${i - 1})`;
+}
+
 
 var COMMANDS = {
-	'Reddit': (function() {
+	'ClosePreview': (function() {
 		return {
-			regx: /(home|reddit|reddit.com|read it)/,
-			run: function() {
-				document.location.href = "https://www.reddit.com";
-			},
+			ordinalMatch: ["close", "close preview", "shrink", "clothes"],
+			run: function(i) {
+				try {
+					// close
+					opened.click();
+				} catch (e) {}
+				opened = $(thingAtIndex(i) + ' .expando-button.expanded').click();
+			}
 		};
 	})(),
 	'ExpandPreview': (function() {
@@ -126,20 +135,51 @@ var COMMANDS = {
 					// close
 					opened.click();
 				} catch (e) {}
-				opened = $('#siteTable>div.thing:eq(' + (i - 1) + ') .expando-button').click();
+				opened = $(thingAtIndex(i) + ' .expando-button').click();
 			}
 		};
 	})(),
-	'ClosePreview': (function() {
+	'NavigateBackward': (function() {
 		return {
-			ordinalMatch: ["close", "close preview", "shrink", "clothes"],
-			run: function(i) {
-				try {
-					// close
-					opened.click();
-				} catch (e) {}
-				opened = $('#siteTable>div.thing:eq(' + (i - 1) + ') .expando-button.expanded').click();
+			regx: /(back|backwards|go back|navigate back|navigate backwards)/i,
+			run: function() {
+				window.history.back();
 			}
+		};
+	})(),
+	'NavigateForward': (function() {
+		return {
+			regx: /(forward|ford|go forward|navigate forward|navigate ford)/i,
+			run: function() {
+				window.history.forward();
+			}
+		};
+	})(),
+	'NavigateToSubreddit': (function() {
+		var REGX = /^(?:go to |show )?(?:are|our|r) (.*)/i;
+		console.log("BUILDING");
+		return {
+			matches: function(input) {
+				let match = input.match(REGX);
+				console.log(`navigate subreddit input: ${input} match: ${match}`);
+				if (match) {
+					return match[1].replace(/\s/g, "");
+				}
+			},
+			run: function(subreddit_name) {
+				window.location.href = `https://www.reddit.com/r/${subreddit_name}`;
+			},
+			nice: function(match) {
+				return `Go to r/${match}`;
+			}
+		};
+	})(),
+	'Pause': (function() {
+		return {
+			ordinalMatch: ['play'],
+			run: function(i) {
+				$(thingAtIndex(i) + ' button.ytp-large-play-button')[0].click();
+			},
 		};
 	})(),
 	'PlayPreview': (function() {
@@ -150,37 +190,29 @@ var COMMANDS = {
 				console.log(iframe1.contentWindow);
 				let iframe2 = $('iframe', iframe1.contentWindow);
 				console.log(iframe2.contentWindow);
-				$('div.thing:eq(' + (i - 1) + ') button.ytp-large-play-button')[0].click();
+				$(thingAtIndex(i) + ' button.ytp-large-play-button')[0].click();
 			},
 		};
 	})(),
-	'Pause': (function() {
+	'Reddit': (function() {
 		return {
-			ordinalMatch: ['play'],
-			run: function(i) {
-				$('div.thing:eq(' + (i - 1) + ') button.ytp-large-play-button')[0].click();
+			regx: /(home|reddit|reddit.com|read it)/i,
+			run: function() {
+				document.location.href = "https://www.reddit.com";
 			},
 		};
 	})(),
-	'VisitPost': (function() {
+	'Refresh': (function() {
 		return {
-			ordinalMatch: ['click'],
-			run: function(i) {
-				$('div.thing:eq(' + (i - 1) + ') a.title')[0].click();
-			},
-		};
-	})(),
-	'ViewComments': (function() {
-		return {
-			ordinalMatch: ["comments", "view comments", "commons", "comets"],
-			run: function(i) {
-				$('div.thing:eq(' + (i - 1) + ') a.comments')[0].click();
-			},
+			regx: /refresh/i,
+			run: function() {
+				location.reload();
+			}
 		};
 	})(),
 	'ScrollBottom': (function() {
 		return {
-		    regx: /(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)/,
+		    regx: /(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)/i,
 			run: function() {
 				console.log("SCROLL BOTTOM");
 				$('html, body').animate({ scrollTop:  document.body.scrollHeight }, 'slow');
@@ -189,7 +221,7 @@ var COMMANDS = {
 	})(),
 	'ScrollTop': (function() {
 		return {
-		    regx: /(top|top of page|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)/,
+		    regx: /(top|top of page|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)/i,
 			run: function() {
 				$('html, body').animate({ scrollTop:  0 }, 'slow');
 			},
@@ -197,7 +229,7 @@ var COMMANDS = {
 	})(),
 	'ScrollDownLittle': (function() {
 		return {
-		    regx: /(scroll down a little|scroll down little|scroll downwards a little|scroll downwards little)/,
+		    regx: /(scroll down a little|scroll down little|scroll downwards a little|scroll downwards little)/i,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 }, 'slow');
 			},
@@ -205,7 +237,7 @@ var COMMANDS = {
 	})(),
 	'ScrollDown': (function() {
 		return {
-		    regx: /(scroll down|scroll downwards)/,
+		    regx: /(scroll down|scroll downwards)/i,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE }, 'slow');
 			},
@@ -213,7 +245,7 @@ var COMMANDS = {
 	})(),
 	'ScrollUpLittle': (function() {
 		return {
-			regx: /(scroll up a little|scroll up little|scroll upwards a little|scroll upwards little)/,
+			regx: /(scroll up a little|scroll up little|scroll upwards a little|scroll upwards little)/i,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 }, 'slow');
 			},
@@ -221,55 +253,36 @@ var COMMANDS = {
 	})(),
 	'ScrollUp': (function() {
 		return {
-			regx: /(scroll up|scroll upwards)/,
+			regx: /(scroll up|scroll upwards)/i,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE }, 'slow');
 			},
 		};
 	})(),
-	'NavigateToSubreddit': (function() {
-		var REGX = /(?:go to |show )?(?:are|our|r|R) (.*)/;
+	'Stop': (function() {
 		return {
-			matches: function(input) {
-				let match = REGX.exec(input);
-				if (match) {
-					console.log(match);
-					return match[1];
-				}
+			regx: /stop/i,
+			run: function() {
+				window.stop();
+			}
+		};
+	})(),
+	'VisitPost': (function() {
+		return {
+			ordinalMatch: ['click'],
+			run: function(i) {
+				$(thingAtIndex(i) + ' a.title')[0].click();
 			},
-			run: function(subreddit_name) {
-				window.location.href = "https://www.reddit.com/r/" + subreddit_name.replace(" ", "");
-			}
 		};
 	})(),
-	'NavigateBackward': (function() {
+	'ViewComments': (function() {
 		return {
-			regx: /(back|backwards|go back|navigate back|navigate backwards)/,
-			run: function() {
-				window.history.back();
-			}
+			ordinalMatch: ["comments", "view comments", "commons", "comets"],
+			run: function(i) {
+				$(thingAtIndex(i) + ' a.comments')[0].click();
+			},
 		};
 	})(),
-	'NavigateForward': (function() {
-		return {
-			regx: /(forward|ford|go forward|navigate forward|navigate ford)/,
-			run: function() {
-				window.history.forward();
-			}
-		};
-	})(),
-}
-
-
-
-function tryCmd(input) {
-	let [cmdName, matchOutput] = getCmdForUserInput(input);
-	console.log(`matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-	if (cmdName) {
-		COMMANDS[cmdName].run(matchOutput);
-		return true;
-	}
-	return false;
 }
 
 
@@ -280,7 +293,7 @@ function getCmdForUserInput(input) {
 		if (typeof curCmd.regx != 'undefined') {
 			out = input.match(curCmd.regx);
 		} else if (typeof curCmd.ordinalMatch != 'undefined') {
-			out = ordinalMatch(input, curCmd.ordinalMatch);
+			out = ordinalOrNumberToDigit(input, curCmd.ordinalMatch);
 		} else {
 			out = curCmd.matches(input);
 		}
@@ -288,25 +301,38 @@ function getCmdForUserInput(input) {
 			return [cmdName, out];
 		}
 	}
+	return [null, null];
 }
 
 
 function init(quiet) {
-	$('body').append($previewCommandBox);
-	if (typeof quiet === 'undefined' || quiet === false) {
-		showLabel("Ready", false, false);
-	}
+	$(document).ready(function() {
+		if (on) {
+			$('body').append($previewCommandBox);
+			if (typeof quiet === 'undefined' || quiet === false) {
+				showLabel("Ready", false, false);
+			}
+		}
+	});
 }
 
 
 function destroy() {
-	try {
-		$previewCommandBox.remove();
-	} catch(e) {}
+	if (!on) {
+		try {
+			$previewCommandBox.remove();
+		} catch(e) {}
+	}
 }
 
 
 function showLabel(text, isSuccess, isUnsure) {
+	// our element might not get reattached or might get removed from
+	//   * bf cache
+	//   * dom body overwrites from js
+	if (!$.contains(document.body, $previewCommandBox)) {
+		$('body').append($previewCommandBox);
+	}
 	clearTimeout(lblTimeout);
 	$previewCommandLbl.toggleClass('success', isSuccess);
 	$previewCommandLbl.toggleClass('unsure', isUnsure);
@@ -318,25 +344,36 @@ function showLabel(text, isSuccess, isUnsure) {
 }
 
 
+// TODO: needs tests
 chrome.runtime.onMessage.addListener(function(msg) {
 	if (typeof msg.userInput !== 'undefined') {
-		var text = msg.userInput.transcript;
+		let text = msg.userInput.transcript;
 		if (msg.userInput.isFinal) {
 			if (msg.userInput.confidence > CONFIDENCE_THRESHOLD) {
-				return showLabel(text, tryCmd(text), false);
+				let [cmdName, matchOutput] = getCmdForUserInput(text);
+				let niceOutput = null;
+				console.log(`matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+				if (cmdName) {
+					let cmd = COMMANDS[cmdName];
+					if (typeof cmd.nice !== 'undefined') {
+						niceOutput = cmd.nice(matchOutput);
+					}
+					cmd.run(matchOutput);
+				}
+				return showLabel(niceOutput ? niceOutput : text, cmdName !== null, false);
 			} else {
+				alert('not confident');
 				return showLabel(text, false, true);
 			}
 		}
 		return showLabel(text, false, false);
 	} else if (typeof msg.toggleOn !== 'undefined') {
-		$(document).ready(function() {
-			if (msg.toggleOn) {
-				init();
-			} else {
-				destroy();
-			}
-		});
+		on = msg.toggleOn;
+		if (on) {
+			init();
+		} else {
+			destroy();
+		}
 	} else if (typeof msg.toggleActive !== "undefined") {
 		if (msg.toggleActive) {
 			init(true);

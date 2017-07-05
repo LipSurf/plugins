@@ -3,7 +3,7 @@ const assert = require('assert');
 const jsdom = require('jsdom');
 const fs = require('fs');
 
-const rnh = fs.readFileSync('./src/rnh.js', { encoding: 'utf-8'});
+const rnh_cs = fs.readFileSync('./src/rnh-cs.js', { encoding: 'utf-8'});
 const jQuery = fs.readFileSync('./vendor/jquery-3.2.1.min.js', { encoding: 'utf-8'});
 const { JSDOM } = jsdom;
 
@@ -23,7 +23,7 @@ describe('rnh tests', function() {
 			runScripts: 'dangerously',
 		}).then(dom => {
 			attachScript(dom, jQuery);
-			attachScript(dom, rnh);
+			attachScript(dom, rnh_cs);
 			window = dom.window;
 		});
 	});
@@ -32,6 +32,12 @@ describe('rnh tests', function() {
 		for (let userInput of ['we are testing']) {
 			testNoOutput(userInput);
 		}
+	});
+
+	it('should parse subreddit names without spaces', function() {
+		let userInput = 'go to r not the onion';
+		var [cmd, match] = window.getCmdForUserInput(userInput);
+		assert.ok(match === 'nottheonion', `${userInput} -> ${match}`);
 	});
 
 	function cmdSelect(input) {
@@ -45,21 +51,23 @@ describe('rnh tests', function() {
 	}
 
 	function testOutput(userInput, expectedCmd) {
-		assert.equal(window.getCmdForUserInput(userInput)[0], expectedCmd);
+		assert.equal(window.getCmdForUserInput(userInput)[0], expectedCmd, userInput);
 	}
 
 	function testNoOutput(userInput) {
 		var output = window.getCmdForUserInput(userInput);
-		assert.ok(typeof output === 'undefined', `${userInput} -> ${output ? output[0]: ''}`);
+		assert.ok(output[0] === null, `${userInput} -> ${output[0]}`);
 	}
 
 	let cmdToPossibleInput = {
+		'ExpandPreview': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight'],
 		'NavigateBackward': ['back', 'backward', 'go back'],
 		'NavigateForward': ['forward', 'go forward', 'forwards'],
+		'NavigateToSubreddit': ['go to our testing', 'are funny',
+				'our world news', 'r worldnews'],
+		'Reddit': ['reddit', 'home'],
 		'ScrollTop': ['top', 'scroll top', 'scrolltop'],
 		'ScrollBottom': ['bottom', 'scroll bottom'],
-		'Reddit': ['reddit', 'home'],
-		'ExpandPreview': ['expand 1st', 'first expand', 'preview twelfe'],
 	}
 
 	for (let expectedCmd in cmdToPossibleInput) {
