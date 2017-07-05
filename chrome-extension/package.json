@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Control reddit.com with voice.",
   "main": "rnh.js",
+  "engines": {
+    "node": ">=6.0"
+  },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha tests",
+  	"watch": "when-changed.py * tests/* src/* -c node_modules/mocha/bin/mocha tests"
   },
   "repository": {
     "type": "git",

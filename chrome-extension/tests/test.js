@@ -1,10 +1,12 @@
+'use strict';
 const assert = require('assert');
 const jsdom = require('jsdom');
 const fs = require('fs');
 
-const rnh = fs.readFileSync('./rnh.js', { encoding: 'utf-8'});
-const jQuery = fs.readFileSync('./jquery-3.2.1.min.js', { encoding: 'utf-8'});
+const rnh = fs.readFileSync('./src/rnh.js', { encoding: 'utf-8'});
+const jQuery = fs.readFileSync('./vendor/jquery-3.2.1.min.js', { encoding: 'utf-8'});
 const { JSDOM } = jsdom;
+
 
 function attachScript(dom, scriptContent) {
 	var scriptEl = dom.window.document.createElement("script");
@@ -26,8 +28,14 @@ describe('rnh tests', function() {
 		});
 	});
 
+	it('should not activate a command', function() {
+		for (let userInput of ['we are testing']) {
+			testNoOutput(userInput);
+		}
+	});
+
 	function cmdSelect(input) {
-		for (cmd in window.COMMANDS) {
+		for (let cmd in window.COMMANDS) {
 			let matchOutput = window.COMMANDS[cmd].matches(input);
 			if (matchOutput) {
 				window.COMMANDS[cmd].run(matchOutput);
@@ -38,6 +46,11 @@ describe('rnh tests', function() {
 
 	function testOutput(userInput, expectedCmd) {
 		assert.equal(window.getCmdForUserInput(userInput)[0], expectedCmd);
+	}
+
+	function testNoOutput(userInput) {
+		var output = window.getCmdForUserInput(userInput);
+		assert.ok(typeof output === 'undefined', `${userInput} -> ${output ? output[0]: ''}`);
 	}
 
 	let cmdToPossibleInput = {

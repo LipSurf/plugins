@@ -1,5 +1,3 @@
-var $previewCommandBox = $('<div class="cont"><div class="preview-command">Hi</div></div>');
-var $previewCommandLbl = $previewCommandBox.find('.preview-command');
 const ORDINALS_TO_DIGITS = {
 	"first": 1,
 	"1st": 1,
@@ -87,76 +85,12 @@ const NUMBERS_TO_DIGITS = {
 	"nineteen": 19,
 	"twenty": 20
 };
+var $previewCommandBox = $('<div class="cont"><div class="preview-command">Hi</div></div>');
+var $previewCommandLbl = $previewCommandBox.find('.preview-command');
 var CONFIDENCE_THRESHOLD = 0;
 var SCROLL_DISTANCE = 550;
-var recognition;
 var lblTimeout;
 
-function init() {
-	$('body').append($previewCommandBox);
-	showLabel("Ready");
-	recognition = new webkitSpeechRecognition();
-	recognition.continuous = true;
-	recognition.interimResults = true;
-	recognition.lang = 'en-US';
-	recognition.maxAlternatives = 1;
-	recognition.start();
-
-	recognition.onresult = function(event) {
-		var lastE = event.results[event.results.length - 1];
-		var text = lastE[0].transcript;
-		showLabel(text);
-		if (lastE.isFinal && lastE[0].confidence > CONFIDENCE_THRESHOLD) {
-			tryCmd(text);
-		}
-	};
-
-	recognition.onerror = function(event) {
-		if (event.error != "no-speech") {
-			console.error("Speech recognition error: " + event.error);
-		}
-	};
-
-	recognition.onnomatch = function(event) {
-		showLabel("No match");
-	};
-
-	recognition.onend = function() {
-		console.log("ended. Restarting: ");
-		recognition.start();
-	};
-
-	// recognition.onspee
-}
-
-function destroy() {
-	try {
-		recognition.stop();
-	} catch(e) {}
-	try {
-		recognition.onresult = null;
-		recognition.onerror = null;
-		recognition.onend = null;
-	} catch (e) {}
-	recognition = null;
-	try {
-		$previewCommandBox.remove();
-	} catch(e) {}
-}
-
-function showLabel(text) {
-	clearTimeout(lblTimeout);
-	$previewCommandLbl.toggleClass('success', false);
-	$previewCommandLbl.text(text);
-	$previewCommandLbl.toggleClass('visible', true);
-	lblTimeout = setTimeout(function() {
-		$previewCommandLbl.toggleClass('visible', false);
-	}, 2000);
-}
-
-function recognizeSuccess() {
-	$previewCommandLbl.toggleClass('success', true);
-}
 
 // prefix or suffix match
 function ordinalMatch(input, keywords) {
@@ -173,10 +107,11 @@ function ordinalMatch(input, keywords) {
 	}
 }
 
+
 var COMMANDS = {
 	'Reddit': (function() {
 		return {
-			regx: /home|reddit|reddit.com|read it/,
+			regx: /(home|reddit|reddit.com|read it)/,
 			run: function() {
 				document.location.href = "https://www.reddit.com";
 			},
@@ -325,14 +260,18 @@ var COMMANDS = {
 	})(),
 }
 
+
+
 function tryCmd(input) {
 	let [cmdName, matchOutput] = getCmdForUserInput(input);
 	console.log(`matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
 	if (cmdName) {
-		recognizeSuccess();
 		COMMANDS[cmdName].run(matchOutput);
+		return true;
 	}
+	return false;
 }
+
 
 function getCmdForUserInput(input) {
 	for (let cmdName in COMMANDS) {
@@ -351,8 +290,46 @@ function getCmdForUserInput(input) {
 	}
 }
 
+
+function init(quiet) {
+	$('body').append($previewCommandBox);
+	if (typeof quiet === 'undefined' || quiet === false) {
+		showLabel("Ready", false, false);
+	}
+}
+
+
+function destroy() {
+	try {
+		$previewCommandBox.remove();
+	} catch(e) {}
+}
+
+
+function showLabel(text, isSuccess, isUnsure) {
+	clearTimeout(lblTimeout);
+	$previewCommandLbl.toggleClass('success', isSuccess);
+	$previewCommandLbl.toggleClass('unsure', isUnsure);
+	$previewCommandLbl.text(text);
+	$previewCommandLbl.toggleClass('visible', true);
+	lblTimeout = setTimeout(function() {
+		$previewCommandLbl.toggleClass('visible', false);
+	}, 2000);
+}
+
+
 chrome.runtime.onMessage.addListener(function(msg) {
-	if (typeof msg.toggleOn != "undefined") {
+	if (typeof msg.userInput !== 'undefined') {
+		var text = msg.userInput.transcript;
+		if (msg.userInput.isFinal) {
+			if (msg.userInput.confidence > CONFIDENCE_THRESHOLD) {
+				return showLabel(text, tryCmd(text), false);
+			} else {
+				return showLabel(text, false, true);
+			}
+		}
+		return showLabel(text, false, false);
+	} else if (typeof msg.toggleOn !== 'undefined') {
 		$(document).ready(function() {
 			if (msg.toggleOn) {
 				init();
@@ -360,5 +337,11 @@ chrome.runtime.onMessage.addListener(function(msg) {
 				destroy();
 			}
 		});
+	} else if (typeof msg.toggleActive !== "undefined") {
+		if (msg.toggleActive) {
+			init(true);
+		} else {
+			destroy();
+		}
 	}
 });

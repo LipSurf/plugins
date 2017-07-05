@@ -16,6 +16,10 @@
 .preview-command.failure {
 }
 
+.preview-command.unsure {
+	color: #666;
+}
+
 .preview-command.visible {
 	opacity: 0.8;
 }
