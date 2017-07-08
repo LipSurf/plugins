@@ -62,28 +62,48 @@ const ORDINALS_TO_DIGITS = {
 	"XIX": 19,
 	"twentieth": 20,
 	"20th": 20,
-	"XX": 20
+	"XX": 20,
 };
 const NUMBERS_TO_DIGITS = {
+	"1": 1,
 	"one": 1,
+	"2": 2,
 	"two": 2,
+	"3": 3,
 	"three": 3,
+	"4": 4,
 	"four": 4,
+	"5": 5,
 	"five": 5,
+	"6": 6,
 	"six": 6,
+	"7": 7,
 	"seven": 7,
+	"8": 8,
 	"eight": 8,
+	"9": 9,
 	"nine": 9,
+	"10": 10,
 	"ten": 10,
+	"11": 11,
 	"eleven": 11,
+	"12": 12,
 	"twelve": 12,
+	"13": 13,
 	"thirteen": 13,
+	"14": 14,
 	"fourteen": 14,
+	"15": 15,
 	"fifteen": 15,
+	"16": 16,
 	"sixteen": 16,
+	"17": 17,
 	"seventeen": 17,
+	"18": 18,
 	"eighteen": 18,
+	"19": 19,
 	"nineteen": 19,
+	"20": 20,
 	"twenty": 20
 };
 var $previewCommandBox = $('<div class="cont"><div class="preview-command">Hi</div></div>');
@@ -108,8 +128,9 @@ function ordinalOrNumberToDigit(input, keywords) {
 	}
 }
 
+
 function thingAtIndex(i) {
-	return `#siteTable>div.thing:not(.promoted):eq(${i - 1})`;
+	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):eq(${i - 1})`;
 }
 
 
@@ -141,7 +162,7 @@ var COMMANDS = {
 	})(),
 	'NavigateBackward': (function() {
 		return {
-			regx: /(back|backwards|go back|navigate back|navigate backwards)/i,
+			regx: /(back|backwards|go back|navigate back|navigate backwards)/,
 			run: function() {
 				window.history.back();
 			}
@@ -149,14 +170,14 @@ var COMMANDS = {
 	})(),
 	'NavigateForward': (function() {
 		return {
-			regx: /(forward|ford|go forward|navigate forward|navigate ford)/i,
+			regx: /(forward|ford|go forward|navigate forward|navigate ford)/,
 			run: function() {
 				window.history.forward();
 			}
 		};
 	})(),
 	'NavigateToSubreddit': (function() {
-		var REGX = /^(?:go to |show )?(?:are|our|r) (.*)/i;
+		var REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
 		console.log("BUILDING");
 		return {
 			matches: function(input) {
@@ -174,29 +195,92 @@ var COMMANDS = {
 			}
 		};
 	})(),
-	'Pause': (function() {
+	'PreviewPause': (function() {
 		return {
-			ordinalMatch: ['play'],
+		    regx: /(pause|pause video)/,
 			run: function(i) {
-				$(thingAtIndex(i) + ' button.ytp-large-play-button')[0].click();
+                let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
+                console.log(`video url ${videoUrl}`);
+                // send it a few times
+                function sendMsg(tm, counter) {
+                    if (counter > 0) {
+                        setTimeout(function () {
+                            console.log("sending...");
+                            chrome.runtime.sendMessage({pauseVideo: videoUrl}, function (response) {
+                                console.log("orig sender received response " + response);
+                                if (response) {
+                                    console.log("RECEIVED response!");
+                                } else {
+                                    sendMsg(2000, counter - 1);
+                                }
+                            });
+                        }, tm);
+                    }
+                }
+                sendMsg(0, 5);
 			},
 		};
 	})(),
-	'PlayPreview': (function() {
+	'PreviewPlay': (function() {
 		return {
 			ordinalMatch: ['play'],
 			run: function(i) {
-				let iframe1 = $('div.thing:eq(' + (i - 1) + ') .expando iframe')[0];
-				console.log(iframe1.contentWindow);
-				let iframe2 = $('iframe', iframe1.contentWindow);
-				console.log(iframe2.contentWindow);
-				$(thingAtIndex(i) + ' button.ytp-large-play-button')[0].click();
+				// get the unique video url
+				let videoUrl;
+				$(thingAtIndex(i) + ' .expando-button.collapsed').click();
+				videoUrl = $(thingAtIndex(i)).data('url');
+				console.log(`video url ${videoUrl}`);
+
+				// send it a few times
+				function sendMsg(tm, counter) {
+					if (counter > 0) {
+                        setTimeout(function () {
+                            console.log("sending...");
+                            chrome.runtime.sendMessage({playVideo: videoUrl}, function (response) {
+                            	console.log("orig sender received response " + response);
+                                if (response) {
+                                    console.log("RECEIVED response!");
+                                } else {
+                                    sendMsg(2000, counter - 1);
+                                }
+                            });
+                        }, tm);
+                    }
+				}
+				sendMsg(0, 5);
 			},
 		};
 	})(),
+    'PreviewResume': (function() {
+    	// Works with any video that may have started, even with the mouse
+        return {
+            regx: /(resume)/,
+            run: function(i) {
+                let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
+                console.log(`video url ${videoUrl}`);
+                // send it a few times
+                function sendMsg(tm, counter) {
+                    if (counter > 0) {
+                        setTimeout(function () {
+                            console.log("sending...");
+                            chrome.runtime.sendMessage({playVideo: videoUrl}, function (response) {
+                                console.log("orig sender received response " + response);
+                                if (response) {
+                                    console.log("RECEIVED response!");
+                                } else {
+                                    sendMsg(2000, counter - 1);
+                                }
+                            });
+                        }, tm);
+                    }
+                }
+                sendMsg(0, 5);
+            },
+        };
+    })(),
 	'Reddit': (function() {
 		return {
-			regx: /(home|reddit|reddit.com|read it)/i,
+			regx: /(home|reddit|reddit.com|read it)/,
 			run: function() {
 				document.location.href = "https://www.reddit.com";
 			},
@@ -204,7 +288,7 @@ var COMMANDS = {
 	})(),
 	'Refresh': (function() {
 		return {
-			regx: /refresh/i,
+			regx: /refresh/,
 			run: function() {
 				location.reload();
 			}
@@ -212,56 +296,56 @@ var COMMANDS = {
 	})(),
 	'ScrollBottom': (function() {
 		return {
-		    regx: /(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)/i,
+		    regx: /(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)/,
 			run: function() {
 				console.log("SCROLL BOTTOM");
-				$('html, body').animate({ scrollTop:  document.body.scrollHeight }, 'slow');
+				$('html, body').animate({ scrollTop:  document.body.scrollHeight });
 			},
 		};
 	})(),
 	'ScrollTop': (function() {
 		return {
-		    regx: /(top|top of page|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)/i,
+		    regx: /(top|top of page|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)/,
 			run: function() {
-				$('html, body').animate({ scrollTop:  0 }, 'slow');
+				$('html, body').animate({ scrollTop:  0 });
 			},
 		};
 	})(),
 	'ScrollDownLittle': (function() {
 		return {
-		    regx: /(scroll down a little|scroll down little|scroll downwards a little|scroll downwards little)/i,
+		    regx: /(scroll down a little|scroll down little|scroll downwards a little|scroll downwards little)/,
 			run: function() {
-				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 }, 'slow');
+				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 });
 			},
 		};
 	})(),
 	'ScrollDown': (function() {
 		return {
-		    regx: /(scroll down|scroll downwards)/i,
+		    regx: /(scroll down|scroll downwards)/,
 			run: function() {
-				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE }, 'slow');
+				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE });
 			},
 		};
 	})(),
 	'ScrollUpLittle': (function() {
 		return {
-			regx: /(scroll up a little|scroll up little|scroll upwards a little|scroll upwards little)/i,
+			regx: /(scroll up a little|scroll up little|scroll upwards a little|scroll upwards little)/,
 			run: function() {
-				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 }, 'slow');
+				$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE/2 });
 			},
 		};
 	})(),
 	'ScrollUp': (function() {
 		return {
-			regx: /(scroll up|scroll upwards)/i,
+			regx: /(scroll up|scroll upwards)/,
 			run: function() {
-				$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE }, 'slow');
+				$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE });
 			},
 		};
 	})(),
 	'Stop': (function() {
 		return {
-			regx: /stop/i,
+			regx: /stop/,
 			run: function() {
 				window.stop();
 			}

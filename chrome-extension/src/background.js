@@ -29,6 +29,18 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
 });
 
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	if (request.playVideo || request.pauseVideo) {
+        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, request, function (response) {
+                // not working (cannot get message in other content script
+                sendResponse(response);
+            });
+        });
+    }
+});
+
+
 var Recognizer = (function() {
 	var recognition;
 	return {
@@ -49,13 +61,14 @@ var Recognizer = (function() {
 					chrome.tabs.sendMessage(tabs[0].id, { 'userInput': {
 						'isFinal': lastE.isFinal,
 						'confidence': lastE[0].confidence,
-						'transcript': lastE[0].transcript.trim(),
+						'transcript': lastE[0].transcript.trim().toLowerCase(),
 					} });
 				});
 			};
 
 			// Error types:
 			// 	'no-speech'
+			//  'network'
 			recognition.onerror = function(event) {
 				// open the options page if we don't have permission
 				if (event.error !== 'no-speech') {
