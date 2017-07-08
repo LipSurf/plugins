@@ -1,9 +1,12 @@
 var on = false;
 var currentActiveTabId;
+var needsPermission = false;
+var ON_ICON = "assets/icon-on-128.png";
+var OFF_ICON = "assets/icon-off-128.png";
 
 
 function init() {
-	chrome.browserAction.setIcon({path: on ? "icon-on-128.png" : "icon-off-128.png"});
+	chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON });
 }
 
 
@@ -15,7 +18,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 		Recognizer.shutdown();
 	}
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.browserAction.setIcon({path: on ? "icon-on-128.png" : "icon-off-128.png"});
+		chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON});
 		chrome.tabs.sendMessage(tabs[0].id, {"toggleOn": on });
 	});
 });
@@ -69,11 +72,17 @@ var Recognizer = (function() {
 			// Error types:
 			// 	'no-speech'
 			//  'network'
+			//  'not-allowed
 			recognition.onerror = function(event) {
 				// open the options page if we don't have permission
-				if (event.error !== 'no-speech') {
-					alert("error " + event.error);
-				}
+				if (!needsPermission) {
+                    if (event.error === 'not-allowed') {
+                        needsPermission = true;
+                        chrome.runtime.openOptionsPage();
+                    } else if (event.error !== 'no-speech') {
+                        alert("error " + event.error);
+                    }
+                }
 			};
 
 			recognition.onnomatch = function(event) {
@@ -81,8 +90,10 @@ var Recognizer = (function() {
 			};
 
 			recognition.onend = function() {
-				console.log("ended. Restarting: ");
-				recognition.start();
+			    if (!needsPermission) {
+                    console.log("ended. Restarting: ");
+                    recognition.start();
+                }
 			};
 
 		},

@@ -108,10 +108,31 @@ const NUMBERS_TO_DIGITS = {
 };
 var $previewCommandBox = $('<div class="cont"><div class="preview-command">Hi</div></div>');
 var $previewCommandLbl = $previewCommandBox.find('.preview-command');
+var $helpBox = $(`<div class="help-box">
+	<div class="top-bar">
+		<span class="close-btn">×</span>
+    </div>
+	<h4>Command Examples</h4>
+	<div>Click [number - eg. six/sixth]</div>
+	<div>Preview [number]</div>
+	<div>Comments [number]</div>
+	<div>Scroll down</div>
+	<div>Top</div>
+	<div>Scroll down a little</div>
+	<div>Back</div>
+	<div>Forward</div>
+	<div>R [subreddit name] (goes to subreddit r/[subreddit name])</div>
+	<div>Play 7</div>
+	<div>Pause</div>
+	<div>Resume</div>
+	<div>Refresh</div>
+	<div>Reddit</div>
+	<div>Help</div>
+	<div>Close help</div>
+</div>`);
 var CONFIDENCE_THRESHOLD = 0;
 var SCROLL_DISTANCE = 550;
 var lblTimeout;
-
 
 // prefix or suffix match
 function ordinalOrNumberToDigit(input, keywords) {
@@ -130,7 +151,7 @@ function ordinalOrNumberToDigit(input, keywords) {
 
 
 function thingAtIndex(i) {
-	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):eq(${i - 1})`;
+	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
 }
 
 
@@ -160,6 +181,22 @@ var COMMANDS = {
 			}
 		};
 	})(),
+    'HelpOpen': (function() {
+        return {
+            regx: /^help$|(open help|help open|commands)/,
+            run: function() {
+                $helpBox.show();
+            }
+        };
+    })(),
+    'HelpClose': (function() {
+        return {
+            regx: /(close help|help close)/,
+            run: function() {
+                $helpBox.hide();
+            }
+        };
+    })(),
 	'NavigateBackward': (function() {
 		return {
 			regx: /(back|backwards|go back|navigate back|navigate backwards)/,
@@ -389,10 +426,17 @@ function getCmdForUserInput(input) {
 }
 
 
+
 function init(quiet) {
 	$(document).ready(function() {
 		if (on) {
 			$('body').append($previewCommandBox);
+			$('body').append($helpBox);
+
+            $helpBox.find('.close-btn').click(function() {
+                $helpBox.hide();
+            });
+
 			if (typeof quiet === 'undefined' || quiet === false) {
 				showLabel("Ready", false, false);
 			}
@@ -406,6 +450,9 @@ function destroy() {
 		try {
 			$previewCommandBox.remove();
 		} catch(e) {}
+        try {
+            $helpBox.remove();
+        } catch(e) {}
 	}
 }
 

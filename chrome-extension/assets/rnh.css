@@ -9,6 +9,27 @@
 	text-align: center;
 }
 
+.help-box {
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	width: 350px;
+	z-index: 99999999999;
+	background-color: #111;
+    opacity: 0.8;
+	color: white;
+    padding: 0 10px 10px 10px;
+}
+
+.top-bar {
+	text-align: right;
+}
+
+.close-btn {
+	font-size: 2em;
+	cursor: pointer;
+}
+
 .preview-command.success {
 	background-color: #378a52;
 }
@@ -22,16 +43,17 @@
 
 .preview-command.visible {
 	opacity: 0.8;
+	display: inline-block;
 }
 
 .preview-command
 {
 	transition: opacity 0.2s ease-in;
-	display: inline-block;
 	padding: 5px 15px;
 	background-color: black;
 	margin: 0 auto;
 	opacity: 0.0;
+	display: none;
 	color: white;
 	font-size: 5em;
 }
