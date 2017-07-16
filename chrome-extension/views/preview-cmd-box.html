@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0 auto;
+            text-align: center;
+            font-family: "arial";
+        }
+
+        .preview-cmd.success {
+            background-color: #378a52;
+        }
+
+        .preview-cmd.failure {
+        }
+
+        .preview-cmd.unsure {
+            color: #666;
+        }
+
+        .preview-cmd.visible {
+            opacity: 0.8;
+            transition: none;
+        }
+
+        .preview-cmd
+        {
+            display: inline-block;
+            transition: opacity 0.2s ease-in;
+            padding: 5px 15px;
+            background-color: black;
+            margin: 0 auto;
+            opacity: 0.0;
+            color: white;
+            font-size: 5em;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="cont"><div class="preview-cmd"></div></div>
+</body>
+</html>

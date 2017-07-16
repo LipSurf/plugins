@@ -9,7 +9,6 @@ function init() {
 	chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON });
 }
 
-
 chrome.browserAction.onClicked.addListener(function(tab) {
 	on = !on;
 	if (on) {
@@ -33,8 +32,17 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
 
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	if (request.playVideo || request.pauseVideo) {
+	if (request.bubbleDown) {
         chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+            if (request.bubbleDown.fullScreen) {
+                chrome.windows.update(tabs[0].windowId, {state: "fullscreen"}, function (windowUpdated) {
+                    //do whatever with the maximized window
+                });
+            } else if (request.bubbleDown.unFullScreen) {
+                chrome.windows.update(tabs[0].windowId, {state: "maximized"}, function (windowUpdated) {
+                    //do whatever with the maximized window
+                });
+			}
             chrome.tabs.sendMessage(tabs[0].id, request, function (response) {
                 // not working (cannot get message in other content script
                 sendResponse(response);
@@ -60,6 +68,7 @@ var Recognizer = (function() {
 
 			recognition.onresult = function(event) {
 				var lastE = event.results[event.results.length - 1];
+				console.dir(event);
 				chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 					chrome.tabs.sendMessage(tabs[0].id, { 'userInput': {
 						'isFinal': lastE.isFinal,
@@ -80,13 +89,13 @@ var Recognizer = (function() {
                         needsPermission = true;
                         chrome.runtime.openOptionsPage();
                     } else if (event.error !== 'no-speech') {
-                        alert("error " + event.error);
+                        console.error(`unhandled error: ${event.error}`);
                     }
                 }
 			};
 
 			recognition.onnomatch = function(event) {
-				// showLabel("No match");
+			    console.error(`No match! ${event}`);
 			};
 
 			recognition.onend = function() {

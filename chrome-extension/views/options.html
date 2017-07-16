@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+	<script src="../vendor/jquery-3.2.1.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="../vendor/material-icons.css"></link>
+    <style>
+		.notice {
+			padding: 9px 10px;
+			border-radius: 4px;
+			border: 1px #ddd solid;
+			visibility: hidden;
+		}
+
+		.notice i {
+			color: #13bd13;
+			vertical-align: middle;
+			font-size: 1.5em;
+		}
+
+		.notice.success {
+			background-color: #f4fff4;
+			color: #565656;
+            border-color:#cae6ca;
+			visibility: visible;
+		}
+
+		.notice.failure {
+			background-color: #ffe3e0;
+			border-color: #e69e9e;
+			color: #8c3838;
+			visibility: visible;
+		}
+
+		.notice.failure i {
+			color: #f34040;
+		}
+
+        .perms {
+            margin: 10px;
+        }
+	</style>
+	<script src="../src/options.js"></script>
+	<title>No Hand Man</title>
+</head>
+<body>
+	<div style="text-align: center">
+        <h1>No Hand Man</h1>
+        <h2>We need permission to use the microphone. Please click "allow" and No Hand Man will work in any window. </h2>
+        <p>Privacy: the speech recognizer is only activated for the active window when you click the No Hand Man icon in your extensions toolbar.</p>
+        <div class="perms">
+            <span id="mic_perm" class="notice">
+                <i class="material-icons"></i>&nbsp; <span></span>
+            </span>
+        </div>
+        <h4 id="done" style="visibility: hidden">You may now close this window.</h4>
+    </div>
+</body>
+</html

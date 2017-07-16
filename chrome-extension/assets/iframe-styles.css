@@ -1,0 +1,8 @@
+.nhm-full-screen {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    z-index: 99999999;
+    width: 100% !important;
+    height: 100% !important;
+}

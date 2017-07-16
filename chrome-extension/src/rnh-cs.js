@@ -1,73 +1,85 @@
 var on = false;
+var lastCmdExecutedTime = 0;
+var lastCmdExecuted = null;
+// how long to wait before allowing another command
+const COOLDOWN_TIME = 900;
+// max time to require before resetting the isFinal switch
+// that blocks a command from being run twice (once before isFinal
+// and once after)
+const FINAL_COOLDOWN_TIME = 2200;
 const ORDINALS_TO_DIGITS = {
 	"first": 1,
 	"1st": 1,
-	"I": 1,
+	"i": 1,
 	"second": 2,
 	"2nd": 2,
-	"II": 2,
+	"ii": 2,
 	"third": 3,
 	"3rd": 3,
-	"III": 3,
+	"iii": 3,
 	"fourth": 4,
 	"forth": 4,
 	"4th": 4,
-	"IV": 4,
+	"iv": 4,
 	"fifth": 5,
+	"fit": 5,
 	"5th": 5,
-	"V": 5,
+	"v": 5,
 	"sixth": 6,
+    "sex": 6,
 	"6th": 6,
-	"VI": 6,
+	"vi": 6,
 	"seventh": 7,
 	"7th": 7,
-	"VII": 7,
+	"vii": 7,
 	"eigth": 8,
 	"8th": 8,
-	"VIII": 8,
+	"viii": 8,
 	"ninth": 9,
 	"9th": 9,
-	"IX": 9,
+	"ix": 9,
 	"tenth": 10,
 	"10th": 10,
-	"X": 10,
+	"x": 10,
 	"eleventh": 11,
 	"11th": 11,
-	"XI": 11,
+	"xi": 11,
 	"twelfe": 12,
 	"twelve": 12,
 	"12th": 12,
-	"XII": 12,
+	"xii": 12,
 	"thirteenth": 13,
 	"13th": 13,
-	"XIII": 13,
+	"xiii": 13,
 	"fourteenth": 14,
 	"14th": 14,
 	"fourteen": 14,
-	"XIV": 14,
+	"xiv": 14,
 	"fifteenth": 15,
 	"15th": 15,
-	"XV": 15,
+	"xv": 15,
 	"sixteenth": 16,
 	"16th": 16,
-	"XVI": 16,
+	"xvi": 16,
 	"seventeenth": 17,
 	"17th": 17,
-	"XVII": 17,
+	"xvii": 17,
 	"eighteenth": 18,
 	"18th": 18,
-	"XVIII": 18,
+	"xviii": 18,
 	"nineteenth": 19,
 	"19th": 19,
-	"XIX": 19,
+	"xix": 19,
 	"twentieth": 20,
 	"20th": 20,
-	"XX": 20,
+	"xx": 20,
 };
 const NUMBERS_TO_DIGITS = {
 	"1": 1,
 	"one": 1,
 	"2": 2,
+	"to": 2,
+	"too": 2,
 	"two": 2,
 	"3": 3,
 	"three": 3,
@@ -106,33 +118,22 @@ const NUMBERS_TO_DIGITS = {
 	"20": 20,
 	"twenty": 20
 };
-var $previewCommandBox = $('<div class="cont"><div class="preview-command">Hi</div></div>');
-var $previewCommandLbl = $previewCommandBox.find('.preview-command');
-var $helpBox = $(`<div class="help-box">
-	<div class="top-bar">
-		<span class="close-btn">×</span>
-    </div>
-	<h4>Command Examples</h4>
-	<div>Click [number - eg. six/sixth]</div>
-	<div>Preview [number]</div>
-	<div>Comments [number]</div>
-	<div>Scroll down</div>
-	<div>Top</div>
-	<div>Scroll down a little</div>
-	<div>Back</div>
-	<div>Forward</div>
-	<div>R [subreddit name] (goes to subreddit r/[subreddit name])</div>
-	<div>Play 7</div>
-	<div>Pause</div>
-	<div>Resume</div>
-	<div>Refresh</div>
-	<div>Reddit</div>
-	<div>Help</div>
-	<div>Close help</div>
-</div>`);
+// less common -> common
+const SYNONYMS = {
+	'downwards': 'down',
+	'upwards': 'up',
+	'school': 'scroll',
+	'screw': 'scroll',
+	'small': 'little',
+    'paws': 'pause',
+};
+const LABEL_FADE_TIME = 2000;
+var $previewCmdBox;
+var $helpBox;
 var CONFIDENCE_THRESHOLD = 0;
 var SCROLL_DISTANCE = 550;
 var lblTimeout;
+var helpBoxOpen = false;
 
 // prefix or suffix match
 function ordinalOrNumberToDigit(input, keywords) {
@@ -149,9 +150,46 @@ function ordinalOrNumberToDigit(input, keywords) {
 	}
 }
 
+function expandSynonyms(input) {
+	for (let syn in SYNONYMS) {
+        input = input.replace(syn, SYNONYMS[syn]);
+    }
+    return input;
+}
+
+function getFrameHtml(id) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", chrome.extension.getURL(`views/${id}.html`), false);
+    xmlhttp.send();
+
+    return xmlhttp.responseText;
+}
+
+
+function attachOverlay(id) {
+	var $iframe = $(`<iframe class="nhm-iframe" id="nhm-${id}"></iframe>`);
+    $(document.body).append($iframe);
+    $iframe[0].contentDocument.write(getFrameHtml(id));
+
+    return $iframe;
+}
+
 
 function thingAtIndex(i) {
 	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
+}
+
+
+function sendMsgToBeacon(msg) {
+    retrialAndError(() => {
+    	console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`)
+        chrome.runtime.sendMessage({bubbleDown: msg}, function (response) {
+            console.log("orig sender received response " + response);
+            if (response) {
+                console.log("RECEIVED response!");
+            }
+        });
+	}, null, 2000, 2);
 }
 
 
@@ -185,14 +223,20 @@ var COMMANDS = {
         return {
             regx: /^help$|(open help|help open|commands)/,
             run: function() {
+                if (!$.contains(document.body, $helpBox)) {
+                    $helpBox = attachOverlay('help-box');
+                }
+                helpBoxOpen = true;
                 $helpBox.show();
             }
         };
     })(),
     'HelpClose': (function() {
         return {
-            regx: /(close help|help close)/,
+            regx: /(close help|help close|closeout|close up)/,
+			nice: 'close help',
             run: function() {
+            	helpBoxOpen = false;
                 $helpBox.hide();
             }
         };
@@ -228,37 +272,52 @@ var COMMANDS = {
 				window.location.href = `https://www.reddit.com/r/${subreddit_name}`;
 			},
 			nice: function(match) {
-				return `Go to r/${match}`;
+				return `go to r/${match}`;
 			}
 		};
 	})(),
-	'PreviewPause': (function() {
+    'VideoFullScreen': (function() {
+        return {
+            regx: /^(?:fullscreen|full screen)$/,
+            run: function(i) {
+                let $ele = $('.thing .expando-button.expanded').closest('*[data-url]');
+                let videoUrl = $ele.data('url');
+                let redditId = $ele.data('fullname').split('_')[1];
+                let $iframe = $ele.find('iframe');
+                $iframe.toggleClass('nhm-full-screen', true);
+                console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
+
+                sendMsgToBeacon({fullScreen: {redditId: redditId, videoUrl: videoUrl }});
+            },
+        };
+    })(),
+    'VideoUnFullScreen': (function() {
+        return {
+            regx: /(?:unfullscreen|unfull screen|on fullscreen|on full screen|unfold screen|no full screen)/,
+            run: function(i) {
+                let $ele = $('.thing .expando-button.expanded').closest('*[data-url]');
+                let videoUrl = $ele.data('url');
+                let redditId = $ele.data('fullname').split('_')[1];
+                let $iframe = $ele.find('iframe');
+                $iframe.toggleClass('nhm-full-screen', false);
+                console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
+
+                sendMsgToBeacon({unFullScreen: {redditId: redditId, videoUrl: videoUrl }});
+            },
+        };
+    })(),
+	'VideoPause': (function() {
 		return {
 		    regx: /(pause|pause video)/,
 			run: function(i) {
                 let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
                 console.log(`video url ${videoUrl}`);
-                // send it a few times
-                function sendMsg(tm, counter) {
-                    if (counter > 0) {
-                        setTimeout(function () {
-                            console.log("sending...");
-                            chrome.runtime.sendMessage({pauseVideo: videoUrl}, function (response) {
-                                console.log("orig sender received response " + response);
-                                if (response) {
-                                    console.log("RECEIVED response!");
-                                } else {
-                                    sendMsg(2000, counter - 1);
-                                }
-                            });
-                        }, tm);
-                    }
-                }
-                sendMsg(0, 5);
+
+                sendMsgToBeacon({pauseVideo: videoUrl});
 			},
 		};
 	})(),
-	'PreviewPlay': (function() {
+	'VideoPlay': (function() {
 		return {
 			ordinalMatch: ['play'],
 			run: function(i) {
@@ -268,27 +327,11 @@ var COMMANDS = {
 				videoUrl = $(thingAtIndex(i)).data('url');
 				console.log(`video url ${videoUrl}`);
 
-				// send it a few times
-				function sendMsg(tm, counter) {
-					if (counter > 0) {
-                        setTimeout(function () {
-                            console.log("sending...");
-                            chrome.runtime.sendMessage({playVideo: videoUrl}, function (response) {
-                            	console.log("orig sender received response " + response);
-                                if (response) {
-                                    console.log("RECEIVED response!");
-                                } else {
-                                    sendMsg(2000, counter - 1);
-                                }
-                            });
-                        }, tm);
-                    }
-				}
-				sendMsg(0, 5);
+                sendMsgToBeacon({playVideo: videoUrl});
 			},
 		};
 	})(),
-    'PreviewResume': (function() {
+    'VideoResume': (function() {
     	// Works with any video that may have started, even with the mouse
         return {
             regx: /(resume)/,
@@ -296,22 +339,7 @@ var COMMANDS = {
                 let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
                 console.log(`video url ${videoUrl}`);
                 // send it a few times
-                function sendMsg(tm, counter) {
-                    if (counter > 0) {
-                        setTimeout(function () {
-                            console.log("sending...");
-                            chrome.runtime.sendMessage({playVideo: videoUrl}, function (response) {
-                                console.log("orig sender received response " + response);
-                                if (response) {
-                                    console.log("RECEIVED response!");
-                                } else {
-                                    sendMsg(2000, counter - 1);
-                                }
-                            });
-                        }, tm);
-                    }
-                }
-                sendMsg(0, 5);
+                sendMsgToBeacon({playVideo: videoUrl});
             },
         };
     })(),
@@ -350,7 +378,7 @@ var COMMANDS = {
 	})(),
 	'ScrollDownLittle': (function() {
 		return {
-		    regx: /(scroll down a little|scroll down little|scroll downwards a little|scroll downwards little)/,
+		    regx: /(little down|little scroll down|scroll little down)/,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 });
 			},
@@ -358,7 +386,7 @@ var COMMANDS = {
 	})(),
 	'ScrollDown': (function() {
 		return {
-		    regx: /(scroll down|scroll downwards)/,
+		    regx: /(down|scroll down)/,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE });
 			},
@@ -366,7 +394,7 @@ var COMMANDS = {
 	})(),
 	'ScrollUpLittle': (function() {
 		return {
-			regx: /(scroll up a little|scroll up little|scroll upwards a little|scroll upwards little)/,
+			regx: /(little up|little scroll up|scroll little up)/,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE/2 });
 			},
@@ -374,7 +402,7 @@ var COMMANDS = {
 	})(),
 	'ScrollUp': (function() {
 		return {
-			regx: /(scroll up|scroll upwards)/,
+			regx: /(up|scroll up)/,
 			run: function() {
 				$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE });
 			},
@@ -408,6 +436,8 @@ var COMMANDS = {
 
 
 function getCmdForUserInput(input) {
+	// simplifies the input into a more limited set of words
+    let processedInput = expandSynonyms(input);
 	for (let cmdName in COMMANDS) {
 		let curCmd = COMMANDS[cmdName];
 		let out;
@@ -426,29 +456,55 @@ function getCmdForUserInput(input) {
 }
 
 
+// f is what needs to be done
+// f_check checks whether it was done
+// delay is the gap between tries
+function retrialAndError(f, f_check, delay, times) {
+	if (times > 0) {
+	    console.log("calling");
+		f();
+		setTimeout(function() {
+			if (f_check && !f_check())	{
+                return retrialAndError(f, f_check, delay, times - 1);
+			} else if (!f_check) {
+                return retrialAndError(f, f_check, delay, times - 1);
+			}
+		}, delay);
+	}
+}
+
 
 function init(quiet) {
-	$(document).ready(function() {
-		if (on) {
-			$('body').append($previewCommandBox);
-			$('body').append($helpBox);
-
-            $helpBox.find('.close-btn').click(function() {
-                $helpBox.hide();
-            });
-
-			if (typeof quiet === 'undefined' || quiet === false) {
-				showLabel("Ready", false, false);
-			}
-		}
-	});
+    retrialAndError(function() {
+        $(document).ready(function () {
+            if (on) {
+                $previewCmdBox = attachOverlay('preview-cmd-box');
+            }
+            if (typeof quiet === 'undefined' || quiet === false) {
+                showLabel("Ready", false, false);
+            }
+        });
+    }, function() {
+    	return document.body.contains($previewCmdBox[0]);
+	}, LABEL_FADE_TIME - 200, 5);
+    retrialAndError(function() {
+		$(document).ready(function() {
+			if (on) {
+			    console.log("opening");
+                $helpBox = attachOverlay('help-box');
+                helpBoxOpen = true;
+            }
+		});
+	}, function() {
+        return !helpBoxOpen || document.body.contains($helpBox[0]);
+	}, 2000, 5);
 }
 
 
 function destroy() {
 	if (!on) {
 		try {
-			$previewCommandBox.remove();
+			$previewCmdBox.remove();
 		} catch(e) {}
         try {
             $helpBox.remove();
@@ -461,43 +517,60 @@ function showLabel(text, isSuccess, isUnsure) {
 	// our element might not get reattached or might get removed from
 	//   * bf cache
 	//   * dom body overwrites from js
-	if (!$.contains(document.body, $previewCommandBox)) {
-		$('body').append($previewCommandBox);
+	if (typeof $previewCmdBox === 'undefined' || !document.body.contains($previewCmdBox[0])) {
+	    $previewCmdBox = attachOverlay('preview-cmd-box');
 	}
+    let $previewCmdLbl = $previewCmdBox.contents().find('.preview-cmd');
 	clearTimeout(lblTimeout);
-	$previewCommandLbl.toggleClass('success', isSuccess);
-	$previewCommandLbl.toggleClass('unsure', isUnsure);
-	$previewCommandLbl.text(text);
-	$previewCommandLbl.toggleClass('visible', true);
+	$previewCmdLbl.toggleClass('success', isSuccess);
+	$previewCmdLbl.toggleClass('unsure', isUnsure);
+	$previewCmdLbl.text(text);
+	$previewCmdLbl.toggleClass('visible', true);
 	lblTimeout = setTimeout(function() {
-		$previewCommandLbl.toggleClass('visible', false);
-	}, 2000);
+		$previewCmdLbl.toggleClass('visible', false);
+	}, LABEL_FADE_TIME);
 }
 
 
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function(msg) {
 	if (typeof msg.userInput !== 'undefined') {
-		let text = msg.userInput.transcript;
-		if (msg.userInput.isFinal) {
-			if (msg.userInput.confidence > CONFIDENCE_THRESHOLD) {
-				let [cmdName, matchOutput] = getCmdForUserInput(text);
-				let niceOutput = null;
-				console.log(`matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-				if (cmdName) {
-					let cmd = COMMANDS[cmdName];
-					if (typeof cmd.nice !== 'undefined') {
-						niceOutput = cmd.nice(matchOutput);
+		let elapsedTime = +new Date() - lastCmdExecutedTime;
+	    if (elapsedTime > COOLDOWN_TIME) {
+	        console.log(`elapsed time ${elapsedTime}`);
+            let text = msg.userInput.transcript;
+            if (msg.userInput.isFinal) {
+                lastFinalTime = +new Date();
+                if (msg.userInput.confidence <= CONFIDENCE_THRESHOLD) {
+                    return showLabel(text, false, true);
+                }
+            }
+            if (msg.userInput.confidence > CONFIDENCE_THRESHOLD) {
+                // console.log(`start time ${+new Date()}`);
+                let [cmdName, matchOutput] = getCmdForUserInput(text);
+                let niceOutput = null;
+                console.log(`input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+                // console.log(`end time ${+new Date()}`);
+                if (cmdName) {
+                    // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
+                    if (msg.userInput.isFinal && lastCmdExecuted && lastCmdExecuted === cmdName && (+new Date() - lastFinalTime) < FINAL_COOLDOWN_TIME) {
+                    	console.log("Junked dupe.");
+                    	return;
 					}
-					cmd.run(matchOutput);
-				}
-				return showLabel(niceOutput ? niceOutput : text, cmdName !== null, false);
-			} else {
-				alert('not confident');
-				return showLabel(text, false, true);
-			}
-		}
-		return showLabel(text, false, false);
+                    let cmd = COMMANDS[cmdName];
+                    if (typeof cmd.nice === 'string') {
+                        niceOutput = cmd.nice;
+                    } else if (typeof cmd.nice === 'function') {
+                        niceOutput = cmd.nice(matchOutput);
+                    }
+                    console.log(`running command ${cmdName} isFinal:${msg.userInput.isFinal}`);
+                    lastCmdExecuted = cmdName;
+                    lastCmdExecutedTime = +new Date();
+                    cmd.run(matchOutput);
+                }
+                return showLabel(niceOutput ? niceOutput : text, cmdName !== null, false);
+            }
+        }
 	} else if (typeof msg.toggleOn !== 'undefined') {
 		on = msg.toggleOn;
 		if (on) {

@@ -9,51 +9,37 @@
 	text-align: center;
 }
 
-.help-box {
+.nhm-iframe {
+	text-align: left;
+	font-family: "arial";
+	border: none !important;
+	margin: 0 !important;
+    padding: 0 !important;
+	position: fixed !important;
+	z-index: 9999999999 !important;
+	pointer-events: none !important;
+}
+
+.nhm-full-screen {
 	position: fixed;
-	top: 0px;
-	right: 0px;
-	width: 350px;
-	z-index: 99999999999;
-	background-color: #111;
-    opacity: 0.8;
-	color: white;
-    padding: 0 10px 10px 10px;
+	top: 0;
+	left: 0;
+	z-index: 99999999;
+	width: 100% !important;
+	height: 100% !important;
 }
 
-.top-bar {
-	text-align: right;
+#nhm-preview-cmd-box {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 20rem;
 }
 
-.close-btn {
-	font-size: 2em;
-	cursor: pointer;
+#nhm-help-box {
+	top: 0;
+	right: 0;
+	width: 20rem;
+    height: 30rem;
 }
 
-.preview-command.success {
-	background-color: #378a52;
-}
-
-.preview-command.failure {
-}
-
-.preview-command.unsure {
-	color: #666;
-}
-
-.preview-command.visible {
-	opacity: 0.8;
-	display: inline-block;
-}
-
-.preview-command
-{
-	transition: opacity 0.2s ease-in;
-	padding: 5px 15px;
-	background-color: black;
-	margin: 0 auto;
-	opacity: 0.0;
-	display: none;
-	color: white;
-	font-size: 5em;
-}
