@@ -4,10 +4,11 @@
   "description": "Control reddit with your voice. Great for browsing reddit while you eat or do \"other\" things.",
   "version": "1.0",
   "background": {
-    "scripts": ["src/background.js"]
+    "scripts": ["src/background.js"],
+    "persistent": true
   },
   "browser_action": {
-    "default_title": "Click to enable Reddit No Hands",
+    "default_title": "Click to enable voice control.",
     "default_icon": "assets/icon-off-128.png"
   },
   "content_scripts": [
@@ -20,17 +21,31 @@
     },
     {
       "matches": [
+        "http://www.youtube.com/embed/*",
         "https://www.youtube.com/embed/*"
       ],
       "js": ["src/frame-beacon.js"],
       "all_frames": true
+    },
+    {
+      "matches": [
+        "http://www.redditmedia.com/*",
+        "https://www.redditmedia.com/*"
+      ],
+      "js": ["src/reddit-media-frame-beacon.js"],
+      "css": ["assets/iframe-styles.css"],
+      "all_frames": true
     }
   ],
   "author": "Miko Borys",
-  "options_page": "options.html",
+  "options_page": "views/options.html",
   "permissions": [
     "tabs",
-  	"ttsEngine",
-    "https://ajax.googleapis.com/"
+    "activeTab",
+    "alarms"
+  ],
+  "web_accessible_resources": [
+    "views/preview-cmd-box.html",
+    "views/help-box.html"
   ]
 }

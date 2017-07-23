@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "mocha tests",
-    "watch": "when-changed.py * tests/* src/* assets/* -c node_modules/mocha/bin/mocha tests"
+    "watch": "when-changed -1s tests/* src/* assets/* views/* vendor/* -c node_modules/mocha/bin/mocha tests"
   },
   "repository": {
     "type": "git",

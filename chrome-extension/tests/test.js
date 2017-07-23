@@ -73,6 +73,7 @@ describe('rnh tests', function() {
 	for (let expectedCmd in cmdToPossibleInput) {
 		let possibleUserInputs = cmdToPossibleInput[expectedCmd];
 		it(`${expectedCmd} commands match`, function() {
+			window.COOLDOWN_TIME = 0;
 			for (let userInput of possibleUserInputs) {
 				testOutput(userInput, expectedCmd);
 			}
