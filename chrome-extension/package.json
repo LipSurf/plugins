@@ -7,7 +7,8 @@
     "node": ">=6.0"
   },
   "scripts": {
-    "test": "mocha tests",
+    "test": "node_modules/mocha/bin/mocha tests",
+    "test-debug": "node_modules/mocha/bin/mocha debug tests",
     "watch": "when-changed -1s tests/* src/* assets/* views/* vendor/* -c node_modules/mocha/bin/mocha tests"
   },
   "repository": {

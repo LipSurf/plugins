@@ -17,12 +17,45 @@ function attachScript(dom, scriptContent) {
 
 describe('rnh tests', function() {
 	var window;
+	var bg;
 
 	before(function () {
+	    bg = require('../src/background.js').init({chrome: {
+	    	browserAction: {
+	    		setIcon: () => null,
+				onClicked: {
+                    addListener: () => null,
+                }
+			},
+			tabs: {
+	    		onActivated: {
+	    			addListener: () => null,
+				}
+			},
+			runtime: {
+	    		onMessage: {
+	    			addListener: () => null,
+				}
+			}
+		}});
+
+	    bg.COOLDOWN_TIME = 0;
+	    bg.FINAL_COOLDOWN_TIME = 0;
+
 		return JSDOM.fromFile("tests/mock.html", {
 			runScripts: 'dangerously',
 		}).then(dom => {
 			attachScript(dom, jQuery);
+			dom.window.eval(`
+                var chrome = {
+                    runtime: {
+                        onMessage: {
+                            addListener: () => {},
+                        },
+                        sendMessage: () => {},
+                    }
+                }
+			`);
 			attachScript(dom, rnh_cs);
 			window = dom.window;
 		});
@@ -36,32 +69,23 @@ describe('rnh tests', function() {
 
 	it('should parse subreddit names without spaces', function() {
 		let userInput = 'go to r not the onion';
-		var [cmd, match] = window.getCmdForUserInput(userInput);
+		var [cmd, match] = bg.getCmdForUserInput(userInput);
 		assert.ok(match === 'nottheonion', `${userInput} -> ${match}`);
 	});
 
-	function cmdSelect(input) {
-		for (let cmd in window.COMMANDS) {
-			let matchOutput = window.COMMANDS[cmd].matches(input);
-			if (matchOutput) {
-				window.COMMANDS[cmd].run(matchOutput);
-				return cmd;
-			}
-		};
-	}
-
 	function testOutput(userInput, expectedCmd) {
-		assert.equal(window.getCmdForUserInput(userInput)[0], expectedCmd, userInput);
+		let selectedCmd = bg.getCmdForUserInput(userInput)[0];
+		assert.equal(selectedCmd, expectedCmd, selectedCmd);
 	}
 
 	function testNoOutput(userInput) {
-		var output = window.getCmdForUserInput(userInput);
+		var output = bg.getCmdForUserInput(userInput);
 		assert.ok(output[0] === null, `${userInput} -> ${output[0]}`);
 	}
 
 	let cmdToPossibleInput = {
 		'ExpandPreview': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight'],
-		'NavigateBackward': ['back', 'backward', 'go back'],
+		'NavigateBackward': ['back', 'go back', 'navigate back', 'navigate backwards', 'backwards', 'backward', 'go backwards'],
 		'NavigateForward': ['forward', 'go forward', 'forwards'],
 		'NavigateToSubreddit': ['go to our testing', 'are funny',
 				'our world news', 'r worldnews'],
@@ -72,11 +96,10 @@ describe('rnh tests', function() {
 
 	for (let expectedCmd in cmdToPossibleInput) {
 		let possibleUserInputs = cmdToPossibleInput[expectedCmd];
-		it(`${expectedCmd} commands match`, function() {
-			window.COOLDOWN_TIME = 0;
-			for (let userInput of possibleUserInputs) {
-				testOutput(userInput, expectedCmd);
-			}
-		});
+        for (let userInput of possibleUserInputs) {
+            it(`"${userInput}" should execute expected ${expectedCmd}`, function() {
+                testOutput(userInput, expectedCmd);
+			});
+		}
 	}
 });

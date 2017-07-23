@@ -1,3 +1,4 @@
+var exports = module.exports = {};
 var on = false;
 var audible = false;
 var currentActiveTabId;
@@ -126,11 +127,17 @@ const NUMBERS_TO_DIGITS = {
 // less common -> common
 const SYNONYMS = {
     'downwards': 'down',
+    'downward': 'down',
+    'backwards': 'back',
+    'backward': 'back',
+    'forwards': 'forward',
     'upwards': 'up',
+    'upward': 'up',
     'school': 'scroll',
     'screw': 'scroll',
     'small': 'little',
     'paws': 'pause',
+    'navigate': 'go',
 };
 var CONFIDENCE_THRESHOLD = 0;
 
@@ -150,16 +157,24 @@ function ordinalOrNumberToDigit(input, keywords) {
     }
 }
 
+
+function dedupe(input) {
+    let existingWords = {};
+    let processed = [];
+    for (let word of input.split(' ')) {
+        if (typeof existingWords[word] === 'undefined') {
+            processed.push(word);
+        }
+    }
+    return processed.join(' ');
+}
+
+
 function expandSynonyms(input) {
     for (let syn in SYNONYMS) {
         input = input.replace(syn, SYNONYMS[syn]);
     }
     return input;
-}
-
-
-function init() {
-	chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON });
 }
 
 
@@ -170,18 +185,19 @@ function sendMsgToActiveTab(request) {
 }
 
 
-function getCmdForUserInput(input) {
+exports.getCmdForUserInput = function(input) {
     // simplifies the input into a more limited set of words
     let processedInput = expandSynonyms(input);
+    processedInput = dedupe(processedInput);
     for (let cmdName in COMMANDS) {
         let curCmd = COMMANDS[cmdName];
         let out;
         if (typeof curCmd.regx != 'undefined') {
-            out = input.match(curCmd.regx);
+            out = processedInput.match(curCmd.regx);
         } else if (typeof curCmd.ordinalMatch != 'undefined') {
-            out = ordinalOrNumberToDigit(input, curCmd.ordinalMatch);
+            out = ordinalOrNumberToDigit(processedInput, curCmd.ordinalMatch);
         } else {
-            out = curCmd.matches(input);
+            out = curCmd.matches(processedInput);
         }
         if (out) {
             return [cmdName, out];
@@ -203,7 +219,7 @@ function handleTranscript({isFinal, transcript, confidence} = {}) {
         }
         if (confidence > CONFIDENCE_THRESHOLD) {
             // console.log(`start time ${+new Date()}`);
-            let [cmdName, matchOutput] = getCmdForUserInput(transcript);
+            let [cmdName, matchOutput] = exports.getCmdForUserInput(transcript);
             let niceOutput = null;
             console.log(`input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
             // console.log(`end time ${+new Date()}`);
@@ -238,49 +254,6 @@ function executeCmd({name, matchStr} = {}) {
         sendMsgToActiveTab({'cmd': {'name': name, 'match': matchStr}});
     }
 }
-
-
-chrome.browserAction.onClicked.addListener(function(tab) {
-	on = !on;
-	if (on) {
-		Recognizer.start();
-		InterferenceAudioDetector.init();
-	} else {
-		Recognizer.shutdown();
-        InterferenceAudioDetector.destroy();
-	}
-    chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON});
-	sendMsgToActiveTab({'toggleOn': on})
-});
-
-
-chrome.tabs.onActivated.addListener(function(activeInfo) {
-	if (typeof currentActiveTabId !== 'undefined') {
-		chrome.tabs.sendMessage(currentActiveTabId, {"toggleActive": false });
-	}
-	chrome.tabs.sendMessage(activeInfo.tabId, {"toggleActive": true });
-});
-
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	if (request.bubbleDown) {
-        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-            if (request.bubbleDown.fullScreen) {
-                chrome.windows.update(tabs[0].windowId, {state: "fullscreen"}, function (windowUpdated) {
-                    //do whatever with the maximized window
-                });
-            } else if (request.bubbleDown.unFullScreen) {
-                chrome.windows.update(tabs[0].windowId, {state: "maximized"}, function (windowUpdated) {
-                    //do whatever with the maximized window
-                });
-			}
-            chrome.tabs.sendMessage(tabs[0].id, request, function (response) {
-                // not working (cannot get message in other content script
-                sendResponse(response);
-            });
-        });
-    }
-});
 
 
 var InterferenceAudioDetector = (function() {
@@ -415,12 +388,12 @@ var COMMANDS = {
     })(),
     'NavigateBackward': (function() {
         return {
-            regx: /^(back|backwards|go back|navigate back|navigate backwards)$/
+            regx: /^(?:back|go back)$/
         };
     })(),
     'NavigateForward': (function() {
         return {
-            regx: /^(forward|ford|go forward|navigate forward|navigate ford)$/
+            regx: /^(?:forward|ford|go forward)$/
         };
     })(),
     'NavigateToSubreddit': (function() {
@@ -560,7 +533,7 @@ var COMMANDS = {
     })(),
     'ScrollTop': (function() {
         return {
-            regx: /^(top|top of page|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)$/
+            regx: /^(top|top of page|scrolltop|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)$/
         };
     })(),
     'ScrollDownLittle': (function() {
@@ -590,7 +563,7 @@ var COMMANDS = {
     })(),
     'VisitPost': (function() {
         return {
-            ordinalMatch: ['click']
+            ordinalMatch: ['click', 'quick']
         };
     })(),
     'ViewComments': (function() {
@@ -601,4 +574,55 @@ var COMMANDS = {
 }
 
 
-init();
+exports.init = function({chrome} = {}) {
+    chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON });
+
+    chrome.browserAction.onClicked.addListener(function(tab) {
+        on = !on;
+        if (on) {
+            Recognizer.start();
+            InterferenceAudioDetector.init();
+        } else {
+            Recognizer.shutdown();
+            InterferenceAudioDetector.destroy();
+        }
+        chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON});
+        sendMsgToActiveTab({'toggleOn': on})
+    });
+
+
+    chrome.tabs.onActivated.addListener(function(activeInfo) {
+        if (typeof currentActiveTabId !== 'undefined') {
+            chrome.tabs.sendMessage(currentActiveTabId, {"toggleActive": false });
+        }
+        chrome.tabs.sendMessage(activeInfo.tabId, {"toggleActive": true });
+    });
+
+
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+        if (request.bubbleDown) {
+            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                if (request.bubbleDown.fullScreen) {
+                    chrome.windows.update(tabs[0].windowId, {state: "fullscreen"}, function (windowUpdated) {
+                        //do whatever with the maximized window
+                    });
+                } else if (request.bubbleDown.unFullScreen) {
+                    chrome.windows.update(tabs[0].windowId, {state: "maximized"}, function (windowUpdated) {
+                        //do whatever with the maximized window
+                    });
+                }
+                chrome.tabs.sendMessage(tabs[0].id, request, function (response) {
+                    // not working (cannot get message in other content script
+                    sendResponse(response);
+                });
+            });
+        }
+    });
+
+    return exports;
+};
+
+
+if (typeof chrome !== 'undefined') {
+    exports.init({chrome: chrome});
+}
