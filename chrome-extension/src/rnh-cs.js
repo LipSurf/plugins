@@ -27,6 +27,22 @@ function attachOverlay(id) {
 }
 
 
+function toggleFullScreen(on) {
+    // let $ele = $lastExpanded.closest('*[data-url]');
+    // let $iframe = $ele.find('iframe');
+    // $iframe.toggleClass('nhm-full-screen', false);
+	if (on) {
+        $('#header').hide();
+        $('.side').hide();
+        $(document.body).css('overflow', 'hidden');
+	} else {
+        $('#header').show();
+        $('.side').show();
+        $(document.body).css('overflow', 'visible');
+        $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
+	}
+}
+
 function thingAtIndex(i) {
 	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
 }
@@ -114,24 +130,22 @@ var COMMANDS = {
     	// if the user exits the full screen manually, we need to handle
         // cleanup here
         return {
-            run: function(i) {
+            run: function() {
                 let $ele = $lastExpanded.closest('*[data-url]');
                 let videoUrl = $ele.data('url');
                 let redditId = $ele.data('fullname').split('_')[1];
                 let $iframe = $ele.find('iframe');
                 $iframe.toggleClass('nhm-full-screen', true);
+                toggleFullScreen(true);
                 console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
-
                 sendMsgToBeacon({fullScreen: {redditId: redditId, videoUrl: videoUrl }});
             },
         };
     })(),
     'VideoUnFullScreen': (function() {
         return {
-            run: function(i) {
-                let $ele = $lastExpanded.closest('*[data-url]');
-                let $iframe = $ele.find('iframe');
-                $iframe.toggleClass('nhm-full-screen', false);
+            run: function() {
+                toggleFullScreen(false);
                 sendMsgToBeacon({unFullScreen: null});
             },
         };
@@ -357,8 +371,11 @@ chrome.runtime.onMessage.addListener(function(msg) {
 	}
 });
 
+
 document.addEventListener("webkitfullscreenchange", function( event ) {
     // a user initiated non-voice full screen change -- take off our special fullscreen
     console.log(`rnh-cs removing fullscreen ${document.webkitIsFullScreen}`);
-    $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
+    toggleFullScreen(false);
 });
+
+

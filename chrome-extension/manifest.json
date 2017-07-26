@@ -41,8 +41,7 @@
   "options_page": "views/options.html",
   "permissions": [
     "tabs",
-    "activeTab",
-    "alarms"
+    "activeTab"
   ],
   "web_accessible_resources": [
     "views/preview-cmd-box.html",
