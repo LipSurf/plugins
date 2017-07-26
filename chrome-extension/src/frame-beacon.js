@@ -42,3 +42,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
     }
 });
+
+document.addEventListener("webkitfullscreenchange", function( event ) {
+    // a user initiated non-voice full screen change -- take off our special fullscreen
+    console.log(`frame-beacon.js rnh-cs removing fullscreen ${document.webkitIsFullScreen}`);
+    if (!document.webkitIsFullScreen) {
+        chrome.runtime.sendMessage({bubbleDown: {unFullScreen: null}});
+    }
+});

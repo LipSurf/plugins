@@ -19,7 +19,8 @@ describe('rnh tests', function() {
 	var window;
 	var bg;
 
-	before(function () {
+	before(function (done) {
+        let wasError = false;
 	    bg = require('../src/background.js').init({chrome: {
 	    	browserAction: {
 	    		setIcon: () => null,
@@ -42,7 +43,7 @@ describe('rnh tests', function() {
 	    bg.COOLDOWN_TIME = 0;
 	    bg.FINAL_COOLDOWN_TIME = 0;
 
-		return JSDOM.fromFile("tests/mock.html", {
+		JSDOM.fromFile("tests/mock.html", {
 			runScripts: 'dangerously',
 		}).then(dom => {
 			attachScript(dom, jQuery);
@@ -56,8 +57,15 @@ describe('rnh tests', function() {
                     }
                 }
 			`);
-			attachScript(dom, rnh_cs);
 			window = dom.window;
+            window.onerror = function(messageOrEvent, source, lineno, colno, error) {
+                wasError = true;
+                done(error);
+            };
+            attachScript(dom, rnh_cs);
+            if (!wasError) {
+                done();
+            }
 		});
 	});
 

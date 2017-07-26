@@ -9,7 +9,7 @@
   "scripts": {
     "test": "node_modules/mocha/bin/mocha tests",
     "test-debug": "node_modules/mocha/bin/mocha debug tests",
-    "watch": "when-changed -1s tests/* src/* assets/* views/* vendor/* -c node_modules/mocha/bin/mocha tests"
+    "watch": "when-changed -1 -s tests/* src/* assets/* views/* vendor/* -c node_modules/mocha/bin/mocha tests"
   },
   "repository": {
     "type": "git",

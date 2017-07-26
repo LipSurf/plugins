@@ -5,6 +5,8 @@ var $previewCmdBox;
 var $helpBox;
 var lblTimeout;
 var helpBoxOpen = false;
+// used to determine which video to fullscreen
+var $lastExpanded;
 
 
 function getFrameHtml(id) {
@@ -109,9 +111,11 @@ var COMMANDS = {
 		};
 	})(),
     'VideoFullScreen': (function() {
+    	// if the user exits the full screen manually, we need to handle
+        // cleanup here
         return {
             run: function(i) {
-                let $ele = $('.thing .expando-button.expanded').closest('*[data-url]');
+                let $ele = $lastExpanded.closest('*[data-url]');
                 let videoUrl = $ele.data('url');
                 let redditId = $ele.data('fullname').split('_')[1];
                 let $iframe = $ele.find('iframe');
@@ -125,20 +129,17 @@ var COMMANDS = {
     'VideoUnFullScreen': (function() {
         return {
             run: function(i) {
-                let $ele = $('.thing .expando-button.expanded').closest('*[data-url]');
-                let videoUrl = $ele.data('url');
-                let redditId = $ele.data('fullname').split('_')[1];
+                let $ele = $lastExpanded.closest('*[data-url]');
                 let $iframe = $ele.find('iframe');
                 $iframe.toggleClass('nhm-full-screen', false);
-                console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
-
-                sendMsgToBeacon({unFullScreen: {redditId: redditId, videoUrl: videoUrl }});
+                sendMsgToBeacon({unFullScreen: null});
             },
         };
     })(),
 	'VideoPause': (function() {
 		return {
 			run: function(i) {
+			    // TODO: find the one that's playing
                 let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
                 console.log(`video url ${videoUrl}`);
 
@@ -270,19 +271,23 @@ function retrialAndError(f, f_check, delay, times) {
 }
 
 
-function init(quiet) {
+function init(quiet=false) {
     retrialAndError(function() {
         $(document).ready(function () {
             if (on) {
                 $previewCmdBox = attachOverlay('preview-cmd-box');
             }
             if (typeof quiet === 'undefined' || quiet === false) {
-                showLiveText("Ready", false, false);
+                showLiveText({text: "Ready"});
             }
+            $(`#siteTable>div.thing .expando-button`).click(function(e) {
+				$lastExpanded = $(e.currentTarget);
+			});
         });
     }, function() {
     	return document.body.contains($previewCmdBox[0]);
 	}, LABEL_FADE_TIME - 200, 5);
+
     retrialAndError(function() {
 		$(document).ready(function() {
 			if (on) {
@@ -309,7 +314,7 @@ function destroy() {
 }
 
 
-function showLiveText({text, isSuccess, isUnsure} = {}) {
+function showLiveText({text, isSuccess=false, isUnsure=false} = {}) {
 	// our element might not get reattached or might get removed from
 	//   * bf cache
 	//   * dom body overwrites from js
@@ -334,7 +339,7 @@ chrome.runtime.onMessage.addListener(function(msg) {
 	    if (typeof COMMANDS[msg.cmd.name] !== 'undefined') {
             return COMMANDS[msg.cmd.name].run(msg.cmd.match);
         }
-    } else if (typeof msg.liveText) {
+    } else if (typeof msg.liveText !== 'undefined') {
 		showLiveText(msg.liveText);
 	} else if (typeof msg.toggleOn !== 'undefined') {
 		on = msg.toggleOn;
@@ -350,4 +355,10 @@ chrome.runtime.onMessage.addListener(function(msg) {
 			destroy();
 		}
 	}
+});
+
+document.addEventListener("webkitfullscreenchange", function( event ) {
+    // a user initiated non-voice full screen change -- take off our special fullscreen
+    console.log(`rnh-cs removing fullscreen ${document.webkitIsFullScreen}`);
+    $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
 });

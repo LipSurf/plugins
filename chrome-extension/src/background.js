@@ -1,4 +1,4 @@
-var exports = module.exports = {};
+var exports = typeof module !== 'undefined' ? module.exports = {} : {};
 var on = false;
 var audible = false;
 var currentActiveTabId;
@@ -158,6 +158,10 @@ function ordinalOrNumberToDigit(input, keywords) {
 }
 
 
+// Maybe we want to execute each command seperately? Like "down down" should
+// be two downs. If the user chains commands like "down up" then
+// maybe we should split and match the first valid part of the command?
+// Needs thought...
 function dedupe(input) {
     let existingWords = {};
     let processed = [];
@@ -188,7 +192,7 @@ function sendMsgToActiveTab(request) {
 exports.getCmdForUserInput = function(input) {
     // simplifies the input into a more limited set of words
     let processedInput = expandSynonyms(input);
-    processedInput = dedupe(processedInput);
+    // processedInput = dedupe(processedInput);
     for (let cmdName in COMMANDS) {
         let curCmd = COMMANDS[cmdName];
         let out;
@@ -274,14 +278,14 @@ var InterferenceAudioDetector = (function() {
                     chrome.tabs.query({audible: true}, function (tabs) {
                         if (!tabs || tabs.length === 0) {
                             audible = false;
-                            console.warning(`audible ${audible}`);
+                            console.warn(`audible ${audible}`);
                         }
                     });
                 } else {
                     chrome.tabs.query({audible: true}, function (tabs) {
                         if (tabs && tabs.length > 0) {
                             audible = true;
-                            console.warning(`audible ${audible}`);
+                            console.warn(`audible ${audible}`);
                         }
                     });
                 }
@@ -311,13 +315,11 @@ var Recognizer = (function() {
 			recognition.onresult = function(event) {
 				var lastE = event.results[event.results.length - 1];
 				console.dir(event);
-				chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                    handleTranscript({
-                        'isFinal': lastE.isFinal,
-                        'confidence': lastE[0].confidence,
-                        'transcript': lastE[0].transcript.trim().toLowerCase(),
-                    });
-				});
+                handleTranscript({
+                    'isFinal': lastE.isFinal,
+                    'confidence': lastE[0].confidence,
+                    'transcript': lastE[0].transcript.trim().toLowerCase(),
+                });
 			};
 
 			// Error types:
@@ -602,11 +604,14 @@ exports.init = function({chrome} = {}) {
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (request.bubbleDown) {
             chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                if (request.bubbleDown.fullScreen) {
+                if (typeof request.bubbleDown.fullScreen !== 'undefined') {
+                    console.log(`1. full screen`);
                     chrome.windows.update(tabs[0].windowId, {state: "fullscreen"}, function (windowUpdated) {
                         //do whatever with the maximized window
+                        fullscreen = true;
                     });
-                } else if (request.bubbleDown.unFullScreen) {
+                } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
+                    console.log(`2. unfull screen`);
                     chrome.windows.update(tabs[0].windowId, {state: "maximized"}, function (windowUpdated) {
                         //do whatever with the maximized window
                     });
