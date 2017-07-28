@@ -4,7 +4,10 @@
   "description": "Control reddit with your voice. Great for browsing reddit while you eat or do \"other\" things.",
   "version": "1.0",
   "background": {
-    "scripts": ["src/background.js"],
+    "scripts": [
+      "src/constants.js",
+      "src/background.js"
+    ],
     "persistent": true
   },
   "browser_action": {
