@@ -1,9 +1,11 @@
 var on = false;
 const LABEL_FADE_TIME = 2000;
 const SCROLL_DISTANCE = 550;
+const SCROLL_TIME = 450;
 var $previewCmdBox;
 var $helpBox;
 var lblTimeout;
+var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
 var helpBoxOpen = false;
 // used to determine which video to fullscreen
 var $lastExpanded;
@@ -15,6 +17,11 @@ function getFrameHtml(id) {
     xmlhttp.send();
 
     return xmlhttp.responseText;
+}
+
+
+function scrollTo($ele) {
+    $("html, body").animate({ scrollTop: $ele.offset().top }, SCROLL_TIME);
 }
 
 
@@ -65,23 +72,59 @@ var COMMANDS = {
 	'ClosePreview': (function() {
 		return {
 			run: function(i) {
-				try {
-					// close
-					opened.click();
-				} catch (e) {}
-				opened = $(thingAtIndex(i) + ' .expando-button.expanded').click();
 			}
 		};
 	})(),
+	'Collapse': (function() {
+		return {
+			run: function(i) {
+			    if (COMMENTS_REGX.test(window.location.href)) {
+			    	let index = typeof i !== 'undefined' ? i + 1 : 1;
+                    $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
+                } else {
+			    	if (i) {
+                        // assume we're in posts
+                        try {
+                            // close
+                            opened.click();
+                        } catch (e) {
+                        }
+                        opened = $(thingAtIndex(i) + ' .expando-button.expanded').click();
+                    }
+				}
+			}
+		};
+	})(),
+    'CommentsExpand': (function() {
+        return {
+            run: function() {
+            	let $ele = $('.thing.comment.collapsed:not(.child div):last a.expand:first')[0];
+                $ele.click();
+                // scrollTo($ele);
+            }
+        };
+    })(),
+    'CommentsExpandAll': (function() {
+        return {
+            run: function() {
+                for (let $ele of $('.thing.comment.collapsed:not(.child div) a.expand')) {
+                    $ele.click();
+                }
+            }
+        };
+    })(),
 	'ExpandPreview': (function() {
 		var opened;
 		return {
 			run: function(i) {
+				let $ele = $(thingAtIndex(i) + ' .expando-button');
 				try {
 					// close
 					opened.click();
 				} catch (e) {}
-				opened = $(thingAtIndex(i) + ' .expando-button').click();
+				opened = $ele;
+				$ele.click();
+				scrollTo($ele);
 			}
 		};
 	})(),
@@ -152,6 +195,7 @@ var COMMANDS = {
     })(),
 	'VideoPause': (function() {
 		return {
+			nice: 'pause',
 			run: function(i) {
 			    // TODO: find the one that's playing
                 let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
@@ -166,11 +210,13 @@ var COMMANDS = {
 			run: function(i) {
 				// get the unique video url
 				let videoUrl;
-				$(thingAtIndex(i) + ' .expando-button.collapsed').click();
+				let $ele = $(thingAtIndex(i) + ' .expando-button.collapsed');
+				$ele.click();
 				videoUrl = $(thingAtIndex(i)).data('url');
 				console.log(`video url ${videoUrl}`);
 
                 sendMsgToBeacon({playVideo: videoUrl});
+                scrollTo($ele);
 			},
 		};
 	})(),
@@ -250,6 +296,31 @@ var COMMANDS = {
 			}
 		};
 	})(),
+	'VoteDown': (function() {
+		return {
+			run: function(i) {
+			    let index = typeof i !== 'undefined' ? Number(i) : 1;
+			    index = isNaN(index) ? 1 : index;
+                $(thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
+			},
+		}
+	})(),
+	'VoteUp': (function() {
+		return {
+			run: function(i) {
+                let index = typeof i !== 'undefined' ? Number(i) : 1;
+                index = isNaN(index) ? 1 : index;
+                $(thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
+			},
+		}
+	})(),
+    'VoteClear': (function() {
+    	return {
+    		run: function(i) {
+
+			},
+		}
+	})(),
 	'VisitPost': (function() {
 		return {
 			run: function(i) {
@@ -328,13 +399,14 @@ function destroy() {
 }
 
 
-function showLiveText({text, isSuccess=false, isUnsure=false} = {}) {
+function showLiveText({text, isSuccess=false, isUnsure=false, hold=false} = {}) {
 	// our element might not get reattached or might get removed from
 	//   * bf cache
 	//   * dom body overwrites from js
 	if (typeof $previewCmdBox === 'undefined' || !document.body.contains($previewCmdBox[0])) {
 	    $previewCmdBox = attachOverlay('preview-cmd-box');
 	}
+	console.log(`showLiveText ${text} ${isSuccess} ${isUnsure}`);
     let $previewCmdLbl = $previewCmdBox.contents().find('.preview-cmd');
 	clearTimeout(lblTimeout);
 	$previewCmdLbl.toggleClass('success', isSuccess);
@@ -343,7 +415,7 @@ function showLiveText({text, isSuccess=false, isUnsure=false} = {}) {
 	$previewCmdLbl.toggleClass('visible', true);
 	lblTimeout = setTimeout(function() {
 		$previewCmdLbl.toggleClass('visible', false);
-	}, LABEL_FADE_TIME);
+	}, hold ? LABEL_FADE_TIME * 3 : LABEL_FADE_TIME);
 }
 
 

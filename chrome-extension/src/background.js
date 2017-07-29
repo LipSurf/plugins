@@ -1,582 +1,557 @@
-var exports = typeof module !== 'undefined' ? module.exports = {} : {};
-var on = false;
-var audible = false;
-var currentActiveTabId;
-var needsPermission = false;
-var ON_ICON = "assets/icon-on-128.png";
-var OFF_ICON = "assets/icon-off-128.png";
-var lastNonFinalCmdExecutedTime = 0;
-var lastNonFinalCmdExecuted = null;
-// how long to wait before allowing another command
-const COOLDOWN_TIME = 900;
-// max time to require before resetting the isFinal switch
-// that blocks a command from being run twice (once before isFinal
-// and once after)
-const FINAL_COOLDOWN_TIME = 2200;
-const ORDINALS_TO_DIGITS = {
-    "first": 1,
-    "1st": 1,
-    "i": 1,
-    "second": 2,
-    "2nd": 2,
-    "ii": 2,
-    "third": 3,
-    "3rd": 3,
-    "iii": 3,
-    "fourth": 4,
-    "forth": 4,
-    "4th": 4,
-    "iv": 4,
-    "fifth": 5,
-    "fit": 5,
-    "5th": 5,
-    "v": 5,
-    "sixth": 6,
-    "sex": 6,
-    "6th": 6,
-    "vi": 6,
-    "seventh": 7,
-    "7th": 7,
-    "vii": 7,
-    "eigth": 8,
-    "8th": 8,
-    "viii": 8,
-    "ninth": 9,
-    "9th": 9,
-    "ix": 9,
-    "tenth": 10,
-    "10th": 10,
-    "x": 10,
-    "eleventh": 11,
-    "11th": 11,
-    "xi": 11,
-    "twelfe": 12,
-    "twelve": 12,
-    "12th": 12,
-    "xii": 12,
-    "thirteenth": 13,
-    "13th": 13,
-    "xiii": 13,
-    "fourteenth": 14,
-    "14th": 14,
-    "fourteen": 14,
-    "xiv": 14,
-    "fifteenth": 15,
-    "15th": 15,
-    "xv": 15,
-    "sixteenth": 16,
-    "16th": 16,
-    "xvi": 16,
-    "seventeenth": 17,
-    "17th": 17,
-    "xvii": 17,
-    "eighteenth": 18,
-    "18th": 18,
-    "xviii": 18,
-    "nineteenth": 19,
-    "19th": 19,
-    "xix": 19,
-    "twentieth": 20,
-    "20th": 20,
-    "xx": 20,
-};
-const NUMBERS_TO_DIGITS = {
-    "1": 1,
-    "one": 1,
-    "2": 2,
-    "to": 2,
-    "too": 2,
-    "two": 2,
-    "3": 3,
-    "three": 3,
-    "4": 4,
-    "four": 4,
-    "5": 5,
-    "five": 5,
-    "6": 6,
-    "six": 6,
-    "7": 7,
-    "seven": 7,
-    "8": 8,
-    "eight": 8,
-    "9": 9,
-    "nine": 9,
-    "10": 10,
-    "ten": 10,
-    "11": 11,
-    "eleven": 11,
-    "12": 12,
-    "twelve": 12,
-    "13": 13,
-    "thirteen": 13,
-    "14": 14,
-    "fourteen": 14,
-    "15": 15,
-    "fifteen": 15,
-    "16": 16,
-    "sixteen": 16,
-    "17": 17,
-    "seventeen": 17,
-    "18": 18,
-    "eighteen": 18,
-    "19": 19,
-    "nineteen": 19,
-    "20": 20,
-    "twenty": 20
-};
-// less common -> common
-const SYNONYMS = {
-    'downwards': 'down',
-    'downward': 'down',
-    'backwards': 'back',
-    'backward': 'back',
-    'forwards': 'forward',
-    'upwards': 'up',
-    'upward': 'up',
-    'school': 'scroll',
-    'screw': 'scroll',
-    'small': 'little',
-    'paws': 'pause',
-    'navigate': 'go',
-};
-var CONFIDENCE_THRESHOLD = 0;
+exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS} = {}) {
+    var on = false;
+    var audible = false;
+    var currentActiveTabId;
+    var needsPermission = false;
+    var ON_ICON = "assets/icon-on-128.png";
+    var OFF_ICON = "assets/icon-off-128.png";
+    var lastNonFinalCmdExecutedTime = 0;
+    var lastNonFinalCmdExecuted = null;
+    const ORDINAL_CMD_DELAY = 500;
+    var delayedCmd;
+    // how long to wait before allowing another command
+    const COOLDOWN_TIME = 900;
+    // max time to require before resetting the isFinal switch
+    // that blocks a command from being run twice (once before isFinal
+    // and once after)
+    const FINAL_COOLDOWN_TIME = 2200;
+    var CONFIDENCE_THRESHOLD = 0;
 
 
-// prefix or suffix match
-function ordinalOrNumberToDigit(input, keywords) {
-    for (let i = 0; i < keywords.length; i++) {
-        let keyword = keywords[i];
-        let startI = input.indexOf(keyword);
-        if (~startI) {
-            let ordinal = input.replace(keyword, "").trim();
-            console.log(`ordinal ${ordinal} keyword: ${keyword}`);
-            try {
-                return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
-            } catch(e) { console.error(e); }
-        }
-    }
-}
-
-
-// Maybe we want to execute each command seperately? Like "down down" should
-// be two downs. If the user chains commands like "down up" then
-// maybe we should split and match the first valid part of the command?
-// Needs thought...
-function dedupe(input) {
-    let existingWords = {};
-    let processed = [];
-    for (let word of input.split(' ')) {
-        if (typeof existingWords[word] === 'undefined') {
-            processed.push(word);
-        }
-    }
-    return processed.join(' ');
-}
-
-
-function expandSynonyms(input) {
-    for (let syn in SYNONYMS) {
-        input = input.replace(syn, SYNONYMS[syn]);
-    }
-    return input;
-}
-
-
-function sendMsgToActiveTab(request) {
-    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, request);
-    });
-}
-
-
-exports.getCmdForUserInput = function(input) {
-    // simplifies the input into a more limited set of words
-    let processedInput = expandSynonyms(input);
-    // processedInput = dedupe(processedInput);
-    for (let cmdName in COMMANDS) {
-        let curCmd = COMMANDS[cmdName];
-        let out;
-        if (typeof curCmd.regx != 'undefined') {
-            out = processedInput.match(curCmd.regx);
-        } else if (typeof curCmd.ordinalMatch != 'undefined') {
-            out = ordinalOrNumberToDigit(processedInput, curCmd.ordinalMatch);
-        } else {
-            out = curCmd.matches(processedInput);
-        }
-        if (out) {
-            return [cmdName, out];
-        }
-    }
-    return [null, null];
-}
-
-
-function handleTranscript({isFinal, transcript, confidence} = {}) {
-    let elapsedTime = +new Date() - lastNonFinalCmdExecutedTime;
-    if (elapsedTime > COOLDOWN_TIME) {
-        console.log(`elapsed time ${elapsedTime}`);
-        if (isFinal) {
-            lastFinalTime = +new Date();
-            if (confidence <= CONFIDENCE_THRESHOLD) {
-                return sendMsgToActiveTab({'liveText': {'text': transcript, 'isSuccess': false, 'isUnsure': true}});
+    // prefix or suffix match
+    function ordinalOrNumberToDigit(input, keywords) {
+        for (let i = 0; i < keywords.length; i++) {
+            let keyword = keywords[i];
+            let startI = input.indexOf(keyword);
+            if (~startI) {
+                let ordinal = input.replace(keyword, "").trim();
+                console.log(`ordinal ${ordinal} keyword: ${keyword}`);
+                try {
+                    return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
+                } catch(e) { console.error(e); }
             }
         }
-        if (confidence > CONFIDENCE_THRESHOLD) {
-            // console.log(`start time ${+new Date()}`);
-            let [cmdName, matchOutput] = exports.getCmdForUserInput(transcript);
-            let niceOutput = null;
-            console.log(`input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-            // console.log(`end time ${+new Date()}`);
-            if (cmdName) {
-                // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) < FINAL_COOLDOWN_TIME) {
-                    console.log("Junked dupe.");
-                    return;
+    }
+
+
+    // Maybe we want to execute each command seperately? Like "down down" should
+    // be two downs. If the user chains commands like "down up" then
+    // maybe we should split and match the first valid part of the command?
+    // Needs thought...
+    function dedupe(input) {
+        let existingWords = {};
+        let processed = [];
+        for (let word of input.split(' ')) {
+            if (typeof existingWords[word] === 'undefined') {
+                processed.push(word);
+            }
+        }
+        return processed.join(' ');
+    }
+
+
+    function expandSynonyms(input) {
+        for (let syn in SYNONYMS) {
+            input = input.replace(syn, SYNONYMS[syn]);
+        }
+        return input;
+    }
+
+
+    function sendMsgToActiveTab(request) {
+        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, request);
+        });
+    }
+
+
+    exports.getCmdForUserInput = function(input) {
+        // simplifies the input into a more limited set of words
+        let processedInput = expandSynonyms(input);
+        // processedInput = dedupe(processedInput);
+        for (let cmdName in COMMANDS) {
+            let curCmd = COMMANDS[cmdName];
+            let out;
+            let i;
+            if (typeof curCmd.ordinalMatch !== 'undefined') {
+                out = ordinalOrNumberToDigit(processedInput, curCmd.ordinalMatch);
+            }
+            if (!out && typeof curCmd.regx !== 'undefined') {
+                if (curCmd.regx.length) {
+                    for (i = 0; i < curCmd.regx.length; i++) {
+                        out = processedInput.match(curCmd.regx[i]);
+                        if (out) {
+                            break;
+                        }
+                    }
+                } else {
+                    out = processedInput.match(curCmd.regx);
                 }
+            }
+            if (!out && typeof curCmd.matches !== 'undefined') {
+                out = curCmd.matches(processedInput);
+            }
+            if (out) {
                 let cmd = COMMANDS[cmdName];
-                if (typeof cmd.nice === 'string') {
-                    niceOutput = cmd.nice;
-                } else if (typeof cmd.nice === 'function') {
-                    niceOutput = cmd.nice(matchOutput);
+                let delay = null;
+                if (cmd.ordinalMatch) {
+                    delay = ORDINAL_CMD_DELAY;
+                } else if (cmd.delay && typeof cmd.delay === 'object') {
+                    delay = cmd.delay[i];
+                } else if (typeof cmd.delay !== 'undefined') {
+                    delay = cmd.delay;
                 }
-                console.log(`running command ${cmdName} isFinal:${isFinal}`);
-                lastNonFinalCmdExecuted = isFinal ? null : cmdName;
-                lastNonFinalCmdExecutedTime = isFinal ? 0 : +new Date();
-
-                executeCmd({name: cmdName, matchStr: matchOutput});
+                return {cmdName: cmdName, matchOutput: out, delay: delay};
             }
-            return sendMsgToActiveTab({'liveText': {'text': niceOutput ? niceOutput : transcript, 'isSuccess': cmdName !== null, 'isUnsure': false}});
         }
-    }
-}
-
-
-function executeCmd({name, matchStr} = {}) {
-    if (typeof COMMANDS[name].run !== 'undefined') {
-        COMMANDS[name].run(matchStr);
-    } else {
-        sendMsgToActiveTab({'cmd': {'name': name, 'match': matchStr}});
-    }
-}
-
-
-var InterferenceAudioDetector = (function() {
-	let _timerId = null;
-	function _destroy() {
-        try {
-            clearTimeout(_timerId);
-        } catch (e) {
-            console.error(`error clearing interference audio detector ${e}`);
-        }
+        return {};
     }
 
-	return {
-		init: function () {
-		    _destroy();
-			_timerId = setInterval(function() {
-			    if (audible) {
-                    chrome.tabs.query({audible: true}, function (tabs) {
-                        if (!tabs || tabs.length === 0) {
-                            audible = false;
-                            console.warn(`audible ${audible}`);
+
+    function handleTranscript({isFinal, transcript, confidence} = {}) {
+        let elapsedTime = +new Date() - lastNonFinalCmdExecutedTime;
+        console.log(`elapsed time ${elapsedTime}`);
+        if (elapsedTime > COOLDOWN_TIME) {
+            if (isFinal) {
+                lastFinalTime = +new Date();
+                if (confidence <= CONFIDENCE_THRESHOLD) {
+                    return sendMsgToActiveTab({liveText: {text: transcript, isSuccess: false, isUnsure: true}});
+                }
+            }
+            if (confidence > CONFIDENCE_THRESHOLD) {
+                // console.log(`start time ${+new Date()}`);
+                let {cmdName, matchOutput, delay} = exports.getCmdForUserInput(transcript);
+                let niceOutput = null;
+                console.log(`input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+                // console.log(`end time ${+new Date()}`);
+                if (cmdName) {
+                    // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
+                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) < FINAL_COOLDOWN_TIME) {
+                        console.log("Junked dupe.");
+                        return;
+                    } else if (typeof delayCmd !== 'undefined') {
+                        clearTimeout(delayCmd);
+                    }
+
+                    let cmd = COMMANDS[cmdName];
+
+                    delayCmd = setTimeout(function () {
+                        if (typeof cmd.nice === 'string') {
+                            niceOutput = cmd.nice;
+                        } else if (typeof cmd.nice === 'function') {
+                            niceOutput = cmd.nice(matchOutput);
+                        }
+                        console.log(`running command ${cmdName} isFinal:${isFinal}`);
+                        lastNonFinalCmdExecuted = isFinal ? null : cmdName;
+                        lastNonFinalCmdExecutedTime = isFinal ? 0 : +new Date();
+
+                        execCmd({name: cmdName, matchStr: matchOutput});
+                        console.log(`transcript in closure ${transcript}`);
+                        return sendMsgToActiveTab({
+                            liveText: {
+                                text: niceOutput ? niceOutput : transcript,
+                                isSuccess: true,
+                            }
+                        });
+                    }, delay);
+                    return sendMsgToActiveTab({
+                        liveText: {
+                            text: transcript,
+                            hold: true,
                         }
                     });
                 } else {
-                    chrome.tabs.query({audible: true}, function (tabs) {
-                        if (tabs && tabs.length > 0) {
-                            audible = true;
-                            console.warn(`audible ${audible}`);
+                    return sendMsgToActiveTab({
+                        liveText: {
+                            text: niceOutput ? niceOutput : transcript
                         }
                     });
                 }
-			}, 3000);
-		},
-		destroy: () => {
-		    _destroy();
-		}
-	}
-})();
-
-
-var Recognizer = (function() {
-	var recognition;
-	return {
-		firstStart: function() {
-
-		},
-		start: function() {
-			recognition = new webkitSpeechRecognition();
-			recognition.continuous = true;
-			recognition.interimResults = true;
-			recognition.lang = 'en-US';
-			recognition.maxAlternatives = 1;
-			recognition.start();
-
-			recognition.onresult = function(event) {
-				var lastE = event.results[event.results.length - 1];
-				console.dir(event);
-                handleTranscript({
-                    'isFinal': lastE.isFinal,
-                    'confidence': lastE[0].confidence,
-                    'transcript': lastE[0].transcript.trim().toLowerCase(),
-                });
-			};
-
-			// Error types:
-			// 	'no-speech'
-			//  'network'
-			//  'not-allowed
-			recognition.onerror = function(event) {
-				// open the options page if we don't have permission
-				if (!needsPermission) {
-                    if (event.error === 'not-allowed') {
-                        needsPermission = true;
-                        chrome.runtime.openOptionsPage();
-                    } else if (event.error !== 'no-speech') {
-                        console.error(`unhandled error: ${event.error}`);
-                    }
-                }
-			};
-
-			recognition.onnomatch = function(event) {
-			    console.error(`No match! ${event}`);
-			};
-
-			recognition.onend = function() {
-			    if (!needsPermission) {
-                    console.log("ended. Restarting: ");
-                    recognition.start();
-                }
-			};
-
-		},
-		shutdown: function() {
-			try {
-				recognition.stop();
-			} catch(e) {}
-			try {
-				recognition.onresult = null;
-				recognition.onerror = null;
-				recognition.onend = null;
-			} catch (e) {}
-			recognition = null;
-		}
-	}
-})();
-
-
-var COMMANDS = {
-    'ClosePreview': (function() {
-        return {
-            ordinalMatch: ["close", "close preview", "shrink", "clothes"]
-        };
-    })(),
-    'ExpandPreview': (function() {
-        var opened;
-        return {
-            ordinalMatch: ["preview", "expand"]
-        };
-    })(),
-    'HelpOpen': (function() {
-        return {
-            regx: /^(help|open help|help open|commands)$/
-        };
-    })(),
-    'HelpClose': (function() {
-        return {
-            regx: /^(close help|help close|closeout|close up)$/,
-            nice: 'close help'
-        };
-    })(),
-    'NavigateBackward': (function() {
-        return {
-            regx: /^(?:back|go back)$/
-        };
-    })(),
-    'NavigateForward': (function() {
-        return {
-            regx: /^(?:forward|ford|go forward)$/
-        };
-    })(),
-    'NavigateToSubreddit': (function() {
-        var REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
-        console.log("BUILDING");
-        return {
-            matches: function(input) {
-                let match = input.match(REGX);
-                console.log(`navigate subreddit input: ${input} match: ${match}`);
-                if (match) {
-                    return match[1].replace(/\s/g, "");
-                }
-            },
-            nice: function(match) {
-                return `go to r/${match}`;
-            }
-        };
-    })(),
-    'TabClose': (function() {
-        return {
-            regx: /^close tab$/,
-            run: function() {
-                chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                    chrome.tabs.remove(tabs[0].id);
-                });
-            }
-        };
-    })(),
-    'TabNew': (function() {
-        return {
-            regx: /^(?:new tab|open tab|newtown)$/,
-            run: function() {
-                chrome.tabs.create({active: true});
-            }
-        };
-    })(),
-    'TabPrevious': (function() {
-        return {
-            regx: /^(?:previous tab)$/,
-            run: function() {
-                chrome.tabs.query({currentWindow: true}, function(tabs) {
-                    let curIndex;
-                    let maxIndex = tabs.length - 1;
-                    for (let tab of tabs) {
-                        if (tab.active) {
-                            curIndex = tab.index;
-                            break;
-                        }
-                    }
-                    console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
-                    for (let tab of tabs) {
-                        if (tab.index === (curIndex <= 0 ? maxIndex : curIndex - 1)) {
-                            chrome.tabs.update(tab.id, {active: true});
-                            console.log(`found prev index! ${tab.index}`);
-                            break;
-                        }
-                    }
-                });
-            }
-        };
-    })(),
-    'TabSelect': (function() {
-        return {
-            ordinalMatch: ['tab', 'time'],
-            run: function(i) {
-                chrome.tabs.query({index: i - 1, currentWindow: true}, function(tabs) {
-                    chrome.tabs.update(tabs[0].id, {active: true});
-                });
             }
         }
-    })(),
-    'TabNext': (function() {
+    }
+
+
+    function execCmd({name, matchStr} = {}) {
+        if (typeof COMMANDS[name].run !== 'undefined') {
+            COMMANDS[name].run(matchStr);
+        } else {
+            sendMsgToActiveTab({cmd: {name: name, match: matchStr}});
+        }
+    }
+
+
+    var Detector = function() {
+        let _intervalId;
         return {
-            regx: /^(?:next tab|next time)$/,
-            run: function() {
-                chrome.tabs.query({currentWindow: true}, function(tabs) {
-                    let curIndex;
-                    let maxIndex = tabs.length - 1;
-                    for (let tab of tabs) {
-                        if (tab.active) {
-                            curIndex = tab.index;
-                            break;
-                        }
-                    }
-                    console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
-                    for (let tab of tabs) {
-                        if (tab.index === (curIndex >= maxIndex ? 0 : curIndex + 1)) {
-                            chrome.tabs.update(tab.id, {active: true});
-                            console.log(`found next index! ${tab.index}`);
-                            break;
-                        }
-                    }
+            // sentinelFn -- returns true when something is detected
+            // detectCb -- is run when sentinelFn returns true (once)
+            // interval -- how often to run sentinelFn
+            init: function(sentinelFn, detectCb, interval) {
+                _intervalId = setInterval(function() {
+                    let res = detectCb();
+                    res ? clearTimeout(_intervalId) : null;
                 });
+            },
+        };
+    };
+
+
+    var InterferenceAudioDetector = (function() {
+        let _timerId = null;
+        function _destroy() {
+            try {
+                clearTimeout(_timerId);
+            } catch (e) {
+                console.error(`error clearing interference audio detector ${e}`);
             }
-        };
-    })(),
-    'VideoFullScreen': (function() {
+        }
+
         return {
-            regx: /^(?:fullscreen|full screen)$/
-        };
-    })(),
-    'VideoUnFullScreen': (function() {
-        return {
-            regx: /^(?:unfullscreen|unfull screen|on fullscreen|on full screen|unfold screen|no full screen)$/
-        };
-    })(),
-    'VideoPause': (function() {
-        return {
-            regx: /^(pause|pause video)$/
-        };
-    })(),
-    'VideoPlay': (function() {
-        return {
-            ordinalMatch: ['play']
-        };
-    })(),
-    'VideoResume': (function() {
-        // Works with any video that may have started, even with the mouse
-        return {
-            regx: /^(resume)$/
-        };
-    })(),
-    'Reddit': (function() {
-        return {
-            regx: /^(home|reddit|reddit.com|read it)$/
-        };
-    })(),
-    'Refresh': (function() {
-        return {
-            regx: /^refresh$/
-        };
-    })(),
-    'ScrollBottom': (function() {
-        return {
-            regx: /^(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)$/
-        };
-    })(),
-    'ScrollTop': (function() {
-        return {
-            regx: /^(top|top of page|scrolltop|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)$/
-        };
-    })(),
-    'ScrollDownLittle': (function() {
-        return {
-            regx: /^(little down|little scroll down|scroll little down)$/
-        };
-    })(),
-    'ScrollDown': (function() {
-        return {
-            regx: /^(down|scroll down)$/
-        };
-    })(),
-    'ScrollUpLittle': (function() {
-        return {
-            regx: /^(little up|little scroll up|scroll little up)$/
-        };
-    })(),
-    'ScrollUp': (function() {
-        return {
-            regx: /^(up|scroll up)$/
-        };
-    })(),
-    'Stop': (function() {
-        return {
-            regx: /^stop$/
-        };
-    })(),
-    'VisitPost': (function() {
-        return {
-            ordinalMatch: ['click', 'quick']
-        };
-    })(),
-    'ViewComments': (function() {
-        return {
-            ordinalMatch: ["comments", "view comments", "commons", "comets"]
-        };
-    })(),
-}
+            init: function () {
+                _destroy();
+                _timerId = setInterval(function() {
+                    if (audible) {
+                        chrome.tabs.query({audible: true}, function (tabs) {
+                            if (!tabs || tabs.length === 0) {
+                                audible = false;
+                                console.warn(`audible ${audible}`);
+                            }
+                        });
+                    } else {
+                        chrome.tabs.query({audible: true}, function (tabs) {
+                            if (tabs && tabs.length > 0) {
+                                audible = true;
+                                console.warn(`audible ${audible}`);
+                            }
+                        });
+                    }
+                }, 3000);
+            },
+            destroy: () => {
+                _destroy();
+            }
+        }
+    })();
 
 
-exports.init = function({chrome} = {}) {
+    var Recognizer = (function() {
+        var recognition;
+        return {
+            firstStart: function() {
+
+            },
+            start: function() {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
+                recognition.start();
+
+                recognition.onresult = function(event) {
+                    var lastE = event.results[event.results.length - 1];
+                    console.dir(event);
+                    handleTranscript({
+                        'isFinal': lastE.isFinal,
+                        'confidence': lastE[0].confidence,
+                        'transcript': lastE[0].transcript.trim().toLowerCase(),
+                    });
+                };
+
+                // Error types:
+                // 	'no-speech'
+                //  'network'
+                //  'not-allowed
+                recognition.onerror = function(event) {
+                    // open the options page if we don't have permission
+                    if (!needsPermission) {
+                        if (event.error === 'not-allowed') {
+                            needsPermission = true;
+                            chrome.runtime.openOptionsPage();
+                        } else if (event.error !== 'no-speech') {
+                            console.error(`unhandled error: ${event.error}`);
+                        }
+                    }
+                };
+
+                recognition.onnomatch = function(event) {
+                    console.error(`No match! ${event}`);
+                };
+
+                recognition.onend = function() {
+                    if (!needsPermission) {
+                        console.log("ended. Restarting: ");
+                        recognition.start();
+                    }
+                };
+
+            },
+            shutdown: function() {
+                try {
+                    recognition.stop();
+                } catch(e) {}
+                try {
+                    recognition.onresult = null;
+                    recognition.onerror = null;
+                    recognition.onend = null;
+                } catch (e) {}
+                recognition = null;
+            }
+        }
+    })();
+
+
+    var COMMANDS = {
+        'Collapse': (function() {
+            return {
+                regx: /^(?:collapse)$/,
+                ordinalMatch: ["close", "close preview", "collapse"],
+            };
+        })(),
+        'CommentsExpand': (function() {
+            return {
+                regx: /^(?:expand)$/,
+                delay: 700,
+            };
+        })(),
+        'CommentsExpandAll': (function() {
+            return {
+                regx: /^(?:expand all)$/
+            };
+        })(),
+        'ExpandPreview': (function() {
+            var opened;
+            return {
+                regx: /^(?:preview|expand)$/,  // in comments view
+                ordinalMatch: ["preview", "expand"]   // in subreddit view
+            };
+        })(),
+        'HelpOpen': (function() {
+            return {
+                regx: /^(help|open help|help open|commands)$/
+            };
+        })(),
+        'HelpClose': (function() {
+            return {
+                regx: /^(close help|help close|closeout|close up)$/,
+                nice: 'close help'
+            };
+        })(),
+        'NavigateBackward': (function() {
+            return {
+                regx: /^(?:back|go back)$/
+            };
+        })(),
+        'NavigateForward': (function() {
+            return {
+                regx: /^(?:forward|ford|go forward)$/
+            };
+        })(),
+        'NavigateToSubreddit': (function() {
+            var REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
+            console.log("BUILDING");
+            return {
+                matches: function(input) {
+                    let match = input.match(REGX);
+                    console.log(`navigate subreddit input: ${input} match: ${match}`);
+                    if (match) {
+                        return match[1].replace(/\s/g, "");
+                    }
+                },
+                delay: 1200,
+                nice: function(match) {
+                    return `go to r/${match}`;
+                }
+            };
+        })(),
+        'TabClose': (function() {
+            return {
+                regx: /^close tab$/,
+                run: function() {
+                    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                        chrome.tabs.remove(tabs[0].id);
+                    });
+                }
+            };
+        })(),
+        'TabNew': (function() {
+            return {
+                regx: /^(?:new tab|open tab|newtown)$/,
+                run: function() {
+                    chrome.tabs.create({active: true});
+                }
+            };
+        })(),
+        'TabPrevious': (function() {
+            return {
+                regx: /^(?:previous tab)$/,
+                run: function() {
+                    chrome.tabs.query({currentWindow: true}, function(tabs) {
+                        let curIndex;
+                        let maxIndex = tabs.length - 1;
+                        for (let tab of tabs) {
+                            if (tab.active) {
+                                curIndex = tab.index;
+                                break;
+                            }
+                        }
+                        console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
+                        for (let tab of tabs) {
+                            if (tab.index === (curIndex <= 0 ? maxIndex : curIndex - 1)) {
+                                chrome.tabs.update(tab.id, {active: true});
+                                console.log(`found prev index! ${tab.index}`);
+                                break;
+                            }
+                        }
+                    });
+                }
+            };
+        })(),
+        'TabSelect': (function() {
+            return {
+                ordinalMatch: ['tab', 'time'],
+                run: function(i) {
+                    chrome.tabs.query({index: i - 1, currentWindow: true}, function(tabs) {
+                        chrome.tabs.update(tabs[0].id, {active: true});
+                    });
+                }
+            }
+        })(),
+        'TabNext': (function() {
+            return {
+                regx: /^(?:next tab|next time)$/,
+                run: function() {
+                    chrome.tabs.query({currentWindow: true}, function(tabs) {
+                        let curIndex;
+                        let maxIndex = tabs.length - 1;
+                        for (let tab of tabs) {
+                            if (tab.active) {
+                                curIndex = tab.index;
+                                break;
+                            }
+                        }
+                        console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
+                        for (let tab of tabs) {
+                            if (tab.index === (curIndex >= maxIndex ? 0 : curIndex + 1)) {
+                                chrome.tabs.update(tab.id, {active: true});
+                                console.log(`found next index! ${tab.index}`);
+                                break;
+                            }
+                        }
+                    });
+                }
+            };
+        })(),
+        'VoteClear': (function() {
+            return {
+                ordinalMatch: ['clear vote',],
+                regx: /^(?:clear vote)$/,
+            };
+        })(),
+        'VoteDown': (function() {
+            return {
+                ordinalMatch: ['downvote', 'download'],
+                regx: /^(?:downvote|download)$/,
+                nice: function(i) {
+                    return `downvote ${i}`;
+                },
+            };
+        })(),
+        'VoteUp': (function() {
+            return {
+                ordinalMatch: ['upvote', 'upload', 'about', 'i thought'],
+                regx: /^(?:upvote|upload|about|i thought|a phone)$/,
+                nice: function(i) {
+                    return `upvote ${i}`;
+                },
+            };
+        })(),
+        'VideoFullScreen': (function() {
+            return {
+                regx: /^(?:fullscreen|full screen)$/
+            };
+        })(),
+        'VideoUnFullScreen': (function() {
+            return {
+                regx: /^(?:unfullscreen|unfull screen|on fullscreen|on full screen|unfor screen|unfold screen|no full screen)$/
+            };
+        })(),
+        'VideoPause': (function() {
+            return {
+                regx: /^(pause|pause video)$/
+            };
+        })(),
+        'VideoPlay': (function() {
+            return {
+                ordinalMatch: ['play']
+            };
+        })(),
+        'VideoResume': (function() {
+            // Works with any video that may have started, even with the mouse
+            return {
+                regx: /^(resume)$/
+            };
+        })(),
+        'Reddit': (function() {
+            return {
+                regx: /^(home|reddit|reddit.com|read it)$/
+            };
+        })(),
+        'Refresh': (function() {
+            return {
+                regx: /^refresh$/
+            };
+        })(),
+        'ScrollBottom': (function() {
+            return {
+                regx: /^(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)$/
+            };
+        })(),
+        'ScrollTop': (function() {
+            return {
+                regx: /^(top|top of page|scrolltop|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)$/
+            };
+        })(),
+        'ScrollDownLittle': (function() {
+            return {
+                regx: /^(little down|little scroll down|scroll little down|down little)$/
+            };
+        })(),
+        'ScrollDown': (function() {
+            return {
+                regx: [/^down$/, /^scroll down$/],
+                delay: [300, 0],
+            };
+        })(),
+        'ScrollUpLittle': (function() {
+            return {
+                regx: /^(little up|little scroll up|scroll little up|up little)$/
+            };
+        })(),
+        'ScrollUp': (function() {
+            return {
+                regx: [/^up$/, /^scroll up$/],
+                delay: [300, 0],
+            };
+        })(),
+        'Stop': (function() {
+            return {
+                regx: /^stop$/
+            };
+        })(),
+        'VisitPost': (function() {
+            return {
+                ordinalMatch: ['click', 'quick'],
+                nice: 'click'
+            };
+        })(),
+        'ViewComments': (function() {
+            return {
+                ordinalMatch: ["comments", "view comments", "commons", "comets"]
+            };
+        })(),
+    }
     chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON });
 
     chrome.browserAction.onClicked.addListener(function(tab) {
@@ -590,6 +565,19 @@ exports.init = function({chrome} = {}) {
         }
         chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON});
         sendMsgToActiveTab({'toggleOn': on})
+
+        // REMOVE THIS
+        // send test msg
+        // let cmds = ['play first', 'fullscreen'];
+        // for (let i = 0; i < cmds.length; i++) {
+        //     setTimeout(function() {
+        //         handleTranscript({
+        //             'isFinal': true,
+        //             'confidence': 1.0,
+        //             'transcript': cmds[i].trim().toLowerCase(),
+        //         });
+        //     }, 3500 * (i + 1));
+        // }
     });
 
 
@@ -627,7 +615,6 @@ exports.init = function({chrome} = {}) {
     return exports;
 };
 
-
 if (typeof chrome !== 'undefined') {
-    exports.init({chrome: chrome});
+    exports.init({chrome: chrome, SYNONYMS: exports.SYNONYMS, NUMBERS_TO_DIGITS: exports.NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS: exports.ORDINALS_TO_DIGITS, });
 }
