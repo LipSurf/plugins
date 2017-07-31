@@ -107,7 +107,7 @@ describe('rnh tests', function() {
 
 	let cmdToPossibleInput = {
 		'Collapse': ['shrink', 'shrink 1st', 'collapse 25', 'collapse'],
-		'ExpandPreview': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight'],
+		'Expand': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight', 'expand', 'preview'],
 		'NavigateBackward': ['back', 'go back', 'navigate back', 'navigate backwards', 'backwards', 'backward', 'go backwards'],
 		'NavigateForward': ['forward', 'go forward', 'forwards'],
 		'NavigateToSubreddit': ['go to our testing', 'are funny',

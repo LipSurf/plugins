@@ -10,10 +10,7 @@
         }
 
         .preview-cmd.success {
-            background-color: #378a52;
-        }
-
-        .preview-cmd.failure {
+            background-color: rgba(55, 138, 82, 0.8);
         }
 
         .preview-cmd.unsure {
@@ -21,8 +18,12 @@
         }
 
         .preview-cmd.visible {
-            opacity: 0.8;
+            opacity: 1;
             transition: none;
+        }
+
+        .preview-cmd.error {
+            background-color: rgba(148, 29, 29, 0.8);
         }
 
         .preview-cmd
@@ -30,7 +31,7 @@
             display: inline-block;
             transition: opacity 0.2s ease-in;
             padding: 5px 15px;
-            background-color: black;
+            background-color: rgba(0, 0, 0, 0.8);
             margin: 0 auto;
             opacity: 0.0;
             color: white;

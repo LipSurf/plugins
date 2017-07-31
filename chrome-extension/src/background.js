@@ -34,6 +34,18 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
     }
 
 
+    function queryActiveTab(cb) {
+        // for debug mode
+        chrome.tabs.query({/*active: true, currentWindow: true,*/ windowType: "normal"}, function (tabs) {
+            for (let tab of tabs) {
+                if (tab.url.startsWith('http')) {
+                    return cb(tab);
+                }
+            }
+        });
+    }
+
+
     // Maybe we want to execute each command seperately? Like "down down" should
     // be two downs. If the user chains commands like "down up" then
     // maybe we should split and match the first valid part of the command?
@@ -59,8 +71,8 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
 
 
     function sendMsgToActiveTab(request) {
-        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-            chrome.tabs.sendMessage(tabs[0].id, request);
+        queryActiveTab(function(tab) {
+            chrome.tabs.sendMessage(tab.id, request);
         });
     }
 
@@ -115,7 +127,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
             if (isFinal) {
                 lastFinalTime = +new Date();
                 if (confidence <= CONFIDENCE_THRESHOLD) {
-                    return sendMsgToActiveTab({liveText: {text: transcript, isSuccess: false, isUnsure: true}});
+                    return sendMsgToActiveTab({liveText: {text: transcript, isUnsure: true}});
                 }
             }
             if (confidence > CONFIDENCE_THRESHOLD) {
@@ -247,7 +259,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 recognition.interimResults = true;
                 recognition.lang = 'en-US';
                 recognition.maxAlternatives = 1;
-                recognition.start();
+                // recognition.start();
 
                 recognition.onresult = function(event) {
                     var lastE = event.results[event.results.length - 1];
@@ -309,18 +321,13 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 ordinalMatch: ["close", "close preview", "collapse"],
             };
         })(),
-        'CommentsExpand': (function() {
-            return {
-                regx: /^(?:expand)$/,
-                delay: 700,
-            };
-        })(),
         'CommentsExpandAll': (function() {
             return {
                 regx: /^(?:expand all)$/
             };
         })(),
-        'ExpandPreview': (function() {
+        'Expand': (function() {
+            // expand previews or comments
             var opened;
             return {
                 regx: /^(?:preview|expand)$/,  // in comments view
@@ -369,8 +376,8 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
             return {
                 regx: /^close tab$/,
                 run: function() {
-                    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-                        chrome.tabs.remove(tabs[0].id);
+                    queryActiveTab(function(tab) {
+                        chrome.tabs.remove(tab.id);
                     });
                 }
             };
@@ -591,20 +598,20 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
 
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (request.bubbleDown) {
-            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+            queryActiveTab(function(tab) {
                 if (typeof request.bubbleDown.fullScreen !== 'undefined') {
                     console.log(`1. full screen`);
-                    chrome.windows.update(tabs[0].windowId, {state: "fullscreen"}, function (windowUpdated) {
+                    chrome.windows.update(tab.windowId, {state: "fullscreen"}, function (windowUpdated) {
                         //do whatever with the maximized window
                         fullscreen = true;
                     });
                 } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
                     console.log(`2. unfull screen`);
-                    chrome.windows.update(tabs[0].windowId, {state: "maximized"}, function (windowUpdated) {
+                    chrome.windows.update(tab.windowId, {state: "maximized"}, function (windowUpdated) {
                         //do whatever with the maximized window
                     });
                 }
-                chrome.tabs.sendMessage(tabs[0].id, request, function (response) {
+                chrome.tabs.sendMessage(tab.id, request, function (response) {
                     // not working (cannot get message in other content script
                     sendResponse(response);
                 });
@@ -612,6 +619,8 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
         }
     });
 
+    // for debug mode
+    exports.handleTranscript = handleTranscript;
     return exports;
 };
 

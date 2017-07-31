@@ -34,6 +34,18 @@ function attachOverlay(id) {
 }
 
 
+// Only checks if the top of the element is in view
+function isInView($ele)
+{
+    var docViewTop = $(window).scrollTop();
+    var docViewBottom = docViewTop + $(window).height();
+
+    var elemTop = $ele.offset().top;
+
+    return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
+}
+
+
 function toggleFullScreen(on) {
     // let $ele = $lastExpanded.closest('*[data-url]');
     // let $iframe = $ele.find('iframe');
@@ -69,38 +81,57 @@ function sendMsgToBeacon(msg) {
 
 
 var COMMANDS = {
-	'ClosePreview': (function() {
-		return {
-			run: function(i) {
-			}
-		};
-	})(),
 	'Collapse': (function() {
 		return {
 			run: function(i) {
-			    if (COMMENTS_REGX.test(window.location.href)) {
-			    	let index = typeof i !== 'undefined' ? i + 1 : 1;
+                let index = typeof i !== 'undefined' ? Number(i) : 1;
+                if (!isNaN(index)) {
                     $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
                 } else {
-			    	if (i) {
-                        // assume we're in posts
-                        try {
-                            // close
-                            opened.click();
-                        } catch (e) {
+                    // collapse first visible item (can be comment or post)
+                    let $items = $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea .thing:not(.collapsed):not(.child div) a.expand:first`).each(function(i) {
+                        var $ele = $(this);
+                        if (isInView($ele)) {
+                            $ele[0].click();
+                            return;
                         }
-                        opened = $(thingAtIndex(i) + ' .expando-button.expanded').click();
-                    }
+					});
 				}
 			}
 		};
 	})(),
-    'CommentsExpand': (function() {
+    'Expand': (function() {
+        var opened;
         return {
-            run: function() {
-            	let $ele = $('.thing.comment.collapsed:not(.child div):last a.expand:first')[0];
-                $ele.click();
-                // scrollTo($ele);
+            run: function(i) {
+                let index = typeof i !== 'undefined' ? Number(i) : 1;
+            	if (!isNaN(index)) {
+                    let $ele = $(thingAtIndex(index) + ' .expando-button');
+                    try {
+                        // close
+                        opened.click();
+                    } catch (e) {}
+                    opened = $ele;
+                    $ele.click();
+                    scrollTo($ele);
+				} else {
+            	    // if expando-button is in frame expand that, otherwise expand last (furthest down) visible comment
+					let mainItem = $(`#siteTable>.thing .expando-button.collapsed:first`);
+				    let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
+
+				    if (mainItem.length > 0 && isInView(mainItem)) {
+				    	mainItem[0].click();
+					} else {
+                        for (let ele of commentItems.reverse()) {
+                            let $ele = $(ele);
+                            if (isInView($ele)) {
+                                scrollTo($ele);
+                                $ele.find('a.expand:first')[0].click();
+                                return;
+                            }
+                        }
+                    }
+				}
             }
         };
     })(),
@@ -113,21 +144,6 @@ var COMMANDS = {
             }
         };
     })(),
-	'ExpandPreview': (function() {
-		var opened;
-		return {
-			run: function(i) {
-				let $ele = $(thingAtIndex(i) + ' .expando-button');
-				try {
-					// close
-					opened.click();
-				} catch (e) {}
-				opened = $ele;
-				$ele.click();
-				scrollTo($ele);
-			}
-		};
-	})(),
     'HelpOpen': (function() {
         return {
             run: function() {
@@ -399,7 +415,7 @@ function destroy() {
 }
 
 
-function showLiveText({text, isSuccess=false, isUnsure=false, hold=false} = {}) {
+function showLiveText({text, isSuccess=false, isUnsure=false, hold=false, isError=false} = {}) {
 	// our element might not get reattached or might get removed from
 	//   * bf cache
 	//   * dom body overwrites from js
@@ -411,6 +427,7 @@ function showLiveText({text, isSuccess=false, isUnsure=false, hold=false} = {}) 
 	clearTimeout(lblTimeout);
 	$previewCmdLbl.toggleClass('success', isSuccess);
 	$previewCmdLbl.toggleClass('unsure', isUnsure);
+    $previewCmdLbl.toggleClass('error', isError);
 	$previewCmdLbl.text(text);
 	$previewCmdLbl.toggleClass('visible', true);
 	lblTimeout = setTimeout(function() {
