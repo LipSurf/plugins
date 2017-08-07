@@ -340,7 +340,12 @@ var COMMANDS = {
 	'VisitPost': (function() {
 		return {
 			run: function(i) {
-				$(thingAtIndex(i) + ' a.title')[0].click();
+			    // if we're on the post
+				if (COMMENTS_REGX.test(window.location.href)) {
+                    $('#siteTable p.title a.title:first')[0].click();
+				} else {
+                    $(thingAtIndex(i) + ' a.title')[0].click();
+				}
 			},
 		};
 	})(),

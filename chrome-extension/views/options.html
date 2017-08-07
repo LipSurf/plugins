@@ -54,11 +54,24 @@
         <h4 id="done" style="visibility: hidden">You may now close this window.</h4>
 
         <h2>Options</h2>
+        <!-- place the custom tag anywhere inside the body -->
         <table>
-           <tr>
-              <th><label><input type="checkbox" checked/>Scroll to active element</label></th>
-           </tr>
+            <thead>
+                <th>Enabled</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Command Words</th>
+            </thead>
+            <tbody>
+            <cmd-group each={cmdGroup} name={name}>
+                <cmd each={cmds} name={name} ></cmd>
+            </cmd-group>
+            </tbody>
         </table>
+        <!-- include riot.js -->
+        <script src="../vendor/riot.csp.js"></script>
+        <!-- include the tag -->
+        <script src="./tags/all.js"></script>
     </div>
 </body>
 </html

@@ -33,7 +33,8 @@ describe('rnh tests', function() {
                 tabs: {
                     onActivated: {
                         addListener: () => null,
-                    }
+                    },
+					query: () => null,
                 },
                 runtime: {
                     onMessage: {
@@ -41,7 +42,7 @@ describe('rnh tests', function() {
                     }
                 }
             }
-	    }, require('../src/constants.js')));
+	    }, require('../src/constants.js'), require('../vendor/lodash.min.js')));
 
 	    bg.COOLDOWN_TIME = 0;
 	    bg.FINAL_COOLDOWN_TIME = 0;
@@ -125,4 +126,12 @@ describe('rnh tests', function() {
 			});
 		}
 	}
+
+	it('should only execute last input', function(cb) {
+	    let seq = _(['click', '16', 'click', 'click 16']);
+	    seq.each((val, i)=>setTimeout(() => bg.handleTranscript({isFinal: i == 4, confidence: 0.2, transcript: val}), i * 100));
+        bg.execCmd = function() {
+        	cb();
+		};
+	});
 });

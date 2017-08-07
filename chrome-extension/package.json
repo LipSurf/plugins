@@ -9,7 +9,7 @@
   "scripts": {
     "test": "node_modules/mocha/bin/mocha tests",
     "test-debug": "node_modules/mocha/bin/mocha debug tests",
-    "watch": "when-changed -1 -s tests/* src/* assets/* views/* vendor/* -c node_modules/mocha/bin/mocha tests"
+    "watch": "when-changed -1 -s tests/* src/* assets/* views/* vendor/* -c bash -c \"./node_modules/.bin/riot views/tags views/tags/all.js && echo '\nriot.mount(\\\"*\\\");' >> views/tags/all.js && node_modules/mocha/bin/mocha tests\""
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,10 @@
     "jsdom": "11.0.0",
     "jsdom-global": "3.0.2",
     "lodash": "^4.17.4",
-    "mocha": "^3.4.2"
+    "mocha": "^3.4.2",
+    "riot": "^3.6.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "lodash": "^4.17.4"
+  }
 }

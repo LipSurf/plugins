@@ -1,5 +1,19 @@
 var exports = typeof module !== 'undefined' ? module.exports = {} : {};
-exports.ORDINALS_TO_DIGITS = {
+exports.CT = CT = {};
+CT.DEBUG = true;
+CT.ON_ICON = "assets/icon-on-128.png";
+CT.OFF_ICON = "assets/icon-off-128.png";
+CT.ORDINAL_CMD_DELAY = 500;
+
+// how long to wait before allowing another command
+CT.COOLDOWN_TIME = 900;
+
+// max time to require before resetting the isFinal switch
+// that blocks a command from being run twice (once before isFinal
+// and once after)
+CT.FINAL_COOLDOWN_TIME = 2200;
+CT.CONFIDENCE_THRESHOLD = 0;
+CT.ORDINALS_TO_DIGITS = {
     "first": 1,
     "1st": 1,
     "i": 1,
@@ -306,7 +320,7 @@ exports.ORDINALS_TO_DIGITS = {
     "100th": 100,
     "C": 100,
 };
-exports.NUMBERS_TO_DIGITS = {
+CT.NUMBERS_TO_DIGITS = {
     "1": 1,
     "one": 1,
     "2": 2,
@@ -514,7 +528,18 @@ exports.NUMBERS_TO_DIGITS = {
 };
 
 // less common -> common
-exports.SYNONYMS = {
+CT.SYNONYMS = {
+    'stirred': 'third',
+    'aladdin': 'eleven',
+    'comet': 'comments',
+    'app': 'up',
+    'comets': 'comments',
+    'comment': 'comments',
+    ',': 'comments',
+    'common': 'comments',
+    'quick': 'click',
+    'for': 'four',
+    'full-screen': 'fullscreen',
     'downwards': 'down',
     'downward': 'down',
     'backwards': 'back',
@@ -531,5 +556,6 @@ exports.SYNONYMS = {
     'down vote': 'downvote',
     'contract': 'collapse',
     'shrink': 'collapse',
+    'visit': 'click',
     'clothes': 'close',
 };

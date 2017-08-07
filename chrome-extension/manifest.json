@@ -2,9 +2,10 @@
   "manifest_version": 2,
   "name": "No Hand Man",
   "description": "Control reddit with your voice. Great for browsing reddit while you eat or do \"other\" things.",
-  "version": "1.0",
+  "version": "1.0.1",
   "background": {
     "scripts": [
+      "vendor/lodash.min.js",
       "src/constants.js",
       "src/background.js"
     ],
@@ -20,12 +21,16 @@
         "<all_urls>"
       ],
       "css": ["assets/rnh.css"],
-      "js": ["vendor/jquery-3.2.1.min.js", "src/rnh-cs.js"]
+      "js": [
+        "vendor/jquery-3.2.1.min.js",
+        "src/rnh-cs.js"
+      ]
     },
     {
       "matches": [
         "http://www.youtube.com/embed/*",
-        "https://www.youtube.com/embed/*"
+        "https://www.youtube.com/embed/*",
+        "https://streamable.com/*"
       ],
       "js": ["src/frame-beacon.js"],
       "all_frames": true

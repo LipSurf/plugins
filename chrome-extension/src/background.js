@@ -1,21 +1,13 @@
-exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS} = {}) {
+exports.init = function({chrome, CT, _} = {}) {
     var on = false;
     var audible = false;
     var currentActiveTabId;
     var needsPermission = false;
-    var ON_ICON = "assets/icon-on-128.png";
-    var OFF_ICON = "assets/icon-off-128.png";
     var lastNonFinalCmdExecutedTime = 0;
     var lastNonFinalCmdExecuted = null;
-    const ORDINAL_CMD_DELAY = 500;
-    var delayedCmd;
-    // how long to wait before allowing another command
-    const COOLDOWN_TIME = 900;
-    // max time to require before resetting the isFinal switch
-    // that blocks a command from being run twice (once before isFinal
-    // and once after)
-    const FINAL_COOLDOWN_TIME = 2200;
-    var CONFIDENCE_THRESHOLD = 0;
+    var delayCmd;
+    var _syn_keys = Object.keys(CT.SYNONYMS).map((syn) => new RegExp(`\\b${syn}\\b`));
+    var _syn_vals = Object.values(CT.SYNONYMS);
 
 
     // prefix or suffix match
@@ -27,7 +19,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 let ordinal = input.replace(keyword, "").trim();
                 console.log(`ordinal ${ordinal} keyword: ${keyword}`);
                 try {
-                    return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
+                    return CT.ORDINALS_TO_DIGITS[ordinal] || CT.NUMBERS_TO_DIGITS[ordinal];
                 } catch(e) { console.error(e); }
             }
         }
@@ -35,14 +27,19 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
 
 
     function queryActiveTab(cb) {
-        // for debug mode
-        chrome.tabs.query({/*active: true, currentWindow: true,*/ windowType: "normal"}, function (tabs) {
-            for (let tab of tabs) {
-                if (tab.url.startsWith('http')) {
-                    return cb(tab);
+        if (CT.DEBUG) {
+            chrome.tabs.query({/*active: true, currentWindow: true,*/ windowType: "normal"}, function (tabs) {
+                for (let tab of tabs) {
+                    if (tab.url.startsWith('http')) {
+                        return cb(tab);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            chrome.tabs.query({active: true, currentWindow: true, windowType: "normal"}, function (tabs) {
+                return cb(tabs[0]);
+            });
+        }
     }
 
 
@@ -63,8 +60,8 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
 
 
     function expandSynonyms(input) {
-        for (let syn in SYNONYMS) {
-            input = input.replace(syn, SYNONYMS[syn]);
+        for (let i = 0; i < _syn_keys.length; i++) {
+            input = input.replace(_syn_keys[i], _syn_vals[i]);
         }
         return input;
     }
@@ -107,7 +104,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 let cmd = COMMANDS[cmdName];
                 let delay = null;
                 if (cmd.ordinalMatch) {
-                    delay = ORDINAL_CMD_DELAY;
+                    delay = CT.ORDINAL_CMD_DELAY;
                 } else if (cmd.delay && typeof cmd.delay === 'object') {
                     delay = cmd.delay[i];
                 } else if (typeof cmd.delay !== 'undefined') {
@@ -123,14 +120,8 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
     function handleTranscript({isFinal, transcript, confidence} = {}) {
         let elapsedTime = +new Date() - lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime}`);
-        if (elapsedTime > COOLDOWN_TIME) {
-            if (isFinal) {
-                lastFinalTime = +new Date();
-                if (confidence <= CONFIDENCE_THRESHOLD) {
-                    return sendMsgToActiveTab({liveText: {text: transcript, isUnsure: true}});
-                }
-            }
-            if (confidence > CONFIDENCE_THRESHOLD) {
+        if (elapsedTime > CT.COOLDOWN_TIME) {
+            if (confidence > CT.CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
                 let {cmdName, matchOutput, delay} = exports.getCmdForUserInput(transcript);
                 let niceOutput = null;
@@ -138,7 +129,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 // console.log(`end time ${+new Date()}`);
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) < FINAL_COOLDOWN_TIME) {
+                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) < CT.FINAL_COOLDOWN_TIME) {
                         console.log("Junked dupe.");
                         return;
                     } else if (typeof delayCmd !== 'undefined') {
@@ -157,7 +148,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                         lastNonFinalCmdExecuted = isFinal ? null : cmdName;
                         lastNonFinalCmdExecutedTime = isFinal ? 0 : +new Date();
 
-                        execCmd({name: cmdName, matchStr: matchOutput});
+                        exports.execCmd({name: cmdName, matchStr: matchOutput});
                         console.log(`transcript in closure ${transcript}`);
                         return sendMsgToActiveTab({
                             liveText: {
@@ -180,17 +171,23 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                     });
                 }
             }
+            if (isFinal) {
+                lastFinalTime = +new Date();
+                if (confidence <= CT.CONFIDENCE_THRESHOLD) {
+                    return sendMsgToActiveTab({liveText: {text: transcript, isUnsure: true}});
+                }
+            }
         }
     }
 
 
-    function execCmd({name, matchStr} = {}) {
+    exports.execCmd = function({name, matchStr} = {}) {
         if (typeof COMMANDS[name].run !== 'undefined') {
             COMMANDS[name].run(matchStr);
         } else {
             sendMsgToActiveTab({cmd: {name: name, match: matchStr}});
         }
-    }
+    };
 
 
     var Detector = function() {
@@ -259,10 +256,11 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 recognition.interimResults = true;
                 recognition.lang = 'en-US';
                 recognition.maxAlternatives = 1;
-                // recognition.start();
+                recognition.start();
 
                 recognition.onresult = function(event) {
                     var lastE = event.results[event.results.length - 1];
+                    needsPermission = false;
                     console.dir(event);
                     handleTranscript({
                         'isFinal': lastE.isFinal,
@@ -292,10 +290,8 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
                 };
 
                 recognition.onend = function() {
-                    if (!needsPermission) {
-                        console.log("ended. Restarting: ");
-                        recognition.start();
-                    }
+                    console.log("ended. Restarting: ");
+                    recognition.start();
                 };
 
             },
@@ -559,7 +555,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
             };
         })(),
     }
-    chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON });
+    chrome.browserAction.setIcon({path: on ? CT.ON_ICON : CT.OFF_ICON });
 
     chrome.browserAction.onClicked.addListener(function(tab) {
         on = !on;
@@ -570,7 +566,7 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
             Recognizer.shutdown();
             InterferenceAudioDetector.destroy();
         }
-        chrome.browserAction.setIcon({path: on ? ON_ICON : OFF_ICON});
+        chrome.browserAction.setIcon({path: on ? CT.ON_ICON : CT.OFF_ICON});
         sendMsgToActiveTab({'toggleOn': on})
 
         // REMOVE THIS
@@ -620,10 +616,12 @@ exports.init = function({chrome, SYNONYMS, NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS
     });
 
     // for debug mode
-    exports.handleTranscript = handleTranscript;
+    if (CT.DEBUG) {
+        exports.handleTranscript = handleTranscript;
+    }
     return exports;
 };
 
 if (typeof chrome !== 'undefined') {
-    exports.init({chrome: chrome, SYNONYMS: exports.SYNONYMS, NUMBERS_TO_DIGITS: exports.NUMBERS_TO_DIGITS, ORDINALS_TO_DIGITS: exports.ORDINALS_TO_DIGITS, });
+    exports.init({chrome: chrome, CT: exports.CT, _: exports._});
 }
