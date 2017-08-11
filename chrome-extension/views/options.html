@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <head>
 	<script src="../vendor/jquery-3.2.1.min.js"></script>
+	<script src="../vendor/lodash.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="../vendor/material-icons.css"></link>
     <style>
 		.notice {
@@ -38,7 +39,6 @@
             margin: 10px;
         }
 	</style>
-	<script src="../src/options.js"></script>
 	<title>No Hand Man</title>
 </head>
 <body>
@@ -53,25 +53,13 @@
         </div>
         <h4 id="done" style="visibility: hidden">You may now close this window.</h4>
 
-        <h2>Options</h2>
-        <!-- place the custom tag anywhere inside the body -->
-        <table>
-            <thead>
-                <th>Enabled</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Command Words</th>
-            </thead>
-            <tbody>
-            <cmd-group each={cmdGroup} name={name}>
-                <cmd each={cmds} name={name} ></cmd>
-            </cmd-group>
-            </tbody>
-        </table>
+        <options-page></options-page>
+
         <!-- include riot.js -->
         <script src="../vendor/riot.csp.js"></script>
         <!-- include the tag -->
         <script src="./tags/all.js"></script>
+        <script src="../src/options.js"></script>
     </div>
 </body>
 </html

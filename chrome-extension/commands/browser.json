@@ -1,0 +1,125 @@
+{
+	"HelpOpen": {
+		"regx": "^(help|open help|help open|commands)$"
+	},
+	"HelpClose": {
+		"regx": "^(close help|help close|closeout|close up)$",
+		"nice": "close help"
+	},
+	"NavigateBackward": {
+		"regx": "^(?:back|go back)$"
+	},
+	"NavigateForward": {
+		"regx": "^(?:forward|ford|go forward)$"
+	},
+	"TabClose": {
+		"regx": "^(?:close tab|ghost up)$",
+		"run": "
+			queryActiveTab(function(tab) {
+				chrome.tabs.remove(tab.id);
+			});
+		"
+		"nice": "close tab"
+	},
+	"TabNew": {
+		"regx": "^(?:new tab|open tab|newtown)$",
+		"run": "
+			chrome.tabs.create({active: true});
+		"
+	},
+	"TabPrevious": {
+		"regx": "^(?:previous tab)$",
+		"run": "
+			chrome.tabs.query({currentWindow: true}, function(tabs) {
+				let curIndex;
+				let maxIndex = tabs.length - 1;
+				for (let tab of tabs) {
+					if (tab.active) {
+						curIndex = tab.index;
+						break;
+					}
+				}
+				console.log(`maxIndex: ${maxIndex}\"curIndex\": ${curIndex}`);
+				for (let tab of tabs) {
+					if (tab.index === (curIndex <= 0 ? maxIndex"": curIndex - 1)) {
+						chrome.tabs.update(tab.id, {active: true});
+						console.log(`found prev index! ${tab.index}`);
+						break;
+					}
+				}
+			});
+		"
+	},
+	"TabSelect": {
+		"ordinalMatch": ["tab", "time"],
+		"run": "
+			chrome.tabs.query({index: i - 1,"currentWindow": true}, function(tabs) {
+				chrome.tabs.update(tabs[0].id, {active: true});
+			});
+		"
+	},
+	"TabNext": {
+		"regx": "^(?:next tab|next time)$",
+		"run": "
+			chrome.tabs.query({currentWindow: true}, function(tabs) {
+				let curIndex;
+				let maxIndex = tabs.length - 1;
+				for (let tab of tabs) {
+					if (tab.active) {
+						curIndex = tab.index;
+						break;
+					}
+				}
+				console.log(`maxIndex: ${maxIndex}"curIndex": ${curIndex}`);
+				for (let tab of tabs) {
+					if (tab.index === (curIndex >= maxIndex ? 0"": curIndex + 1)) {
+						chrome.tabs.update(tab.id, {active: true});
+						console.log(`found next index! ${tab.index}`);
+						break;
+					}
+				}
+			});
+		"
+	},
+	"VideoFullScreen": {
+		"regx": "^(?:fullscreen|full screen)$"
+	},
+	"VideoUnFullScreen": {
+		"regx": "^(?:unfullscreen|unfull screen|on fullscreen|on full screen|unfor screen|unfold screen|no full screen)$"
+	},
+	"VideoPause": {
+		"regx": "^(pause|pause video)$"
+	},
+	"VideoPlay": {
+		"ordinalMatch": ["play"]
+	},
+	"VideoResume": {
+		"regx": "^(resume)$"
+	},
+	"Refresh": {
+		"regx": "^refresh$"
+	},
+	"ScrollBottom": {
+		"regx": "^(bottom|bottom of page|bottom of the page|scroll bottom|scroll to bottom|scroll to the bottom of page|scroll to the bottom of the page)$"
+	},
+	"ScrollTop": {
+		"regx": "^(top|top of page|scrolltop|top of the page|scroll top|scroll to top|scroll to the top of page|scroll to the top of the page)$"
+	},
+	"ScrollDownLittle": {
+		"regx": "^(little down|little scroll down|scroll little down|down little)$"
+	},
+	"ScrollDown": {
+		"regx": ["^down$", "^scroll down$"],
+		"delay": [300, 0]
+	},
+	"ScrollUpLittle": {
+		"regx": "^(little up|little scroll up|scroll little up|up little)$"
+	},
+	"ScrollUp": {
+		"regx": ["^up$", "^scroll up$"],
+		"delay": [300, 0]
+	},
+	"Stop": {
+		"regx": "^stop$"
+	}
+}
