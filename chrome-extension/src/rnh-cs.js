@@ -5,7 +5,6 @@ const SCROLL_TIME = 450;
 var $previewCmdBox;
 var $helpBox;
 var lblTimeout;
-var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
 var helpBoxOpen = false;
 // used to determine which video to fullscreen
 var $lastExpanded;
@@ -46,30 +45,10 @@ function isInView($ele)
 }
 
 
-function toggleFullScreen(on) {
-    // let $ele = $lastExpanded.closest('*[data-url]');
-    // let $iframe = $ele.find('iframe');
-    // $iframe.toggleClass('nhm-full-screen', false);
-	if (on) {
-        $('#header').hide();
-        $('.side').hide();
-        $(document.body).css('overflow', 'hidden');
-	} else {
-        $('#header').show();
-        $('.side').show();
-        $(document.body).css('overflow', 'visible');
-        $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
-	}
-}
-
-function thingAtIndex(i) {
-	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
-}
-
 
 function sendMsgToBeacon(msg) {
     retrialAndError(() => {
-    	console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`)
+    	console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`);
         chrome.runtime.sendMessage({bubbleDown: msg}, function (response) {
             console.log("orig sender received response " + response);
             if (response) {

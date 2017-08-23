@@ -528,34 +528,11 @@ CT.NUMBERS_TO_DIGITS = {
 };
 
 // less common -> common
-CT.SYNONYMS = {
+// global synonyms that all plugins share
+// mis-hearings kept in synonyms so they can be easily tracked for removal
+// as voice recognition improves
+CT.HOMOPHONES = {
     'stirred': 'third',
-    'aladdin': 'eleven',
-    'comet': 'comments',
-    'app': 'up',
-    'comets': 'comments',
-    'comment': 'comments',
-    ',': 'comments',
-    'common': 'comments',
-    'quick': 'click',
     'for': 'four',
-    'full-screen': 'fullscreen',
-    'downwards': 'down',
-    'downward': 'down',
-    'backwards': 'back',
-    'backward': 'back',
-    'forwards': 'forward',
-    'upwards': 'up',
-    'upward': 'up',
-    'school': 'scroll',
-    'screw': 'scroll',
-    'small': 'little',
-    'paws': 'pause',
-    'navigate': 'go',
-    'up vote': 'upvote',
-    'down vote': 'downvote',
-    'contract': 'collapse',
-    'shrink': 'collapse',
-    'visit': 'click',
-    'clothes': 'close',
+    'aladdin': 'eleven',
 };

@@ -26,11 +26,11 @@ $(document).ready(function() {
 });
 
 // load options
-function getCmds() {
+function getCmds(name) {
     return new Promise((resolve, reject) => {
         var cmdFn;
         var request = new XMLHttpRequest();
-        request.open('GET', chrome.runtime.getURL('commands/browser.js'), true);
+        request.open('GET', chrome.runtime.getURL(`commands/${name}.js`), true);
 
         request.onload = function() {
             if (request.status >= 200 && request.status < 400) {
@@ -40,7 +40,7 @@ function getCmds() {
                 // We reached our target server, but it returned an error
 
             }
-            resolve(cmdFn.commands);
+            resolve(cmdFn);
         };
 
         request.onerror = function() {
@@ -52,10 +52,8 @@ function getCmds() {
 }
 
 
-getCmds().then(function(cmds) {
-    riot.mount('options-page', {
-        cmds: _.values(_.mapValues(cmds, (value, key) => { value.name = key; return value; }))
-    });
+Promise.all([getCmds('browser'), getCmds('reddit')]).then(function(cmdGroups) {
+    riot.mount('options-page', { cmdGroups: cmdGroups });
     // riot.mount('cmd-group');
     // riot.mount('cmd');
 });
