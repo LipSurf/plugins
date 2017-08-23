@@ -5,7 +5,7 @@
         <div each={ cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: collapsed, enabled: enabled }">
                 <a class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
-                    <div class="label">{ name }</span> <span class="version">v{ version }</span> <span class="right-controls"><label onclick={ toggleGroupEnabled }><input type="checkbox"/> Enabled</label></span>
+                    <div class="label">{ name }</span> <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onclick={ toggleGroupEnabled } checked={ enabled }> Enabled</label></span>
                      <div class="desc">{ description }</div></div>
                  </a>
                  <div class="collapsable">
@@ -214,29 +214,21 @@
         });
 
         toggleGroupEnabled (e) {
-            // e.preventDefault();
             e.stopPropagation();
             let item = e.item;
-            console.log('toggleGroupEnabled ' + e.srcElement.innerHTML);
-            // item.enabled = !item.enabled;
-            item.enabled = e.target.checked;
-            return false;
-            // e.preventUpdate = true;
-            // this.update();
-            // looped item
-
-            // index on the collection
+            item.enabled = !item.enabled;
         }
 
         toggleCollapsed (e) {
-           let item = e.item;
-           let $ele = $(e.srcElement);
-            console.log('toggleCollapsed ' + e.srcElement.innerHTML);
-           item.collapsed = !item.collapsed;
-       }
+            if (e.target.nodeName.toLowerCase() != 'input'
+                && e.target.nodeName.toLowerCase() != 'label') {
+                let item = e.item;
+                item.collapsed = !item.collapsed;
+            }
+        }
 
-       $(document).ready(function() {
-        init();
-    });
-</script>
+        $(document).ready(function() {
+            init();
+        });
+    </script>
 </options-page>
