@@ -26,14 +26,8 @@
                             <th>Command Words</th>
                         </thead>
                         <tbody>
-                         <tr each={ commands } class="cmd">
-                          <td class="enable"><input type="checkbox" checked /></td>
-                          <td class="name">{ name }</td>
-                          <td class="desc">{ description }</td>
-                          <td if={ typeof match == 'object' }><span class="tag" each="{ name, i in match }">{ name }</span></td>
-                          <td if={ typeof match == 'string' }><span class="tag" >{ match }</span></td>
-                      </tr>
-                  </tbody>
+                             <tr data-is="cmd" each={ commands } data={ this }></tr>
+                        </tbody>
               </table>
           </div>
       </div>
@@ -220,6 +214,7 @@
         }
 
         toggleCollapsed (e) {
+            // hack to get around propagation not being stopped in riot
             if (e.target.nodeName.toLowerCase() != 'input'
                 && e.target.nodeName.toLowerCase() != 'label') {
                 let item = e.item;
