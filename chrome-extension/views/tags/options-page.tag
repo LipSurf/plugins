@@ -5,37 +5,39 @@
         <div each={ cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: collapsed, enabled: enabled }">
                 <a class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
-                    <div class="label">{ name }</span> <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onclick={ toggleGroupEnabled } checked={ enabled }> Enabled</label></span>
-                     <div class="desc">{ description }</div></div>
-                 </a>
-                 <div class="collapsable">
+                    <div class="label">{ name } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onclick={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
+                        <div class="desc">{ description }</div>
+                    </div>
+                </a>
+                <div class="collapsable">
                     <div class="collapsable-inner">
                         <div class="homophones">
                             <div class="label">
-                               <strong>Homophones/synonyms: </strong>
-                           </div>
-                           <div class="tag-list">
-                               <span class="tag" each={ k, v in homophones }>{ v }:{ k }</span>
-                           </div>
-                       </div>
-                       <table>
-                        <thead>
-                            <th>Enabled</th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Command Words</th>
-                        </thead>
-                        <tbody>
-                             <tr data-is="cmd" each={ commands } data={ this }></tr>
-                        </tbody>
-              </table>
-          </div>
-      </div>
-  </div>
-</div>
-</div>
-<style>
-    input[type=checkbox], input[type=radio] {
+                                <strong>Homophones/synonyms: </strong>
+                            </div>
+                            <div class="tag-list">
+                                <label class="tag" each={ homophones }><input type="checkbox" checked={ enabled }> { source } ➪ { destination }</label>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <th>Enabled</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Command Words</th>
+                            </thead>
+                            <tbody>
+                                <tr data-is="cmd" each={commands} name={name} description={description} match={match}></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+    input[type=checkbox],
+    input[type=radio] {
         vertical-align: middle;
         position: relative;
         bottom: 1px;
@@ -133,8 +135,7 @@
         content: '+';
     }
 
-    .collapser-shell {
-    }
+    .collapser-shell {}
 
     .collapsable {
         transition: max-height 0.35s ease-out;
@@ -171,7 +172,8 @@
         vertical-align: top;
     }
 
-    tbody, thead {
+    tbody,
+    thead {
         text-align: left;
     }
 
@@ -183,47 +185,52 @@
     th {
         padding: 0 .7rem;
     }
-</style>
-<script>
-        // set the max height on each accordion item, then shrink the ones
-        // that need to be based on user settings
-        function init () {
-            $('.collapsable').each(function(i, ele) {
-                let $ele = $(ele);
-                $ele.css('max-height', $ele.parent().find('.collapsable').height());
-            });
-        }
-
-        this.cmdGroups = opts.cmdGroups;
-
-        // TODO: load from settings
-        this.cmdGroups.map((item)=>{
-            item.collapsed = false;
-            item.enabled = true;
-
-            item.commands.map((cmd)=>{
-                // make sure it's defined so we don't take parents
-                cmd.description = cmd.description ? cmd.description : null;
-            });
+    </style>
+    <script>
+    // set the max height on each accordion item, then shrink the ones
+    // that need to be based on user settings
+    function init() {
+        $('.collapsable').each(function(i, ele) {
+            let $ele = $(ele);
+            $ele.css('max-height', $ele.parent().find('.collapsable').height());
         });
+    }
+    this.cmdGroups = opts.cmdGroups;
+    this.save = opts.save;
+    // TODO: load from settings
+    this.cmdGroups.map((item) => {
+        item.collapsed = false;
+        item.enabled = true;
 
-        toggleGroupEnabled (e) {
-            e.stopPropagation();
+        item.homophones = Object.keys(item.homophones).map(function(key, index) {
+            return {
+                source: key,
+                enabled: true,
+                destination: item.homophones[key]
+            };
+        });
+        item.commands.map((cmd) => {
+            // make sure it's defined so we don't take parents
+            cmd.description = cmd.description ? cmd.description : null;
+            cmd.enabled = true;
+        });
+    });
+    toggleGroupEnabled(e) {
+        e.stopPropagation();
+        let item = e.item;
+        item.enabled = !item.enabled;
+    }
+    toggleCollapsed(e) {
+        // hack to get around propagation not being stopped in riot
+        if (e.target.nodeName.toLowerCase() != 'input' &&
+            e.target.nodeName.toLowerCase() != 'label') {
             let item = e.item;
-            item.enabled = !item.enabled;
+            item.collapsed = !item.collapsed;
         }
-
-        toggleCollapsed (e) {
-            // hack to get around propagation not being stopped in riot
-            if (e.target.nodeName.toLowerCase() != 'input'
-                && e.target.nodeName.toLowerCase() != 'label') {
-                let item = e.item;
-                item.collapsed = !item.collapsed;
-            }
-        }
-
-        $(document).ready(function() {
-            init();
-        });
+    }
+    riot.mount('cmd');
+    $(document).ready(function() {
+        init();
+    });
     </script>
 </options-page>

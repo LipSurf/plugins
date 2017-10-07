@@ -8,6 +8,7 @@ const HOMOPHONES = {
     'downward': 'down',
     'backwards': 'back',
     'backward': 'back',
+    'ford': 'forward',
     'forwards': 'forward',
     'upwards': 'up',
     'upward': 'up',
@@ -15,6 +16,7 @@ const HOMOPHONES = {
     'school': 'scroll',
     'screw': 'scroll',
     'small': 'little',
+    'time': 'next',
 	'clothes': 'close',
 };
 
@@ -51,7 +53,7 @@ var commands = [
 	{
 		name: 'Go Forward',
 		description: "Equivalent of hitting the forward button.",
-		match: ["forward", "ford", "go forward"],
+		match: ["forward", "go forward"],
 		runOnPage: function() {
 			window.history.forward();
 		}
@@ -127,7 +129,7 @@ var commands = [
 	},
 	{
 		name: 'Next Tab',
-		match: ["next tab", "next time"],
+		match: ["next tab"],
 		run: function() {
 			chrome.tabs.query({currentWindow: true}, function(tabs) {
 				let curIndex;
@@ -183,7 +185,7 @@ var commands = [
 	{
 		name: 'Select Tab',
 		description: "Select a tab by it's position.",
-		match: ['tab #', 'time #'],
+		match: ['tab #'],
 		run: function(i) {
 			chrome.tabs.query({index: i - 1, currentWindow: true}, function(tabs) {
 				chrome.tabs.update(tabs[0].id, {active: true});

@@ -19,6 +19,7 @@ const HOMOPHONES = {
     'paws': 'pause',
     'navigate': 'go',
     'contract': 'collapse',
+    'read it': 'reddit',
     'shrink': 'collapse',
 	'on fullscreen': 'unfull screen',
 	'on full screen': 'unfull screen',
@@ -137,7 +138,7 @@ var commands = [
 	},
 	{
 		name: 'Go to Reddit',
-		match: ["home", "reddit", "reddit.com", "read it"],
+		match: ["home", "reddit", "reddit.com"],
 		runOnPage: function() {
 			document.location.href = "https://www.reddit.com";
 		},

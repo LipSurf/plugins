@@ -23,6 +23,7 @@ $(document).ready(function() {
         // recognition.onerror = function(event) {
         toggleMicPerm(false);
     });
+
 });
 
 // load options
@@ -52,8 +53,24 @@ function getCmds(name) {
 }
 
 
+function _save(obj) {
+    chrome.storage.sync.set(obj, function() {
+        console.log("Settings saved " + JSON.stringify(obj));
+    });
+}
+
+
 Promise.all([getCmds('browser'), getCmds('reddit')]).then(function(cmdGroups) {
-    riot.mount('options-page', { cmdGroups: cmdGroups });
-    // riot.mount('cmd-group');
-    // riot.mount('cmd');
+    var Setting = {
+        init: function() {
+        },
+        save: function() {
+            debugger;
+            console.log("Saved settings");
+        }
+    };
+
+    riot.mixin('Setting', Setting);
+
+    riot.mount('options-page', { cmdGroups: cmdGroups});
 });
