@@ -1,30 +1,4 @@
-$(document).ready(function() {
-    var $micPerm = $('#mic_perm');
-
-    function toggleMicPerm(enabled) {
-        $micPerm.toggleClass('success', enabled);
-        $micPerm.toggleClass('failure', !enabled);
-        $micPerm.find('i').text(enabled ? 'check_circle': 'error');
-        $micPerm.find('span').text(enabled ? 'Has microphone permission' : 'Needs microphone permission');
-        $('#done').css('visibility', enabled ? 'visible' : 'hidden');
-    }
-
-    navigator.webkitGetUserMedia({
-        audio: true,
-    }, function(stream) {
-        console.log("yes permission");
-        toggleMicPerm(true);
-    }, function() {
-        // Aw. No permission (or no microphone available).
-        console.log("no permission");
-        // let rec = new webkitSpeechRecognition();
-        // console.log(`rec ${rec}`);
-        // rec.start();
-        // recognition.onerror = function(event) {
-        toggleMicPerm(false);
-    });
-
-});
+var cmdGroups;
 
 // load options
 function getCmds(name) {
@@ -54,23 +28,69 @@ function getCmds(name) {
 
 
 function _save(obj) {
-    chrome.storage.sync.set(obj, function() {
+    chrome.storage.sync.set({'cmdGroups': obj}, function() {
         console.log("Settings saved " + JSON.stringify(obj));
     });
 }
 
+function _reset() {
+    chrome.storage.sync.clear();
+    loadFresh();
+}
 
-Promise.all([getCmds('browser'), getCmds('reddit')]).then(function(cmdGroups) {
-    var Setting = {
-        init: function() {
-        },
-        save: function() {
-            debugger;
-            console.log("Saved settings");
+function loadSavedOrFresh() {
+    // null loads everything
+    chrome.storage.sync.get(null, function(loaded) {
+        if (typeof(loaded) != 'object' || typeof(loaded.cmdGroups) != 'object'|| !loaded.cmdGroups.length) {
+            loadFresh();
+        } else {
+            startup(loaded.cmdGroups);
         }
-    };
+    });
+}
 
-    riot.mixin('Setting', Setting);
-
-    riot.mount('options-page', { cmdGroups: cmdGroups});
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+    for (key in changes) {
+        var storageChange = changes[key];
+        console.log('Storage key "%s" in namespace "%s" changed. ' +
+            'Old value was "%s", new value is "%s".',
+            key,
+            namespace,
+            storageChange.oldValue,
+            storageChange.newValue);
+    }
 });
+
+function startup(cmdGroups) {
+    riot.mount('options-page', { cmdGroups: cmdGroups });
+}
+
+
+function loadFresh() {
+    Promise.all([getCmds('browser'), getCmds('reddit')]).then(function(preCmdGroups) {
+        // Transform the cmdGroups into useable form
+        cmdGroups = preCmdGroups.map((item) => {
+            item.collapsed = false;
+            item.enabled = true;
+
+            item.homophones = Object.keys(item.homophones).map(function(key, index) {
+                return {
+                    source: key,
+                    enabled: true,
+                    destination: item.homophones[key]
+                };
+            });
+
+            item.commands.map((cmd) => {
+                // make sure it's defined so we don't take parents
+                cmd.description = cmd.description ? cmd.description : null;
+                cmd.enabled = true;
+            });
+
+            return item;
+        });
+        startup(cmdGroups);
+    });
+}
+
+loadSavedOrFresh();

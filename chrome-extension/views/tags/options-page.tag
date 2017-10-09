@@ -1,14 +1,33 @@
 <options-page>
     <div class="container">
+        <div style="text-align: left">
+            <h1>No Hand Man</h1>
+            <h2>Permissions</h2>
+            <p>We need permission to use the microphone. Please click "allow" and No Hand Man will work in any window. </p>
+            <p>Privacy: the speech recognizer is only activated for the active window when you click the No Hand Man icon in your extensions toolbar.</p>
+            <div class="perms" ref="perms">
+                <span rel="mic-perm" class="notice {success: hasMicPerm, failure: hasMicPerm === false}">
+                <i class="material-icons">{hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <!-- TODO do we still want this? -->
+    <h4 id="done" style="visibility: hidden">You may now close this window.</h4>
+    <div class="container">
         <h2>Options</h2>
-        <!-- place the custom tag anywhere inside the body -->
+        <div style="height: 1.2rem">
+            <div class="right-controls">
+                <button onclick="{ reset }">Reset to Factory Defaults</button>
+            </div>
+        </div>
         <div each={ cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: collapsed, enabled: enabled }">
-                <a class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
-                    <div class="label">{ name } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onclick={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
+                <div class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
+                    <div class="label">{ name } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
                         <div class="desc">{ description }</div>
                     </div>
-                </a>
+                </div>
                 <div class="collapsable">
                     <div class="collapsable-inner">
                         <div class="homophones">
@@ -16,7 +35,7 @@
                                 <strong>Homophones/synonyms: </strong>
                             </div>
                             <div class="tag-list">
-                                <label class="tag" each={ homophones }><input type="checkbox" checked={ enabled }> { source } ➪ { destination }</label>
+                                <homophone each={homophones}></homophone>
                             </div>
                         </div>
                         <table>
@@ -27,7 +46,7 @@
                                 <th>Command Words</th>
                             </thead>
                             <tbody>
-                                <tr data-is="cmd" each={commands} name={name} description={description} match={match}></tr>
+                                <tr data-is="cmd" each={commands}></tr>
                             </tbody>
                         </table>
                     </div>
@@ -36,6 +55,46 @@
         </div>
     </div>
     <style>
+    .notice {
+        padding: 9px 10px;
+        border-radius: 4px;
+        border: 1px #ddd solid;
+        opacity: 0;
+        transition: opacity 1s ease-out;
+    }
+
+    .notice i {
+        color: #13bd13;
+        vertical-align: middle;
+        font-size: 1.5em;
+    }
+
+    .notice.success {
+        background-color: #f4fff4;
+        color: #565656;
+        border-color: #cae6ca;
+        opacity: 1.0;
+    }
+
+    .notice.failure {
+        background-color: #ffe3e0;
+        border-color: #e69e9e;
+        color: #8c3838;
+        opacity: 1.0;
+    }
+
+    .notice.failure i, .notice.success i {
+        opacity: 1;
+    }
+
+    .notice.failure i {
+        color: #f34040;
+    }
+
+    .perms {
+        margin: 10px;
+    }
+
     input[type=checkbox],
     input[type=radio] {
         vertical-align: middle;
@@ -101,6 +160,7 @@
 
     .cmd-group {
         margin: 10px 0;
+        clear: both;
     }
 
     .right-controls {
@@ -108,13 +168,9 @@
         margin-right: 20px;
     }
 
-    .container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
-
     .collapser {
         /*font-size: 1.05rem;*/
+        cursor: pointer;
         width: 100%;
         line-height: 1.2rem;
         text-align: left;
@@ -187,50 +243,63 @@
     }
     </style>
     <script>
-    // set the max height on each accordion item, then shrink the ones
-    // that need to be based on user settings
-    function init() {
-        $('.collapsable').each(function(i, ele) {
-            let $ele = $(ele);
-            $ele.css('max-height', $ele.parent().find('.collapsable').height());
-        });
-    }
     this.cmdGroups = opts.cmdGroups;
-    this.save = opts.save;
-    // TODO: load from settings
-    this.cmdGroups.map((item) => {
-        item.collapsed = false;
-        item.enabled = true;
+    this.hasMicPerm = null;
 
-        item.homophones = Object.keys(item.homophones).map(function(key, index) {
-            return {
-                source: key,
-                enabled: true,
-                destination: item.homophones[key]
-            };
-        });
-        item.commands.map((cmd) => {
-            // make sure it's defined so we don't take parents
-            cmd.description = cmd.description ? cmd.description : null;
-            cmd.enabled = true;
-        });
-    });
-    toggleGroupEnabled(e) {
-        e.stopPropagation();
-        let item = e.item;
-        item.enabled = !item.enabled;
+    save() {
+        _save(this.cmdGroups);
     }
+
+    reset() {
+        if (confirm("This will erase any settings you have configured and load default settings! Press OK if you're sure you want to continue.")) {
+            _reset()
+        }
+    }
+
+    toggleGroupEnabled(e) {
+        e.stopPropagation()
+        e.item.enabled = e.srcElement.checked;
+        this.save();
+    }
+
     toggleCollapsed(e) {
         // hack to get around propagation not being stopped in riot
         if (e.target.nodeName.toLowerCase() != 'input' &&
             e.target.nodeName.toLowerCase() != 'label') {
             let item = e.item;
             item.collapsed = !item.collapsed;
+            this.save();
         }
     }
-    riot.mount('cmd');
-    $(document).ready(function() {
-        init();
-    });
+
+    this.on('mount', function() {
+        var that = this;
+        // the thing might already be collapsed
+        // set the max height on each accordion item, then shrink the ones
+        // that need to be based on user settings
+        $('.collapsable').each(function(i, ele) {
+            let $ele = $(ele);
+            // TODO: this doesn't work anymore because when the page is loaded,
+            // $ele.css('max-height', $ele.parent().find('.collapsable').height());
+            $ele.css('max-height', 3000);
+        });
+
+        navigator.webkitGetUserMedia({
+            audio: true,
+        }, function(stream) {
+            console.log("yes permission");
+            that.hasMicPerm = true;
+            that.update();
+        }, function() {
+            // Aw. No permission (or no microphone available).
+            console.log("no permission");
+            that.hasMicPerm = false;
+            that.update();
+            // let rec = new webkitSpeechRecognition();
+            // console.log(`rec ${rec}`);
+            // rec.start();
+            // recognition.onerror = function(event) {
+        });
+    })
     </script>
 </options-page>

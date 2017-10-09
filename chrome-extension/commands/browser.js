@@ -60,6 +60,7 @@ var commands = [
 	},
 	{
 		name: 'Refresh',
+		description: "Refresh the page.",
 		match: "refresh",
 		runOnPage: function() {
 			location.reload();
