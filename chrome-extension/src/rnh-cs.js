@@ -8,6 +8,7 @@ var lblTimeout;
 var helpBoxOpen = false;
 // used to determine which video to fullscreen
 var $lastExpanded;
+var commands = {};
 
 
 function getFrameHtml(id) {
@@ -34,8 +35,7 @@ function attachOverlay(id) {
 
 
 // Only checks if the top of the element is in view
-function isInView($ele)
-{
+function isInView($ele) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
 
@@ -143,10 +143,8 @@ function showLiveText({text, isSuccess=false, isUnsure=false, hold=false, isErro
 
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function(msg) {
-	if (typeof msg.cmd !== 'undefined') {
-	    if (typeof COMMANDS[msg.cmd.name] !== 'undefined') {
-            return COMMANDS[msg.cmd.name].run(msg.cmd.match);
-        }
+	if (typeof msg.cmdName !== 'undefined') {
+		commands[msg.cmdPluginName][msg.cmdName](msg.cmdArgs);
     } else if (typeof msg.liveText !== 'undefined') {
 		showLiveText(msg.liveText);
 	} else if (typeof msg.toggleOn !== 'undefined') {
@@ -171,5 +169,6 @@ document.addEventListener("webkitfullscreenchange", function( event ) {
     console.log(`rnh-cs removing fullscreen ${document.webkitIsFullScreen}`);
     toggleFullScreen(false);
 });
+
 
 

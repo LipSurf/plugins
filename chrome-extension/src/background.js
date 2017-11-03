@@ -1,39 +1,23 @@
-exports.init = function({
+exports.Background = function({
     chrome,
-    CT,
-    _
+    _,
+    CT,         // constants
+    PM,         // plugin manager
+    Recognizer, // speech -> command
 } = {}) {
     var on = false;
     var audible = false;
     var currentActiveTabId;
     var needsPermission = false;
-    var lastNonFinalCmdExecutedTime = 0;
-    var lastNonFinalCmdExecuted = null;
     var delayCmd;
-    var _syn_keys = Object.keys(CT.SYNONYMS).map((syn) => new RegExp(`\\b${syn}\\b`));
-    var _syn_vals = Object.values(CT.SYNONYMS);
-    var commands = {};
-    var cmdPromise = getCmds(function(cmds) {
-        commands = cmds;
+    var loadedPlugins = new Promise((resolve, reject) => {
+        PM.loadPlugins().then((res) => {
+            var plgs = res[0];
+            var homos = res[1];
+            Recognizer.setPlugins(plgs, homos);
+            resolve();
+        });
     });
-
-
-    // prefix or suffix match
-    function ordinalOrNumberToDigit(input, keywords) {
-        for (let i = 0; i < keywords.length; i++) {
-            let keyword = keywords[i];
-            let startI = input.indexOf(keyword);
-            if (~startI) {
-                let ordinal = input.replace(keyword, "").trim();
-                console.log(`ordinal ${ordinal} keyword: ${keyword}`);
-                try {
-                    return CT.ORDINALS_TO_DIGITS[ordinal] || CT.NUMBERS_TO_DIGITS[ordinal];
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        }
-    }
 
 
     function queryActiveTab(cb) {
@@ -59,205 +43,13 @@ exports.init = function({
     }
 
 
-    // Maybe we want to execute each command seperately? Like "down down" should
-    // be two downs. If the user chains commands like "down up" then
-    // maybe we should split and match the first valid part of the command?
-    // Needs thought...
-    function dedupe(input) {
-        let existingWords = {};
-        let processed = [];
-        for (let word of input.split(' ')) {
-            if (typeof existingWords[word] === 'undefined') {
-                processed.push(word);
-            }
-        }
-        return processed.join(' ');
-    }
 
-
-    function expandSynonyms(input) {
-        for (let i = 0; i < _syn_keys.length; i++) {
-            input = input.replace(_syn_keys[i], _syn_vals[i]);
-        }
-        return input;
-    }
-
-
-    function sendMsgToActiveTab(request) {
+    function sendMsgToActiveTabCb(request) {
         queryActiveTab(function(tab) {
             chrome.tabs.sendMessage(tab.id, request);
         });
     }
 
-
-    function getCmds() {
-        return new Promise((resolve, reject) => {
-            var cmdFn;
-            var request = new XMLHttpRequest();
-            request.open('GET', chrome.runtime.getURL('commands/browser.js'), true);
-
-            request.onload = function() {
-                if (request.status >= 200 && request.status < 400) {
-                    // Success!
-                    cmdFn = eval(`(function() { ${request.responseText} })()`);
-                } else {
-                    // We reached our target server, but it returned an error
-
-                }
-                resolve(cmdFn);
-            };
-
-            request.onerror = function() {
-                // There was a connection error of some sort
-            };
-
-            request.send();
-        });
-    }
-
-
-    exports.getCmdForUserInput = function(input) {
-        // simplifies the input into a more limited set of words
-        let processedInput = expandSynonyms(input);
-        // processedInput = dedupe(processedInput);
-        for (let cmdName in commands) {
-            let curCmd = commands[cmdName];
-            let out;
-            let i;
-            if (typeof curCmd.ordinalMatch !== 'undefined') {
-                out = ordinalOrNumberToDigit(processedInput, curCmd.ordinalMatch);
-            }
-            if (!out && typeof curCmd.regx !== 'undefined') {
-                if (curCmd.regx.length) {
-                    for (i = 0; i < curCmd.regx.length; i++) {
-                        out = processedInput.match(curCmd.regx[i]);
-                        if (out) {
-                            break;
-                        }
-                    }
-                } else {
-                    out = processedInput.match(curCmd.regx);
-                }
-            }
-            if (!out && typeof curCmd.matches !== 'undefined') {
-                out = curCmd.matches(processedInput);
-            }
-            if (out) {
-                let cmd = commands[cmdName];
-                let delay = null;
-                if (cmd.ordinalMatch) {
-                    delay = CT.ORDINAL_CMD_DELAY;
-                } else if (cmd.delay && typeof cmd.delay === 'object') {
-                    delay = cmd.delay[i];
-                } else if (typeof cmd.delay !== 'undefined') {
-                    delay = cmd.delay;
-                }
-                return {
-                    cmdName: cmdName,
-                    matchOutput: out,
-                    delay: delay
-                };
-            }
-        }
-        return {};
-    }
-
-
-    function handleTranscript({
-        isFinal,
-        transcript,
-        confidence
-    } = {}) {
-        let elapsedTime = +new Date() - lastNonFinalCmdExecutedTime;
-        console.log(`elapsed time ${elapsedTime}`);
-        if (elapsedTime > CT.COOLDOWN_TIME) {
-            if (confidence > CT.CONFIDENCE_THRESHOLD) {
-                // console.log(`start time ${+new Date()}`);
-                let {
-                    cmdName,
-                    matchOutput,
-                    delay
-                } = exports.getCmdForUserInput(transcript);
-                let niceOutput = null;
-                console.log(`input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                // console.log(`end time ${+new Date()}`);
-                if (cmdName) {
-                    // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) < CT.FINAL_COOLDOWN_TIME) {
-                        console.log("Junked dupe.");
-                        return;
-                    } else if (typeof delayCmd !== 'undefined') {
-                        clearTimeout(delayCmd);
-                    }
-
-                    let cmd = commands[cmdName];
-
-                    delayCmd = setTimeout(function() {
-                        if (typeof cmd.nice === 'string') {
-                            niceOutput = cmd.nice;
-                        } else if (typeof cmd.nice === 'function') {
-                            niceOutput = cmd.nice(matchOutput);
-                        }
-                        console.log(`running command ${cmdName} isFinal:${isFinal}`);
-                        lastNonFinalCmdExecuted = isFinal ? null : cmdName;
-                        lastNonFinalCmdExecutedTime = isFinal ? 0 : +new Date();
-
-                        exports.execCmd({
-                            name: cmdName,
-                            matchStr: matchOutput
-                        });
-                        console.log(`transcript in closure ${transcript}`);
-                        return sendMsgToActiveTab({
-                            liveText: {
-                                text: niceOutput ? niceOutput : transcript,
-                                isSuccess: true,
-                            }
-                        });
-                    }, delay);
-                    return sendMsgToActiveTab({
-                        liveText: {
-                            text: transcript,
-                            hold: true,
-                        }
-                    });
-                } else {
-                    return sendMsgToActiveTab({
-                        liveText: {
-                            text: niceOutput ? niceOutput : transcript
-                        }
-                    });
-                }
-            }
-            if (isFinal) {
-                lastFinalTime = +new Date();
-                if (confidence <= CT.CONFIDENCE_THRESHOLD) {
-                    return sendMsgToActiveTab({
-                        liveText: {
-                            text: transcript,
-                            isUnsure: true
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-
-    exports.execCmd = function({
-        name,
-        matchStr
-    } = {}) {
-        if (typeof commands[name].run !== 'undefined') {
-            commands[name].run(matchStr);
-        } else {
-            sendMsgToActiveTab({
-                cmd: {
-                    name: name,
-                    match: matchStr
-                }
-            });
-        }
-    };
 
 
     var Detector = function() {
@@ -319,76 +111,35 @@ exports.init = function({
     })();
 
 
-    var Recognizer = (function() {
-        var recognition;
-        return {
-            start: function() {
-                recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.lang = 'en-US';
-                recognition.maxAlternatives = 1;
-                recognition.start();
+    function needsPermissionCb() {
+        chrome.runtime.openOptionsPage();
+    }
 
-                recognition.onresult = function(event) {
-                    var lastE = event.results[event.results.length - 1];
-                    needsPermission = false;
-                    console.dir(event);
-                    handleTranscript({
-                        'isFinal': lastE.isFinal,
-                        'confidence': lastE[0].confidence,
-                        'transcript': lastE[0].transcript.trim().toLowerCase(),
-                    });
-                };
-
-                // Error types:
-                // 	'no-speech'
-                //  'network'
-                //  'not-allowed
-                recognition.onerror = function(event) {
-                    // open the options page if we don't have permission
-                    if (!needsPermission) {
-                        if (event.error === 'not-allowed') {
-                            needsPermission = true;
-                            chrome.runtime.openOptionsPage();
-                        } else if (event.error !== 'no-speech') {
-                            console.error(`unhandled error: ${event.error}`);
-                        }
-                    }
-                };
-
-                recognition.onnomatch = function(event) {
-                    console.error(`No match! ${event}`);
-                };
-
-                recognition.onend = function() {
-                    console.log("ended. Restarting: ");
-                    recognition.start();
-                };
-
-            },
-            shutdown: function() {
-                try {
-                    recognition.stop();
-                } catch (e) {}
-                try {
-                    recognition.onresult = null;
-                    recognition.onerror = null;
-                    recognition.onend = null;
-                } catch (e) {}
-                recognition = null;
-            }
-        }
-    })();
 
     chrome.browserAction.setIcon({
         path: on ? CT.ON_ICON : CT.OFF_ICON
     });
 
+
+    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+        if (on && changeInfo.status == "complete") {
+            PM.loadContentScriptsForUrl(tabId, tab.url);
+        }
+    });
+
+
     chrome.browserAction.onClicked.addListener(function(tab) {
         on = !on;
         if (on) {
-            Recognizer.start();
+            PM.loadContentScriptsForUrl(tab.id, tab.url);
+            // only allow recognizer to start if at least default
+            // commands are loaded
+            loadedPlugins.then(() => {
+                Recognizer.start({
+                    needsPermissionCb: needsPermissionCb,
+                    sendMsgToActiveTabCb: sendMsgToActiveTabCb,
+                });
+            });
             InterferenceAudioDetector.init();
         } else {
             Recognizer.shutdown();
@@ -397,7 +148,7 @@ exports.init = function({
         chrome.browserAction.setIcon({
             path: on ? CT.ON_ICON : CT.OFF_ICON
         });
-        sendMsgToActiveTab({
+        sendMsgToActiveTabCb({
             'toggleOn': on
         })
 
@@ -455,17 +206,27 @@ exports.init = function({
         }
     });
 
-    // for debug mode
-    if (CT.DEBUG) {
-        exports.handleTranscript = handleTranscript;
-    }
     return exports;
 };
 
+// When the bg pages are loaded in a non-node env, we need to
+// initialize the modules manually
 if (typeof chrome !== 'undefined') {
-    exports.init({
+    exports.PM = exports.PM({
         chrome: chrome,
+        _: _,
         CT: exports.CT,
-        _: exports._
+    });
+    exports.Recognizer = exports.Recognizer({
+        CT: CT,
+        _: _,
+        webkitSpeechRecognition: webkitSpeechRecognition,
+    });
+    exports.Background({
+        chrome: chrome,
+        _: _,
+        CT: exports.CT,
+        PM: exports.PM,
+        Recognizer: exports.Recognizer,
     });
 }

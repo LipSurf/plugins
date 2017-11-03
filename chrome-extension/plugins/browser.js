@@ -70,7 +70,6 @@ var commands = [
 		name: 'Scroll Bottom',
 		match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
 		runOnPage: function() {
-			console.log("SCROLL BOTTOM");
 			$('html, body').animate({ scrollTop:  document.body.scrollHeight });
 		},
 	},
@@ -84,6 +83,7 @@ var commands = [
 	{
 		name: 'Scroll Down',
 		match: ["down", "scroll down"],
+		// We introduce a delay to distinguish between "down" and "down a little"
 		delay: [300, 0],
 		runOnPage: function() {
 			$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE });
@@ -199,6 +199,7 @@ return {
 	name: 'Browser',
 	description: 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.',
 	version: '1.0.0',
+	matches: /.*/,
 	commands: commands,
 	homophones: HOMOPHONES,
 };

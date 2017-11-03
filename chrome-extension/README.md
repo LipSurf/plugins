@@ -1,5 +1,8 @@
 TODO
 ===
+*Install FZY
+*Technique for cd'ing dirs? Working on projects?
+
 Release to fam:
 
 * Make new json plugs work!
@@ -22,6 +25,11 @@ Release to fam:
 
 nhm script spec
 ===
-`matches`: array of match patterns
+`matches`: array of match patterns.
+	Should be in order of what should match first (likely want matches with optional parameters first)
  Why not always regx? User-friendly presentation to in options is important.
 `delay`: can be single value or array if different matches should have different delays (indexes correspond to matches)
+
+dev reqs
+===
+Sikulix

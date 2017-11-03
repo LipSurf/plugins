@@ -1,4 +1,3 @@
-// ==UserVoiceScript==
 // less common -> common
 const HOMOPHONES = {
     'download': 'downvote',
@@ -26,38 +25,41 @@ const HOMOPHONES = {
 	'unfor screen': 'unfull screen',
 	'unfold screen': 'unfull screen',
 };
-const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
-const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
 
 
-function thingAtIndex(i) {
-	return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
-}
-// do we need this
-var opened;
+function pageInit() {
+	const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
+	// do we need this
+	var opened;
+
+	function thingAtIndex(i) {
+		return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
+	}
 
 
-function toggleFullScreen(on) {
-    // let $ele = $lastExpanded.closest('*[data-url]');
-    // let $iframe = $ele.find('iframe');
-    // $iframe.toggleClass('nhm-full-screen', false);
-	if (on) {
-        $('#header').hide();
-        $('.side').hide();
-        $(document.body).css('overflow', 'hidden');
-	} else {
-        $('#header').show();
-        $('.side').show();
-        $(document.body).css('overflow', 'visible');
-        $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
+	function toggleFullScreen(on) {
+	    // let $ele = $lastExpanded.closest('*[data-url]');
+	    // let $iframe = $ele.find('iframe');
+	    // $iframe.toggleClass('nhm-full-screen', false);
+		if (on) {
+	        $('#header').hide();
+	        $('.side').hide();
+	        $(document.body).css('overflow', 'hidden');
+		} else {
+	        $('#header').show();
+	        $('.side').show();
+	        $(document.body).css('overflow', 'visible');
+	        $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
+		}
 	}
 }
+
 
 var commands = [
 	{
 		name: "Collapse",
 		description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
-		match: ["close", "close preview", "collapse #", "collapse"],
+		match: ["collapse #", "close", "close preview", "collapse"],
 		runOnPage: function(i) {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             if (!isNaN(index)) {
@@ -122,6 +124,7 @@ var commands = [
 	{
 		name: 'Go to Subreddit',
 		match: function(input) {
+			const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
 			let match = input.match(SUBREDDIT_REGX);
 			console.log(`navigate subreddit input: ${input} match: ${match}`);
 			if (match) {
@@ -259,6 +262,8 @@ return {
 	name: 'Reddit',
 	description: 'Commands for Reddit.com',
 	version: '1.0.0',
+	matches: /https?:\/\/www.reddit.com\/.*/,
 	commands: commands,
 	homophones: HOMOPHONES,
+	pageInit: pageInit,
 };

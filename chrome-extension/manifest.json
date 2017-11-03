@@ -7,6 +7,8 @@
     "scripts": [
       "vendor/lodash.min.js",
       "src/constants.js",
+      "src/plugin-manager.js",
+      "src/recognizer.js",
       "src/background.js"
     ],
     "persistent": true

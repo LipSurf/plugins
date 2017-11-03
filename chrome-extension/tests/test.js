@@ -4,9 +4,14 @@ const jsdom = require('jsdom');
 const fs = require('fs');
 const _ = require('lodash');
 
-const rnh_cs = fs.readFileSync('./src/rnh-cs.js', { encoding: 'utf-8'});
-const jQuery = fs.readFileSync('./vendor/jquery-3.2.1.min.js', { encoding: 'utf-8'});
+const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8' });
+
+const rnh_cs = readFileSync('./src/rnh-cs.js');
+const jQuery = readFileSync('./vendor/jquery-3.2.1.min.js');
 const { JSDOM } = jsdom;
+
+const plugins_browser = readFileSync('./plugins/browser.js');
+const plugins_reddit = readFileSync('./plugins/reddit.js');
 
 
 function attachScript(dom, scriptContent) {
@@ -16,36 +21,186 @@ function attachScript(dom, scriptContent) {
 }
 
 
+describe('Recognizer tests', function() {
+	var recg;
+
+	let cmdToPossibleInput = {
+		'collapse': ['shrink', 'shrink 1st', 'collapse 25', 'collapse'],
+		'expand': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight', 'expand', 'preview'],
+		'go back': ['back', 'go back', 'navigate back', 'navigate backwards', 'backwards', 'backward', 'go backwards'],
+		'go forward': ['forward', 'go forward', 'forwards'],
+		'go to subreddit': ['go to our testing', 'are funny',
+				'our world news', 'r worldnews'],
+		'go to reddit': ['reddit', 'home'],
+		'scroll top': ['top', 'scroll top', 'scrolltop'],
+		'scroll bottom': ['bottom', 'scroll bottom'],
+	}
+
+	function testOutput(userInput, expectedCmd) {
+		let selectedCmd = recg._getCmdForUserInput(userInput).cmdName;
+		assert.equal(selectedCmd ? selectedCmd.toLowerCase() : selectedCmd, expectedCmd, selectedCmd);
+	}
+
+	function testNoOutput(userInput) {
+		var cmdName = recg._getCmdForUserInput(userInput).cmdName;
+		assert.ok(cmdName === undefined, `${userInput} -> ${cmdName}`);
+	}
+
+	// runs once (as opposed to beforeEach)
+	before(function (done) {
+        let wasError = false;
+        var lodash = require('../vendor/lodash.min.js');
+        var constants = require('../src/constants.js').CT;
+        var chrome = {
+            browserAction: {
+                setIcon: () => null,
+                onClicked: {
+                    addListener: () => null,
+                }
+            },
+            tabs: {
+                onActivated: {
+                    addListener: () => null,
+                },
+				query: () => null,
+            },
+            runtime: {
+                onMessage: {
+                    addListener: () => null,
+                }
+            },
+            storage: {
+            	sync: {
+            		get: function(key, cb) {
+            			return cb({});
+            		}
+            	}
+            }
+        }
+	    constants.COOLDOWN_TIME = 0;
+	    constants.FINAL_COOLDOWN_TIME = 0;
+        var PM = require('../src/plugin-manager.js').PM({
+        	chrome: chrome,
+        	_: lodash,
+        	CT: constants
+    	});
+    	PM._getPlugin = (pluginName) => new Promise((resolve) => resolve(eval(`(function() { ${eval(`plugins_${pluginName}`)} })()`)));
+        recg = require('../src/recognizer.js').Recognizer({
+        	CT: constants,
+        	_: lodash,
+        	webkitSpeechRecognition: function() {return {start: () => null}},
+        });
+
+        PM.loadPlugins().then((res) => {
+            var cmds = res[0];
+            var homos = res[1];
+            recg.setCommands(cmds, homos);
+            done();
+        });
+
+        recg.start({
+        	needsPermissionCb: () => null,
+        	sendMsgToActiveTabCb: () => null,
+        })
+	});
+
+	for (let expectedCmd in cmdToPossibleInput) {
+		let possibleUserInputs = cmdToPossibleInput[expectedCmd];
+        for (let userInput of possibleUserInputs) {
+            it(`"${userInput}" should execute expected ${expectedCmd}`, function() {
+                testOutput(userInput, expectedCmd);
+			});
+		}
+	}
+
+
+	it('should not activate a command', function() {
+		for (let userInput of ['we are testing']) {
+			testNoOutput(userInput);
+		}
+	});
+
+	it('should parse subreddit names without spaces', function() {
+		let userInput = 'go to r not the onion';
+		var {cmdName, matchOutput, delay} = recg._getCmdForUserInput(userInput);
+		assert.ok(matchOutput === 'nottheonion', `${userInput} -> ${matchOutput}`);
+	});
+
+	it('should parse ordinals', function() {
+        let ordinalTests = [{
+                'upvote 1st': ['VoteUp', '1'],
+        }];
+        for (let input in ordinalTests) {
+            let sel = recg._getCmdForUserInput(input);
+            assert.equal(sel.cmdName, ordinalTests[input][0]);
+            assert.equal(sel.matchOutput, ordinalTests[input][1]);
+		}
+	});
+
+	it('should only execute last input', function(cb) {
+	    let seq = _(['click', '16', 'click', 'click 16']);
+	    throw new Exception("Not yet implemented");
+        // TODO: mock sendMsgToActiveTab instead
+        recg._execCmd = function() {
+        	cb();
+		};
+	    seq.each((val, i) => setTimeout(() => recg._handleTranscript({isFinal: i == 4, confidence: 0.2, transcript: val}), i * 100));
+	});
+
+});
+
 describe('rnh tests', function() {
 	var window;
 	var bg;
+	var recg;
 
 	before(function (done) {
         let wasError = false;
-	    bg = require('../src/background.js').init(_.extend({
-			chrome: {
-                browserAction: {
-                    setIcon: () => null,
-                    onClicked: {
-                        addListener: () => null,
-                    }
-                },
-                tabs: {
-                    onActivated: {
-                        addListener: () => null,
-                    },
-					query: () => null,
-                },
-                runtime: {
-                    onMessage: {
-                        addListener: () => null,
-                    }
+        var lodash = require('../vendor/lodash.min.js');
+        var constants = require('../src/constants.js').CT;
+        var chrome = {
+            browserAction: {
+                setIcon: () => null,
+                onClicked: {
+                    addListener: () => null,
                 }
+            },
+            tabs: {
+                onActivated: {
+                    addListener: () => null,
+                },
+				query: () => null,
+            },
+            runtime: {
+                onMessage: {
+                    addListener: () => null,
+                }
+            },
+            storage: {
+            	sync: {
+            		get: function(key, cb) {
+            			return cb({cmdGroups: [plugins_browser, plugins_reddit].map((x) => eval(`(function() { ${x} })()`))});
+            		}
+            	}
             }
-	    }, require('../src/constants.js'), require('../vendor/lodash.min.js')));
-
-	    bg.COOLDOWN_TIME = 0;
-	    bg.FINAL_COOLDOWN_TIME = 0;
+        }
+	    constants.COOLDOWN_TIME = 0;
+	    constants.FINAL_COOLDOWN_TIME = 0;
+        var pm = require('../src/plugin-manager.js').PM({
+        	chrome: chrome,
+        	CT: constants
+    	});
+        recg = require('../src/recognizer.js').Recognizer({
+        	CT: constants,
+        	_: lodash,
+        });
+	    bg = require('../src/background.js').Background({
+	    	chrome: chrome,
+	    	_: lodash,
+	    	CT: constants,
+	    	PM: pm,
+	    	Recognizer: recg
+	    });
 
 		JSDOM.fromFile("tests/mock.html", {
 			runScripts: 'dangerously',
@@ -73,65 +228,4 @@ describe('rnh tests', function() {
 		});
 	});
 
-	it('should not activate a command', function() {
-		for (let userInput of ['we are testing']) {
-			testNoOutput(userInput);
-		}
-	});
-
-	it('should parse subreddit names without spaces', function() {
-		let userInput = 'go to r not the onion';
-		var {cmdName, matchOutput, delay} = bg.getCmdForUserInput(userInput);
-		assert.ok(matchOutput === 'nottheonion', `${userInput} -> ${matchOutput}`);
-	});
-
-	it('should parse ordinals', function() {
-        let ordinalTests = [{
-                'upvote 1st': ['VoteUp', '1'],
-        }];
-        for (let input in ordinalTests) {
-            let sel = bg.getCmdForUserInput(input);
-            assert.equal(sel.cmdName, ordinalTests[input][0]);
-            assert.equal(sel.matchOutput, ordinalTests[input][1]);
-		}
-	});
-
-	function testOutput(userInput, expectedCmd) {
-		let selectedCmd = bg.getCmdForUserInput(userInput).cmdName;
-		assert.equal(selectedCmd, expectedCmd, selectedCmd);
-	}
-
-	function testNoOutput(userInput) {
-		var cmdName = bg.getCmdForUserInput(userInput).cmdName;
-		assert.ok(cmdName === undefined, `${userInput} -> ${cmdName}`);
-	}
-
-	let cmdToPossibleInput = {
-		'Collapse': ['shrink', 'shrink 1st', 'collapse 25', 'collapse'],
-		'Expand': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight', 'expand', 'preview'],
-		'NavigateBackward': ['back', 'go back', 'navigate back', 'navigate backwards', 'backwards', 'backward', 'go backwards'],
-		'NavigateForward': ['forward', 'go forward', 'forwards'],
-		'NavigateToSubreddit': ['go to our testing', 'are funny',
-				'our world news', 'r worldnews'],
-		'Reddit': ['reddit', 'home'],
-		'ScrollTop': ['top', 'scroll top', 'scrolltop'],
-		'ScrollBottom': ['bottom', 'scroll bottom'],
-	}
-
-	for (let expectedCmd in cmdToPossibleInput) {
-		let possibleUserInputs = cmdToPossibleInput[expectedCmd];
-        for (let userInput of possibleUserInputs) {
-            it(`"${userInput}" should execute expected ${expectedCmd}`, function() {
-                testOutput(userInput, expectedCmd);
-			});
-		}
-	}
-
-	it('should only execute last input', function(cb) {
-	    let seq = _(['click', '16', 'click', 'click 16']);
-	    seq.each((val, i)=>setTimeout(() => bg.handleTranscript({isFinal: i == 4, confidence: 0.2, transcript: val}), i * 100));
-        bg.execCmd = function() {
-        	cb();
-		};
-	});
 });
