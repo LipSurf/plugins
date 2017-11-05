@@ -5,7 +5,7 @@ exports.Recognizer = function({
 } = {}) {
     var recognition;
     var pub = {};
-    var needsPermissionCb;
+    var recognizerKilled = false;
     var _sendMsgToActiveTabCb;
     var lastNonFinalCmdExecutedTime = 0;
     var lastNonFinalCmdExecuted = null;
@@ -21,49 +21,59 @@ exports.Recognizer = function({
     };
 
     pub.start = function({
-        needsPermissionCb,
         sendMsgToActiveTabCb,
     } = {}) {
-        needsPermissionCb = needsPermissionCb;
-        _sendMsgToActiveTabCb = sendMsgToActiveTabCb;
-        recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-        recognition.maxAlternatives = 1;
-        recognition.start();
-
-        recognition.onresult = function(event) {
-            var lastE = event.results[event.results.length - 1];
-            console.dir(event);
-            pub._handleTranscript({
-                'isFinal': lastE.isFinal,
-                'confidence': lastE[0].confidence,
-                'transcript': lastE[0].transcript.trim().toLowerCase(),
-            });
-        };
-
-        // Error types:
-        //  'no-speech'
-        //  'network'
-        //  'not-allowed
-        recognition.onerror = function(event) {
-            if (event.error === 'not-allowed') {
-                needsPermissionCb();
-            } else if (event.error !== 'no-speech') {
-                console.error(`unhandled error: ${event.error}`);
-            }
-        };
-
-        recognition.onnomatch = function(event) {
-            console.error(`No match! ${event}`);
-        };
-
-        recognition.onend = function() {
-            console.log("ended. Restarting: ");
+        // call this promise if starting the recognizer fails
+        // we do this asynchronously because we don't know it failed
+        // until we get a `onerror` event.
+        return new Promise((resolve, reject) => {
+            _sendMsgToActiveTabCb = sendMsgToActiveTabCb;
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
             recognition.start();
-        };
 
+            recognition.onresult = function(event) {
+                var lastE = event.results[event.results.length - 1];
+                console.dir(event);
+                pub._handleTranscript({
+                    'isFinal': lastE.isFinal,
+                    'confidence': lastE[0].confidence,
+                    'transcript': lastE[0].transcript.trim().toLowerCase(),
+                });
+                recognizerKilled = false;
+            };
+
+            // Error types:
+            //  'no-speech'
+            //  'network'
+            //  'not-allowed
+            recognition.onerror = function(event) {
+                if (event.error === 'not-allowed') {
+                    // TODO: throw an exception that stops the
+                    // add-on
+                    // throw "This should never happen";
+                    recognizerKilled = true;
+                } else if (event.error !== 'no-speech') {
+                    console.error(`unhandled error: ${event.error}`);
+                }
+            };
+
+            recognition.onnomatch = function(event) {
+                console.error(`No match! ${event}`);
+            };
+
+            recognition.onend = function() {
+                // don't restart in an infinite loop
+                if (!recognizerKilled) {
+                    console.log("ended. Restarting: ");
+                    recognition.start();
+                }
+            };
+
+        });
     };
 
     pub.shutdown = function() {

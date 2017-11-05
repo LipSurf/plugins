@@ -1,12 +1,13 @@
 exports.Background = function({
     chrome,
     _,
-    CT,         // constants
-    PM,         // plugin manager
+    CT, // constants
+    PM, // plugin manager
     Recognizer, // speech -> command
 } = {}) {
     var on = false;
     var audible = false;
+    var permissionDetector;
     var currentActiveTabId;
     var needsPermission = false;
     var delayCmd;
@@ -54,15 +55,40 @@ exports.Background = function({
 
     var Detector = function() {
         let _intervalId;
+        let _checks = 0;
+        let _maxChecks;
+        let _sentinelFn;
+        let _detectCb;
+
+        function _check() {
+            _checks += 1;
+            new Promise(_sentinelFn).then(() => {
+                console.log('yep 5');
+                clearInterval(_intervalId);
+                _detectCb();
+            }, () => {});
+            if (typeof(_maxChecks) !== 'undefined' && _checks > _maxChecks) {
+                clearInterval(_intervalId);
+            }
+        }
+
         return {
             // sentinelFn -- returns true when something is detected
             // detectCb -- is run when sentinelFn returns true (once)
             // interval -- how often to run sentinelFn
-            init: function(sentinelFn, detectCb, interval) {
+            init: function(sentinelFn, detectCb, interval, maxChecks) {
+                _maxChecks = maxChecks;
+                _sentinelFn = sentinelFn;
+                _detectCb = detectCb;
+                _check();
                 _intervalId = setInterval(function() {
-                    let res = detectCb();
-                    res ? clearTimeout(_intervalId) : null;
-                });
+                    _check();
+                }, interval);
+                return this;
+            },
+
+            destroy: function() {
+                clearInterval(_intervalId);
             },
         };
     };
@@ -116,6 +142,28 @@ exports.Background = function({
     }
 
 
+    function turnOn() {
+        on = true;
+        chrome.browserAction.setIcon({
+            path: on ? CT.ON_ICON : CT.OFF_ICON
+        });
+        sendMsgToActiveTabCb({
+            'toggleOn': on
+        });
+        queryActiveTab((tab) => {
+            PM.loadContentScriptsForUrl(tab.id, tab.url);
+        });
+        // only allow recognizer to start if at least default
+        // commands are loaded
+        loadedPlugins.then(() => {
+            Recognizer.start({
+                sendMsgToActiveTabCb: sendMsgToActiveTabCb,
+            });
+        });
+        InterferenceAudioDetector.init();
+    }
+
+
     chrome.browserAction.setIcon({
         path: on ? CT.ON_ICON : CT.OFF_ICON
     });
@@ -129,28 +177,44 @@ exports.Background = function({
 
 
     chrome.browserAction.onClicked.addListener(function(tab) {
-        on = !on;
         if (on) {
-            PM.loadContentScriptsForUrl(tab.id, tab.url);
-            // only allow recognizer to start if at least default
-            // commands are loaded
-            loadedPlugins.then(() => {
-                Recognizer.start({
-                    needsPermissionCb: needsPermissionCb,
-                    sendMsgToActiveTabCb: sendMsgToActiveTabCb,
-                });
+            on = false;
+            chrome.browserAction.setIcon({
+                path: on ? CT.ON_ICON : CT.OFF_ICON
             });
-            InterferenceAudioDetector.init();
-        } else {
+            sendMsgToActiveTabCb({
+                'toggleOn': on
+            });
             Recognizer.shutdown();
             InterferenceAudioDetector.destroy();
+        } else {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
+                console.log("easy on");
+                turnOn();
+            }, () => {
+                // Aw. No permission (or no microphone available).
+                needsPermissionCb();
+                if (!permissionDetector) {
+                    // check a maximum of 15 times (~23s)
+                    permissionDetector = new Detector().init(
+                        (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then((stream) => {
+                                console.log("yep1");
+                                if (typeof(stream) !== 'undefined') {
+                                    console.log("yep2");
+                                    resolve();
+                                } else {
+                                    reject();
+                                }
+                            }, function() {
+                                reject();
+                            }).catch(() => { }),
+                        turnOn,
+                        1500,
+                        15);
+                }
+            });
         }
-        chrome.browserAction.setIcon({
-            path: on ? CT.ON_ICON : CT.OFF_ICON
-        });
-        sendMsgToActiveTabCb({
-            'toggleOn': on
-        })
 
         // REMOVE THIS
         // send test msg

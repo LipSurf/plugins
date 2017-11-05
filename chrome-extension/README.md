@@ -4,9 +4,10 @@ TODO
 *Technique for cd'ing dirs? Working on projects?
 
 Release to fam:
+* Opening reddit when add-on is already activated
+* Turning on plugin while page is still loading
+* Tests for speaking (use speech API outside of chrome?)
 
-* Make new json plugs work!
-* Reload all reddit tabs on install
 * Don't use synonyms on subreddit names
 * Make full screen black out background
 * Next page/prev page
@@ -29,6 +30,17 @@ nhm script spec
 	Should be in order of what should match first (likely want matches with optional parameters first)
  Why not always regx? User-friendly presentation to in options is important.
 `delay`: can be single value or array if different matches should have different delays (indexes correspond to matches)
+
+hacks
+===
+When this is available: `navigator.permissions.query({name: 'microphone'})` use it instead of
+`navigator.mediaDevices.getUserMedia` so we can query for permission without requesting it
+from both the background and option pages.
+
+marketing
+===
+*send to the guy who couldn't use his hands and posted the video of the spoon on the magnet that he could feed himself with
+*Alexa, Google Home, Apple ?
 
 dev reqs
 ===

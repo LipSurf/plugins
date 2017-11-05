@@ -3,15 +3,16 @@ const assert = require('assert');
 const jsdom = require('jsdom');
 const fs = require('fs');
 const _ = require('lodash');
+const BASE_DIR = './chrome-extension/';
 
 const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8' });
 
-const rnh_cs = readFileSync('./src/rnh-cs.js');
-const jQuery = readFileSync('./vendor/jquery-3.2.1.min.js');
+const rnh_cs = readFileSync(`${BASE_DIR}src/rnh-cs.js`);
+const jQuery = readFileSync(`${BASE_DIR}vendor/jquery-3.2.1.min.js`);
 const { JSDOM } = jsdom;
 
-const plugins_browser = readFileSync('./plugins/browser.js');
-const plugins_reddit = readFileSync('./plugins/reddit.js');
+const plugins_browser = readFileSync(`${BASE_DIR}plugins/browser.js`);
+const plugins_reddit = readFileSync(`${BASE_DIR}plugins/reddit.js`);
 
 
 function attachScript(dom, scriptContent) {
@@ -49,8 +50,8 @@ describe('Recognizer tests', function() {
 	// runs once (as opposed to beforeEach)
 	before(function (done) {
         let wasError = false;
-        var lodash = require('../vendor/lodash.min.js');
-        var constants = require('../src/constants.js').CT;
+        var lodash = require(`${BASE_DIR}vendor/lodash.min.js`);
+        var constants = require(`${BASE_DIR}src/constants.js`).CT;
         var chrome = {
             browserAction: {
                 setIcon: () => null,
@@ -79,13 +80,13 @@ describe('Recognizer tests', function() {
         }
 	    constants.COOLDOWN_TIME = 0;
 	    constants.FINAL_COOLDOWN_TIME = 0;
-        var PM = require('../src/plugin-manager.js').PM({
+        var PM = require(`${BASE_DIR}src/plugin-manager.js`).PM({
         	chrome: chrome,
         	_: lodash,
         	CT: constants
     	});
     	PM._getPlugin = (pluginName) => new Promise((resolve) => resolve(eval(`(function() { ${eval(`plugins_${pluginName}`)} })()`)));
-        recg = require('../src/recognizer.js').Recognizer({
+        recg = require(`${BASE_DIR}src/recognizer.js`).Recognizer({
         	CT: constants,
         	_: lodash,
         	webkitSpeechRecognition: function() {return {start: () => null}},
@@ -156,8 +157,8 @@ describe('rnh tests', function() {
 
 	before(function (done) {
         let wasError = false;
-        var lodash = require('../vendor/lodash.min.js');
-        var constants = require('../src/constants.js').CT;
+        var lodash = require(`${BASE_DIR}vendor/lodash.min.js`);
+        var constants = require(`${BASE_DIR}src/constants.js`).CT;
         var chrome = {
             browserAction: {
                 setIcon: () => null,
@@ -186,15 +187,15 @@ describe('rnh tests', function() {
         }
 	    constants.COOLDOWN_TIME = 0;
 	    constants.FINAL_COOLDOWN_TIME = 0;
-        var pm = require('../src/plugin-manager.js').PM({
+        var pm = require(`${BASE_DIR}src/plugin-manager.js`).PM({
         	chrome: chrome,
         	CT: constants
     	});
-        recg = require('../src/recognizer.js').Recognizer({
+        recg = require(`${BASE_DIR}src/recognizer.js`).Recognizer({
         	CT: constants,
         	_: lodash,
         });
-	    bg = require('../src/background.js').Background({
+	    bg = require(`${BASE_DIR}src/background.js`).Background({
 	    	chrome: chrome,
 	    	_: lodash,
 	    	CT: constants,

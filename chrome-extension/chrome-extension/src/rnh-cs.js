@@ -91,7 +91,9 @@ function init(quiet=false) {
 			});
         });
     }, function() {
-    	return document.body.contains($previewCmdBox[0]);
+    	if ($previewCmdBox) {
+	    	return document.body.contains($previewCmdBox[0]);
+	    }
 	}, LABEL_FADE_TIME - 200, 5);
 
     retrialAndError(function() {

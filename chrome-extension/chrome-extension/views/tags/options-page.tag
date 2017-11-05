@@ -272,21 +272,10 @@
         }
     }
 
-    this.on('mount', function() {
-        var that = this;
-        // the thing might already be collapsed
-        // set the max height on each accordion item, then shrink the ones
-        // that need to be based on user settings
-        $('.collapsable').each(function(i, ele) {
-            let $ele = $(ele);
-            // TODO: this doesn't work anymore because when the page is loaded,
-            // $ele.css('max-height', $ele.parent().find('.collapsable').height());
-            $ele.css('max-height', 3000);
-        });
-
-        navigator.webkitGetUserMedia({
+    function checkForPermission() {
+        navigator.mediaDevices.getUserMedia({
             audio: true,
-        }, function(stream) {
+        }).then(function(stream) {
             console.log("yes permission");
             that.hasMicPerm = true;
             that.update();
@@ -300,6 +289,25 @@
             // rec.start();
             // recognition.onerror = function(event) {
         });
-    })
+    }
+
+    this.on('mount', function() {
+        var that = this;
+        // the thing might already be collapsed
+        // set the max height on each accordion item, then shrink the ones
+        // that need to be based on user settings
+        $('.collapsable').each(function(i, ele) {
+            let $ele = $(ele);
+            // TODO: this doesn't work anymore because when the page is loaded,
+            // $ele.css('max-height', $ele.parent().find('.collapsable').height());
+            $ele.css('max-height', 3000);
+        });
+
+        checkForPermission();
+
+        setInterval(function() {
+            checkForPermission();
+        }, 1500);
+    });
     </script>
 </options-page>

@@ -106,7 +106,7 @@ exports.PM = function({
                         commands.push(_.pick(cmdGroup, ['name', 'commands']));
                         plugins.push({
                             matches: cmdGroup.matches,
-                            cs: `${cmdGroup.pageInit.toString()}(); commands['${cmdGroup.name}'] = {}; ${keyedCommands.join(';')}`,
+                            cs: `(${cmdGroup.pageInit.toString()})(); commands['${cmdGroup.name}'] = {}; ${keyedCommands.join(';')}`,
                         });
                     }
                     resolve([commands, combinedHomophones]);
