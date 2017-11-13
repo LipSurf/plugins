@@ -1,11 +1,10 @@
 TODO
 ===
-*Install FZY
 *Technique for cd'ing dirs? Working on projects?
 
 Release to fam:
+* Only re-render READY text as long as it should be displayed (not after it has faded)
 * Opening reddit when add-on is already activated
-* Turning on plugin while page is still loading
 * Tests for speaking (use speech API outside of chrome?)
 
 * Don't use synonyms on subreddit names
@@ -45,3 +44,14 @@ marketing
 dev reqs
 ===
 Sikulix
+
+API
+===
+cs --{ bubbleDown: msg }-->  background.js
+cs --loadPlugins--> background.js
+cs <--{cmdName: cmd name}-- backgronud.js
+cs <--{liveText: live text}-- backgronud.js
+cs <--{toggleActivated: boolean}-- background.js
+
+Storage Schema
+activated [boolean] -- whether extension is activated

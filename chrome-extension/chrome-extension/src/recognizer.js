@@ -7,6 +7,7 @@ exports.Recognizer = function({
     var pub = {};
     var recognizerKilled = false;
     var _sendMsgToActiveTabCb;
+    var lastFinalTime = 0;
     var lastNonFinalCmdExecutedTime = 0;
     var lastNonFinalCmdExecuted = null;
     var plugins;
@@ -56,6 +57,8 @@ exports.Recognizer = function({
                     // add-on
                     // throw "This should never happen";
                     recognizerKilled = true;
+                } else if (event.error == 'network') {
+                    // TODO: special error message
                 } else if (event.error !== 'no-speech') {
                     console.error(`unhandled error: ${event.error}`);
                 }

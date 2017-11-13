@@ -22,6 +22,7 @@
       "matches": [
         "<all_urls>"
       ],
+      "run_at": "document_start",
       "css": ["assets/rnh.css"],
       "js": [
         "vendor/jquery-3.2.1.min.js",
@@ -52,7 +53,9 @@
   "permissions": [
     "tabs",
     "activeTab",
-    "storage"
+    "storage",
+    "http://*/",
+    "https://*/"
   ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "web_accessible_resources": [

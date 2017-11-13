@@ -5,7 +5,7 @@ exports.Background = function({
     PM, // plugin manager
     Recognizer, // speech -> command
 } = {}) {
-    var on = false;
+    var activated = false;
     var audible = false;
     var permissionDetector;
     var currentActiveTabId;
@@ -20,17 +20,24 @@ exports.Background = function({
         });
     });
 
+    chrome.storage.local.set({'activated': false});
+
 
     function queryActiveTab(cb) {
         if (CT.DEBUG) {
             chrome.tabs.query({ /*active: true, currentWindow: true,*/
                 windowType: "normal"
             }, function(tabs) {
+                let mostActive;
                 for (let tab of tabs) {
                     if (tab.url.startsWith('http')) {
-                        return cb(tab);
+                        if (tab.active) {
+                            return cb(tab);
+                        }
+                        mostActive = tab;
                     }
                 }
+                return cb(mostActive);
             });
         } else {
             chrome.tabs.query({
@@ -94,6 +101,7 @@ exports.Background = function({
     };
 
 
+    // TODO: Refactor to use Detector
     var InterferenceAudioDetector = (function() {
         let _timerId = null;
 
@@ -142,55 +150,43 @@ exports.Background = function({
     }
 
 
-    function turnOn() {
-        on = true;
+    function toggleActivated(_activated=true) {
+        activated = _activated;
+        chrome.storage.local.set({ 'activated': activated });
         chrome.browserAction.setIcon({
-            path: on ? CT.ON_ICON : CT.OFF_ICON
+            path: activated ? CT.ON_ICON : CT.OFF_ICON
         });
         sendMsgToActiveTabCb({
-            'toggleOn': on
+            'toggleActivated': activated
         });
-        queryActiveTab((tab) => {
-            PM.loadContentScriptsForUrl(tab.id, tab.url);
-        });
-        // only allow recognizer to start if at least default
-        // commands are loaded
-        loadedPlugins.then(() => {
-            Recognizer.start({
-                sendMsgToActiveTabCb: sendMsgToActiveTabCb,
+        if (activated) {
+            // only allow recognizer to start if at least default
+            // commands are loaded
+            loadedPlugins.then(() => {
+                Recognizer.start({
+                    sendMsgToActiveTabCb: sendMsgToActiveTabCb,
+                });
             });
-        });
-        InterferenceAudioDetector.init();
+            InterferenceAudioDetector.init();
+        } else {
+            Recognizer.shutdown();
+            InterferenceAudioDetector.destroy();
+        }
     }
 
 
     chrome.browserAction.setIcon({
-        path: on ? CT.ON_ICON : CT.OFF_ICON
-    });
-
-
-    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-        if (on && changeInfo.status == "complete") {
-            PM.loadContentScriptsForUrl(tabId, tab.url);
-        }
+        path: activated ? CT.ON_ICON : CT.OFF_ICON
     });
 
 
     chrome.browserAction.onClicked.addListener(function(tab) {
-        if (on) {
-            on = false;
-            chrome.browserAction.setIcon({
-                path: on ? CT.ON_ICON : CT.OFF_ICON
-            });
-            sendMsgToActiveTabCb({
-                'toggleOn': on
-            });
-            Recognizer.shutdown();
-            InterferenceAudioDetector.destroy();
+        if (activated) {
+            toggleActivated(false);
         } else {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
                 console.log("easy on");
-                turnOn();
+                toggleActivated();
             }, () => {
                 // Aw. No permission (or no microphone available).
                 needsPermissionCb();
@@ -198,18 +194,18 @@ exports.Background = function({
                     // check a maximum of 15 times (~23s)
                     permissionDetector = new Detector().init(
                         (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
-                            .then((stream) => {
-                                console.log("yep1");
-                                if (typeof(stream) !== 'undefined') {
-                                    console.log("yep2");
-                                    resolve();
-                                } else {
-                                    reject();
-                                }
-                            }, function() {
+                        .then((stream) => {
+                            console.log("yep1");
+                            if (typeof(stream) !== 'undefined') {
+                                console.log("yep2");
+                                resolve();
+                            } else {
                                 reject();
-                            }).catch(() => { }),
-                        turnOn,
+                            }
+                        }, function() {
+                            reject();
+                        }).catch(() => {}),
+                        toggleActivated,
                         1500,
                         15);
                 }
@@ -228,18 +224,6 @@ exports.Background = function({
         //         });
         //     }, 3500 * (i + 1));
         // }
-    });
-
-
-    chrome.tabs.onActivated.addListener(function(activeInfo) {
-        if (typeof currentActiveTabId !== 'undefined') {
-            chrome.tabs.sendMessage(currentActiveTabId, {
-                "toggleActive": false
-            });
-        }
-        chrome.tabs.sendMessage(activeInfo.tabId, {
-            "toggleActive": true
-        });
     });
 
 
@@ -266,6 +250,10 @@ exports.Background = function({
                     // not working (cannot get message in other content script
                     sendResponse(response);
                 });
+            });
+        } else if (request === 'loadPlugins') {
+            queryActiveTab((tab) => {
+                PM.loadContentScriptsForUrl(tab.id, tab.url);
             });
         }
     });

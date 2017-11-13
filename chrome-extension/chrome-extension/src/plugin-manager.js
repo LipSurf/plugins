@@ -8,6 +8,7 @@ exports.PM = function({
     var plugins = [];
 
     // load plugin
+    // TODO: wait for promise of plugins loaded?
     pub.loadContentScriptsForUrl = function(tabId, url) {
         for (let i = 0; i < plugins.length; i++) {
             if (plugins[i].matches.test(url)) {
