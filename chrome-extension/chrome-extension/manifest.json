@@ -9,6 +9,8 @@
       "src/constants.js",
       "src/plugin-manager.js",
       "src/recognizer.js",
+      "src/util.js",
+      "src/plugin-sandbox.js",
       "src/background.js"
     ],
     "persistent": true

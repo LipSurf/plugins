@@ -3,6 +3,7 @@
 const HOMOPHONES = {
     'closeout': 'close help',
     'close up': 'close help',
+    'close tap': 'close tab',
     'app': 'up',
     'downwards': 'down',
     'downward': 'down',
@@ -122,8 +123,9 @@ var commands = [
 	{
 		name: 'Close Tab',
 		match: "close tab",
-		run: function() {
-			queryActiveTab(function(tab) {
+		run: () => {
+			// window.close cannot close windows that weren't opened via js
+			Util.queryActiveTab(function(tab) {
 				chrome.tabs.remove(tab.id);
 			});
 		}
@@ -131,7 +133,7 @@ var commands = [
 	{
 		name: 'Next Tab',
 		match: ["next tab"],
-		run: function() {
+		run: () => {
 			chrome.tabs.query({currentWindow: true}, function(tabs) {
 				let curIndex;
 				let maxIndex = tabs.length - 1;
@@ -155,14 +157,14 @@ var commands = [
 	{
 		name: 'New Tab',
 		match: ["new tab", "open tab"],
-		run: function() {
+		run: () => {
 			chrome.tabs.create({active: true});
 		}
 	},
 	{
 		name: 'Previous Tab',
 		match: "previous tab",
-		run: function() {
+		run: () => {
 			chrome.tabs.query({currentWindow: true}, function(tabs) {
 				let curIndex;
 				let maxIndex = tabs.length - 1;
@@ -187,7 +189,7 @@ var commands = [
 		name: 'Select Tab',
 		description: "Select a tab by it's position.",
 		match: ['tab #'],
-		run: function(i) {
+		run: () => {
 			chrome.tabs.query({index: i - 1, currentWindow: true}, function(tabs) {
 				chrome.tabs.update(tabs[0].id, {active: true});
 			});

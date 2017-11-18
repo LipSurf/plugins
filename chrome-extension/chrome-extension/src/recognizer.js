@@ -6,7 +6,7 @@ exports.Recognizer = function({
     var recognition;
     var pub = {};
     var recognizerKilled = false;
-    var _sendMsgToActiveTabCb;
+    var _cmdRecognizedCb;
     var lastFinalTime = 0;
     var lastNonFinalCmdExecutedTime = 0;
     var lastNonFinalCmdExecuted = null;
@@ -22,13 +22,13 @@ exports.Recognizer = function({
     };
 
     pub.start = function({
-        sendMsgToActiveTabCb,
+        cmdRecognizedCb,
     } = {}) {
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.
         return new Promise((resolve, reject) => {
-            _sendMsgToActiveTabCb = sendMsgToActiveTabCb;
+            _cmdRecognizedCb = cmdRecognizedCb;
             recognition = new webkitSpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
@@ -281,41 +281,31 @@ exports.Recognizer = function({
                         lastNonFinalCmdExecuted = isFinal ? null : cmdName;
                         lastNonFinalCmdExecutedTime = isFinal ? 0 : +new Date();
 
-                        _sendMsgToActiveTabCb({
+                        console.log(`transcript in closure ${transcript}`);
+                        return _cmdRecognizedCb({
                             cmdName: cmdName,
                             cmdPluginName: cmdPluginName,
                             cmdArgs: matchOutput,
-                        });
-                        console.log(`transcript in closure ${transcript}`);
-                        return _sendMsgToActiveTabCb({
-                            liveText: {
-                                text: niceOutput ? niceOutput : transcript,
-                                isSuccess: true,
-                            }
+                            text: niceOutput ? niceOutput : transcript,
+                            isSuccess: true,
                         });
                     }, delay);
-                    return _sendMsgToActiveTabCb({
-                        liveText: {
-                            text: transcript,
-                            hold: true,
-                        }
+                    return _cmdRecognizedCb({
+                        text: transcript,
+                        hold: true,
                     });
                 } else {
-                    return _sendMsgToActiveTabCb({
-                        liveText: {
-                            text: niceOutput ? niceOutput : transcript
-                        }
+                    return _cmdRecognizedCb({
+                        text: niceOutput ? niceOutput : transcript
                     });
                 }
             }
             if (isFinal) {
                 lastFinalTime = +new Date();
                 if (confidence <= CT.CONFIDENCE_THRESHOLD) {
-                    return _sendMsgToActiveTabCb({
-                        liveText: {
-                            text: transcript,
-                            isUnsure: true
-                        }
+                    return _cmdRecognizedCb({
+                        text: transcript,
+                        isUnsure: true
                     });
                 }
             }

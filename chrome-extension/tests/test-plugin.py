@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-apt install python3-opencv
+apt install python3-opencv sox libsox-fmt-mp3
     # part of the screen
     im=ImageGrab.grab(bbox=(10,10,500,500))
     im.show()
@@ -8,6 +8,7 @@ apt install python3-opencv
 ipdb
 pyscreenshot
 selenium
+gTTS
 '''
 import unittest
 import logging
@@ -22,19 +23,46 @@ from subprocess import run
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchWindowException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from gtts import gTTS
+import os
 
 logging.basicConfig()
 logger = logging.getLogger()
 # not working
 logger.setLevel(os.environ.get('LOG_LEVEL', logging.DEBUG))
+logging.getLogger("selenium").setLevel(logging.INFO)
 
 
 ICON_ON = cv2.imread('/media/sf_no-hands-man/tests/icon-on.png', 0)
 ICON_OFF = cv2.imread('/media/sf_no-hands-man/tests/icon-off.png', 0)
+
+
+class TalkingBot(object):
+
+    CACHE_FOLDER = None
+    EXISTS_CACHE = set()
+
+    def __init__(self):
+        self.CACHE_FOLDER = os.path.join(os.path.curdir, 'audio_cache')
+        os.makedirs(self.CACHE_FOLDER, exist_ok=True)
+        for filename in os.listdir(self.CACHE_FOLDER):
+            print('Found existing audio %s' % filename)
+            self.EXISTS_CACHE.add(filename.split('.mp3')[0])
+
+    def say(self, phrase):
+        path = os.path.join(self.CACHE_FOLDER, "%s.mp3" % phrase.lower())
+        if phrase.lower() not in self.EXISTS_CACHE:
+            tts = gTTS(text=phrase, lang='en')
+            tts.save(path)
+            self.EXISTS_CACHE.add(phrase.lower())
+        subprocess.Popen(['play', path])
+
+
+talkingBot = TalkingBot()
 
 
 def move_mouse(x, y):
@@ -51,7 +79,7 @@ def click_mouse(x, y):
 
 def toggle_extension(active=True):
     # extension button
-    click_mouse(898, 76)
+    click_mouse(905, 64)
 
 
 # not working
@@ -79,7 +107,8 @@ class TalkableMixin(object):
 
     def say(self, phrase):
         logger.debug("Saying %s" % phrase)
-        self.driver.execute_script("window.speechSynthesis.speak(new SpeechSynthesisUtterance('%s')); console.log('ya');" % phrase)
+        # self.driver.execute_script("window.speechSynthesis.speak(new SpeechSynthesisUtterance('%s')); console.log('ya');" % phrase)
+        talkingBot.say(phrase)
 
 
 class ScreenCheckingMixin(object):
@@ -96,56 +125,82 @@ class ScreenCheckingMixin(object):
     def check_in_screen(self, img):
         self.assertTrue(len(self._check_screen(img)[0]) > 0, 'Image does not exist in screen when it should')
 
-
     def check_not_in_screen(self, img):
         self.assertTrue(len(self._check_screen(img)[0]) == 0, 'Image exists in screen when it shouldn\'t')
 
 
-class SeleniumTest(unittest.TestCase):
+class _SeleniumTest(unittest.TestCase):
 
     def setUp(self):
-        chrome_options = Options()
+        self.chrome_options = Options()
         # unpacked_extension_path = '/media/sf_no-hands-man'
         # chrome_options.add_argument("--load-extension=%s" % unpacked_extension_path)
         # chrome_options.add_extension("/home/mikob/workspace/no-hands-man/no-hands-man.crx")
-        chrome_options.add_extension("/media/sf_no-hands-man/no-hands-man.crx")
-        self.driver = webdriver.Chrome(os.path.join(os.path.curdir, 'chromedriver'), chrome_options=chrome_options)
+        self.chrome_options.add_extension("/media/sf_no-hands-man/no-hands-man.crx")
+
+    def post_setup(self):
+        print("POST SETUP")
+        self.driver = webdriver.Chrome(os.path.join(os.path.curdir, 'chromedriver'), chrome_options=self.chrome_options)
         self.driver.implicitly_wait(3) # seconds
 
-    def tearDown(self):
-        self.driver.close()
+    def open_debugger(self, fresh_profile=False):
+        logger.debug("opening debugger")
+        self.driver.get("chrome://extensions")
+        assert "Extensions" in self.driver.title
 
-
-class TestAddOnInitialization(SeleniumTest, ScreenCheckingMixin):
-
-    def just_open(self):
-        driver.get("chrome://extensions")
-        assert "Extensions" in driver.title
-
-        press_keys("ctrl+t")
-
-        driver.switch_to.window(driver.window_handles[1])
-        # click enable developer mode
-        sleep(0.5)
-        click_mouse(636, 165)
+        if fresh_profile:
+            # click enable developer mode
+            sleep(0.5)
+            click_mouse(628, 155)
 
         # click background page debugging
         sleep(0.5)
-        click_mouse(253, 591)
-
-        # sources tab
-        sleep(0.5)
-        click_mouse(300, 183)
-
-        # expand "src"
-        sleep(0.5)
-        click_mouse(134, 290)
+        click_mouse(245, 581)
 
         press_keys('Super_R+Down')
         sleep(0.5)
 
+        if fresh_profile:
+            # sources tab
+            sleep(0.5)
+            click_mouse(59, 667)
+
+        # expand "src"
+        sleep(0.5)
+        click_mouse(35, 665)
+
         press_keys('Alt_L+Tab')
         sleep(0.5)
+
+    def tearDown(self):
+        try:
+            self.driver.close()
+        except NoSuchWindowException:
+            # this happens because we close a tab using non-selenium
+            # controls
+            pass
+
+
+class FreshProfileSeleniumTest(_SeleniumTest):
+
+    def setUp(self):
+        super(FreshProfileSeleniumTest, self).setUp()
+        self.post_setup()
+
+
+'''
+This chrome profile already has already given the plugin permission
+'''
+class SeleniumTest(_SeleniumTest):
+
+    def setUp(self):
+        super(SeleniumTest, self).setUp()
+        self.chrome_options.add_argument("user-data-dir=/home/lubuntu/.config/google-chrome/Default")
+        self.post_setup()
+        # self.open_debugger()
+
+
+class TestAddOnInitialization(ScreenCheckingMixin, FreshProfileSeleniumTest):
 
     # happy path
     def test_allow_addon(self):
@@ -257,7 +312,9 @@ class TestAfterInit(unittest.TestCase, ScreenCheckingMixin):
     def test_open_plugin_when_opening_page(self):
         self.driver.get('https://www.hotelroomalerts.com')
 
-        toggle_extension()
+        press_keys("ctrl+t")
+
+        self.driver.switch_to.window(self.driver.window_handles[1])
 
         sleep(1)
         self.driver.get('https://www.reddit.com')
@@ -286,32 +343,54 @@ class TestAfterInit(unittest.TestCase, ScreenCheckingMixin):
             self.assertTrue(self.driver.find_element_by_id('nhm-preview-cmd-box').is_displayed(), "Extension is not loaded on page")
 
 
-@skip
 class TestDefaultPlugins(SeleniumTest, TalkableMixin):
-    @classmethod
-    def setUpClass(cls):
-        subprocess.Popen(["google-chrome", "https://www.google.com"])
-        sleep(2)
+    # @classmethod
+    # def setUpClass(cls):
+        # subprocess.Popen(["google-chrome", "https://www.google.com"], stdout=subprocess.PIPE)
+        # sleep(2)
 
         # press_keys('Alt_L+Tab')
-        sleep(0.5)
-        press_keys('F12')
-        sleep(0.9)
-        type_keys("window.speechSynthesis.speak(new SpeechSynthesisUtterance(\"bottom\"));")
-        sleep(1)
-        press_keys('Return')
+        # this works!
+        # sleep(0.5)
+        # press_keys('F12')
+        # sleep(0.9)
+        # type_keys("window.speechSynthesis.speak(new SpeechSynthesisUtterance(\"bottom\"));")
+        # sleep(1)
+        # press_keys('Return')
 
     def setUp(self):
-        super(TestAddOnDefaultPlugins, self).setUp()
+        super(TestDefaultPlugins, self).setUp()
         toggle_extension()
 
-        # allow mic permission
-        sleep(2)
-        click_mouse(364, 208)
+    def test_close_tab(self):
+        self.driver.set_page_load_timeout(2)
+        try:
+            self.driver.get('https://www.google.com')
+        except TimeoutException:
+            pass
+        press_keys("ctrl+t")
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        try:
+            self.driver.get('https://www.google.com')
+        except TimeoutException:
+            pass
 
-        # close window
-        press_keys('ctrl+w')
+        prev_windows = len(self.driver.window_handles)
+        self.say('Close tab')
 
+        sleep(3)
+        self.assertEqual(len(self.driver.window_handles), prev_windows - 1)
+
+    def test_new_tab(self):
+        self.driver.get('https://www.google.com')
+
+        prev_windows = len(self.driver.window_handles)
+        self.say('New tab')
+
+        sleep(3)
+        self.assertEqual(len(self.driver.window_handles), prev_windows + 1)
+
+    @skip
     def test_basic_commands(self):
         self.driver.get("https://www.reddit.com")
 
@@ -327,6 +406,7 @@ class TestDefaultPlugins(SeleniumTest, TalkableMixin):
 
 if __name__ == '__main__':
     logger.info("\n\n---Start")
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestAfterInit)
+    suite = unittest.TestSuite()
+    suite.addTest(TestDefaultPlugins("test_new_tab"))
     unittest.TextTestRunner().run(suite)
     # unittest.main()

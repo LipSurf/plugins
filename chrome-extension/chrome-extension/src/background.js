@@ -4,6 +4,8 @@ exports.Background = function({
     CT, // constants
     PM, // plugin manager
     Recognizer, // speech -> command
+    Util,
+    PS,
 } = {}) {
     var activated = false;
     var audible = false;
@@ -23,42 +25,27 @@ exports.Background = function({
     chrome.storage.local.set({'activated': false});
 
 
-    function queryActiveTab(cb) {
-        if (CT.DEBUG) {
-            chrome.tabs.query({ /*active: true, currentWindow: true,*/
-                windowType: "normal"
-            }, function(tabs) {
-                let mostActive;
-                for (let tab of tabs) {
-                    if (tab.url.startsWith('http')) {
-                        if (tab.active) {
-                            return cb(tab);
-                        }
-                        mostActive = tab;
-                    }
-                }
-                return cb(mostActive);
+    function cmdRecognizedCb(request) {
+        if (request.cmdName) {
+            let cmdPart = _.pick(request, ['cmdName', 'cmdPluginName', 'cmdArgs']);
+            PS.run(cmdPart);
+            sendMsgToActiveTab(cmdPart);
+            sendMsgToActiveTab({
+                liveText: _.pick(request, ['text', 'isSuccess'])
             });
         } else {
-            chrome.tabs.query({
-                active: true,
-                currentWindow: true,
-                windowType: "normal"
-            }, function(tabs) {
-                return cb(tabs[0]);
+            sendMsgToActiveTab({
+                liveText: request
             });
         }
     }
 
 
-
-    function sendMsgToActiveTabCb(request) {
-        queryActiveTab(function(tab) {
+    function sendMsgToActiveTab(request) {
+        Util.queryActiveTab(function(tab) {
             chrome.tabs.sendMessage(tab.id, request);
         });
     }
-
-
 
     var Detector = function() {
         let _intervalId;
@@ -156,7 +143,7 @@ exports.Background = function({
         chrome.browserAction.setIcon({
             path: activated ? CT.ON_ICON : CT.OFF_ICON
         });
-        sendMsgToActiveTabCb({
+        sendMsgToActiveTab({
             'toggleActivated': activated
         });
         if (activated) {
@@ -164,7 +151,7 @@ exports.Background = function({
             // commands are loaded
             loadedPlugins.then(() => {
                 Recognizer.start({
-                    sendMsgToActiveTabCb: sendMsgToActiveTabCb,
+                    cmdRecognizedCb: cmdRecognizedCb,
                 });
             });
             InterferenceAudioDetector.init();
@@ -229,7 +216,7 @@ exports.Background = function({
 
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (request.bubbleDown) {
-            queryActiveTab(function(tab) {
+            Util.queryActiveTab(function(tab) {
                 if (typeof request.bubbleDown.fullScreen !== 'undefined') {
                     console.log(`1. full screen`);
                     chrome.windows.update(tab.windowId, {
@@ -252,7 +239,7 @@ exports.Background = function({
                 });
             });
         } else if (request === 'loadPlugins') {
-            queryActiveTab((tab) => {
+            Util.queryActiveTab((tab) => {
                 PM.loadContentScriptsForUrl(tab.id, tab.url);
             });
         }
@@ -264,10 +251,21 @@ exports.Background = function({
 // When the bg pages are loaded in a non-node env, we need to
 // initialize the modules manually
 if (typeof chrome !== 'undefined') {
+    exports.Util = exports.Util({
+        chrome: chrome,
+        _: _,
+        CT: exports.CT,
+    });
+    exports.PS = exports.PS({
+        chrome: chrome,
+        _: _,
+        Util: exports.Util,
+    });
     exports.PM = exports.PM({
         chrome: chrome,
         _: _,
         CT: exports.CT,
+        PS: exports.PS
     });
     exports.Recognizer = exports.Recognizer({
         CT: CT,
@@ -280,5 +278,7 @@ if (typeof chrome !== 'undefined') {
         CT: exports.CT,
         PM: exports.PM,
         Recognizer: exports.Recognizer,
+        Util: exports.Util,
+        PS: exports.PS
     });
 }

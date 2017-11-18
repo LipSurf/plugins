@@ -3,6 +3,7 @@ exports.PM = function({
     chrome,
     _,
     CT,     // constants
+    PS,
 } = {}) {
     var pub = {};
     var plugins = [];
@@ -104,6 +105,12 @@ exports.PM = function({
                     var commands = [];
                     for (let cmdGroup of _.filter(loaded.cmdGroups, 'enabled')) {
                         var keyedCommands = cmdGroup.commands.map((c) => `commands['${cmdGroup.name}']['${c.name}'] = ${c.runOnPage};`);
+                        PS.addCommands(cmdGroup.name, _.reduce(cmdGroup.commands, (memo, c) => {
+                            if (c.run) {
+                                memo[c.name] = c.run.toString();
+                            }
+                            return memo;
+                        }, {}));
                         commands.push(_.pick(cmdGroup, ['name', 'commands']));
                         plugins.push({
                             matches: cmdGroup.matches,
@@ -115,6 +122,7 @@ exports.PM = function({
             });
         });
     };
+
 
     return pub;
 };

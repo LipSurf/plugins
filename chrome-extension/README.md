@@ -3,10 +3,9 @@ TODO
 *Technique for cd'ing dirs? Working on projects?
 
 Release to fam:
-* Only re-render READY text as long as it should be displayed (not after it has faded)
-* Opening reddit when add-on is already activated
 * Tests for speaking (use speech API outside of chrome?)
 
+* Fix isSuccess rendering and code being executed twice
 * Don't use synonyms on subreddit names
 * Make full screen black out background
 * Next page/prev page
