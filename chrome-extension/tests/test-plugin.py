@@ -197,7 +197,7 @@ class SeleniumTest(_SeleniumTest):
         super(SeleniumTest, self).setUp()
         self.chrome_options.add_argument("user-data-dir=/home/lubuntu/.config/google-chrome/Default")
         self.post_setup()
-        # self.open_debugger()
+        self.open_debugger()
 
 
 class TestAddOnInitialization(ScreenCheckingMixin, FreshProfileSeleniumTest):
@@ -389,6 +389,21 @@ class TestDefaultPlugins(SeleniumTest, TalkableMixin):
 
         sleep(3)
         self.assertEqual(len(self.driver.window_handles), prev_windows + 1)
+
+        #
+        self.say('New tab')
+
+        sleep(3)
+        self.assertEqual(len(self.driver.window_handles), prev_windows + 2)
+        self.say('New tab')
+
+        sleep(3)
+        self.assertEqual(len(self.driver.window_handles), prev_windows + 3)
+        self.say('New tab')
+
+        sleep(3)
+        self.assertEqual(len(self.driver.window_handles), prev_windows + 4)
+
 
     @skip
     def test_basic_commands(self):

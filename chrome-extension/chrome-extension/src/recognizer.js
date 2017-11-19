@@ -232,7 +232,7 @@ exports.Recognizer = function({
 
 
     // prefix or suffix match
-    function ordinalOrNumberToDigit(input) {
+    function ordinalOrNumberToDigit(ordinal) {
         try {
             return CT.ORDINALS_TO_DIGITS[ordinal] || CT.NUMBERS_TO_DIGITS[ordinal];
         } catch (e) {
@@ -264,7 +264,8 @@ exports.Recognizer = function({
                 // console.log(`end time ${+new Date()}`);
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) < CT.FINAL_COOLDOWN_TIME) {
+                    console.log(`isFinal: ${isFinal} lastNonFinalCmdExecuted: ${lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${lastFinalTime} `);
+                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) > CT.FINAL_COOLDOWN_TIME) {
                         console.log("Junked dupe.");
                         return;
                     } else if (typeof delayCmd !== 'undefined') {
@@ -278,8 +279,12 @@ exports.Recognizer = function({
                             niceOutput = nice(matchOutput);
                         }
                         console.log(`running command ${cmdName} isFinal:${isFinal}`);
-                        lastNonFinalCmdExecuted = isFinal ? null : cmdName;
-                        lastNonFinalCmdExecutedTime = isFinal ? 0 : +new Date();
+                        if (isFinal) {
+                            lastFinalTime = +new Date();
+                        } else {
+                            lastNonFinalCmdExecuted = cmdName;
+                            lastNonFinalCmdExecutedTime = +new Date();
+                        }
 
                         console.log(`transcript in closure ${transcript}`);
                         return _cmdRecognizedCb({
@@ -300,14 +305,11 @@ exports.Recognizer = function({
                     });
                 }
             }
-            if (isFinal) {
-                lastFinalTime = +new Date();
-                if (confidence <= CT.CONFIDENCE_THRESHOLD) {
-                    return _cmdRecognizedCb({
-                        text: transcript,
-                        isUnsure: true
-                    });
-                }
+            if (isFinal && confidence <= CT.CONFIDENCE_THRESHOLD) {
+                return _cmdRecognizedCb({
+                    text: transcript,
+                    isUnsure: true
+                });
             }
         }
     };

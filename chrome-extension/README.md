@@ -3,9 +3,9 @@ TODO
 *Technique for cd'ing dirs? Working on projects?
 
 Release to fam:
-* Tests for speaking (use speech API outside of chrome?)
+*Commands need to be loaded when browser refreshes
 
-* Fix isSuccess rendering and code being executed twice
+* Fix isSuccess rendering
 * Don't use synonyms on subreddit names
 * Make full screen black out background
 * Next page/prev page
@@ -35,10 +35,12 @@ When this is available: `navigator.permissions.query({name: 'microphone'})` use 
 `navigator.mediaDevices.getUserMedia` so we can query for permission without requesting it
 from both the background and option pages.
 
-marketing
+marketing/profit
 ===
 *send to the guy who couldn't use his hands and posted the video of the spoon on the magnet that he could feed himself with
 *Alexa, Google Home, Apple ?
+*payed apps
+*payed pro version that allows composing comments and custom commands?
 
 dev reqs
 ===

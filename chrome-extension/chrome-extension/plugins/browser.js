@@ -7,6 +7,7 @@ const HOMOPHONES = {
     'app': 'up',
     'downwards': 'down',
     'downward': 'down',
+    'middletown': 'little down',
     'backwards': 'back',
     'backward': 'back',
     'ford': 'forward',
@@ -84,7 +85,7 @@ var commands = [
 	{
 		name: 'Scroll Down',
 		match: ["down", "scroll down"],
-		// We introduce a delay to distinguish between "down" and "down a little"
+		// We introduce a delay to distinguish between "down" "down a little" and "downvote"
 		delay: [300, 0],
 		runOnPage: function() {
 			$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE });

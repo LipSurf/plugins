@@ -17,6 +17,7 @@ const HOMOPHONES = {
     'full-screen': 'fullscreen',
     'paws': 'pause',
     'navigate': 'go',
+    'pretty': 'preview',
     'contract': 'collapse',
     'read it': 'reddit',
     'shrink': 'collapse',
@@ -27,17 +28,13 @@ const HOMOPHONES = {
 };
 
 
-function pageInit() {
-	const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
-	// do we need this
-	var opened;
-
-	function thingAtIndex(i) {
+var pageInit = function() {
+	window.COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
+	window.opened = null;
+	window.thingAtIndex = function(i) {
 		return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
-	}
-
-
-	function toggleFullScreen(on) {
+	};
+	window.toggleFullScreen = function(on) {
 	    // let $ele = $lastExpanded.closest('*[data-url]');
 	    // let $iframe = $ele.find('iframe');
 	    // $iframe.toggleClass('nhm-full-screen', false);
@@ -51,8 +48,8 @@ function pageInit() {
 	        $(document.body).css('overflow', 'visible');
 	        $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
 		}
-	}
-}
+	};
+};
 
 
 var commands = [
@@ -90,12 +87,13 @@ var commands = [
 		name: 'Expand',
 		description: "Expand a preview of a post, or a comment.",
 		match: ["preview #", "expand #", "preview", "expand"],  // in comments view
+		delay: 600,
         runOnPage: function(i) {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
         	if (!isNaN(index)) {
-                let $ele = $(thingAtIndex(index) + ' .expando-button');
+                let $ele = $(window.thingAtIndex(index) + ' .expando-button');
                 try {
-                    // close
+                    // close previously open ones
                     opened.click();
                 } catch (e) {}
                 opened = $ele;
@@ -160,7 +158,7 @@ var commands = [
 		runOnPage: function(i) {
 		    let index = typeof i !== 'undefined' ? Number(i) : 1;
 		    index = isNaN(index) ? 1 : index;
-            $(thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
+            $(window.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
 		},
 	},
 	{
@@ -169,7 +167,7 @@ var commands = [
 		runOnPage: function(i) {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
-            $(thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
+            $(window.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
 		},
 	},
 	{
@@ -214,9 +212,9 @@ var commands = [
 		runOnPage: function(i) {
 			// get the unique video url
 			let videoUrl;
-			let $ele = $(thingAtIndex(i) + ' .expando-button.collapsed');
+			let $ele = $(window.thingAtIndex(i) + ' .expando-button.collapsed');
 			$ele.click();
-			videoUrl = $(thingAtIndex(i)).data('url');
+			videoUrl = $(window.thingAtIndex(i)).data('url');
 			console.log(`video url ${videoUrl}`);
 
             sendMsgToBeacon({playVideo: videoUrl});
@@ -240,7 +238,7 @@ var commands = [
 		description: "View the comments of a reddit post.",
 		match: ["comments #", "view comments #"],
 		runOnPage: function(i) {
-			$(thingAtIndex(i) + ' a.comments')[0].click();
+			$(window.thingAtIndex(i) + ' a.comments')[0].click();
 		},
 	},
 	{
@@ -249,10 +247,10 @@ var commands = [
 		match: ['click #', 'click', 'visit'],
 		runOnPage: function(i) {
 		    // if we're on the post
-			if (COMMENTS_REGX.test(window.location.href)) {
+			if (window.COMMENTS_REGX.test(window.location.href)) {
 	            $('#siteTable p.title a.title:first')[0].click();
 			} else {
-	            $(thingAtIndex(i) + ' a.title')[0].click();
+	            $(window.thingAtIndex(i) + ' a.title')[0].click();
 			}
 		},
 	}

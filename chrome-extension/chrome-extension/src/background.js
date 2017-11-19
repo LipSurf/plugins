@@ -47,46 +47,6 @@ exports.Background = function({
         });
     }
 
-    var Detector = function() {
-        let _intervalId;
-        let _checks = 0;
-        let _maxChecks;
-        let _sentinelFn;
-        let _detectCb;
-
-        function _check() {
-            _checks += 1;
-            new Promise(_sentinelFn).then(() => {
-                console.log('yep 5');
-                clearInterval(_intervalId);
-                _detectCb();
-            }, () => {});
-            if (typeof(_maxChecks) !== 'undefined' && _checks > _maxChecks) {
-                clearInterval(_intervalId);
-            }
-        }
-
-        return {
-            // sentinelFn -- returns true when something is detected
-            // detectCb -- is run when sentinelFn returns true (once)
-            // interval -- how often to run sentinelFn
-            init: function(sentinelFn, detectCb, interval, maxChecks) {
-                _maxChecks = maxChecks;
-                _sentinelFn = sentinelFn;
-                _detectCb = detectCb;
-                _check();
-                _intervalId = setInterval(function() {
-                    _check();
-                }, interval);
-                return this;
-            },
-
-            destroy: function() {
-                clearInterval(_intervalId);
-            },
-        };
-    };
-
 
     // TODO: Refactor to use Detector
     var InterferenceAudioDetector = (function() {
@@ -179,7 +139,7 @@ exports.Background = function({
                 needsPermissionCb();
                 if (!permissionDetector) {
                     // check a maximum of 15 times (~23s)
-                    permissionDetector = new Detector().init(
+                    permissionDetector = new Util.Detector().init(
                         (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
                         .then((stream) => {
                             console.log("yep1");
