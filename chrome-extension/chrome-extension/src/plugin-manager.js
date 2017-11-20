@@ -81,7 +81,7 @@ exports.PM = function({
                     return item;
                 })};
 
-                chrome.storage.sync.set(pluginData, function() {
+                chrome.storage.local.set(pluginData, function() {
                     return resolve(pluginData);
                 });
             });
@@ -92,7 +92,7 @@ exports.PM = function({
     // Only the enabled stuff
     pub.loadPlugins = function() {
         return new Promise((resolve, reject) => {
-            chrome.storage.sync.get(null, function(loaded) {
+            chrome.storage.local.get(null, function(loaded) {
                 new Promise((resolve, reject) => {
                     if (!loaded || !loaded.cmdGroups) {
                         return pub.loadDefault().then((loadedDefaults) => resolve(loadedDefaults));

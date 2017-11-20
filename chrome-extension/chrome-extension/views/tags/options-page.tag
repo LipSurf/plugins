@@ -275,15 +275,15 @@
     function checkForPermission() {
         navigator.mediaDevices.getUserMedia({
             audio: true,
-        }).then(function(stream) {
+        }).then((stream) => {
             console.log("yes permission");
-            that.hasMicPerm = true;
-            that.update();
-        }, function() {
+            this.hasMicPerm = true;
+            this.update();
+        }, () => {
             // Aw. No permission (or no microphone available).
             console.log("no permission");
-            that.hasMicPerm = false;
-            that.update();
+            this.hasMicPerm = false;
+            this.update();
             // let rec = new webkitSpeechRecognition();
             // console.log(`rec ${rec}`);
             // rec.start();
@@ -292,7 +292,6 @@
     }
 
     this.on('mount', function() {
-        var that = this;
         // the thing might already be collapsed
         // set the max height on each accordion item, then shrink the ones
         // that need to be based on user settings
@@ -303,11 +302,11 @@
             $ele.css('max-height', 3000);
         });
 
-        checkForPermission();
+        checkForPermission.apply(this);
 
         setInterval(function() {
-            checkForPermission();
-        }, 1500);
+            checkForPermission.apply(this);
+        }.bind(this), 1500);
     });
     </script>
 </options-page>

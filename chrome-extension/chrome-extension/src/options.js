@@ -2,20 +2,20 @@ var cmdGroups;
 
 
 function _save(obj) {
-    chrome.storage.sync.set({'cmdGroups': obj}, function() {
+    chrome.storage.local.set({'cmdGroups': obj}, function() {
         console.log("Settings saved " + JSON.stringify(obj));
     });
 }
 
 
 function _reset() {
-    chrome.storage.sync.clear();
+    chrome.storage.local.clear();
 }
 
 
 function loadSaved() {
     // null loads everything
-    chrome.storage.sync.get(null, function(loaded) {
+    chrome.storage.local.get(null, function(loaded) {
         startup(loaded.cmdGroups);
     });
 }

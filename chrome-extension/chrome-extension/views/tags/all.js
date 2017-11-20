@@ -48,21 +48,20 @@ riot.tag2('options-page', '<div class="container"> <div style="text-align: left"
     function checkForPermission() {
         navigator.mediaDevices.getUserMedia({
             audio: true,
-        }).then(function(stream) {
+        }).then((stream) => {
             console.log("yes permission");
-            that.hasMicPerm = true;
-            that.update();
-        }, function() {
+            this.hasMicPerm = true;
+            this.update();
+        }, () => {
 
             console.log("no permission");
-            that.hasMicPerm = false;
-            that.update();
+            this.hasMicPerm = false;
+            this.update();
 
         });
     }
 
     this.on('mount', function() {
-        var that = this;
 
         $('.collapsable').each(function(i, ele) {
             let $ele = $(ele);
@@ -70,10 +69,10 @@ riot.tag2('options-page', '<div class="container"> <div style="text-align: left"
             $ele.css('max-height', 3000);
         });
 
-        checkForPermission();
+        checkForPermission.apply(this);
 
         setInterval(function() {
-            checkForPermission();
-        }, 1500);
+            checkForPermission.apply(this);
+        }.bind(this), 1500);
     });
 });

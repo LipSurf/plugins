@@ -77,7 +77,7 @@ function retrialAndError(f, f_check, delay, times) {
     }
 }
 
-
+// Needs to be safe to call multipe times
 function toggleActivated(_activated = true, quiet = false) {
     if (!_activated && activated) {
         activated = false;
@@ -184,4 +184,5 @@ function checkActivatedStatus() {
 	});
 }
 
+checkActivatedStatus();
 console.log("rnh-cs loaded");

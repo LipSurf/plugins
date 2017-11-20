@@ -3,8 +3,6 @@ TODO
 *Technique for cd'ing dirs? Working on projects?
 
 Release to fam:
-*Commands need to be loaded when browser refreshes
-
 * Fix isSuccess rendering
 * Don't use synonyms on subreddit names
 * Make full screen black out background

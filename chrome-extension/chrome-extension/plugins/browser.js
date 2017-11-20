@@ -159,8 +159,15 @@ var commands = [
 		name: 'New Tab',
 		match: ["new tab", "open tab"],
 		run: () => {
-			chrome.tabs.create({active: true});
-		}
+			// open in google because default start page does not allow CS
+			chrome.tabs.create({active: true, url: 'https://www.google.com'});
+		},
+		tests: () => {
+			var beforeLen = browser.getTabIds().length;
+			say();
+			var afterLen = browser.getTabIds().length;
+			this.assertEqual(afterLen, beforeLen + 1);
+		},
 	},
 	{
 		name: 'Previous Tab',
