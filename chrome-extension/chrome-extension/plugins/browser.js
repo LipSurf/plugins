@@ -1,6 +1,6 @@
 // ==UserVoiceScript==
 // less common -> common
-const HOMOPHONES = {
+var homophones = {
     'closeout': 'close help',
     'close up': 'close help',
     'close tap': 'close tab',
@@ -159,14 +159,17 @@ var commands = [
 		name: 'New Tab',
 		match: ["new tab", "open tab"],
 		run: () => {
-			// open in google because default start page does not allow CS
-			chrome.tabs.create({active: true, url: 'https://www.google.com'});
+		    // open in google because default start page does not allow CS
+		    chrome.tabs.create({active: true, url: 'https://www.google.com'});
 		},
-		tests: () => {
-			var beforeLen = browser.getTabIds().length;
-			say();
-			var afterLen = browser.getTabIds().length;
-			this.assertEqual(afterLen, beforeLen + 1);
+		test: async function() {
+		    console.log(`this ${this}`);
+			const timeout = ms => new Promise(res => setTimeout(res, ms))
+			var beforeLen = (await this.driver.getAllWindowHandles()).length;
+			await this.say();
+			var afterLen = (await this.driver.getAllWindowHandles()).length;
+			await timeout(5000);
+			this.assert.equal(afterLen, beforeLen + 1);
 		},
 	},
 	{
@@ -205,11 +208,11 @@ var commands = [
 	},
 ];
 
-return {
+module.exports = {
 	name: 'Browser',
 	description: 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.',
 	version: '1.0.0',
 	matches: /.*/,
 	commands: commands,
-	homophones: HOMOPHONES,
+	homophones: homophones,
 };
