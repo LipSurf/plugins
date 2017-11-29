@@ -30,8 +30,7 @@ exports.PM = function({
 
             request.onload = function() {
                 if (request.status >= 200 && request.status < 400) {
-                    // Success!
-                    cmdFn = eval(`(function() {${request.responseText}})()`);
+                    cmdFn = eval(`module={}; ${request.responseText}`);
                 } else {
                     // We reached our target server, but it returned an error
 

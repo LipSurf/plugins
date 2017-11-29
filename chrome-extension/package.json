@@ -30,9 +30,9 @@
     "jsdom-global": "3.0.2",
     "lodash": "^4.17.4",
     "mocha": "^3.4.2",
+    "node-gtts": "^2.0.2",
     "riot": "=3.7.3",
-    "node-gtts": "^2.0.2"
+    "selenium-webdriver": "^3.6.0"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

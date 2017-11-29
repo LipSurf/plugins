@@ -15,6 +15,7 @@ var homophones = {
     'upwards': 'up',
     'upward': 'up',
     'newtown': 'new tab',
+    'utah': 'new tab',
     'school': 'scroll',
     'screw': 'scroll',
     'small': 'little',
@@ -163,13 +164,11 @@ var commands = [
 		    chrome.tabs.create({active: true, url: 'https://www.google.com'});
 		},
 		test: async function() {
-		    console.log(`this ${this}`);
-			const timeout = ms => new Promise(res => setTimeout(res, ms))
-			var beforeLen = (await this.driver.getAllWindowHandles()).length;
-			await this.say();
-			var afterLen = (await this.driver.getAllWindowHandles()).length;
-			await timeout(5000);
-			this.assert.equal(afterLen, beforeLen + 1);
+		    var beforeLen = (await this.driver.getAllWindowHandles()).length;
+		    await this.say();
+		    var afterLen = (await this.driver.getAllWindowHandles()).length;
+		    await this.timeout(200);
+		    this.assert.equal(afterLen, beforeLen + 1);
 		},
 	},
 	{

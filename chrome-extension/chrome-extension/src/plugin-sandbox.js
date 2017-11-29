@@ -9,8 +9,8 @@ exports.PS = function({
     pub.addCommands = function(pluginName, commands) {
     	privilegedCode[pluginName] = privilegedCode[pluginName] || {};
     	privilegedCode = _.reduce(commands, (memo, runStr, name) => {
-    		memo[pluginName][name] = eval(runStr);
-    		return memo;
+	    memo[pluginName][name] = eval(runStr);
+	    return memo;
     	}, privilegedCode);
     };
 

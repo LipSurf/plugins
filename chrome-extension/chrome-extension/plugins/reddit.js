@@ -256,7 +256,7 @@ var commands = [
 	}
 ];
 
-return {
+module.exports = {
 	name: 'Reddit',
 	description: 'Commands for Reddit.com',
 	version: '1.0.0',
