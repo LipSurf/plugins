@@ -98,7 +98,7 @@ function toggleActivated(_activated = true, quiet = false) {
                 if (activated) {
                     $previewCmdBox = attachOverlay('preview-cmd-box');
                 }
-                if (typeof quiet === 'undefined' || quiet === false) {
+                if (!quiet) {
                     showLiveText({ text: "Ready" });
                 }
                 $(`#siteTable>div.thing .expando-button`).click(function(e) {

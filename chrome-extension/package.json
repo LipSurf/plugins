@@ -8,11 +8,12 @@
   },
   "scripts": {
     "test": "node_modules/mocha/bin/mocha tests",
-    "test-plugins": "PLUGINS=${PLUGINS:=chrome-extension/plugins/browser.js} node_modules/mocha/bin/mocha tests",
-    "test-debug-plugins": "PLUGINS=${PLUGINS:=chrome-extension/plugins/browser.js} node_modules/mocha/bin/mocha debug tests",
+    "test-plugins": "PLUGINS=${PLUGINS:=$PWD/chrome-extension/plugins/browser.js} node_modules/mocha/bin/mocha --retries 2 tests/test-plugin.js",
+    "test-plugins-debug": "PLUGINS=${PLUGINS:=$PWD/chrome-extension/plugins/browser.js} node_modules/mocha/bin/mocha --retries 2 debug tests/test-plugin.js",
+    "watch-test-plugins": "PLUGINS=${PLUGINS:=$PWD/chrome-extension/plugins/browser.js} node_modules/mocha/bin/mocha --retries 2 watch tests/test-plugin.js",
     "test-debug": "node_modules/mocha/bin/mocha debug tests",
-    "test-debug-watch": "when-changed -1 -s tests/* chrome-extension/* -c bash -c 'node_modules/mocha/bin/mocha debug tests'",
-    "watch": "when-changed -1 -s tests/* chrome-extension/* chrome-extension/**/* -c bash -c \"./node_modules/.bin/riot chrome-extension/views/tags chrome-extension/views/tags/all.js && node_modules/mocha/bin/mocha tests ; node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem \""
+    "test-debug-watch": "when-changed -1 -s tests/* chrome-extension/* -c bash -c 'node_modules/mocha/bin/mocha debug tests/tests.js'",
+    "watch": "when-changed -1 -s tests/* chrome-extension/* chrome-extension/**/* -c bash -c \"./node_modules/.bin/riot chrome-extension/views/tags chrome-extension/views/tags/all.js && node_modules/mocha/bin/mocha tests/tests.js ; node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem \""
   },
   "repository": {
     "type": "git",

@@ -19,7 +19,7 @@ var builder = new Builder()
         .addArguments("user-data-dir=/home/lubuntu/.config/google-chrome/Default")
         .addExtensions("/media/sf_no-hands-man/no-hands-man.crx"));
 
-var pluginFilePaths = process.env.PLUGINS.split(',');
+var pluginFilePaths = process.env.PLUGINS ? process.env.PLUGINS.split(',') : [];
 var slowDown = true;
 
 
@@ -88,10 +88,10 @@ var talkingBot = new TalkingBot()
 
 
 describe('Plugin test', function() {
-    let driver;
+    var driver;
     this.timeout(1000000);
 
-    before(async function() {
+    beforeEach(async function() {
         driver = await builder.build();
 
         // enable the plugin
@@ -105,13 +105,12 @@ describe('Plugin test', function() {
         driver.get('https://www.google.com').then(() => null, (err) => null);
 
         await timeout(1500);
-        console.log("done with loading extension");
     });
 
     after(() => {
         var tests = this.tests;
         var failed = false;
-        for(var i = 0, limit = tests.length; !failed && i < limit; ++i)
+        for (var i = 0, limit = tests.length; !failed && i < limit; ++i)
             failed = tests[i].state === "failed";
         if (failed) {
             // don't close the browser
@@ -119,6 +118,21 @@ describe('Plugin test', function() {
             driver && driver.quit();
         }
     });
+
+    afterEach(async function () {
+        console.log(`${this.currentTest.state}`);
+        if (this.currentTest.state !== 'passed') {
+            await timeout(2000);
+        }
+        if (slowDown) {
+            await timeout(10000);
+        }
+        driver.close()
+    });
+
+    //beforeEach(async function() {
+
+    //});
 
     for (let pluginFilePath of pluginFilePaths) {
         var Plugin = require(pluginFilePath.replace('.js', ''));
@@ -133,28 +147,12 @@ describe('Plugin test', function() {
                 for (let test of tests) {
                     i += 1;
                     it(`${Plugin.name} -- ${cmd.name} -- #${i}`, async function() {
-                        for (let _try = 1; _try <= MAX_TRIES_PER_TEST; _try++) {
-                            try {
-                                let runTest = test.apply({
-                                    driver: driver,
-                                    assert: assert,
-                                    say: async function() { return await talkingBot.say(typeof cmd.match == 'object' ? cmd.match[0] : cmd.match); },
-                                    timeout: timeout
-                                });
-                                if (slowDown) {
-                                    await runTest;
-                                    return timeout(10000);
-                                } else {
-                                    return await runTest;
-                                }
-                            } catch (e) {
-                                if (_try < MAX_TRIES_PER_TEST) {
-                                    console.warn(`Failed try ${_try} for ${cmd.name}`);
-                                } else {
-                                    throw e;
-                                }
-                            }
-                        }
+                        return test.apply({
+                            driver: driver,
+                            assert: assert,
+                            say: async function() { return await talkingBot.say(typeof cmd.match == 'object' ? cmd.match[0] : cmd.match); },
+                            timeout: timeout
+                        });
                     });
                 }
             }

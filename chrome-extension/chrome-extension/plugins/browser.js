@@ -130,6 +130,23 @@ var commands = [
 			Util.queryActiveTab(function(tab) {
 				chrome.tabs.remove(tab.id);
 			});
+		},
+		test: async function() {
+		    var beforeLen;
+		    await this.driver.executeScript('window.open("https://www.google.com");');
+		    await this.driver.wait(() => {
+			return this.driver.getTitle().then(function(title) {
+			    return ~title.indexOf('Google');
+			});
+		    }, 1500);
+		    beforeLen = (await this.driver.getAllWindowHandles()).length;
+		    await this.say();
+		    // if the timeout is elapsed, then the tab wasn't closed
+		    await this.driver.wait(() => {
+			return this.driver.getAllWindowHandles().then(function(handles) {
+			    return handles.length === beforeLen - 1;
+			});
+		    }, 1000);
 		}
 	},
 	{
@@ -167,7 +184,7 @@ var commands = [
 		    var beforeLen = (await this.driver.getAllWindowHandles()).length;
 		    await this.say();
 		    var afterLen = (await this.driver.getAllWindowHandles()).length;
-		    await this.timeout(200);
+		    await this.timeout(400);
 		    this.assert.equal(afterLen, beforeLen + 1);
 		},
 	},

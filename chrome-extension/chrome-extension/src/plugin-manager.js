@@ -71,6 +71,7 @@ exports.PM = function({
                         cmd.enabled = true;
                         // Make all the functions strings (because we can't store them directly)
                         cmd.runOnPage = cmd.runOnPage ? cmd.runOnPage.toString() : '() => null';
+                        cmd.run ? cmd.run = cmd.run.toString() : undefined;
                     });
 
                     if (!item.pageInit) {
