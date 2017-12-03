@@ -2,7 +2,7 @@
 /*
  * Test all the plugin code
  */
-const { Browser, By, Builder, until }  = require('selenium-webdriver');
+const { Browser, By, Builder, until, Key }  = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const _ = require('lodash');
 const assert = require('assert');
@@ -12,6 +12,7 @@ const gtts = require('node-gtts')('en');
 const { spawnSync } = require('child_process');
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 const MAX_TRIES_PER_TEST = 3;
+const BLACKLISTED_PHRASES = ['back'];
 
 var builder = new Builder()
     .forBrowser('chrome')
@@ -20,7 +21,7 @@ var builder = new Builder()
         .addExtensions("/media/sf_no-hands-man/no-hands-man.crx"));
 
 var pluginFilePaths = process.env.PLUGINS ? process.env.PLUGINS.split(',') : [];
-var debug = true;
+var debug = false;
 
 
 function moveMouse(x, y) {
@@ -134,12 +135,8 @@ describe('Plugin test', function() {
         if (debug) {
             await timeout(10000);
         }
-        driver.close()
+        driver.quit()
     });
-
-    //beforeEach(async function() {
-
-    //});
 
     for (let pluginFilePath of pluginFilePaths) {
         var Plugin = require(pluginFilePath.replace('.js', ''));
@@ -153,15 +150,19 @@ describe('Plugin test', function() {
                 for (let test of tests) {
                     var phrases = typeof cmd.match === 'object' ? cmd.match : [cmd.match];
                     for (let phrase of phrases) {
+                        if (~BLACKLISTED_PHRASES.indexOf(phrase))
+                            continue
                         if (phrase != 'forward')
                             continue
                         it(`${Plugin.name} -- ${cmd.name} -- #${phrase}`, async () => {
                             return await test.apply({
                                 driver: driver,
+                                Key: Key,
+                                By: By,
                                 assert: assert,
                                 say: async function() { return await talkingBot.say(phrase); },
                                 timeout: timeout,
-                                loadPage: loadPage
+                                loadPage: loadPage,
                             });
                         });
                     }
