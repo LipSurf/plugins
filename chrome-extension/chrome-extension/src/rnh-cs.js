@@ -25,8 +25,7 @@ function scrollTo($ele) {
 
 async function attachOverlay(id) {
     var $iframe = $(`<iframe class="nhm-iframe" id="nhm-${id}"></iframe>`);
-    $(document.body).append($iframe);
-    $iframe[0].contentDocument.write(await getFrameHtml(id));
+    $iframe.appendTo(document.body).contents().find('body').append(await getFrameHtml(id));
 
     return $iframe;
 }
