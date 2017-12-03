@@ -8,6 +8,8 @@ var homophones = {
     'downwards': 'down',
     'downward': 'down',
     'middletown': 'little down',
+    'little rock': 'little up',
+    'school little rock': 'scroll little up',
     'backwards': 'back',
     'backward': 'back',
     'ford': 'forward',
@@ -20,215 +22,339 @@ var homophones = {
     'screw': 'scroll',
     'small': 'little',
     'time': 'next',
-	'clothes': 'close',
+    'clothes': 'close',
 };
 
-var commands = [
-	{
-		name: 'Close Help',
-		description: "Close the help box.",
-		match: "close help",
-	    runOnPage: function() {
-	    	helpBoxOpen = false;
-	        $helpBox.hide();
-	    }
-	},
-	{
-		name: 'Open Help',
-		description: "Open the help box.",
-		match: ["help", "open help", "help open", "commands"],
-	    runOnPage: function() {
-	        if (!$.contains(document.body, $helpBox)) {
-	            $helpBox = attachOverlay('help-box');
-	        }
-	        helpBoxOpen = true;
-	        $helpBox.show();
-	    }
-	},
-	{
-		name: 'Go Back',
-		description: "Equivalent of hitting the back button.",
-		match: ["back", "go back"],
-		runOnPage: function() {
-			window.history.back();
-		}
-	},
-	{
-		name: 'Go Forward',
-		description: "Equivalent of hitting the forward button.",
-		match: ["forward", "go forward"],
-		runOnPage: function() {
-			window.history.forward();
-		}
-	},
-	{
-		name: 'Refresh',
-		description: "Refresh the page.",
-		match: "refresh",
-		runOnPage: function() {
-			location.reload();
-		}
-	},
-	{
-		name: 'Scroll Bottom',
-		match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
-		runOnPage: function() {
-			$('html, body').animate({ scrollTop:  document.body.scrollHeight });
-		},
-	},
-	{
-		name: 'Scroll Down a Little',
-		match: ["little down", "little scroll down", "scroll little down", "down little"],
-		runOnPage: function() {
-			$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE/2 });
-		},
-	},
-	{
-		name: 'Scroll Down',
-		match: ["down", "scroll down"],
-		// We introduce a delay to distinguish between "down" "down a little" and "downvote"
-		delay: [300, 0],
-		runOnPage: function() {
-			$('html, body').animate({ scrollTop:  window.scrollY + SCROLL_DISTANCE });
-		},
-	},
-	{
-		name: 'Scroll Top',
-		match: ["top", "top of page", "scrolltop", "top of the page", "scroll top", "scroll to top", "scroll to the top of page", "scroll to the top of the page"],
-		runOnPage: function() {
-			$('html, body').animate({ scrollTop:  0 });
-		},
-	},
-	{
-		name: 'Scroll Up a Little',
-		match: ["little up", "little scroll up", "scroll little up", "up little"],
-		runOnPage: function() {
-			$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE/2 });
-		},
-	},
-	{
-		name: 'Scroll Up',
-		match: ["up", "scroll up"],
-		delay: [300, 0],
-		runOnPage: function() {
-			$('html, body').animate({ scrollTop:  window.scrollY - SCROLL_DISTANCE });
-		},
-	},
-	{
-		name: 'Stop',
-		description: "Equivalent of hitting the \"stop\" button to stop page navigation.",
-		match: "stop",
-		runOnPage: function() {
-			window.stop();
-		}
-	},
-	{
-		name: 'Close Tab',
-		match: "close tab",
-		run: () => {
-			// window.close cannot close windows that weren't opened via js
-			Util.queryActiveTab(function(tab) {
-				chrome.tabs.remove(tab.id);
-			});
-		},
-		test: async function() {
-		    var beforeLen;
-		    await this.driver.executeScript('window.open("https://www.google.com");');
-		    await this.driver.wait(() => {
-			return this.driver.getTitle().then(function(title) {
-			    return ~title.indexOf('Google');
-			});
-		    }, 1500);
-		    beforeLen = (await this.driver.getAllWindowHandles()).length;
-		    await this.say();
-		    // if the timeout is elapsed, then the tab wasn't closed
-		    await this.driver.wait(() => {
-			return this.driver.getAllWindowHandles().then(function(handles) {
-			    return handles.length === beforeLen - 1;
-			});
-		    }, 1000);
-		}
-	},
-	{
-		name: 'Next Tab',
-		match: ["next tab"],
-		run: () => {
-			chrome.tabs.query({currentWindow: true}, function(tabs) {
-				let curIndex;
-				let maxIndex = tabs.length - 1;
-				for (let tab of tabs) {
-					if (tab.active) {
-						curIndex = tab.index;
-						break;
-					}
-				}
-				console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
-				for (let tab of tabs) {
-					if (tab.index === (curIndex >= maxIndex ? 0 : curIndex + 1)) {
-						chrome.tabs.update(tab.id, {active: true});
-						console.log(`found next index! ${tab.index}`);
-						break;
-					}
-				}
-			});
-		}
-	},
-	{
-		name: 'New Tab',
-		match: ["new tab", "open tab"],
-		run: () => {
-		    // open in google because default start page does not allow CS
-		    chrome.tabs.create({active: true, url: 'https://www.google.com'});
-		},
-		test: async function() {
-		    var beforeLen = (await this.driver.getAllWindowHandles()).length;
-		    await this.say();
-		    var afterLen = (await this.driver.getAllWindowHandles()).length;
-		    await this.timeout(400);
-		    this.assert.equal(afterLen, beforeLen + 1);
-		},
-	},
-	{
-		name: 'Previous Tab',
-		match: "previous tab",
-		run: () => {
-			chrome.tabs.query({currentWindow: true}, function(tabs) {
-				let curIndex;
-				let maxIndex = tabs.length - 1;
-				for (let tab of tabs) {
-					if (tab.active) {
-						curIndex = tab.index;
-						break;
-					}
-				}
-				console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
-				for (let tab of tabs) {
-					if (tab.index === (curIndex <= 0 ? maxIndex : curIndex - 1)) {
-						chrome.tabs.update(tab.id, {active: true});
-						console.log(`found prev index! ${tab.index}`);
-						break;
-					}
-				}
-			});
-		}
-	},
-	{
-		name: 'Select Tab',
-		description: "Select a tab by it's position.",
-		match: ['tab #'],
-		run: () => {
-			chrome.tabs.query({index: i - 1, currentWindow: true}, function(tabs) {
-				chrome.tabs.update(tabs[0].id, {active: true});
-			});
-		}
-	},
-];
+var commands = [{
+    name: 'Close Help',
+    description: "Close the help box.",
+    match: "close help",
+    runOnPage: function() {
+        helpBoxOpen = false;
+        $helpBox.hide();
+    }
+}, {
+    name: 'Open Help',
+    description: "Open the help box.",
+    match: ["help", "open help", "help open", "commands"],
+    runOnPage: function() {
+        if (!$.contains(document.body, $helpBox)) {
+            $helpBox = attachOverlay('help-box');
+        }
+        helpBoxOpen = true;
+        $helpBox.show();
+    }
+}, {
+    name: 'Go Back',
+    description: "Equivalent of hitting the back button.",
+    match: ["back", "go back"],
+    runOnPage: function() {
+        window.history.back();
+    },
+    test: async function() {
+        var secondPageTitle;
+        var initialPageTitle = await this.driver.getTitle();
+        await this.loadPage('https://www.duckduckgo.com');
+        secondPageTitle = await this.driver.getTitle();
+        this.assert(secondPageTitle !== initialPageTitle);
+        await this.say();
+        await this.driver.wait(() => {
+            return this.driver.getTitle().then(function(title) {
+                return title === initialPageTitle;
+            });
+        }, 1000);
+    }
+}, {
+    name: 'Go Forward',
+    description: "Equivalent of hitting the forward button.",
+    match: ["forward", "go forward"],
+    runOnPage: function() {
+        window.history.forward();
+    },
+    test: async function() {
+        //this.driver.manage().timeouts().implicitlyWait(2000);
+        //this.driver.manage().timeouts().pageLoadTimeout(20000);
+        //this.driver.manage().timeouts().setScriptTimeout(6000);
+        var secondPageUrl;
+        var initialPageUrl = await this.driver.getCurrentUrl();
+        await this.loadPage('https://www.duckduckgo.com');
+        secondPageUrl = await this.driver.getTitle();
+        this.assert(secondPageUrl !== initialPageUrl);
+        try {
+        await this.driver.navigate().back().then(()=>null, (err)=>null);
+        } catch(e) {
+            console.log("nonono");
+        }
+        await this.say();
+        console.log('hi 1 ');
+        //console.log(`hi ${}`);
+        var obj = await this.driver.getWindowHandle();
+        console.dir(obj);
+        //debugger;
+        //this.assert((await this.driver.getCurrentUrl()) === secondPageUrl);
+        //await this.driver.wait(async () => {
+            //console.log(`secondPageUrl ${secondPageUrl} ${(await this.driver.getTitle())}`);
+            //return ;
+        //}, 5000);
+    }
+}, {
+    name: 'Refresh',
+    description: "Refresh the page.",
+    match: "refresh",
+    runOnPage: function() {
+        location.reload();
+    },
+    test: async function() {
+        var initialPageLoadedTime = await this.driver.executeScript('return performance.timing.navigationStart');
+        this.say()
+        await this.driver.wait(async () => {
+            return (await this.driver.executeScript('return performance.timing.navigationStart')) !== initialPageLoadedTime;
+        }, 1000);
+    }
+}, {
+    name: 'Scroll Bottom',
+    match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
+    runOnPage: function() {
+        $('html, body').animate({
+            scrollTop: document.body.scrollHeight
+        });
+    },
+    test: async function() {
+        await this.loadPage('http://motherfuckingwebsite.com/');
+        this.assert(await this.driver.executeScript('return (window.innerHeight + window.scrollY) >= document.body.scrollHeight') === false);
+        await this.say();
+        await this.driver.wait(async () => {
+            return await this.driver.executeScript('return (window.innerHeight + window.scrollY) >= document.body.scrollHeight');
+        }, 1000);
+    }
+}, {
+    name: 'Scroll Down a Little',
+    match: ["little down", "little scroll down", "scroll little down", "down little"],
+    runOnPage: function() {
+        $('html, body').animate({
+            scrollTop: window.scrollY + SCROLL_DISTANCE / 2
+        });
+    },
+    test: async function() {
+        // does not test specifically for "little" down -- just check if scrolled down
+        // at all
+        var oldYPos;
+        await this.loadPage('http://motherfuckingwebsite.com/');
+        oldYPos = await this.driver.executeScript('return window.pageYOffset');
+        await this.say();
+        await this.driver.wait(async () => {
+            return (await this.driver.executeScript('return window.pageYOffset')) > oldYPos;
+        }, 1000);
+    }
+}, {
+    name: 'Scroll Down',
+    match: ["down", "scroll down"],
+    // We introduce a delay to distinguish between "down" "down a little" and "downvote"
+    delay: [300, 0],
+    runOnPage: function() {
+        $('html, body').animate({
+            scrollTop: window.scrollY + SCROLL_DISTANCE
+        });
+    },
+    test: async function() {
+        var oldYPos;
+        await this.loadPage('http://motherfuckingwebsite.com/');
+        oldYPos = await this.driver.executeScript('return window.pageYOffset');
+        await this.say();
+        await this.driver.wait(async () => {
+            return (await this.driver.executeScript('return window.pageYOffset')) > oldYPos;
+        }, 1000);
+    }
+}, {
+    name: 'Scroll Top',
+    match: ["top", "top of page", "scrolltop", "top of the page", "scroll top", "scroll to top", "scroll to the top of page", "scroll to the top of the page"],
+    runOnPage: function() {
+        $('html, body').animate({
+            scrollTop: 0
+        });
+    },
+    test: async function() {
+        await this.loadPage('http://motherfuckingwebsite.com/');
+        await this.driver.executeScript('window.scrollTo(0,1000)');
+        this.assert((await this.driver.executeScript('return window.pageYOffset !== 0')));
+        await this.say();
+        await this.driver.wait(async () => {
+            return await this.driver.executeScript('return window.pageYOffset === 0');
+        }, 1000);
+    }
+}, {
+    name: 'Scroll Up a Little',
+    match: ["little up", "little scroll up", "scroll little up", "up little"],
+    runOnPage: function() {
+        $('html, body').animate({
+            scrollTop: window.scrollY - SCROLL_DISTANCE / 2
+        });
+    },
+    test: async function() {
+        // does not test specifically for "little" up -- just check if scrolled down
+        // at all
+        var oldYPos;
+        await this.loadPage('http://motherfuckingwebsite.com/');
+        await this.driver.executeScript('window.scrollTo(0,1000)')
+        oldYPos = await this.driver.executeScript('return window.pageYOffset');
+        await this.say();
+        await this.timeout(1500);
+        await this.driver.wait(async () => {
+            return (await this.driver.executeScript('return window.pageYOffset')) < oldYPos;
+        }, 1000);
+    }
+}, {
+    name: 'Scroll Up',
+    match: ["up", "scroll up"],
+    delay: [300, 0],
+    runOnPage: function() {
+        $('html, body').animate({
+            scrollTop: window.scrollY - SCROLL_DISTANCE
+        });
+    },
+    test: async function() {
+        var oldYPos;
+        await this.loadPage('http://motherfuckingwebsite.com/');
+        await this.driver.executeScript('window.scrollTo(0,1000)')
+        oldYPos = await this.driver.executeScript('return window.pageYOffset');
+        await this.say();
+        await this.driver.wait(async () => {
+            return (await this.driver.executeScript('return window.pageYOffset')) < oldYPos;
+        }, 1000);
+    }
+}, {
+    name: 'Stop',
+    description: "Equivalent of hitting the \"stop\" button to stop page navigation.",
+    match: "stop",
+    runOnPage: function() {
+        window.stop();
+    },
+    test: async function() {
+        var titleBefore = await this.driver.getTitle();
+        this.driver.get('http://youtube.com');
+        this.say()
+        await this.timeout(1000);
+        // make sure it's still on google
+        this.assert((await this.driver.getTitle()) === titleBefore);
+    }
+}, {
+    name: 'Close Tab',
+    match: "close tab",
+    run: () => {
+        // window.close cannot close windows that weren't opened via js
+        Util.queryActiveTab(function(tab) {
+            chrome.tabs.remove(tab.id);
+        });
+    },
+    test: async function() {
+        var beforeLen;
+        await this.driver.executeScript('window.open("https://www.google.com");');
+        await this.driver.wait(() => {
+            return this.driver.getTitle().then(function(title) {
+                return ~title.indexOf('Google');
+            });
+        }, 1500);
+        beforeLen = (await this.driver.getAllWindowHandles()).length;
+        await this.say();
+        // if the timeout is elapsed, then the tab wasn't closed
+        await this.driver.wait(() => {
+            return this.driver.getAllWindowHandles().then(function(handles) {
+                return handles.length === beforeLen - 1;
+            });
+        }, 1000);
+    }
+}, {
+    name: 'Next Tab',
+    match: ["next tab"],
+    run: () => {
+        chrome.tabs.query({
+            currentWindow: true
+        }, function(tabs) {
+            let curIndex;
+            let maxIndex = tabs.length - 1;
+            for (let tab of tabs) {
+                if (tab.active) {
+                    curIndex = tab.index;
+                    break;
+                }
+            }
+            console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
+            for (let tab of tabs) {
+                if (tab.index === (curIndex >= maxIndex ? 0 : curIndex + 1)) {
+                    chrome.tabs.update(tab.id, {
+                        active: true
+                    });
+                    console.log(`found next index! ${tab.index}`);
+                    break;
+                }
+            }
+        });
+    }
+}, {
+    name: 'New Tab',
+    match: ["new tab", "open tab"],
+    run: () => {
+        // open in google because default start page does not allow CS
+        chrome.tabs.create({
+            active: true,
+            url: 'https://www.google.com'
+        });
+    },
+    test: async function() {
+        var beforeLen = (await this.driver.getAllWindowHandles()).length;
+        await this.say();
+        var afterLen = (await this.driver.getAllWindowHandles()).length;
+        await this.timeout(400);
+        this.assert.equal(afterLen, beforeLen + 1);
+    },
+}, {
+    name: 'Previous Tab',
+    match: "previous tab",
+    run: () => {
+        chrome.tabs.query({
+            currentWindow: true
+        }, function(tabs) {
+            let curIndex;
+            let maxIndex = tabs.length - 1;
+            for (let tab of tabs) {
+                if (tab.active) {
+                    curIndex = tab.index;
+                    break;
+                }
+            }
+            console.log(`maxIndex: ${maxIndex} curIndex: ${curIndex}`);
+            for (let tab of tabs) {
+                if (tab.index === (curIndex <= 0 ? maxIndex : curIndex - 1)) {
+                    chrome.tabs.update(tab.id, {
+                        active: true
+                    });
+                    console.log(`found prev index! ${tab.index}`);
+                    break;
+                }
+            }
+        });
+    }
+}, {
+    name: 'Select Tab',
+    description: "Select a tab by it's position.",
+    match: ['tab #'],
+    run: () => {
+        chrome.tabs.query({
+            index: i - 1,
+            currentWindow: true
+        }, function(tabs) {
+            chrome.tabs.update(tabs[0].id, {
+                active: true
+            });
+        });
+    }
+}, ];
 
 module.exports = {
-	name: 'Browser',
-	description: 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.',
-	version: '1.0.0',
-	matches: /.*/,
-	commands: commands,
-	homophones: homophones,
+    name: 'Browser',
+    description: 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.',
+    version: '1.0.0',
+    matches: /.*/,
+    commands: commands,
+    homophones: homophones,
 };

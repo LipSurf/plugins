@@ -26,6 +26,7 @@ nhm script spec
 	Should be in order of what should match first (likely want matches with optional parameters first)
  Why not always regx? User-friendly presentation to in options is important.
 `delay`: can be single value or array if different matches should have different delays (indexes correspond to matches)
+`test`: async function. The tests have every match phrase tested against.
 
 hacks
 ===
@@ -54,3 +55,9 @@ cs <--{toggleActivated: boolean}-- background.js
 
 Storage Schema
 activated [boolean] -- whether extension is activated
+
+
+Known Issues:
+[1] Infinite loading when extension is activated. Some workarounds implemented in tests so that
+    we don't wait for selenium indefinitely to consider a page "loaded".
+[2] Clicking the extension and immediately turning it off leaves behind "ready" and help text

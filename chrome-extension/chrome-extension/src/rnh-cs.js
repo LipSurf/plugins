@@ -12,12 +12,9 @@ var $lastExpanded;
 var commands = {};
 
 
-function getFrameHtml(id) {
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", chrome.extension.getURL(`views/${id}.html`), false);
-    xmlhttp.send();
-
-    return xmlhttp.responseText;
+async function getFrameHtml(id) {
+    // return data, status
+    return await $.get(chrome.extension.getURL(`views/${id}.html`));
 }
 
 
@@ -26,10 +23,10 @@ function scrollTo($ele) {
 }
 
 
-function attachOverlay(id) {
+async function attachOverlay(id) {
     var $iframe = $(`<iframe class="nhm-iframe" id="nhm-${id}"></iframe>`);
     $(document.body).append($iframe);
-    $iframe[0].contentDocument.write(getFrameHtml(id));
+    $iframe[0].contentDocument.write(await getFrameHtml(id));
 
     return $iframe;
 }
@@ -93,17 +90,16 @@ function toggleActivated(_activated = true, quiet = false) {
             chrome.runtime.sendMessage('loadPlugins');
             commandsLoaded = true;
         }
-        retrialAndError(function() {
-            $(document).ready(function() {
-                if (activated) {
-                    $previewCmdBox = attachOverlay('preview-cmd-box');
-                }
-                if (!quiet) {
-                    showLiveText({ text: "Ready" });
-                }
-                $(`#siteTable>div.thing .expando-button`).click(function(e) {
-                    $lastExpanded = $(e.currentTarget);
-                });
+        retrialAndError(async function() {
+            await $(document).ready();
+            if (activated) {
+                $previewCmdBox = await attachOverlay('preview-cmd-box');
+            }
+            if (!quiet) {
+                showLiveText({ text: "Ready" });
+            }
+            $(`#siteTable>div.thing .expando-button`).click(function(e) {
+                $lastExpanded = $(e.currentTarget);
             });
         }, function() {
             if ($previewCmdBox) {
@@ -111,14 +107,13 @@ function toggleActivated(_activated = true, quiet = false) {
             }
         }, LABEL_FADE_TIME / 5, 5);
 
-        retrialAndError(function() {
-            $(document).ready(function() {
-                if (activated) {
-                    console.log("opening");
-                    $helpBox = attachOverlay('help-box');
-                    helpBoxOpen = true;
-                }
-            });
+        retrialAndError(async function() {
+            await $(document).ready();
+            if (activated) {
+                console.log("opening");
+                $helpBox = await attachOverlay('help-box');
+                helpBoxOpen = true;
+            }
         }, function() {
             return !helpBoxOpen || document.body.contains($helpBox[0]);
         }, 500, 25);
@@ -126,12 +121,12 @@ function toggleActivated(_activated = true, quiet = false) {
 }
 
 
-function showLiveText({ text, isSuccess = false, isUnsure = false, hold = false, isError = false } = {}) {
+async function showLiveText({ text, isSuccess = false, isUnsure = false, hold = false, isError = false } = {}) {
     // our element might not get reattached or might get removed from
     //   * bf cache
     //   * dom body overwrites from js
     if (typeof $previewCmdBox === 'undefined' || !document.body.contains($previewCmdBox[0])) {
-        $previewCmdBox = attachOverlay('preview-cmd-box');
+        $previewCmdBox = await attachOverlay('preview-cmd-box');
     }
     console.log(`showLiveText ${text} ${isSuccess} ${isUnsure}`);
     let $previewCmdLbl = $previewCmdBox.contents().find('.preview-cmd');
@@ -177,11 +172,11 @@ document.addEventListener("webkitvisibilitychange", function(event) {
 
 
 function checkActivatedStatus() {
-	chrome.storage.local.get('activated', function(activatedObj) {
-	    if (typeof(activatedObj) == 'object' && activatedObj.activated) {
-	        toggleActivated(true, true);
-	    }
-	});
+    chrome.storage.local.get('activated', function(activatedObj) {
+        if (typeof(activatedObj) == 'object' && activatedObj.activated) {
+            toggleActivated(true, true);
+        }
+    });
 }
 
 checkActivatedStatus();

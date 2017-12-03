@@ -20,7 +20,7 @@ var builder = new Builder()
         .addExtensions("/media/sf_no-hands-man/no-hands-man.crx"));
 
 var pluginFilePaths = process.env.PLUGINS ? process.env.PLUGINS.split(',') : [];
-var slowDown = true;
+var debug = true;
 
 
 function moveMouse(x, y) {
@@ -91,6 +91,13 @@ describe('Plugin test', function() {
     var driver;
     this.timeout(1000000);
 
+    // Workaround for the infinite-loading issue [1]
+    // don't error on timeout
+    async function loadPage(url) {
+        return await this.driver.get(url).then(() => null, (err) => null);
+    }
+
+
     beforeEach(async function() {
         driver = await builder.build();
 
@@ -112,7 +119,7 @@ describe('Plugin test', function() {
         var failed = false;
         for (var i = 0, limit = tests.length; !failed && i < limit; ++i)
             failed = tests[i].state === "failed";
-        if (failed) {
+        if (debug) {
             // don't close the browser
         } else {
             driver && driver.quit();
@@ -120,11 +127,11 @@ describe('Plugin test', function() {
     });
 
     afterEach(async function () {
-        console.log(`${this.currentTest.state}`);
+        console.log(`Test state: ${this.currentTest.state}`);
         if (this.currentTest.state !== 'passed') {
             await timeout(2000);
         }
-        if (slowDown) {
+        if (debug) {
             await timeout(10000);
         }
         driver.close()
@@ -140,20 +147,24 @@ describe('Plugin test', function() {
         for (let cmd of Plugin.commands) {
             if (cmd.test) {
                 let tests = cmd.test;
-                let i = 0;
                 if (!tests.length) {
                     tests = [tests];
                 }
                 for (let test of tests) {
-                    i += 1;
-                    it(`${Plugin.name} -- ${cmd.name} -- #${i}`, async function() {
-                        return test.apply({
-                            driver: driver,
-                            assert: assert,
-                            say: async function() { return await talkingBot.say(typeof cmd.match == 'object' ? cmd.match[0] : cmd.match); },
-                            timeout: timeout
+                    var phrases = typeof cmd.match === 'object' ? cmd.match : [cmd.match];
+                    for (let phrase of phrases) {
+                        if (phrase != 'forward')
+                            continue
+                        it(`${Plugin.name} -- ${cmd.name} -- #${phrase}`, async () => {
+                            return await test.apply({
+                                driver: driver,
+                                assert: assert,
+                                say: async function() { return await talkingBot.say(phrase); },
+                                timeout: timeout,
+                                loadPage: loadPage
+                            });
                         });
-                    });
+                    }
                 }
             }
         }
