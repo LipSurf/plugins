@@ -1,6 +1,7 @@
 "use strict"
 /*
  * Test all the plugin code
+ * Use 2048x1048 resolution on the VM
  */
 const { Browser, By, Builder, until, Key }  = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
@@ -41,7 +42,7 @@ function clickMouse(x, y) {
 
 function toggleExtension(active=true) {
     // extension button
-    clickMouse(905, 64);
+    clickMouse(964, 61);
 }
 
 
@@ -100,6 +101,9 @@ describe('Plugin test', function() {
 
 
     beforeEach(async function() {
+        try {
+            driver && driver.quit();
+        } catch(e) {}
         driver = await builder.build();
 
         // enable the plugin
@@ -107,7 +111,7 @@ describe('Plugin test', function() {
 
         // open a page because the startup page cannot have cs
         // scripts run on it
-        driver.manage().timeouts().pageLoadTimeout(1500);
+        driver.manage().timeouts().pageLoadTimeout(3500);
         // Need to timeout the page and catch the error as a workaround
         // for the page never loading when the add on is already activated?
         driver.get('https://www.google.com').then(() => null, (err) => null);
@@ -115,27 +119,28 @@ describe('Plugin test', function() {
         await timeout(1500);
     });
 
-    after(() => {
+    after(async () => {
         var tests = this.tests;
         var failed = false;
         for (var i = 0, limit = tests.length; !failed && i < limit; ++i)
             failed = tests[i].state === "failed";
-        if (debug) {
+
+        if (debug && failed) {
             // don't close the browser
-        } else {
-            driver && driver.quit();
+            await timeout(120000);
         }
+        driver && driver.quit();
     });
 
     afterEach(async function () {
         console.log(`Test state: ${this.currentTest.state}`);
-        if (this.currentTest.state !== 'passed') {
-            await timeout(2000);
-        }
         if (debug) {
-            await timeout(10000);
+            if (this.currentTest.state !== 'passed') {
+                await timeout(2000);
+            } else {
+                await timeout(10000);
+            }
         }
-        driver.quit()
     });
 
     for (let pluginFilePath of pluginFilePaths) {
@@ -152,13 +157,14 @@ describe('Plugin test', function() {
                     for (let phrase of phrases) {
                         if (~BLACKLISTED_PHRASES.indexOf(phrase))
                             continue
-                        if (phrase != 'forward')
+                        if (phrase != 'collapse')
                             continue
                         it(`${Plugin.name} -- ${cmd.name} -- #${phrase}`, async () => {
                             return await test.apply({
                                 driver: driver,
                                 Key: Key,
                                 By: By,
+                                until: until,
                                 assert: assert,
                                 say: async function() { return await talkingBot.say(phrase); },
                                 timeout: timeout,

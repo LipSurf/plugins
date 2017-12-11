@@ -1,6 +1,5 @@
 TODO
 ===
-*Technique for cd'ing dirs? Working on projects?
 
 Release to fam:
 * Fix isSuccess rendering
@@ -44,6 +43,10 @@ marketing/profit
 dev reqs
 ===
 Sikulix
+
+stretch goals
+===
+support undo/redo
 
 API
 ===

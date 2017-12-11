@@ -144,7 +144,7 @@ async function showLiveText({ text, isSuccess = false, isUnsure = false, hold = 
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function(msg) {
     if (typeof msg.cmdName !== 'undefined') {
-        commands[msg.cmdPluginName][msg.cmdName](msg.cmdArgs);
+        commands[msg.cmdPluginName][msg.cmdName].apply(null, msg.cmdArgs);
     } else if (typeof msg.liveText !== 'undefined') {
         showLiveText(msg.liveText);
     } else if (typeof msg.toggleActivated !== "undefined") {

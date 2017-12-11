@@ -278,7 +278,31 @@ var commands = [{
                 }
             }
         });
-    }
+    },
+    test: async function() {
+        // hard to test as there seems to be no way to check which tab is active with selenium?
+
+        ////First open a new tab
+        //var beforeLen, anchors;
+        //await this.driver.get('http://motherfuckingwebsite.com');
+        //await this.driver.wait(async () => {
+            //anchors = await this.driver.findElements(this.By.tagName('a'));
+            //return (anchors && anchors.length > 0) ? true : false;
+        //}, 1000);
+        //anchors[0].sendKeys(this.Key.CONTROL + this.Key.RETURN);
+        //console.dir((await this.driver.getCurrentUrl()))
+        //// next let's verify we're on the original tab
+        //await this.say();
+        //await this.timeout(2000);
+        //console.log("b");
+        //console.dir((await this.driver.getCurrentUrl()))
+        //// now let's see if the original tab is selected
+        //await this.driver.wait(() => {
+            //return this.driver.getAllWindowHandles().then(function(handles) {
+                //return handles.length === beforeLen - 1;
+            //});
+        //}, 1000);
+    },
 }, {
     name: 'New Tab',
     match: ["new tab", "open tab"],
