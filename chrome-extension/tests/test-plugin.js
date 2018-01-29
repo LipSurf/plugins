@@ -22,7 +22,7 @@ var builder = new Builder()
         .addExtensions("/media/sf_no-hands-man/no-hands-man.crx"));
 
 var pluginFilePaths = process.env.PLUGINS ? process.env.PLUGINS.split(',') : [];
-var debug = false;
+var debug = true;
 
 
 function moveMouse(x, y) {
