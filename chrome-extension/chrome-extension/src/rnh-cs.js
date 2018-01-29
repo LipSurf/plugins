@@ -10,6 +10,8 @@ var commandsLoaded = false;
 // used to determine which video to fullscreen
 var $lastExpanded;
 var commands = {};
+let msgTracker = {};
+
 
 
 async function getFrameHtml(id) {
@@ -43,34 +45,110 @@ function isInView($ele) {
 
 
 
+// return a promise that resolves with a response
 function sendMsgToBeacon(msg) {
-    retrialAndError(() => {
+    return retrialAndError(new Promise((resolve, reject) => {
         console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`);
-        chrome.runtime.sendMessage({ bubbleDown: msg }, function(response) {
-            console.log("orig sender received response " + response);
-            if (response) {
-                console.log("RECEIVED response!");
+        chrome.runtime.sendMessage({ bubbleDown: msg }, function(resp) {
+            if (resp) {
+                return resolve(resp);
+            } else {
+                return reject();
             }
         });
-    }, null, 2000, 2);
+    }), null, 2000, 2);
 }
 
 
-// f is what needs to be done
-// f_check checks whether it was done
+window.addEventListener('message', function(evt) {
+    let msg = evt.data;
+    let id = msg.id;
+    if (msg.isTop) {
+        msgTracker[id].cb(msg.data);
+        delete msgTracker[id];
+    }
+}, false);
+
+
+// send msg to beacon replacement
+function queryAllFrames(tagName, attrs) {
+    return new Promise((resolve, reject) => {
+        let msgName = 'get_send';
+        let frames = $('iframe');
+        let id = +new Date();
+        msgTracker[id] = {
+            cb: function(res) {
+                resolve(res);
+            }
+        };
+        // post to self
+        window.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, window.location.href);
+        //for (let i = 0; i < frames.length; i++) {
+            //// filter out `about:...`
+            //try {
+                //if (frames[i].src.startsWith('http://') || frames[i].src.startsWith('https://')) {
+                    //counts[id].pending += 1;
+                    //frames[i].contentWindow.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, frames[i].src);
+                //}
+            //} catch (e) { }
+        //}
+    });
+}
+
+
+// We generate a unique id for the message to prevent the issue of generic window onMessage
+// handlers that relay duplicated messages.
+// id            is the special unique element attribute id that gets assigned to all the
+//               elements matched when queryAllFrames is used.
+// selector      if null then id is used by default
+// fnNames       an array or string of the function names to be called on the element
+function postToAllFrames({id, selector, fnNames}) {
+    let msgName = 'post_send';
+    let frames = $('iframe');
+    fnNames = typeof fnNames === "object" ? fnNames: [fnNames];
+    let msg = { id: +new Date(), name: msgName, data: { id, selector, fnNames  }};
+    // also do the main frame
+    window.postMessage(msg, window.location.href);
+    for (let i = 0; i < frames.length; i++) {
+        try {
+            if (!frames[i].src.startsWith('http://') && !frames[i].src.startsWith('https://')) {
+                continue;
+            }
+        } catch (e) {}
+        frames[i].contentWindow.postMessage(msg, frames[i].src);
+    }
+}
+
+
+// f is what needs to be done -- can be function or promise
+// f_check checks whether it was done (optional if the check can't be done in f)
 // delay is the gap between tries
 function retrialAndError(f, f_check, delay, times) {
-    if (times > 0) {
-        console.log("calling");
-        f();
-        setTimeout(function() {
-            if (f_check && !f_check()) {
-                return retrialAndError(f, f_check, delay, times - 1);
-            } else if (!f_check) {
-                return retrialAndError(f, f_check, delay, times - 1);
-            }
-        }, delay);
-    }
+    return new Promise((resolve, reject) => {
+        if (times > 0) {
+            let res = Promise.resolve(f);
+            res.then((res0) => {
+                if (!f_check && res0) {
+                    resolve();
+                } else {
+                    setTimeout(function() {
+                        if (f_check) {
+                            let res = f_check();
+                            if (!res) {
+                                return retrialAndError(f, f_check, delay, times - 1);
+                            } else {
+                                return resolve(res);
+                            }
+                        } else  {
+                            return retrialAndError(f, f_check, delay, times - 1);
+                        }
+                    }, delay);
+                }
+            });
+        } else {
+            return resolve();
+        }
+    });
 }
 
 // Needs to be safe to call multipe times

@@ -94,9 +94,25 @@ var commands = [{
     description: "Expands all the comments.",
     match: "expand all",
     runOnPage: function() {
-        for (let $ele of $('.thing.comment.collapsed:not(.child div) a.expand')) {
-            $ele.click();
-        }
+        $('.thing.comment.collapsed a.expand').each(function() {
+            this.click();
+        });
+    },
+    test: async function() {
+        // Only checks to see that more than 5 comments are collapsed.
+        let previousCollapsed;
+        await this.loadPage('https://www.reddit.com/r/OldSchoolCool/comments/2uak5a/arnold_schwarzenegger_flexing_for_two_old_ladies/co6nw85/');
+        // first let's make sure there's some collapsed items
+        this.driver.wait(this.until.elementIsVisible(this.driver.findElement(this.By.css('.thing.comment.collapsed'))), 2000);
+
+        previousCollapsed = (await this.driver.findElements(this.By.css('.thing.comment.collapsed'))).length;
+        await this.say();
+
+        // no collapsed comments remain
+	await this.driver.wait(async () => {
+            // test that at least 5 comments have been expanded
+	    return (await this.driver.findElements(this.By.css('.thing.comment.collapsed'))).length < previousCollapsed - 5;
+	}, 1000);
     }
 }, {
     name: 'Expand',
@@ -223,22 +239,6 @@ var commands = [{
                 videoUrl: videoUrl
             }
         });
-    },
-}, {
-    name: 'Play Video',
-    match: ['play #', 'play'],
-    runOnPage: function(i) {
-        // get the unique video url
-        let videoUrl;
-        let $ele = $(window.thingAtIndex(i) + ' .expando-button.collapsed');
-        $ele.click();
-        videoUrl = $(window.thingAtIndex(i)).data('url');
-        console.log(`video url ${videoUrl}`);
-
-        sendMsgToBeacon({
-            playVideo: videoUrl
-        });
-        scrollTo($ele);
     },
 }, {
     name: 'Resume Video',

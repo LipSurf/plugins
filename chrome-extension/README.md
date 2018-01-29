@@ -1,5 +1,8 @@
 TODO
 ===
+* Cleanup iframe recursive code
+* why are some iframes recusively still called twice even with explicit src now?
+* switch to TS? Next version
 
 Release to fam:
 * Fix isSuccess rendering
@@ -35,6 +38,17 @@ from both the background and option pages.
 
 marketing/profit
 ===
+The browser extensions for Dragon are apparently atrocious. Make a better chrome extension and take a piece of that market.
+Stats: 231k users
+![chrome extension reviews](./res/dragon-chrome-ext-reviews.png)
+
+  * Get people recommending it in the comments
+  * Put "dragon" tags and keywords so it shows up in search results next to dragon
+  * r/speechrecognition
+  * A distinguishing point of advantage over dragon would be crowd-sourced plugins -- dragon will never be able to handle hugely productive edge-cases like "forward 10s" for a video on say -- vimeo
+    * + Works cross-OS
+
+---
 *send to the guy who couldn't use his hands and posted the video of the spoon on the magnet that he could feed himself with
 *Alexa, Google Home, Apple ?
 *payed apps

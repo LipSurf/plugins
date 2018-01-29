@@ -84,6 +84,45 @@ var commands = [{
         }, 1000);
     }
 }, {
+    name: 'Play Video',
+    match: ['play #', 'play'],
+    runOnPage: function(i) {
+        // tested for youtube, twitch, streamable
+        // vimeo -- needs a click to work -- because autoplay is off?
+
+        // query all videos that are visible and in frame
+        // ask all iframes for their videos
+        queryAllFrames('video', ['src', 'style.width', 'style.height', 'duration'])
+            .then((res) => {
+                // filter out undefined and null
+                let filtered = res.filter((x) => x && x.length > 0);
+
+                // rank by the most reasonable choice to play
+                // criteria: video size
+                // in the future let user disambiguate
+                filtered.sort((e) => {
+                    return e[0];
+                });
+
+                postToAllFrames({id: filtered[0][0], fnNames: ['click']});
+
+                //if it's still not playing after a click
+                //setTimeout(function() {
+                    //postToAllFrames({selector: 'video', fnNames: ['play']});
+                    ////postToAllFrames(flattened[0][0], ['click']);
+                //}, 10000);
+            });
+
+
+        // TODO: make this a setting
+        //scrollTo($ele);
+    },
+    test: async function() {
+        await this.loadPage('https://www.reddit.com/r/videos/comments/7iv0n6/mike_tyson_hitting_a_heavy_bag_is_terrifying/');
+        await this.say();
+        this.assert(false);
+    }
+}, {
     name: 'Refresh',
     description: "Refresh the page.",
     match: "refresh",
