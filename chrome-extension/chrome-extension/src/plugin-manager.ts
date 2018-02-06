@@ -1,28 +1,35 @@
-// A utility for background pages to manage the modules for no-hands man.
-exports.PM = function({
-    chrome,
-    _,
-    CT,     // constants
-    PS,
-} = {}) {
-    var pub = {};
-    var plugins = [];
+import * as _ from "lodash";
+import * as CT from "./constants";
+import { PluginSandbox } from "./plugin-sandbox";
+
+interface IPlugin {
+    matches: RegExp,
+    cs: string
+}
+
+export class PluginManager {
+    private plugins: IPlugin[] = [];
+    private pluginSandbox: PluginSandbox;
+
+    constructor(pluginSandbox: PluginSandbox) {
+        this.pluginSandbox = pluginSandbox;
+    }
 
     // load plugin
     // TODO: wait for promise of plugins loaded?
-    pub.loadContentScriptsForUrl = function(tabId, url) {
-        for (let i = 0; i < plugins.length; i++) {
-            if (plugins[i].matches.test(url)) {
-                chrome.tabs.executeScript(tabId, {code: plugins[i].cs, runAt: "document_start"}, function() {
+    loadContentScriptsForUrl(tabId: number, url: string) {
+        for (let i = 0; i < this.plugins.length; i++) {
+            if (this.plugins[i].matches.test(url)) {
+                chrome.tabs.executeScript(tabId, {code: this.plugins[i].cs, runAt: "document_start"}, function() {
                     //script injected
                 });
             }
         }
-    };
+    }
 
     // TODO: when ES6 System.import is supported, switch to using that
     // load options
-    pub._getPlugin = function(name) {
+    private getPlugin(name: string) {
         return new Promise((resolve, reject) => {
             var cmdFn;
             var request = new XMLHttpRequest();
@@ -44,16 +51,16 @@ exports.PM = function({
 
             request.send();
         });
-    };
+    }
 
 
     // Load the plugins that are factory-installed
     // and save them in chrome storage
-    pub.loadDefault = function() {
+    loadDefault() {
         return new Promise((resolve, reject) => {
-            Promise.all([pub._getPlugin('browser'), pub._getPlugin('reddit')]).then(function(preCmdGroups) {
+            Promise.all([this.getPlugin('browser'), this.getPlugin('reddit')]).then(function(preCmdGroups) {
                 // Transform the cmdGroups into useable form
-                let pluginData = { cmdGroups: preCmdGroups.map((item) => {
+                let pluginData = { cmdGroups: preCmdGroups.map((item: any) => {
                     item.collapsed = false;
                     item.enabled = true;
 
@@ -86,33 +93,33 @@ exports.PM = function({
                 });
             });
         });
-    };
+    }
 
 
     // Only the enabled stuff
-    pub.loadPlugins = function() {
+    loadPlugins() {
         return new Promise((resolve, reject) => {
-            chrome.storage.local.get(null, function(loaded) {
+            chrome.storage.local.get(null, (loaded) => {
                 new Promise((resolve, reject) => {
                     if (!loaded || !loaded.cmdGroups) {
-                        return pub.loadDefault().then((loadedDefaults) => resolve(loadedDefaults));
+                        return this.loadDefault().then((loadedDefaults) => resolve(loadedDefaults));
                     } else {
                         return resolve(loaded);
                     }
-                }).then((loaded) => {
+                }).then((loaded: any) => {
                     let reducer = (x, y=[]) => _.reduce(loaded.cmdGroups, (combined, cmdGroup) => _.filter(cmdGroup[x], 'enabled').concat(combined), y);
                     var combinedHomophones = reducer('homophones', _.map(CT.HOMOPHONES, (v, k) => { return {source: k, destination: v, enabled: true}; }));
                     var commands = [];
                     for (let cmdGroup of _.filter(loaded.cmdGroups, 'enabled')) {
                         var keyedCommands = cmdGroup.commands.map((c) => `commands['${cmdGroup.name}']['${c.name}'] = ${c.runOnPage};`);
-                        PS.addCommands(cmdGroup.name, _.reduce(cmdGroup.commands, (memo, c) => {
+                        this.pluginSandbox.addCommands(cmdGroup.name, _.reduce(cmdGroup.commands, (memo, c) => {
                             if (c.run) {
                                 memo[c.name] = c.run.toString();
                             }
                             return memo;
                         }, {}));
                         commands.push(_.pick(cmdGroup, ['name', 'commands']));
-                        plugins.push({
+                        this.plugins.push({
                             matches: cmdGroup.matches,
                             cs: `(${cmdGroup.pageInit.toString()})(); commands['${cmdGroup.name}'] = {}; ${keyedCommands.join(';')}`,
                         });
@@ -121,8 +128,5 @@ exports.PM = function({
                 });
             });
         });
-    };
-
-
-    return pub;
-};
+    }
+}

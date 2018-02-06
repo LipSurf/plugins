@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "module": "amd",
+    "noEmitOnError": true,
+    "noImplicitAny": false,
+    "outFile": "js/background-amd.js",
+    "removeComments": true,
+    "rootDir": "src",
+    "sourceMap": false,
+    "target": "es6"
+  },
+  "exclude": [
+    "bower_components",
+    "node_modules"
+  ]
+}

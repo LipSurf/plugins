@@ -1,19 +1,19 @@
-var exports = typeof module !== 'undefined' ? module.exports = {} : {};
-exports.CT = CT = {};
-CT.DEBUG = true;
-CT.ON_ICON = "assets/icon-on-128.png";
-CT.OFF_ICON = "assets/icon-off-128.png";
-CT.ORDINAL_CMD_DELAY = 500;
+//var exports = typeof module !== 'undefined' ? module.exports = {} : {};
+//exports.CT = CT = {};
+export const DEBUG = true;
+export const ON_ICON: string = "assets/icon-on-128.png";
+export const OFF_ICON: string = "assets/icon-off-128.png";
+export const ORDINAL_CMD_DELAY = 500;
 
 // how long to wait before allowing another command
-CT.COOLDOWN_TIME = 900;
+export const COOLDOWN_TIME = 900;
 
 // max time to require before resetting the isFinal switch
 // that blocks a command from being run twice (once before isFinal
 // and once after)
-CT.FINAL_COOLDOWN_TIME = 2200;
-CT.CONFIDENCE_THRESHOLD = 0;
-CT.ORDINALS_TO_DIGITS = {
+export const FINAL_COOLDOWN_TIME = 2200;
+export const CONFIDENCE_THRESHOLD = 0;
+export const ORDINALS_TO_DIGITS = {
     "first": 1,
     "1st": 1,
     "i": 1,
@@ -319,7 +319,7 @@ CT.ORDINALS_TO_DIGITS = {
     "one hundredth": 100,
     "100th": 100,
 };
-CT.NUMBERS_TO_DIGITS = {
+export const NUMBERS_TO_DIGITS = {
     "1": 1,
     "one": 1,
     "2": 2,
@@ -530,7 +530,7 @@ CT.NUMBERS_TO_DIGITS = {
 // global homophones that all plugins share
 // mis-hearings kept in homophones so they can be easily tracked for removal
 // as voice recognition improves
-CT.HOMOPHONES = {
+export const HOMOPHONES = {
     'stirred': 'third',
     'for': 'four',
     'aladdin': 'eleven',

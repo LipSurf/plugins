@@ -6,13 +6,7 @@
   "background": {
     "scripts": [
       "vendor/lodash.min.js",
-      "src/constants.js",
-      "src/plugin-manager.js",
-      "src/recognizer.js",
-      "src/util.js",
-      "src/plugin-sandbox.js",
-      "tests/tests.js",
-      "src/background.js"
+      "js/background.js"
     ],
     "persistent": true
   },

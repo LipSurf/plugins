@@ -1,62 +1,70 @@
-exports.Recognizer = function({
-    CT, // constants
-    _,
-    webkitSpeechRecognition,
-} = {}) {
-    var recognition;
-    var pub = {};
-    var recognizerKilled = false;
-    var _cmdRecognizedCb;
-    var lastFinalTime = 0;
-    var lastNonFinalCmdExecutedTime = 0;
-    var lastNonFinalCmdExecuted = null;
-    var plugins;
-    var _syn_keys = [];
-    var _syn_vals = [];
+import * as CT from "./constants";
+export interface IWindow extends Window {
+    webkitSpeechRecognition: any;
+}
+const {webkitSpeechRecognition} : IWindow = <IWindow>window;
+
+interface ICommand {
+    cmdName: string,
+    cmdPluginName: string,
+    matchOutput,
+    delay,
+    nice,
+    fn, 
+}
+
+export class Recognizer {
+    private recognition;
+    private recognizerKilled: boolean = false;
+    private cmdRecognizedCb;
+    private lastFinalTime: number = 0;
+    private lastNonFinalCmdExecutedTime: number = 0;
+    private lastNonFinalCmdExecuted = null;
+    private plugins;
+    private _syn_keys: string[] = [];
+    private _syn_vals: string[] = [];
 
     // let outside functionality update the commands list at any time
-    pub.setPlugins = function(plgs, homos) {
-        plugins = plgs;
-        _syn_keys = homos.map((homo) => new RegExp(`\\b${homo.source}\\b`));
-        _syn_vals = homos.map((homo) => homo.destination);
-    };
+    setPlugins(plgs, homos) {
+        this.plugins = plgs;
+        this._syn_keys = homos.map((homo) => new RegExp(`\\b${homo.source}\\b`));
+        this._syn_vals = homos.map((homo) => homo.destination);
+    }
 
-    pub.start = function({
-        cmdRecognizedCb,
-    } = {}) {
+    start(cmdRecognizedCb) {
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.
         return new Promise((resolve, reject) => {
-            _cmdRecognizedCb = cmdRecognizedCb;
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-            recognition.maxAlternatives = 1;
-            recognition.start();
+            this.cmdRecognizedCb = cmdRecognizedCb;
+            this.recognition = new webkitSpeechRecognition();
+            this.recognition.continuous = true;
+            this.recognition.interimResults = true;
+            this.recognition.lang = 'en-US';
+            this.recognition.maxAlternatives = 1;
+            this.recognition.start();
 
-            recognition.onresult = function(event) {
+            this.recognition.onresult = function(event) {
                 var lastE = event.results[event.results.length - 1];
                 console.dir(event);
-                pub._handleTranscript({
+                this.handleTranscript({
                     'isFinal': lastE.isFinal,
                     'confidence': lastE[0].confidence,
                     'transcript': lastE[0].transcript.trim().toLowerCase(),
                 });
-                recognizerKilled = false;
+                this.recognizerKilled = false;
             };
 
             // Error types:
             //  'no-speech'
             //  'network'
             //  'not-allowed
-            recognition.onerror = function(event) {
+            this.recognition.onerror = function(event) {
                 if (event.error === 'not-allowed') {
                     // TODO: throw an exception that stops the
                     // add-on
                     // throw "This should never happen";
-                    recognizerKilled = true;
+                    this.recognizerKilled = true;
                 } else if (event.error == 'network') {
                     // TODO: special error message
                 } else if (event.error !== 'no-speech') {
@@ -64,44 +72,44 @@ exports.Recognizer = function({
                 }
             };
 
-            recognition.onnomatch = function(event) {
+            this.recognition.onnomatch = function(event) {
                 console.error(`No match! ${event}`);
             };
 
-            recognition.onend = function() {
+            this.recognition.onend = function() {
                 // don't restart in an infinite loop
-                if (!recognizerKilled) {
+                if (!this.recognizerKilled) {
                     console.log("ended. Restarting: ");
-                    recognition.start();
+                    this.recognition.start();
                 }
             };
 
         });
-    };
+    }
 
-    pub.shutdown = function() {
+    shutdown() {
         try {
-            recognition.stop();
+            this.recognition.stop();
         } catch (e) {}
         try {
-            recognition.onresult = null;
-            recognition.onerror = null;
-            recognition.onend = null;
+            this.recognition.onresult = null;
+            this.recognition.onerror = null;
+            this.recognition.onend = null;
         } catch (e) {}
-        recognition = null;
-    };
+        this.recognition = null;
+    }
 
     /* Return {
      *  matchOutput: the arguments to pass back to the command
      *}
      */
-    pub._getCmdForUserInput = function(input) {
+    private getCmdForUserInput(input): ICommand {
         // simplifies the input into a more limited set of words
-        let processedInput = expandSynonyms(input);
+        let processedInput = this.expandSynonyms(input);
         // processedInput = dedupe(processedInput);
-        for (let g = 0; g < plugins.length; g++) {
-            for (let f = 0; f < plugins[g].commands.length; f++) {
-                let curCmd = plugins[g].commands[f];
+        for (let g = 0; g < this.plugins.length; g++) {
+            for (let f = 0; f < this.plugins[g].commands.length; f++) {
+                let curCmd = this.plugins[g].commands[f];
                 let out;
                 let matchPatterns;
                 let matchPatternIndex;
@@ -115,7 +123,7 @@ exports.Recognizer = function({
                     }
 
                     for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                        let tokens = tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                        let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
                         let ords = [];
                         let n = 0;
                         let nextIsOrdinal = false;
@@ -131,12 +139,12 @@ exports.Recognizer = function({
                                 } else if (nextIsOrdinal) {
                                     nextIsOrdinal = false;
                                     try {
-                                        ords.push(ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
+                                        ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
                                     } catch (e) {
                                         // not an ordinal
                                         break;
                                     }
-                                } else if (nextIsOrdinal != 0) {
+                                } else if (!nextIsOrdinal) {
                                     // not matching at the beginning of the segment
                                     break;
                                 }
@@ -163,7 +171,7 @@ exports.Recognizer = function({
                     }
                     return {
                         cmdName: curCmd.name,
-                        cmdPluginName: plugins[g].name,
+                        cmdPluginName: this.plugins[g].name,
                         matchOutput: out,
                         delay: delay,
                         nice: curCmd.nice,
@@ -172,8 +180,8 @@ exports.Recognizer = function({
                 }
             }
         }
-        return {};
-    };
+        return <ICommand>{};
+    }
 
 
     //
@@ -189,7 +197,7 @@ exports.Recognizer = function({
     // > tokenizeMatchPattern('hello # there # my friend')
     // ['hello ', '#', ' there ', '#', ' my friend']
     //
-    function tokenizeMatchPattern(matchStr) {
+    private tokenizeMatchPattern(matchStr) {
         let ret = [];
         for (let i = 0; i < matchStr.length; i++) {
             if (matchStr[i] === '#') {
@@ -211,7 +219,7 @@ exports.Recognizer = function({
     // be two downs. If the user chains commands like "down up" then
     // maybe we should split and match the first valid part of the command?
     // Needs thought...
-    function dedupe(input) {
+    private dedupe(input) {
         let existingWords = {};
         let processed = [];
         for (let word of input.split(' ')) {
@@ -223,16 +231,16 @@ exports.Recognizer = function({
     }
 
 
-    function expandSynonyms(input) {
-        for (let i = 0; i < _syn_keys.length; i++) {
-            input = input.replace(_syn_keys[i], _syn_vals[i]);
+    private expandSynonyms(input) {
+        for (let i = 0; i < this._syn_keys.length; i++) {
+            input = input.replace(this._syn_keys[i], this._syn_vals[i]);
         }
         return input;
     }
 
 
     // prefix or suffix match
-    function ordinalOrNumberToDigit(ordinal) {
+    private ordinalOrNumberToDigit(ordinal) {
         try {
             return CT.ORDINALS_TO_DIGITS[ordinal] || CT.NUMBERS_TO_DIGITS[ordinal];
         } catch (e) {
@@ -241,31 +249,22 @@ exports.Recognizer = function({
     }
 
 
-    pub._handleTranscript = function({
-        isFinal,
-        transcript,
-        confidence
-    } = {}) {
-        let elapsedTime = +new Date() - lastNonFinalCmdExecutedTime;
+    handleTranscript(isFinal, transcript, confidence) {
+        let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime} ${CT.COOLDOWN_TIME} ${CT.CONFIDENCE_THRESHOLD}`);
         if (elapsedTime > CT.COOLDOWN_TIME) {
             if (confidence > CT.CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
-                var {
-                    cmdName,
-                    cmdPluginName,
-                    matchOutput,
-                    delay,
-                    nice,
-                    fn,
-                } = pub._getCmdForUserInput(transcript);
+                var { cmdName, cmdPluginName, matchOutput, delay, nice, fn } = this.getCmdForUserInput(transcript);
                 var niceOutput = null;
+                let delayCmd: number;
+
                 console.log(`input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
                 // console.log(`end time ${+new Date()}`);
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                    console.log(`isFinal: ${isFinal} lastNonFinalCmdExecuted: ${lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${lastFinalTime} `);
-                    if (isFinal && lastNonFinalCmdExecuted && lastNonFinalCmdExecuted === cmdName && (+new Date() - lastFinalTime) > CT.FINAL_COOLDOWN_TIME) {
+                    console.log(`isFinal: ${isFinal} lastNonFinalCmdExecuted: ${this.lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${this.lastFinalTime} `);
+                    if (isFinal && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > CT.FINAL_COOLDOWN_TIME) {
                         console.log("Junked dupe.");
                         return;
                     } else if (typeof delayCmd !== 'undefined') {
@@ -280,14 +279,14 @@ exports.Recognizer = function({
                         }
                         console.log(`running command ${cmdName} isFinal:${isFinal}`);
                         if (isFinal) {
-                            lastFinalTime = +new Date();
+                            this.lastFinalTime = +new Date();
                         } else {
-                            lastNonFinalCmdExecuted = cmdName;
-                            lastNonFinalCmdExecutedTime = +new Date();
+                            this.lastNonFinalCmdExecuted = cmdName;
+                            this.lastNonFinalCmdExecutedTime = +new Date();
                         }
 
                         console.log(`transcript in closure ${transcript}`);
-                        return _cmdRecognizedCb({
+                        return this.cmdRecognizedCb({
                             cmdName: cmdName,
                             cmdPluginName: cmdPluginName,
                             cmdArgs: matchOutput,
@@ -295,24 +294,22 @@ exports.Recognizer = function({
                             isSuccess: true,
                         });
                     }, delay);
-                    return _cmdRecognizedCb({
+                    return this.cmdRecognizedCb({
                         text: transcript,
                         hold: true,
                     });
                 } else {
-                    return _cmdRecognizedCb({
+                    return this.cmdRecognizedCb({
                         text: niceOutput ? niceOutput : transcript
                     });
                 }
             }
             if (isFinal && confidence <= CT.CONFIDENCE_THRESHOLD) {
-                return _cmdRecognizedCb({
+                return this.cmdRecognizedCb({
                     text: transcript,
                     isUnsure: true
                 });
             }
         }
-    };
-
-    return pub;
-};
+    }
+}
