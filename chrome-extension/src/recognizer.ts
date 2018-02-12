@@ -1,4 +1,6 @@
 import * as CT from "./constants";
+import { store } from "./store";
+import * as _ from "lodash";
 export interface IWindow extends Window {
     webkitSpeechRecognition: any;
 }
@@ -20,18 +22,20 @@ export class Recognizer {
     private lastFinalTime: number = 0;
     private lastNonFinalCmdExecutedTime: number = 0;
     private lastNonFinalCmdExecuted = null;
-    private plugins;
-    private _syn_keys: string[] = [];
+    private _syn_keys: RegExp[] = [];
     private _syn_vals: string[] = [];
 
-    // let outside functionality update the commands list at any time
-    setPlugins(plgs, homos) {
-        this.plugins = plgs;
-        this._syn_keys = homos.map((homo) => new RegExp(`\\b${homo.source}\\b`));
-        this._syn_vals = homos.map((homo) => homo.destination);
+    constructor() {
+        // outside functionality can update the commands list at any time
+        store.subscribe((updatedStore) => {
+            // TODO: currently flattens all the plugins homophones together -> do we want to 
+            let homophones = _.flatten(updatedStore.map((plugin) => plugin.homophones.filter((homo) => homo.enabled)));
+            this._syn_keys = homophones.map((homo) => new RegExp(`\\b${homo.source}\\b`));
+            this._syn_vals = homophones.map((homo) => homo.destination);
+        });
     }
 
-    start(cmdRecognizedCb) {
+    start(cmdRecognizedCb: ((any) => void)) {
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.
@@ -44,14 +48,14 @@ export class Recognizer {
             this.recognition.maxAlternatives = 1;
             this.recognition.start();
 
-            this.recognition.onresult = function(event) {
+            this.recognition.onresult = (event) => {
                 var lastE = event.results[event.results.length - 1];
                 console.dir(event);
-                this.handleTranscript({
-                    'isFinal': lastE.isFinal,
-                    'confidence': lastE[0].confidence,
-                    'transcript': lastE[0].transcript.trim().toLowerCase(),
-                });
+                this.handleTranscript(
+                    lastE[0].transcript.trim().toLowerCase(),
+                    lastE.isFinal,
+                    lastE[0].confidence,
+                );
                 this.recognizerKilled = false;
             };
 
@@ -59,7 +63,7 @@ export class Recognizer {
             //  'no-speech'
             //  'network'
             //  'not-allowed
-            this.recognition.onerror = function(event) {
+            this.recognition.onerror = (event) => {
                 if (event.error === 'not-allowed') {
                     // TODO: throw an exception that stops the
                     // add-on
@@ -72,11 +76,11 @@ export class Recognizer {
                 }
             };
 
-            this.recognition.onnomatch = function(event) {
+            this.recognition.onnomatch = (event) => {
                 console.error(`No match! ${event}`);
             };
 
-            this.recognition.onend = function() {
+            this.recognition.onend = () => {
                 // don't restart in an infinite loop
                 if (!this.recognizerKilled) {
                     console.log("ended. Restarting: ");
@@ -107,9 +111,9 @@ export class Recognizer {
         // simplifies the input into a more limited set of words
         let processedInput = this.expandSynonyms(input);
         // processedInput = dedupe(processedInput);
-        for (let g = 0; g < this.plugins.length; g++) {
-            for (let f = 0; f < this.plugins[g].commands.length; f++) {
-                let curCmd = this.plugins[g].commands[f];
+        for (let g = 0; g < store.plugins.length; g++) {
+            for (let f = 0; f < store.plugins[g].commands.length; f++) {
+                let curCmd = store.plugins[g].commands[f];
                 let out;
                 let matchPatterns;
                 let matchPatternIndex;
@@ -144,10 +148,7 @@ export class Recognizer {
                                         // not an ordinal
                                         break;
                                     }
-                                } else if (!nextIsOrdinal) {
-                                    // not matching at the beginning of the segment
-                                    break;
-                                }
+                                } 
                                 inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                             }
                         }
@@ -162,7 +163,7 @@ export class Recognizer {
                 }
                 if (out) {
                     let delay = null;
-                    if (curCmd.ordinalMatch) {
+                    if (curCmd._ordinalMatch) {
                         delay = CT.ORDINAL_CMD_DELAY;
                     } else if (curCmd.delay && typeof curCmd.delay === 'object') {
                         delay = curCmd.delay[matchPatternIndex];
@@ -171,7 +172,7 @@ export class Recognizer {
                     }
                     return {
                         cmdName: curCmd.name,
-                        cmdPluginName: this.plugins[g].name,
+                        cmdPluginName: store.plugins[g].name,
                         matchOutput: out,
                         delay: delay,
                         nice: curCmd.nice,
@@ -249,7 +250,7 @@ export class Recognizer {
     }
 
 
-    handleTranscript(isFinal, transcript, confidence) {
+    handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
         let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime} ${CT.COOLDOWN_TIME} ${CT.CONFIDENCE_THRESHOLD}`);
         if (elapsedTime > CT.COOLDOWN_TIME) {
@@ -271,7 +272,7 @@ export class Recognizer {
                         clearTimeout(delayCmd);
                     }
 
-                    delayCmd = setTimeout(() => {
+                    delayCmd = window.setTimeout(() => {
                         if (typeof nice === 'string') {
                             niceOutput = nice;
                         } else if (typeof nice === 'function') {

@@ -532,7 +532,7 @@ class Detector {
             this.sentinelFn = sentinelFn;
             this.detectCb = detectCb;
             this.check();
-            this.intervalId = setInterval(function () {
+            this.intervalId = window.setInterval(function () {
                 this.check();
             }, interval);
         }
@@ -597,6 +597,61 @@ function queryActiveTab(cb) {
         }, cb, 200, 2);
     }
 util.queryActiveTab = queryActiveTab;
+const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
+function promisify(original, withError = false) {
+        if (typeof original !== "function") {
+            throw new TypeError("Argument to promisify must be a function");
+        }
+        const argumentNames = original[customArgumentsToken];
+        if (typeof Promise !== "function") {
+            throw new Error("No Promise implementation found; do you need a polyfill?");
+        }
+        return function (...args) {
+            return new Promise((resolve, reject) => {
+                args.push(function callback() {
+                    let values = [];
+                    for (var i = withError ? 1 : 0; i < arguments.length; i++) {
+                        values.push(arguments[i]);
+                    }
+                    if (withError && arguments[0]) {
+                        return reject(arguments[0]);
+                    }
+                    if (values.length === 1 || !argumentNames) {
+                        return resolve(values[0]);
+                    }
+                    let o;
+                    values.forEach((value, index) => {
+                        const name = argumentNames[index];
+                        if (name) {
+                            o[name] = value;
+                        }
+                    });
+                    resolve(o);
+                });
+                original.call(this, ...args);
+            });
+        };
+    }
+util.promisify = promisify;
+let store = {};
+class Store {
+        constructor() {
+            this.listeners = [];
+        }
+        get plugins() {
+            return this._plugins;
+        }
+        set plugins(plugins) {
+            this._plugins = plugins;
+            this.listeners.forEach((fn) => fn(this._plugins));
+        }
+        subscribe(fn) {
+            this.listeners.push(fn);
+        }
+    }
+store.Store = Store;
+store.store = new Store();
+let store_1 = store;
 let recognizer = {};
 const { webkitSpeechRecognition } = window;
 class Recognizer {
@@ -607,11 +662,11 @@ class Recognizer {
             this.lastNonFinalCmdExecuted = null;
             this._syn_keys = [];
             this._syn_vals = [];
-        }
-        setPlugins(plgs, homos) {
-            this.plugins = plgs;
-            this._syn_keys = homos.map((homo) => new RegExp(`\\b${homo.source}\\b`));
-            this._syn_vals = homos.map((homo) => homo.destination);
+            store_1.store.subscribe((updatedStore) => {
+                let homophones = _.flatten(updatedStore.map((plugin) => plugin.homophones.filter((homo) => homo.enabled)));
+                this._syn_keys = homophones.map((homo) => new RegExp(`\\b${homo.source}\\b`));
+                this._syn_vals = homophones.map((homo) => homo.destination);
+            });
         }
         start(cmdRecognizedCb) {
             return new Promise((resolve, reject) => {
@@ -622,17 +677,13 @@ class Recognizer {
                 this.recognition.lang = 'en-US';
                 this.recognition.maxAlternatives = 1;
                 this.recognition.start();
-                this.recognition.onresult = function (event) {
+                this.recognition.onresult = (event) => {
                     var lastE = event.results[event.results.length - 1];
                     console.dir(event);
-                    this.handleTranscript({
-                        'isFinal': lastE.isFinal,
-                        'confidence': lastE[0].confidence,
-                        'transcript': lastE[0].transcript.trim().toLowerCase(),
-                    });
+                    this.handleTranscript(lastE[0].transcript.trim().toLowerCase(), lastE.isFinal, lastE[0].confidence);
                     this.recognizerKilled = false;
                 };
-                this.recognition.onerror = function (event) {
+                this.recognition.onerror = (event) => {
                     if (event.error === 'not-allowed') {
                         this.recognizerKilled = true;
                     }
@@ -642,10 +693,10 @@ class Recognizer {
                         console.error(`unhandled error: ${event.error}`);
                     }
                 };
-                this.recognition.onnomatch = function (event) {
+                this.recognition.onnomatch = (event) => {
                     console.error(`No match! ${event}`);
                 };
-                this.recognition.onend = function () {
+                this.recognition.onend = () => {
                     if (!this.recognizerKilled) {
                         console.log("ended. Restarting: ");
                         this.recognition.start();
@@ -668,9 +719,9 @@ class Recognizer {
         }
         getCmdForUserInput(input) {
             let processedInput = this.expandSynonyms(input);
-            for (let g = 0; g < this.plugins.length; g++) {
-                for (let f = 0; f < this.plugins[g].commands.length; f++) {
-                    let curCmd = this.plugins[g].commands[f];
+            for (let g = 0; g < store_1.store.plugins.length; g++) {
+                for (let f = 0; f < store_1.store.plugins[g].commands.length; f++) {
+                    let curCmd = store_1.store.plugins[g].commands[f];
                     let out;
                     let matchPatterns;
                     let matchPatternIndex;
@@ -709,9 +760,6 @@ class Recognizer {
                                             break;
                                         }
                                     }
-                                    else if (!nextIsOrdinal) {
-                                        break;
-                                    }
                                     inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                 }
                             }
@@ -723,7 +771,7 @@ class Recognizer {
                     }
                     if (out) {
                         let delay = null;
-                        if (curCmd.ordinalMatch) {
+                        if (curCmd._ordinalMatch) {
                             delay = CT.ORDINAL_CMD_DELAY;
                         }
                         else if (curCmd.delay && typeof curCmd.delay === 'object') {
@@ -734,7 +782,7 @@ class Recognizer {
                         }
                         return {
                             cmdName: curCmd.name,
-                            cmdPluginName: this.plugins[g].name,
+                            cmdPluginName: store_1.store.plugins[g].name,
                             matchOutput: out,
                             delay: delay,
                             nice: curCmd.nice,
@@ -787,7 +835,7 @@ class Recognizer {
                 console.debug(`Could not convert to number ${e}`);
             }
         }
-        handleTranscript(isFinal, transcript, confidence) {
+        handleTranscript(transcript, isFinal, confidence) {
             let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
             console.log(`elapsed time ${elapsedTime} ${CT.COOLDOWN_TIME} ${CT.CONFIDENCE_THRESHOLD}`);
             if (elapsedTime > CT.COOLDOWN_TIME) {
@@ -805,7 +853,7 @@ class Recognizer {
                         else if (typeof delayCmd !== 'undefined') {
                             clearTimeout(delayCmd);
                         }
-                        delayCmd = setTimeout(() => {
+                        delayCmd = window.setTimeout(() => {
                             if (typeof nice === 'string') {
                                 niceOutput = nice;
                             }
@@ -862,35 +910,74 @@ class PluginSandbox {
                 return memo;
             }, this.privilegedCode);
         }
-        run({ cmdName, cmdPluginName, cmdArgs, }) {
+        run(cmdName, cmdPluginName, cmdArgs) {
             if (this.privilegedCode[cmdPluginName] && this.privilegedCode[cmdPluginName][cmdName]) {
                 return this.privilegedCode[cmdPluginName][cmdName].apply(this, cmdArgs);
             }
         }
     }
 plugin_sandbox.PluginSandbox = PluginSandbox;
+let util_1 = util;
+let preferences = {};
+const DEFAULT_PREFERENCES = {
+        plugins: [
+            {
+                name: 'Browser',
+                version: '1.0.0',
+                enabled: true,
+                expanded: true,
+                disabledCommands: [],
+                disabledHomophones: []
+            },
+            {
+                name: 'Reddit',
+                version: '1.0.0',
+                enabled: true,
+                expanded: true,
+                disabledCommands: [],
+                disabledHomophones: []
+            },
+        ],
+        showLiveText: true
+    };
+async function save(preferences) {
+        return util_1.promisify(chrome.storage.sync.set)(preferences);
+    }
+preferences.save = save;
+async function load() {
+        let loaded = await util_1.promisify(chrome.storage.sync.get)(null);
+        if (!(_.get(loaded, 'plugins.length', 0) > 0)) {
+            loaded = DEFAULT_PREFERENCES;
+        }
+        return loaded;
+    }
+preferences.load = load;
+let store_2 = store;
+let Preferences = preferences;
+let util_2 = util;
 let plugin_manager = {};
 class PluginManager {
         constructor(pluginSandbox) {
-            this.plugins = [];
             this.pluginSandbox = pluginSandbox;
+            this.loadPluginStoreFromSyncStorage().then((loadedStorePlugin) => store_2.store.plugins = loadedStorePlugin);
         }
-        loadContentScriptsForUrl(tabId, url) {
-            for (let i = 0; i < this.plugins.length; i++) {
-                if (this.plugins[i].matches.test(url)) {
-                    chrome.tabs.executeScript(tabId, { code: this.plugins[i].cs, runAt: "document_start" }, function () {
-                    });
+        async loadCommandCodeIntoPage(tabId, url) {
+            for (let i = 0; i < store_2.store.plugins.length; i++) {
+                if (_.reduce(store_2.store.plugins[i].match, (memo, matchPattern) => matchPattern.test(url) && memo, true)) {
+                    return util_2.promisify(chrome.tabs.executeScript)(tabId, { code: store_2.store.plugins[i].cs, runAt: "document_start" });
                 }
             }
         }
-        getPlugin(name) {
+        fetchPluginCode(name) {
             return new Promise((resolve, reject) => {
                 var cmdFn;
                 var request = new XMLHttpRequest();
-                request.open('GET', chrome.runtime.getURL(`plugins/${name}.js`), true);
+                request.open('GET', chrome.runtime.getURL(`plugins/${name.toLowerCase()}.js`), true);
                 request.onload = function () {
                     if (request.status >= 200 && request.status < 400) {
-                        cmdFn = eval(`module={}; ${request.responseText}`);
+                        let module = { exports: {} };
+                        eval(`${request.responseText}`);
+                        cmdFn = module.exports;
                     }
                     else {
                     }
@@ -901,67 +988,20 @@ class PluginManager {
                 request.send();
             });
         }
-        loadDefault() {
-            return new Promise((resolve, reject) => {
-                Promise.all([this.getPlugin('browser'), this.getPlugin('reddit')]).then(function (preCmdGroups) {
-                    let pluginData = { cmdGroups: preCmdGroups.map((item) => {
-                            item.collapsed = false;
-                            item.enabled = true;
-                            item.homophones = Object.keys(item.homophones).map(function (key, index) {
-                                return {
-                                    source: key,
-                                    enabled: true,
-                                    destination: item.homophones[key]
-                                };
-                            });
-                            item.commands.map((cmd) => {
-                                cmd.description = cmd.description ? cmd.description : null;
-                                cmd.enabled = true;
-                                cmd.runOnPage = cmd.runOnPage ? cmd.runOnPage.toString() : '() => null';
-                                cmd.run ? cmd.run = cmd.run.toString() : undefined;
-                            });
-                            if (!item.pageInit) {
-                                item.pageInit = '() => null';
-                            }
-                            return item;
-                        }) };
-                    chrome.storage.local.set(pluginData, function () {
-                        return resolve(pluginData);
-                    });
-                });
-            });
-        }
-        loadPlugins() {
-            return new Promise((resolve, reject) => {
-                chrome.storage.local.get(null, (loaded) => {
-                    new Promise((resolve, reject) => {
-                        if (!loaded || !loaded.cmdGroups) {
-                            return this.loadDefault().then((loadedDefaults) => resolve(loadedDefaults));
-                        }
-                        else {
-                            return resolve(loaded);
-                        }
-                    }).then((loaded) => {
-                        let reducer = (x, y = []) => _.reduce(loaded.cmdGroups, (combined, cmdGroup) => _.filter(cmdGroup[x], 'enabled').concat(combined), y);
-                        var combinedHomophones = reducer('homophones', _.map(CT.HOMOPHONES, (v, k) => { return { source: k, destination: v, enabled: true }; }));
-                        var commands = [];
-                        for (let cmdGroup of _.filter(loaded.cmdGroups, 'enabled')) {
-                            var keyedCommands = cmdGroup.commands.map((c) => `commands['${cmdGroup.name}']['${c.name}'] = ${c.runOnPage};`);
-                            this.pluginSandbox.addCommands(cmdGroup.name, _.reduce(cmdGroup.commands, (memo, c) => {
-                                if (c.run) {
-                                    memo[c.name] = c.run.toString();
-                                }
-                                return memo;
-                            }, {}));
-                            commands.push(_.pick(cmdGroup, ['name', 'commands']));
-                            this.plugins.push({
-                                matches: cmdGroup.matches,
-                                cs: `(${cmdGroup.pageInit.toString()})(); commands['${cmdGroup.name}'] = {}; ${keyedCommands.join(';')}`,
-                            });
-                        }
-                        resolve([commands, combinedHomophones]);
-                    });
-                });
+        async loadPluginStoreFromSyncStorage() {
+            let pluginPrefs = (await Preferences.load()).plugins;
+            let pluginResolvers = pluginPrefs.map((plugin) => this.fetchPluginCode(plugin.name));
+            let resolvedPlugins = await Promise.all(pluginResolvers);
+            return resolvedPlugins.map((resolvedPlugin) => {
+                return Object.assign({ enabled: true, commands: resolvedPlugin.commands.map((cmd) => {
+                        return Object.assign({ delay: _.flatten([cmd.delay]), enabled: true, runOnPage: cmd.runOnPage ? cmd.runOnPage.toString() : '() => null', match: typeof cmd.match === 'function' ? cmd.match : _.flatten([cmd.match]), _ordinalMatch: false }, _.pick(cmd, 'name', 'description', 'run', 'nice'));
+                    }), cs: `${resolvedPlugin.pageInit ? '(' + resolvedPlugin.pageInit.toString() + ')();' : ''}commands['${resolvedPlugin.name}'] = {}; ${resolvedPlugin.commands.map((c) => `commands['${resolvedPlugin.name}']['${c.name}'] = ${c.runOnPage};`).join(';')}`, homophones: Object.keys(resolvedPlugin.homophones).map((key, index) => {
+                        return {
+                            enabled: true,
+                            source: key,
+                            destination: resolvedPlugin.homophones[key],
+                        };
+                    }), match: _.flatten([resolvedPlugin.match]) }, _.pick(resolvedPlugin, 'name'));
             });
         }
     }
@@ -970,29 +1010,21 @@ let Util = util;
 let recognizer_1 = recognizer;
 let plugin_manager_1 = plugin_manager;
 let plugin_sandbox_1 = plugin_sandbox;
-let background = {};
+let main = {};
 var activated = false;
 var audible = false;
 var permissionDetector;
 var currentActiveTabId;
 var needsPermission = false;
 var delayCmd;
-var recg = new recognizer.Recognizer();
-var ps = new plugin_sandbox.PluginSandbox();
-var pm = new plugin_manager.PluginManager(ps);
-var loadedPlugins = new Promise((resolve, reject) => {
-        pm.loadPlugins().then((res) => {
-            var plgs = res[0];
-            var homos = res[1];
-            recg.setPlugins(plgs, homos);
-            resolve();
-        });
-    });
+var recg = new recognizer_1.Recognizer();
+var ps = new plugin_sandbox_1.PluginSandbox();
+var pm = new plugin_manager_1.PluginManager(ps);
 chrome.storage.local.set({ 'activated': false });
 function cmdRecognizedCb(request) {
         if (request.cmdName) {
             let cmdPart = _.pick(request, ['cmdName', 'cmdPluginName', 'cmdArgs']);
-            ps.run(cmdPart);
+            ps.run(request.cmdName, request.cmdPluginName, request.cmdArgs);
             sendMsgToActiveTab(cmdPart);
             sendMsgToActiveTab({
                 liveText: _.pick(request, ['text', 'isSuccess'])
@@ -1063,11 +1095,7 @@ function toggleActivated(_activated = true) {
             'toggleActivated': activated
         });
         if (activated) {
-            loadedPlugins.then(() => {
-                recg.start({
-                    cmdRecognizedCb: cmdRecognizedCb,
-                });
-            });
+            recg.start(cmdRecognizedCb);
             InterferenceAudioDetector.init();
         }
         else {
@@ -1136,7 +1164,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
         else if (request === 'loadPlugins') {
             Util.queryActiveTab((tab) => {
-                pm.loadContentScriptsForUrl(tab.id, tab.url);
+                pm.loadCommandCodeIntoPage(tab.id, tab.url);
             });
         }
     });

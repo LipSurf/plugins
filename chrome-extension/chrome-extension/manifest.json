@@ -24,14 +24,14 @@
       "css": ["assets/rnh.css"],
       "js": [
         "vendor/jquery-3.2.1.min.js",
-        "src/rnh-cs.js"
+        "js/rnh-cs.js"
       ]
     },
     {
       "matches": [
         "<all_urls>"
       ],
-      "js": ["src/frame-beacon.js"],
+      "js": ["js/frame-beacon.js"],
       "all_frames": true
     },
     {
@@ -39,7 +39,7 @@
         "http://www.redditmedia.com/*",
         "https://www.redditmedia.com/*"
       ],
-      "js": ["src/reddit-media-frame-beacon.js"],
+      "js": ["js/reddit-media-frame-beacon.js"],
       "css": ["assets/iframe-styles.css"],
       "all_frames": true
     }

@@ -2,7 +2,7 @@ var fs = require('fs');
 var esprima = require('esprima');
 var _ = require('lodash');
 
-const content = fs.readFileSync('js/background-amd.js', 'utf8');
+const content = fs.readFileSync('chrome-extension/js/background-amd.js', 'utf8');
 var output = [];
 var replacements = [];
 let entries = [];
@@ -18,10 +18,9 @@ function friendlyModuleName(moduleName) {
 //
 // Define:
 //  * amd modules as {}
-//  * "define"d module aliases with the actual module name
+//  * "define"d module aliases with a friendly global module name
 // Remove:
 //  * amd define(..., ..., function() { ... })
-//  * exports.[module name] = [module name]
 // Replace:
 //  * exports.[value] -> module.[value]
 //  * hyphens in module names with underscore
@@ -61,16 +60,6 @@ esprima.parseScript(content, {
         let define = friendlyModuleName(node.arguments[0].value);
         output.push(`let ${define} = {};`);
         for (let block of node.arguments[2].body.body.slice(2)) {
-            // if (block.type === 'ExpressionStatement' &&
-            //     _.get(block, 'expression.left.type') === 'MemberExpression' &&
-            //     _.get(block, 'expression.left.object.name') === 'exports' &&
-            //     _.get(block, 'expression.left.property.name', undefined) === _.get(block, 'expression.right.name', null)
-            // )
-            // {
-            //     console.log(`stripping ${String.prototype.slice.apply(content, block.range)}`);
-            //     continue;
-            // } else 
-            
             if (block.type === 'ExpressionStatement'
                 && _.get(block, 'expression.type') === 'AssignmentExpression'
                 && _.get(block, 'expression.left.object.name') === 'exports'
@@ -87,5 +76,5 @@ esprima.parseScript(content, {
     }
 });
 
-fs.writeFileSync('js/background.js', output.join('\n'));
+fs.writeFileSync('chrome-extension/js/background.js', output.join('\n'));
 console.log(`Success.`);

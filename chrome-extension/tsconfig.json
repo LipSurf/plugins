@@ -4,11 +4,11 @@
     "module": "amd",
     "noEmitOnError": true,
     "noImplicitAny": false,
-    "outFile": "js/background-amd.js",
+    "outFile": "chrome-extension/js/background-amd.js",
     "removeComments": true,
     "rootDir": "src",
     "sourceMap": false,
-    "target": "es6"
+    "target": "ES2017"
   },
   "exclude": [
     "bower_components",

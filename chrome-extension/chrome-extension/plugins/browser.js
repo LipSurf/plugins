@@ -406,7 +406,7 @@ module.exports = {
     name: 'Browser',
     description: 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.',
     version: '1.0.0',
-    matches: /.*/,
+    match: /.*/,
     commands: commands,
     homophones: homophones,
 };

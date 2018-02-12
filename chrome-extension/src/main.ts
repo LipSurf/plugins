@@ -4,6 +4,7 @@ import * as Util from "./util";
 import { Recognizer } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
+import { Store } from "./store";
 
 var activated = false;
 var audible = false;
@@ -14,21 +15,13 @@ var delayCmd;
 var recg = new Recognizer();
 var ps = new PluginSandbox();
 var pm = new PluginManager(ps);
-var loadedPlugins = new Promise((resolve, reject) => {
-    pm.loadPlugins().then((res) => {
-        var plgs = res[0];
-        var homos = res[1];
-        recg.setPlugins(plgs, homos);
-        resolve();
-    });
-});
 
 chrome.storage.local.set({'activated': false});
 
 function cmdRecognizedCb(request) {
     if (request.cmdName) {
         let cmdPart = _.pick(request, ['cmdName', 'cmdPluginName', 'cmdArgs']);
-        ps.run(cmdPart);
+        ps.run(request.cmdName, request.cmdPluginName, request.cmdArgs);
         sendMsgToActiveTab(cmdPart);
         sendMsgToActiveTab({
             liveText: _.pick(request, ['text', 'isSuccess'])
@@ -109,11 +102,7 @@ function toggleActivated(_activated=true) {
     if (activated) {
         // only allow recg to start if at least default
         // commands are loaded
-        loadedPlugins.then(() => {
-            recg.start({
-                cmdRecognizedCb: cmdRecognizedCb,
-            });
-        });
+        recg.start(cmdRecognizedCb);
         InterferenceAudioDetector.init();
     } else {
         recg.shutdown();
@@ -204,7 +193,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         });
     } else if (request === 'loadPlugins') {
         Util.queryActiveTab((tab) => {
-           pm.loadContentScriptsForUrl(tab.id, tab.url);
+           pm.loadCommandCodeIntoPage(tab.id, tab.url);
         });
     }
 });

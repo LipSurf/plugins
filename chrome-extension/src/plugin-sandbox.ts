@@ -11,7 +11,7 @@ export class PluginSandbox {
         }, this.privilegedCode);
     }
 
-    run({ cmdName, cmdPluginName, cmdArgs, }) {
+    run(cmdName: string, cmdPluginName: string, cmdArgs) {
         if (this.privilegedCode[cmdPluginName] && this.privilegedCode[cmdPluginName][cmdName]) {
             // run that bitch
             return this.privilegedCode[cmdPluginName][cmdName].apply(this, cmdArgs);

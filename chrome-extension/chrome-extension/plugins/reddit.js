@@ -278,7 +278,7 @@ module.exports = {
     name: 'Reddit',
     description: 'Commands for Reddit.com',
     version: '1.0.0',
-    matches: /https?:\/\/www.reddit.com\/.*/,
+    match: /https?:\/\/www.reddit.com\/.*/,
     commands: commands,
     homophones: HOMOPHONES,
     pageInit: pageInit,

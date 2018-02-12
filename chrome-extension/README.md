@@ -2,7 +2,6 @@ TODO
 ===
 * Cleanup iframe recursive code
 * why are some iframes recusively still called twice even with explicit src now?
-* switch to TS? Next version
 
 Release to fam:
 * Fix isSuccess rendering
