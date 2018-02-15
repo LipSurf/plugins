@@ -25,6 +25,7 @@ var homophones = {
     'time': 'next',
     'clothes': 'close',
     'scrolltop': 'scroll top',
+    'paws': 'pause',
 };
 
 var commands = [{
@@ -92,13 +93,13 @@ var commands = [{
 
         // query all videos that are visible and in frame
         // ask all iframes for their videos
-        queryAllFrames('video', ['src', 'style.width', 'style.height', 'duration'])
+        queryAllFrames('video', ['paused', 'src', 'offset().top', 'offset().left', 'style.width', 'style.height', 'duration'])
             .then((res) => {
                 // filter out undefined and null
                 let filtered = res.filter((x) => x && x.length > 0);
 
                 // rank by the most reasonable choice to play
-                // criteria: video size
+                // criteria: paused 
                 // in the future let user disambiguate
                 filtered.sort((e) => {
                     return e[0];
@@ -107,10 +108,9 @@ var commands = [{
                 postToAllFrames({id: filtered[0][0], fnNames: ['click']});
 
                 //if it's still not playing after a click
-                //setTimeout(function() {
-                    //postToAllFrames({selector: 'video', fnNames: ['play']});
-                    ////postToAllFrames(flattened[0][0], ['click']);
-                //}, 10000);
+                setTimeout(function() {
+                    postToAllFrames({id: filtered[0][0], fnNames: ['play']});
+                }, 3000);
             });
 
 
@@ -122,7 +122,41 @@ var commands = [{
         await this.say();
         this.assert(false);
     }
+}, 
+{
+    name: 'Pause Video',
+    match: ["pause", "pause video"],
+    runOnPage: function() {
+        queryAllFrames('video', ['paused', 'src', 'style.width', 'style.height', 'duration'])
+            .then((res) => {
+                // filter out undefined, null and already paused videos
+                let filtered = res.filter((x) => x && x.length > 0 && !x[1]);
+                filtered.sort((e) => {
+                    return e[0];
+                });
+
+                postToAllFrames({id: filtered[0][0], fnNames: ['pause']});
+            });
+    },
 }, {
+    name: 'Resume Video',
+    description: "Continue playing a video that has already started.",
+    // Works with any video that may have started, even with the mouse
+    match: "resume",
+    runOnPage: function(i) {
+        queryAllFrames('video', ['paused', 'currentTime', 'duration'])
+            .then((res) => {
+                // filter out undefined, null, and not paused
+                let filtered = res.filter((x) => x && x.length > 0 && x[1]);
+                filtered.sort((e) => {
+                    return e[0];
+                });
+
+                postToAllFrames({id: filtered[0][0], fnNames: ['click', 'play']});
+            });
+    },
+},
+{
     name: 'Refresh',
     description: "Refresh the page.",
     match: "refresh",

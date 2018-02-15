@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "none",
+    "noEmitOnError": true,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "declaration": false,
+    "outDir": "chrome-extension/js/",
+    "rootDir": "src/content-scripts",
+    "sourceMap": false,
+    "target": "ES2017"
+  },
+  "exclude": [
+    "node_modules",
+    "src/background"
+  ]
+}

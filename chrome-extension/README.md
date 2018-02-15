@@ -1,7 +1,9 @@
 TODO
 ===
 * Cleanup iframe recursive code
-* why are some iframes recusively still called twice even with explicit src now?
+* Delay not working
+* postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing
+* Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 
 Release to fam:
 * Fix isSuccess rendering

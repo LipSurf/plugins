@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "declaration": true,
+    "declaration": false,
     "module": "amd",
     "noEmitOnError": true,
     "noImplicitAny": false,
     "outFile": "chrome-extension/js/background-amd.js",
     "removeComments": true,
-    "rootDir": "src",
+    "rootDir": "src/background",
     "sourceMap": false,
     "target": "ES2017"
   },
   "exclude": [
-    "bower_components",
-    "node_modules"
+    "node_modules",
+    "src/content-scripts"
   ]
 }

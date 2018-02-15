@@ -44,11 +44,11 @@ export class PluginManager {
     // checks the given url and loads the necessary plugin command
     // code into the given tabId if the url matches.
     async loadCommandCodeIntoPage(tabId: number, url: string) {
-        for (let i = 0; i < store.plugins.length; i++) {
-            if (_.reduce(store.plugins[i].match, (memo, matchPattern) => matchPattern.test(url) && memo, true)) {
-                return promisify<any>(chrome.tabs.executeScript)(tabId, {code: store.plugins[i].cs, runAt: "document_start"});
+        store.plugins.forEach((plugin) => {
+            if (_.reduce(plugin.match, (memo, matchPattern) => matchPattern.test(url) || memo, true)) {
+                promisify<any>(chrome.tabs.executeScript)(tabId, {code: plugin.cs, runAt: "document_start"});
             }
-        }
+        });
     }
 
     // TODO: when ES6 System.import is supported, switch to using that

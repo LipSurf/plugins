@@ -15,10 +15,11 @@ const HOMOPHONES = {
     'commons': 'comments',
     'quick': 'click',
     'full-screen': 'fullscreen',
-    'paws': 'pause',
     'navigate': 'go',
     'pretty': 'preview',
     'contract': 'collapse',
+    'expanse': 'expand',
+    'xpand': 'expand',
     'read it': 'reddit',
     'shrink': 'collapse',
     'on fullscreen': 'unfull screen',
@@ -129,7 +130,7 @@ var commands = [{
             } catch (e) {}
             opened = $ele;
             $ele.click();
-            scrollTo($ele);
+            scrollToAnimated($ele);
         } else {
             // if expando-button is in frame expand that, otherwise expand last (furthest down) visible comment
             let mainItem = $(`#siteTable>.thing .expando-button.collapsed:first`);
@@ -141,7 +142,7 @@ var commands = [{
                 for (let ele of commentItems.reverse()) {
                     let $ele = $(ele);
                     if (isInView($ele)) {
-                        scrollTo($ele);
+                        scrollToAnimated($ele);
                         $ele.find('a.expand:first')[0].click();
                         return;
                     }
@@ -222,38 +223,7 @@ var commands = [{
             unFullScreen: null
         });
     },
-}, {
-    name: 'Pause Video',
-    match: ["pause", "pause video"],
-    runOnPage: function() {
-        let $ele = $lastExpanded.closest('*[data-url]');
-        let videoUrl = $ele.data('url');
-        let redditId = $ele.data('fullname').split('_')[1];
-        let $iframe = $ele.find('iframe');
-        $iframe.toggleClass('nhm-full-screen', true);
-        toggleFullScreen(true);
-        console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
-        sendMsgToBeacon({
-            fullScreen: {
-                redditId: redditId,
-                videoUrl: videoUrl
-            }
-        });
-    },
-}, {
-    name: 'Resume Video',
-    description: "Continue playing a video that has already started.",
-    // Works with any video that may have started, even with the mouse
-    match: "resume",
-    runOnPage: function(i) {
-        let videoUrl = $('.thing .expando-button.expanded').closest('*[data-url]').data('url');
-        console.log(`video url ${videoUrl}`);
-        // send it a few times
-        sendMsgToBeacon({
-            playVideo: videoUrl
-        });
-    },
-}, {
+},  {
     name: 'View Comments',
     description: "View the comments of a reddit post.",
     match: ["comments #", "view comments #"],

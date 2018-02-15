@@ -1,12 +1,14 @@
-let constants = {};
-constants.DEBUG = true;
-constants.ON_ICON = "assets/icon-on-128.png";
-constants.OFF_ICON = "assets/icon-off-128.png";
-constants.ORDINAL_CMD_DELAY = 500;
-constants.COOLDOWN_TIME = 900;
-constants.FINAL_COOLDOWN_TIME = 2200;
-constants.CONFIDENCE_THRESHOLD = 0;
-constants.ORDINALS_TO_DIGITS = {
+define("constants", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DEBUG = true;
+    exports.ON_ICON = "assets/icon-on-128.png";
+    exports.OFF_ICON = "assets/icon-off-128.png";
+    exports.ORDINAL_CMD_DELAY = 500;
+    exports.COOLDOWN_TIME = 900;
+    exports.FINAL_COOLDOWN_TIME = 2200;
+    exports.CONFIDENCE_THRESHOLD = 0;
+    exports.ORDINALS_TO_DIGITS = {
         "first": 1,
         "1st": 1,
         "i": 1,
@@ -312,7 +314,7 @@ constants.ORDINALS_TO_DIGITS = {
         "one hundredth": 100,
         "100th": 100,
     };
-constants.NUMBERS_TO_DIGITS = {
+    exports.NUMBERS_TO_DIGITS = {
         "1": 1,
         "one": 1,
         "2": 2,
@@ -518,14 +520,16 @@ constants.NUMBERS_TO_DIGITS = {
         "hundred": 100,
         "one hundred": 100,
     };
-constants.HOMOPHONES = {
+    exports.HOMOPHONES = {
         'stirred': 'third',
         'for': 'four',
         'aladdin': 'eleven',
     };
-let CT = constants;
-let util = {};
-class Detector {
+});
+define("util", ["require", "exports", "constants"], function (require, exports, CT) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class Detector {
         constructor(sentinelFn, detectCb, interval, maxChecks) {
             this.checks = 0;
             this.maxChecks = maxChecks;
@@ -551,8 +555,8 @@ class Detector {
             }
         }
     }
-util.Detector = Detector;
-function _queryActiveTab(cb) {
+    exports.Detector = Detector;
+    function _queryActiveTab(cb) {
         if (CT.DEBUG) {
             chrome.tabs.query({
                 windowType: "normal"
@@ -583,7 +587,7 @@ function _queryActiveTab(cb) {
             });
         }
     }
-function queryActiveTab(cb) {
+    function queryActiveTab(cb) {
         new Detector((resolve, reject) => {
             _queryActiveTab((tab) => {
                 if (tab) {
@@ -596,9 +600,9 @@ function queryActiveTab(cb) {
             });
         }, cb, 200, 2);
     }
-util.queryActiveTab = queryActiveTab;
-const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
-function promisify(original, withError = false) {
+    exports.queryActiveTab = queryActiveTab;
+    const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
+    function promisify(original, withError = false) {
         if (typeof original !== "function") {
             throw new TypeError("Argument to promisify must be a function");
         }
@@ -632,9 +636,12 @@ function promisify(original, withError = false) {
             });
         };
     }
-util.promisify = promisify;
-let store = {};
-class Store {
+    exports.promisify = promisify;
+});
+define("store", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class Store {
         constructor() {
             this.listeners = [];
         }
@@ -649,12 +656,14 @@ class Store {
             this.listeners.push(fn);
         }
     }
-store.Store = Store;
-store.store = new Store();
-let store_1 = store;
-let recognizer = {};
-const { webkitSpeechRecognition } = window;
-class Recognizer {
+    exports.Store = Store;
+    exports.store = new Store();
+});
+define("recognizer", ["require", "exports", "constants", "store", "lodash"], function (require, exports, CT, store_1, _) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const { webkitSpeechRecognition } = window;
+    class Recognizer {
         constructor() {
             this.recognizerKilled = false;
             this.lastFinalTime = 0;
@@ -897,9 +906,12 @@ class Recognizer {
             }
         }
     }
-recognizer.Recognizer = Recognizer;
-let plugin_sandbox = {};
-class PluginSandbox {
+    exports.Recognizer = Recognizer;
+});
+define("plugin-sandbox", ["require", "exports", "lodash"], function (require, exports, _) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class PluginSandbox {
         constructor() {
             this.privilegedCode = {};
         }
@@ -916,10 +928,12 @@ class PluginSandbox {
             }
         }
     }
-plugin_sandbox.PluginSandbox = PluginSandbox;
-let util_1 = util;
-let preferences = {};
-const DEFAULT_PREFERENCES = {
+    exports.PluginSandbox = PluginSandbox;
+});
+define("preferences", ["require", "exports", "util", "lodash"], function (require, exports, util_1, _) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const DEFAULT_PREFERENCES = {
         plugins: [
             {
                 name: 'Browser',
@@ -940,23 +954,23 @@ const DEFAULT_PREFERENCES = {
         ],
         showLiveText: true
     };
-async function save(preferences) {
+    async function save(preferences) {
         return util_1.promisify(chrome.storage.sync.set)(preferences);
     }
-preferences.save = save;
-async function load() {
+    exports.save = save;
+    async function load() {
         let loaded = await util_1.promisify(chrome.storage.sync.get)(null);
         if (!(_.get(loaded, 'plugins.length', 0) > 0)) {
             loaded = DEFAULT_PREFERENCES;
         }
         return loaded;
     }
-preferences.load = load;
-let store_2 = store;
-let Preferences = preferences;
-let util_2 = util;
-let plugin_manager = {};
-class PluginManager {
+    exports.load = load;
+});
+define("plugin-manager", ["require", "exports", "lodash", "store", "preferences", "util"], function (require, exports, _, store_2, Preferences, util_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class PluginManager {
         constructor(pluginSandbox) {
             this.pluginSandbox = pluginSandbox;
             this.loadPluginStoreFromSyncStorage().then((loadedStorePlugin) => store_2.store.plugins = loadedStorePlugin);
@@ -1005,23 +1019,22 @@ class PluginManager {
             });
         }
     }
-plugin_manager.PluginManager = PluginManager;
-let Util = util;
-let recognizer_1 = recognizer;
-let plugin_manager_1 = plugin_manager;
-let plugin_sandbox_1 = plugin_sandbox;
-let main = {};
-var activated = false;
-var audible = false;
-var permissionDetector;
-var currentActiveTabId;
-var needsPermission = false;
-var delayCmd;
-var recg = new recognizer_1.Recognizer();
-var ps = new plugin_sandbox_1.PluginSandbox();
-var pm = new plugin_manager_1.PluginManager(ps);
-chrome.storage.local.set({ 'activated': false });
-function cmdRecognizedCb(request) {
+    exports.PluginManager = PluginManager;
+});
+define("main", ["require", "exports", "lodash", "constants", "util", "recognizer", "plugin-manager", "plugin-sandbox"], function (require, exports, _, CT, Util, recognizer_1, plugin_manager_1, plugin_sandbox_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var activated = false;
+    var audible = false;
+    var permissionDetector;
+    var currentActiveTabId;
+    var needsPermission = false;
+    var delayCmd;
+    var recg = new recognizer_1.Recognizer();
+    var ps = new plugin_sandbox_1.PluginSandbox();
+    var pm = new plugin_manager_1.PluginManager(ps);
+    chrome.storage.local.set({ 'activated': false });
+    function cmdRecognizedCb(request) {
         if (request.cmdName) {
             let cmdPart = _.pick(request, ['cmdName', 'cmdPluginName', 'cmdArgs']);
             ps.run(request.cmdName, request.cmdPluginName, request.cmdArgs);
@@ -1036,12 +1049,12 @@ function cmdRecognizedCb(request) {
             });
         }
     }
-function sendMsgToActiveTab(request) {
+    function sendMsgToActiveTab(request) {
         Util.queryActiveTab(function (tab) {
             chrome.tabs.sendMessage(tab.id, request);
         });
     }
-var InterferenceAudioDetector = (function () {
+    var InterferenceAudioDetector = (function () {
         let _timerId = null;
         function _destroy() {
             try {
@@ -1082,10 +1095,10 @@ var InterferenceAudioDetector = (function () {
             }
         };
     })();
-function needsPermissionCb() {
+    function needsPermissionCb() {
         chrome.runtime.openOptionsPage();
     }
-function toggleActivated(_activated = true) {
+    function toggleActivated(_activated = true) {
         activated = _activated;
         chrome.storage.local.set({ 'activated': activated });
         chrome.browserAction.setIcon({
@@ -1103,10 +1116,10 @@ function toggleActivated(_activated = true) {
             InterferenceAudioDetector.destroy();
         }
     }
-chrome.browserAction.setIcon({
+    chrome.browserAction.setIcon({
         path: activated ? CT.ON_ICON : CT.OFF_ICON
     });
-chrome.browserAction.onClicked.addListener(function (tab) {
+    chrome.browserAction.onClicked.addListener(function (tab) {
         if (activated) {
             toggleActivated(false);
         }
@@ -1134,7 +1147,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
             });
         }
     });
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         if (request.bubbleDown) {
             Util.queryActiveTab(function (tab) {
                 if (typeof request.bubbleDown.fullScreen !== 'undefined') {
@@ -1168,3 +1181,4 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             });
         }
     });
+});
