@@ -2,7 +2,7 @@ var fs = require('fs');
 var esprima = require('esprima');
 var _ = require('lodash');
 
-const content = fs.readFileSync('chrome-extension/js/background-amd.js', 'utf8');
+const content = fs.readFileSync('chrome-extension/dist/background-amd.js', 'utf8');
 var output = [];
 var replacements = [];
 let entries = [];
@@ -24,7 +24,7 @@ function friendlyModuleName(moduleName) {
 // Replace:
 //  * exports.[value] -> module.[value]
 //  * hyphens in module names with underscore
-//  
+//
 esprima.parseScript(content, {
     range: true
 }, function(node, meta) {
@@ -32,18 +32,18 @@ esprima.parseScript(content, {
 
     // take the top level define's aliases and when the aliases come
     // up as identifiers, replace them
-    if (!~isAliasing 
-        && node.type === 'ArrayExpression' 
+    if (!~isAliasing
+        && node.type === 'ArrayExpression'
         && _.get(node, 'elements.0.value') === 'require'
         && _.get(node, 'elements.1.value') === 'exports'
     ) {
         isAliasing = nodeNum;
         aliasArr = _.reverse(node.elements.slice(2, node.elements.length));
-    } else if (~isAliasing 
+    } else if (~isAliasing
         && nodeNum > isAliasing + 2
     ) {
         if (node.type === 'Identifier') {
-            let alias = aliasArr.pop();            
+            let alias = aliasArr.pop();
             if (!~definedAliases.indexOf(node.name)) {
                 output.push(`let ${node.name} = ${friendlyModuleName(alias.value)};`);
                 definedAliases.push(node.name);
@@ -76,5 +76,5 @@ esprima.parseScript(content, {
     }
 });
 
-fs.writeFileSync('chrome-extension/js/background.js', output.join('\n'));
+fs.writeFileSync('chrome-extension/dist/background.js', output.join('\n'));
 console.log(`Success.`);

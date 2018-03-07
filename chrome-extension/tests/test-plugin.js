@@ -14,6 +14,8 @@ const { spawnSync } = require('child_process');
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 const MAX_TRIES_PER_TEST = 3;
 const BLACKLISTED_PHRASES = ['back'];
+const EXTENSION_ID = 'mgdafgphegpnakgebnmgfdfnfnnigjoc';
+const REAL_AUDIO = false;
 
 var builder = new Builder()
     .forBrowser('chrome')
@@ -22,7 +24,8 @@ var builder = new Builder()
         .addExtensions("/media/sf_no-hands-man/no-hands-man.crx"));
 
 var pluginFilePaths = process.env.PLUGINS ? process.env.PLUGINS.split(',') : [];
-var debug = true;
+var debug = false;
+
 
 
 function moveMouse(x, y) {
@@ -58,8 +61,16 @@ function typeKeys(keys) {
 }
 
 
+class MockedRecognizerBot {
+    constructor(driver) {
+        this.driver = driver;
+    }
+    async say(phrase) {
+        this.driver.executeScript(`window.postMessage({test_probe: true, cmd: 'recg.handleTranscript("${phrase}", false, 0.99)'}, '*');`);
+    }
+}
 
-class TalkingBot {
+class AudioPlayingBot {
 
     constructor() {
         this.CACHE_FOLDER = process.env.AUDIO_CACHE_FOLDER;
@@ -86,11 +97,9 @@ class TalkingBot {
     }
 }
 
-var talkingBot = new TalkingBot()
-
-
 describe('Plugin test', function() {
-    var driver;
+    var driver, talkingBot;
+
     this.timeout(1000000);
 
     // Workaround for the infinite-loading issue [1]
@@ -105,6 +114,7 @@ describe('Plugin test', function() {
             driver && driver.quit();
         } catch(e) {}
         driver = await builder.build();
+        talkingBot = REAL_AUDIO ? new AudioPlayingBot() : new MockedRecognizerBot(driver);
 
         // enable the plugin
         toggleExtension();
@@ -157,7 +167,7 @@ describe('Plugin test', function() {
                     for (let phrase of phrases) {
                         if (~BLACKLISTED_PHRASES.indexOf(phrase))
                             continue
-                        if (phrase != 'collapse')
+                        if (phrase != 'play')
                             continue
                         it(`${Plugin.name} -- ${cmd.name} -- #${phrase}`, async () => {
                             return await test.apply({

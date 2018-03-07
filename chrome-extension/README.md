@@ -1,5 +1,11 @@
 TODO
 ===
+* If mic is accidently blocked by user, link them to chrome://settings/content/microphone
+* testing:
+    record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
+    replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
+
+* get test probe thing working so non-audio talkingbot can work
 * Cleanup iframe recursive code
 * Delay not working
 * postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing

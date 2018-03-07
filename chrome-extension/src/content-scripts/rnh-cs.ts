@@ -13,80 +13,40 @@ interface IBackgroundParcel {
 }
 var activated = false;
 const LABEL_FADE_TIME = 2000;
-const SCROLL_DISTANCE = 550;
-const SCROLL_TIME = 450;
+export const SCROLL_DISTANCE = 550;
+export const SCROLL_TIME = 450;
 var $previewCmdBox;
-var $helpBox;
 var lblTimeout;
-var helpBoxOpen = false;
 var commandsLoaded = false;
 // used to determine which video to fullscreen
 var $lastExpanded;
 var commands = {};
 let msgTracker = {};
 
+var $helpBox;
+var helpBoxOpen = false;
 
-
-async function getFrameHtml(id) {
-    // return data, status
-    return await $.get(chrome.extension.getURL(`views/${id}.html`));
+export function toggleHelpBox(open) {
+    helpBoxOpen = open;
+    if (open) {
+        if (!$.contains(document.body, $helpBox)) {
+            $helpBox = attachOverlay('help-box');
+        }
+        helpBoxOpen = true;
+        $helpBox.show();
+    } else {
+        $helpBox.hide();
+    }
 }
 
-
-function scrollToAnimated($ele) {
+export function scrollToAnimated($ele) {
     $("html, body").animate({ scrollTop: $ele.offset().top }, SCROLL_TIME);
 }
 
-
-async function attachOverlay(id) {
-    var $iframe = $(`<iframe class="nhm-iframe" id="nhm-${id}"></iframe>`);
-    $iframe.appendTo(document.body).contents().find('body').append(await getFrameHtml(id));
-
-    return $iframe;
-}
-
-
-// Only checks if the top of the element is in view
-function isInView($ele) {
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
-
-    var elemTop = $ele.offset().top;
-
-    return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
-}
-
-
-
-// return a promise that resolves with a response
-function sendMsgToBeacon(msg) {
-    return retrialAndError(new Promise((resolve, reject) => {
-        console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`);
-        chrome.runtime.sendMessage({ bubbleDown: msg }, function(resp) {
-            if (resp) {
-                return resolve(resp);
-            } else {
-                return reject();
-            }
-        });
-    }), null, 2000, 2);
-}
-
-
-window.addEventListener('message', function(evt) {
-    let msg = evt.data;
-    let id = msg.id;
-    if (msg.isTop) {
-        msgTracker[id].cb(msg.data);
-        delete msgTracker[id];
-    }
-}, false);
-
-
 // send msg to beacon replacement
-// returns an array of results where results are arrays of all the elements that match 
+// returns an array of results where results are arrays of all the elements that match
 // in the same frame
-function queryAllFrames(tagName, attrs) {
+export function queryAllFrames(tagName, attrs): Promise<any[]> {
     return new Promise((resolve, reject) => {
         let msgName = 'get_send';
         let frames = $('iframe');
@@ -115,9 +75,9 @@ function queryAllFrames(tagName, attrs) {
 // handlers that relay duplicated messages.
 // id            is the special unique element attribute id that gets assigned to all the
 //               elements matched when queryAllFrames is used.
-// selector      if null then id is used by default
 // fnNames       an array or string of the function names to be called on the element
-function postToAllFrames({id, selector, fnNames}) {
+// selector      if null then id is used by default
+export function postToAllFrames(id, fnNames, selector=null) {
     let msgName = 'post_send';
     let frames = $('iframe');
     fnNames = typeof fnNames === "object" ? fnNames: [fnNames];
@@ -133,6 +93,55 @@ function postToAllFrames({id, selector, fnNames}) {
         frame.contentWindow.postMessage(msg, frame.src);
     })
 }
+
+// Only checks if the top of the element is in view
+export function isInView($ele) {
+    var docViewTop = $(window).scrollTop();
+    var docViewBottom = docViewTop + $(window).height();
+
+    var elemTop = $ele.offset().top;
+
+    return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
+}
+
+
+// return a promise that resolves with a response
+export function sendMsgToBeacon(msg) {
+    return retrialAndError(new Promise((resolve, reject) => {
+        console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`);
+        chrome.runtime.sendMessage({ bubbleDown: msg }, function(resp) {
+            if (resp) {
+                return resolve(resp);
+            } else {
+                return reject();
+            }
+        });
+    }), null, 2000, 2);
+}
+
+
+async function getFrameHtml(id) {
+    // return data, status
+    return await $.get(chrome.extension.getURL(`views/${id}.html`));
+}
+
+
+async function attachOverlay(id) {
+    var $iframe = $(`<iframe class="nhm-iframe" id="nhm-${id}"></iframe>`);
+    $iframe.appendTo(document.body).contents().find('body').append(await getFrameHtml(id));
+
+    return $iframe;
+}
+
+
+window.addEventListener('message', function(evt) {
+    let msg = evt.data;
+    let id = msg.id;
+    if (msg.isTop) {
+        msgTracker[id].cb(msg.data);
+        delete msgTracker[id];
+    }
+}, false);
 
 
 // f is what needs to be done -- can be function or promise

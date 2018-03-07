@@ -12,7 +12,7 @@ interface ICommand {
     matchOutput,
     delay,
     nice,
-    fn, 
+    fn,
 }
 
 export class Recognizer {
@@ -28,7 +28,7 @@ export class Recognizer {
     constructor() {
         // outside functionality can update the commands list at any time
         store.subscribe((updatedStore) => {
-            // TODO: currently flattens all the plugins homophones together -> do we want to 
+            // TODO: currently flattens all the plugins homophones together -> do we want to
             let homophones = _.flatten(updatedStore.map((plugin) => plugin.homophones.filter((homo) => homo.enabled)));
             this._syn_keys = homophones.map((homo) => new RegExp(`\\b${homo.source}\\b`));
             this._syn_vals = homophones.map((homo) => homo.destination);
@@ -148,7 +148,7 @@ export class Recognizer {
                                         // not an ordinal
                                         break;
                                     }
-                                } 
+                                }
                                 inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                             }
                         }

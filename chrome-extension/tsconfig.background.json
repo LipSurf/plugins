@@ -4,7 +4,7 @@
     "module": "amd",
     "noEmitOnError": true,
     "noImplicitAny": false,
-    "outFile": "chrome-extension/js/background-amd.js",
+    "outFile": "chrome-extension/dist/background-amd.js",
     "removeComments": true,
     "rootDir": "src/background",
     "sourceMap": false,
@@ -12,6 +12,7 @@
   },
   "exclude": [
     "node_modules",
-    "src/content-scripts"
+    "src/content-scripts",
+    "src/plugins"
   ]
 }

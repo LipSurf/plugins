@@ -5,7 +5,7 @@ interface IIFrameParcel {
     data: {
         id: string,
         selector: string,
-        fnNames: string[],    
+        fnNames: string[],
         tagName: string,
         attrs: string[]
     },
@@ -18,6 +18,7 @@ var playing = false;
 // TODO: periodically clean-up?
 // [id]: [thissubframeid]
 let waitingSubFrames = {};
+let processedPosts = {};
 
 function makeId() {
     var text = "";
@@ -33,7 +34,6 @@ function makeId() {
 // runs in the context of the *window* not the add-on and it's
 // simpler than the chrome message passing.
 window.addEventListener("message", function(evt) {
-    console.log(evt.origin);
     let {
         data,
         source,
@@ -65,26 +65,30 @@ window.addEventListener("message", function(evt) {
     } else {
         if (msgType && msg.id) {
             if (msgParts[0] === 'post') {
-                let selStr, selEle, frames;
-                if (msg.data.id) {
-                    selStr = `[${UNIQUE_ATTR_NAME}="${msg.data.id}"]`;
-                } else {
-                    selStr = msg.data.selector;
-                }
-                selEle = document.querySelector(selStr);
-                frames = document.getElementsByTagName('iframe');
-                if (selEle) {
-                    for (let fnName of msg.data.fnNames) {
-                        selEle[fnName]();
+                // a post to all iframes msg
+                if (!processedPosts[msg.id]) {
+                    processedPosts[msg.id] = 1;
+                    let selStr, selEle, frames;
+                    if (msg.data.id) {
+                        selStr = `[${UNIQUE_ATTR_NAME}="${msg.data.id}"]`;
+                    } else {
+                        selStr = msg.data.selector;
                     }
-                }
-                for (let i = 0; i < frames.length; i++) {
-                    try {
-                        if (!frames[i].src.startsWith('http://') && !frames[i].src.startsWith('https://')) {
-                            continue;
+                    selEle = document.querySelector(selStr);
+                    frames = document.getElementsByTagName('iframe');
+                    if (selEle) {
+                        for (let fnName of msg.data.fnNames) {
+                            selEle[fnName]();
                         }
-                    } catch (e) {}
-                    frames[i].contentWindow.postMessage(msg, frames[i].src);
+                    }
+                    for (let i = 0; i < frames.length; i++) {
+                        try {
+                            if (!frames[i].src.startsWith('http://') && !frames[i].src.startsWith('https://')) {
+                                continue;
+                            }
+                        } catch (e) {}
+                        frames[i].contentWindow.postMessage(msg, frames[i].src);
+                    }
                 }
             } else {
                 // get_send
@@ -156,7 +160,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         // doesn't do anything with full screen for now
         if (typeof(bubbleDown.getVideos) !== 'undefined') {
             sendResponse("yes");
-        } 
+        }
     }
 });
 
