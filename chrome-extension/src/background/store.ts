@@ -15,16 +15,17 @@ export interface IStorePlugin {
 
 export interface IStoreCommand {
     name: string,
-    description: string,
-    run: () => any,
-    runOnPage: string,
-    nice: (match: string) => string,
-    delay: Number[],
-    match: ((transcript: string) => boolean) | string[],
+    // return processed string
+    match: ((transcript: string) => any[]) | string[],
+    description?: string,
+    run?: (() => any) | ((tabIndex: number) => any),
+    runOnPage?: string,
+    nice?: (match: string) => string,
+    delay?: number[],
     // computed property that describes if match strings have ordinal
     // placeholders and we should wait a bit of extra time to let
     // them get captured before executing
-    _ordinalMatch: boolean,    
+    _ordinalMatch: boolean,
     enabled: boolean,
 }
 

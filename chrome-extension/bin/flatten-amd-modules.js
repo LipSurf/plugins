@@ -12,7 +12,8 @@ let aliasMap = {};
 let definedAliases = ['_'];
 
 function friendlyModuleName(moduleName) {
-    return moduleName.replace('-', '_');
+    let ret = moduleName.replace('-', '_').split('/');
+    return ret[ret.length - 1];
 }
 // global module names must be unique across whole codebase
 //

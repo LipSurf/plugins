@@ -1,4 +1,4 @@
-import * as CT from "./constants"
+import * as CT from "../constants"
 
 
 export class Detector {

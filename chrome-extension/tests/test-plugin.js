@@ -14,7 +14,6 @@ const { spawnSync } = require('child_process');
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 const MAX_TRIES_PER_TEST = 3;
 const BLACKLISTED_PHRASES = ['back'];
-const EXTENSION_ID = 'mgdafgphegpnakgebnmgfdfnfnnigjoc';
 const REAL_AUDIO = false;
 
 var builder = new Builder()

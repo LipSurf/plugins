@@ -1,33 +1,41 @@
 // ==UserVoiceScript==
-export class RedditPlugin implements IPlugin {
-    name = 'Reddit';
-    description = 'Commands for Reddit.com';
-    version = '1.0.0';
-    match = /https?:\/\/www.reddit.com\/.*/;
+declare var PluginUtil: IPluginUtil;
 
-    private COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
-    private opened = null;
-    private thingAtIndex = function(i) {
-        return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
-    };
-    private toggleFullScreen = function(on) {
-        // let $ele = $lastExpanded.closest('*[data-url]');
-        // let $iframe = $ele.find('iframe');
-        // $iframe.toggleClass('nhm-full-screen', false);
-        if (on) {
-            $('#header').hide();
-            $('.side').hide();
-            $(document.body).css('overflow', 'hidden');
-        } else {
-            $('#header').show();
-            $('.side').show();
-            $(document.body).css('overflow', 'visible');
-            $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
+var common = function() {
+    return {
+        COMMENTS_REGX: /reddit.com\/r\/[^\/]*\/comments\//,
+        opened: null,
+        thingAtIndex: function(i) {
+            return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
+        },
+        toggleFullScreen: function(on) {
+            // let $ele = $lastExpanded.closest('*[data-url]');
+            // let $iframe = $ele.find('iframe');
+            // $iframe.toggleClass('nhm-full-screen', false);
+            if (on) {
+                $('#header').hide();
+                $('.side').hide();
+                $(document.body).css('overflow', 'hidden');
+            } else {
+                $('#header').show();
+                $('.side').show();
+                $(document.body).css('overflow', 'visible');
+                $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
+            }
         }
     };
+};
+
+var RedditPluginCommon = common();
+
+var plugin = {
+    name: 'Reddit',
+    description: 'Commands for Reddit.com',
+    version: '1.0.0',
+    match: /https?:\/\/www.reddit.com\/.*/,
 
     // less common -> common
-    homophones = {
+    homophones: {
         'download': 'downvote',
         'down vote': 'downvote',
         'up vote': 'upvote',
@@ -54,9 +62,9 @@ export class RedditPlugin implements IPlugin {
         'on full screen': 'unfull screen',
         'unfor screen': 'unfull screen',
         'unfold screen': 'unfull screen',
-    };
+    },
 
-    commands = [{
+    commands: [{
         name: "Collapse",
         description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
         match: ["collapse #", "close", "close preview", "collapse"],
@@ -126,12 +134,12 @@ export class RedditPlugin implements IPlugin {
         runOnPage: function(i) {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             if (!isNaN(index)) {
-                let $ele = $(this.thingAtIndex(index) + ' .expando-button');
+                let $ele = $(RedditPluginCommon.thingAtIndex(index) + ' .expando-button');
                 try {
                     // close previously open ones
-                    this.opened.click();
+                    RedditPluginCommon.opened.click();
                 } catch (e) {}
-                this.opened = $ele;
+                RedditPluginCommon.opened = $ele;
                 $ele.click();
                 PluginUtil.scrollToAnimated($ele);
             } else {
@@ -160,15 +168,15 @@ export class RedditPlugin implements IPlugin {
             let match = input.match(SUBREDDIT_REGX);
             console.log(`navigate subreddit input: ${input} match: ${match}`);
             if (match) {
-                return match[1].replace(/\s/g, "");
+                return [match[1].replace(/\s/g, "")];
             }
         },
         delay: 1200,
         nice: function(match) {
             return `go to r/${match}`;
         },
-        runOnPage: function(subreddit_name) {
-            window.location.href = `https://www.reddit.com/r/${subreddit_name}`;
+        runOnPage: function(subredditName) {
+            window.location.href = `https://www.reddit.com/r/${subredditName}`;
         }
     }, {
         name: 'Go to Reddit',
@@ -189,7 +197,7 @@ export class RedditPlugin implements IPlugin {
         runOnPage: function(i) {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
-            $(this.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
+            $(RedditPluginCommon.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
         },
     }, {
         name: 'Upvote',
@@ -197,18 +205,18 @@ export class RedditPlugin implements IPlugin {
         runOnPage: function(i) {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
-            $(this.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
+            $(RedditPluginCommon.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
         },
     }, {
         name: 'Fullscreen Video',
         match: ["fullscreen", "full screen"],
         runOnPage: function() {
-            let $ele = this.$lastExpanded.closest('*[data-url]');
+            let $ele = $lastExpanded.closest('*[data-url]');
             let videoUrl = $ele.data('url');
             let redditId = $ele.data('fullname').split('_')[1];
             let $iframe = $ele.find('iframe');
             $iframe.toggleClass('nhm-full-screen', true);
-            this.toggleFullScreen(true);
+            RedditPluginCommon.toggleFullScreen(true);
             console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
             PluginUtil.sendMsgToBeacon({
                 fullScreen: {
@@ -221,7 +229,7 @@ export class RedditPlugin implements IPlugin {
         name: 'Unfullscreen Video',
         match: ["unfullscreen", "unfull screen", "no full screen"],
         runOnPage: function() {
-            this.toggleFullScreen(false);
+            RedditPluginCommon.toggleFullScreen(false);
             PluginUtil.sendMsgToBeacon({
                 unFullScreen: null
             });
@@ -231,7 +239,7 @@ export class RedditPlugin implements IPlugin {
         description: "View the comments of a reddit post.",
         match: ["comments #", "view comments #"],
         runOnPage: function(i) {
-            $(this.thingAtIndex(i) + ' a.comments')[0].click();
+            $(RedditPluginCommon.thingAtIndex(i) + ' a.comments')[0].click();
         },
     }, {
         name: 'Visit Post',
@@ -239,12 +247,13 @@ export class RedditPlugin implements IPlugin {
         match: ['click #', 'click', 'visit'],
         runOnPage: function(i) {
             // if we're on the post
-            if (this.COMMENTS_REGX.test(window.location.href)) {
+            if (RedditPluginCommon.COMMENTS_REGX.test(window.location.href)) {
                 $('#siteTable p.title a.title:first')[0].click();
             } else {
-                $(this.thingAtIndex(i) + ' a.title')[0].click();
+                $(RedditPluginCommon.thingAtIndex(i) + ' a.title')[0].click();
             }
         },
-    }];
+    }],
 };
 
+export var RedditPlugin: IPlugin = { common, plugin };

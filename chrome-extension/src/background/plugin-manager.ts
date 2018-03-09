@@ -3,7 +3,7 @@
  * so it persists across chrome sessions.
  */
 import * as _ from "lodash";
-import * as CT from "./constants";
+import * as CT from "../constants";
 import { PluginSandbox } from "./plugin-sandbox";
 import { store, IStorePlugin } from "./store";
 import * as Preferences from "./preferences";
@@ -11,25 +11,6 @@ import { IPluginConfig } from "./preferences";
 import { promisify } from "./util";
 import { resolve } from "url";
 
-// what the raw fetched plugin looks like.
-// 3rd party developers make this version
-interface IPluginModule {
-    name: string,
-    description: string,
-    version: string,
-    commands: {
-        name: string,
-        description: string,
-        match: (() => boolean) | string[] | string,
-        delay: Number | Number[],
-        runOnPage: () => null,
-        nice: (match: string) => string,
-        run: () => null,
-    }[],
-    homophones: { string: string }[],
-    match: RegExp | RegExp[],
-    pageInit: () => void,
-}
 
 export class PluginManager {
     private pluginSandbox: PluginSandbox;
@@ -53,22 +34,22 @@ export class PluginManager {
 
     // TODO: when ES6 System.import is supported, switch to using that
     // load options
-    private fetchPluginCode(name: string): Promise<IPluginModule> {
+    private fetchPluginCode(name: string): Promise<IPlugin> {
         return new Promise((resolve, reject) => {
-            var cmdFn;
+            var plugin;
             var request = new XMLHttpRequest();
-            request.open('GET', chrome.runtime.getURL(`plugins/${name.toLowerCase()}.js`), true);
+            request.open('GET', chrome.runtime.getURL(`dist/plugins/${name.toLowerCase()}.js`), true);
 
             request.onload = function() {
                 if (request.status >= 200 && request.status < 400) {
-                    let module = {exports: {}};
+                    let exports = {};
                     eval(`${request.responseText}`);
-                    cmdFn = module.exports;
+                    plugin = exports[`${name}Plugin`];
                 } else {
                     // We reached our target server, but it returned an error
 
                 }
-                resolve(cmdFn);
+                resolve(plugin);
             };
 
             request.onerror = function() {
@@ -86,7 +67,12 @@ export class PluginManager {
         let pluginResolvers = pluginPrefs.map((plugin) => this.fetchPluginCode(plugin.name));
         // and transform into a plugin object in the form that it is used
         let resolvedPlugins = await Promise.all(pluginResolvers);
-        return resolvedPlugins.map((resolvedPlugin) => {
+        return resolvedPlugins.map((resolved) => {
+            let resolvedPlugin = resolved.plugin;
+            // everything that the user declares in the class
+            // that might be shared in command run code.
+            let commandsStr = resolvedPlugin.commands.filter((cmd) => cmd.runOnPage).map((cmd) => `commands['${resolvedPlugin.name}']['${cmd.name}'] = ${cmd.runOnPage.toString()}`);
+            let csStr = `commands = commands || {}; ${resolvedPlugin.name}PluginCommon = (${resolved.common.toString()})(); commands['${resolvedPlugin.name}'] = {};${commandsStr.join(';')}`;
             return {
                 enabled: true,
                 commands: resolvedPlugin.commands.map((cmd) => {
@@ -100,7 +86,7 @@ export class PluginManager {
                         ..._.pick(cmd, 'name', 'description', 'run', 'nice'),
                     };
                 }),
-                cs: `${resolvedPlugin.pageInit ? '(' + resolvedPlugin.pageInit.toString() + ')();' : ''}commands['${resolvedPlugin.name}'] = {}; ${resolvedPlugin.commands.map((c) => `commands['${resolvedPlugin.name}']['${c.name}'] = ${c.runOnPage};`).join(';')}`,
+                cs: csStr,
                 homophones: Object.keys(resolvedPlugin.homophones).map((key, index) => {
                     return {
                         enabled: true,

@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import * as CT from "./constants";
+import * as CT from "../constants";
 import * as Util from "./util";
 import { Recognizer } from "./recognizer";
 import { PluginManager } from "./plugin-manager";

@@ -1,10 +1,12 @@
 // ==UserVoiceScript==
-class BrowserPlugin implements IPlugin {
-    name = 'Browser';
-    description = 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.';
-    version = '1.0.0';
-    match = /.*/;
-    homophones = {
+declare var PluginUtil: IPluginUtil;
+
+var plugin = {
+    name: 'Browser',
+    description: 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.',
+    version: '1.0.0',
+    match: /.*/,
+    homophones: {
         'closeout': 'close help',
         'close up': 'close help',
         'close tap': 'close tab',
@@ -30,9 +32,9 @@ class BrowserPlugin implements IPlugin {
         'clothes': 'close',
         'scrolltop': 'scroll top',
         'paws': 'pause',
-    };
+    },
 
-    commands = [{
+    commands: [{
         name: 'Close Help',
         description: "Close the help box.",
         match: "close help",
@@ -459,5 +461,7 @@ class BrowserPlugin implements IPlugin {
                 });
             });
         }
-    }, ];
-}
+    }, ],
+};
+
+export var BrowserPlugin: IPlugin = {plugin: plugin, common: function() { }}

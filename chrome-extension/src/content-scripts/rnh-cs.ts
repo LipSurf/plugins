@@ -13,8 +13,8 @@ interface IBackgroundParcel {
 }
 var activated = false;
 const LABEL_FADE_TIME = 2000;
-export const SCROLL_DISTANCE = 550;
-export const SCROLL_TIME = 450;
+const SCROLL_DISTANCE = 550;
+const SCROLL_TIME = 450;
 var $previewCmdBox;
 var lblTimeout;
 var commandsLoaded = false;
@@ -26,99 +26,105 @@ let msgTracker = {};
 var $helpBox;
 var helpBoxOpen = false;
 
-export function toggleHelpBox(open) {
-    helpBoxOpen = open;
-    if (open) {
-        if (!$.contains(document.body, $helpBox)) {
-            $helpBox = attachOverlay('help-box');
+var PluginUtil: IPluginUtil = {
+
+    toggleHelpBox: async (open) => {
+        helpBoxOpen = open;
+        if (open) {
+            if (!$.contains(document.body, $helpBox)) {
+                $helpBox = await attachOverlay('help-box');
+            }
+            helpBoxOpen = true;
+            $helpBox.show();
+        } else {
+            $helpBox.hide();
         }
-        helpBoxOpen = true;
-        $helpBox.show();
-    } else {
-        $helpBox.hide();
+    },
+
+    scrollToAnimated: ($ele) => {
+        $("html, body").animate({ scrollTop: $ele.offset().top }, SCROLL_TIME);
+    },
+
+    // send msg to beacon replacement
+    // returns an array of results where results are arrays of all the elements that match
+    // in the same frame
+    queryAllFrames: function(tagName, attrs): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            let msgName = 'get_send';
+            let frames = $('iframe');
+            let id = +new Date();
+            msgTracker[id] = {
+                cb: function(res) {
+                    resolve(res);
+                }
+            };
+            // post to self
+            window.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, window.location.href);
+            //for (let i = 0; i < frames.length; i++) {
+                //// filter out `about:...`
+                //try {
+                    //if (frames[i].src.startsWith('http://') || frames[i].src.startsWith('https://')) {
+                        //counts[id].pending += 1;
+                        //frames[i].contentWindow.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, frames[i].src);
+                    //}
+                //} catch (e) { }
+            //}
+        });
+    },
+
+    // We generate a unique id for the message to prevent the issue of generic window onMessage
+    // handlers that relay duplicated messages.
+    // id            is the special unique element attribute id that gets assigned to all the
+    //               elements matched when queryAllFrames is used.
+    // fnNames       an array or string of the function names to be called on the element
+    // selector      if null then id is used by default
+    postToAllFrames: function(id, fnNames, selector=null) {
+        let msgName = 'post_send';
+        let frames = $('iframe');
+        fnNames = typeof fnNames === "object" ? fnNames: [fnNames];
+        let msg = { id: +new Date(), name: msgName, data: { id, selector, fnNames  }};
+        // also do the main frame
+        window.postMessage(msg, window.location.href);
+        frames.each((i, frame: any) => {
+            try {
+                if (!frame.src.startsWith('http://') && !frame.src.startsWith('https://')) {
+                    return;
+                }
+            } catch (e) {}
+            frame.contentWindow.postMessage(msg, frame.src);
+        })
+    },
+
+    // Only checks if the top of the element is in view
+    isInView: function($ele) {
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height();
+
+        var elemTop = $ele.offset().top;
+
+        return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
+    },
+
+
+    // return a promise that resolves with a response
+    sendMsgToBeacon: function(msg) {
+        return retrialAndError(new Promise((resolve, reject) => {
+            console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`);
+            chrome.runtime.sendMessage({ bubbleDown: msg }, function(resp) {
+                if (resp) {
+                    return resolve(resp);
+                } else {
+                    return reject();
+                }
+            });
+        }), null, 2000, 2);
+    },
+
+    // TODO: make scroll distance a configurable property
+    getScrollDistance: () => {
+        return SCROLL_DISTANCE;
     }
 }
-
-export function scrollToAnimated($ele) {
-    $("html, body").animate({ scrollTop: $ele.offset().top }, SCROLL_TIME);
-}
-
-// send msg to beacon replacement
-// returns an array of results where results are arrays of all the elements that match
-// in the same frame
-export function queryAllFrames(tagName, attrs): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-        let msgName = 'get_send';
-        let frames = $('iframe');
-        let id = +new Date();
-        msgTracker[id] = {
-            cb: function(res) {
-                resolve(res);
-            }
-        };
-        // post to self
-        window.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, window.location.href);
-        //for (let i = 0; i < frames.length; i++) {
-            //// filter out `about:...`
-            //try {
-                //if (frames[i].src.startsWith('http://') || frames[i].src.startsWith('https://')) {
-                    //counts[id].pending += 1;
-                    //frames[i].contentWindow.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, frames[i].src);
-                //}
-            //} catch (e) { }
-        //}
-    });
-}
-
-
-// We generate a unique id for the message to prevent the issue of generic window onMessage
-// handlers that relay duplicated messages.
-// id            is the special unique element attribute id that gets assigned to all the
-//               elements matched when queryAllFrames is used.
-// fnNames       an array or string of the function names to be called on the element
-// selector      if null then id is used by default
-export function postToAllFrames(id, fnNames, selector=null) {
-    let msgName = 'post_send';
-    let frames = $('iframe');
-    fnNames = typeof fnNames === "object" ? fnNames: [fnNames];
-    let msg = { id: +new Date(), name: msgName, data: { id, selector, fnNames  }};
-    // also do the main frame
-    window.postMessage(msg, window.location.href);
-    frames.each((i, frame: any) => {
-        try {
-            if (!frame.src.startsWith('http://') && !frame.src.startsWith('https://')) {
-                return;
-            }
-        } catch (e) {}
-        frame.contentWindow.postMessage(msg, frame.src);
-    })
-}
-
-// Only checks if the top of the element is in view
-export function isInView($ele) {
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
-
-    var elemTop = $ele.offset().top;
-
-    return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
-}
-
-
-// return a promise that resolves with a response
-export function sendMsgToBeacon(msg) {
-    return retrialAndError(new Promise((resolve, reject) => {
-        console.log(`send msg to beacon msg: ${JSON.stringify(msg)}`);
-        chrome.runtime.sendMessage({ bubbleDown: msg }, function(resp) {
-            if (resp) {
-                return resolve(resp);
-            } else {
-                return reject();
-            }
-        });
-    }), null, 2000, 2);
-}
-
 
 async function getFrameHtml(id) {
     // return data, status

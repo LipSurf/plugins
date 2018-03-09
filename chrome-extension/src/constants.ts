@@ -1,6 +1,8 @@
 //var exports = typeof module !== 'undefined' ? module.exports = {} : {};
 //exports.CT = CT = {};
 export const DEBUG = true;
+// to prevent variable collisions when working with unknown js code/html
+export const NO_COLLISION_UNIQUE_ATTR = 'rnh290318';
 export const ON_ICON: string = "assets/icon-on-128.png";
 export const OFF_ICON: string = "assets/icon-off-128.png";
 export const ORDINAL_CMD_DELAY = 500;

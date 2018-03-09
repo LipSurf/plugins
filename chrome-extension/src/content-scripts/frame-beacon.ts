@@ -1,3 +1,9 @@
+// TODO: this isn't working in the compiled version because amd modules
+let CT = {
+    NO_COLLISION_UNIQUE_ATTR: 'rnh290318'
+};
+// import * as CT from "../constants";
+
 interface IIFrameParcel {
     name: string,
     id: string,
@@ -11,10 +17,9 @@ interface IIFrameParcel {
     },
 }
 
-let UNIQUE_ATTR_NAME = 'data-rnh290318-id';
-
 console.log(`beacon 1 ${window.location}`);
 var playing = false;
+let UNIQUE_ATTR_NAME = `data-${CT.NO_COLLISION_UNIQUE_ATTR}-id`;
 // TODO: periodically clean-up?
 // [id]: [thissubframeid]
 let waitingSubFrames = {};
@@ -102,6 +107,7 @@ window.addEventListener("message", function(evt) {
                 };
                 let frames = document.getElementsByTagName('iframe');
 
+                // @ts-ignore: of works for htmlelements
                 for (let selEle of selEles) {
                     // if it already has an id, re-use it (in case another query is using it)
                     let id = selEle.getAttribute(UNIQUE_ATTR_NAME);
