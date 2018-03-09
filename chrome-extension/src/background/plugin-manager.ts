@@ -82,7 +82,7 @@ export class PluginManager {
                         // Make all the functions strings (because we can't store them directly)
                         runOnPage: cmd.runOnPage ? cmd.runOnPage.toString() : '() => null',
                         match: typeof cmd.match === 'function' ? cmd.match : _.flatten([cmd.match]),
-                        _ordinalMatch: false,
+                        _ordinalMatch: typeof cmd.match !== 'function' ? !!_.find(_.flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
                         ..._.pick(cmd, 'name', 'description', 'run', 'nice'),
                     };
                 }),
