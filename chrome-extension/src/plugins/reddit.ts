@@ -3,6 +3,7 @@ declare var PluginUtil: IPluginUtil;
 
 var common = function() {
     return {
+        $lastExpanded: null,
         COMMENTS_REGX: /reddit.com\/r\/[^\/]*\/comments\//,
         opened: null,
         thingAtIndex: function(i) {
@@ -211,7 +212,7 @@ var plugin = {
         name: 'Fullscreen Video',
         match: ["fullscreen", "full screen"],
         runOnPage: function() {
-            let $ele = $lastExpanded.closest('*[data-url]');
+            let $ele = RedditPluginCommon.$lastExpanded.closest('*[data-url]');
             let videoUrl = $ele.data('url');
             let redditId = $ele.data('fullname').split('_')[1];
             let $iframe = $ele.find('iframe');

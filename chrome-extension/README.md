@@ -1,10 +1,13 @@
 TODO
 ===
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
+* fixed delay not working well
+* middletown -- homonym is not translated in live text
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
     replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
 
+* close tab isn't working
 * get test probe thing working so non-audio talkingbot can work
 * Cleanup iframe recursive code
 * Delay not working
@@ -20,14 +23,19 @@ Release to fam:
 * Error red text when command fails?
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
 * youtube, streamable, twitch support
-
-
 * reddit.com/domain/youtube.com
+
+v1.1
+* Turn on plugin for set time
+* Auto turn off plugin after x amount of inactivity time
 * Options
-* Sorting by best/all etc.
+* Reddit Sorting by best/all etc.
 * undo
-* login
 * mute video
+
+v1.2
+* Reddit login
+
 
 nhm script spec
 ===

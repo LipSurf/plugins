@@ -1,19 +1,15 @@
 {
   "compilerOptions": {
-    "module": "none",
+    "declaration": false,
+    "module": "amd",
     "noEmitOnError": true,
     "noImplicitAny": false,
+    "outFile": "chrome-extension/dist/rnh-cs-amd.js",
     "removeComments": true,
-    "declaration": false,
-    "outDir": "chrome-extension/dist/content-scripts",
-    "rootDir": "src",
     "sourceMap": false,
     "target": "ES2017"
   },
-  "exclude": [
-    "node_modules",
-    "src/background",
-    "src/common",
+  "files": [
     "src/content-scripts/rnh-cs.ts"
   ]
 }

@@ -1,4 +1,4 @@
-import * as CT from "../constants";
+import * as CT from "../common/constants";
 import { store } from "./store";
 import * as _ from "lodash";
 export interface IWindow extends Window {

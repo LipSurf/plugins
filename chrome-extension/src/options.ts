@@ -1,3 +1,4 @@
+declare var riot: any;
 var cmdGroups;
 
 
@@ -23,7 +24,7 @@ function loadSaved() {
 
 chrome.storage.onChanged.addListener(function(changes, namespace) {
     console.log("Chrome storage changes");
-    for (key in changes) {
+    for (let key in changes) {
         var storageChange = changes[key];
         console.log('Storage key "%s" in namespace "%s" changed. ' +
             'Old value was "%s", new value is "%s".',

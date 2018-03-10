@@ -1,10 +1,11 @@
 import * as _ from "lodash";
-import * as CT from "../constants";
+import * as CT from "../common/constants";
 import * as Util from "./util";
 import { Recognizer } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store } from "./store";
+import { storage } from "../common/browser-interface";
 
 var activated = false;
 var audible = false;
@@ -16,7 +17,7 @@ var recg = new Recognizer();
 var ps = new PluginSandbox();
 var pm = new PluginManager(ps);
 
-chrome.storage.local.set({'activated': false});
+storage.local.save({activated: false});
 
 function cmdRecognizedCb(request) {
     if (request.cmdName) {
@@ -92,7 +93,7 @@ function needsPermissionCb() {
 
 function toggleActivated(_activated=true) {
     activated = _activated;
-    chrome.storage.local.set({ 'activated': activated });
+    storage.local.save({ activated: activated });
     chrome.browserAction.setIcon({
         path: activated ? CT.ON_ICON : CT.OFF_ICON
     });

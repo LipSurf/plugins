@@ -1,8 +1,11 @@
+//  ./flatten-amd-modules.js [input file path] [output file path]
 var fs = require('fs');
 var esprima = require('esprima');
 var _ = require('lodash');
 
-const content = fs.readFileSync('chrome-extension/dist/background-amd.js', 'utf8');
+let inputPath = process.argv[2];
+let outputPath = process.argv[3];
+const content = fs.readFileSync(inputPath, 'utf8');
 var output = [];
 var replacements = [];
 let entries = [];
@@ -10,10 +13,11 @@ let nodeNum = 0;
 let isAliasing = -1;
 let aliasMap = {};
 let definedAliases = ['_'];
+let nextReplacement = null;
+
 
 function friendlyModuleName(moduleName) {
-    let ret = moduleName.replace('-', '_').split('/');
-    return ret[ret.length - 1];
+    return moduleName.replace('-', '_').replace('/', '_');
 }
 // global module names must be unique across whole codebase
 //
@@ -30,6 +34,13 @@ esprima.parseScript(content, {
     range: true
 }, function(node, meta) {
     nodeNum += 1;
+
+    if (node.type === 'MemberExpression'
+        && _.get(node, 'object.name') === 'exports'
+        && _.get(node, 'property.type') === 'Identifier'
+    ) {
+        replacements.push(node.object.range);
+    }
 
     // take the top level define's aliases and when the aliases come
     // up as identifiers, replace them
@@ -60,22 +71,20 @@ esprima.parseScript(content, {
         // assuming first 2 blocks are always "use strict" and Object.defineProperty
         let define = friendlyModuleName(node.arguments[0].value);
         output.push(`let ${define} = {};`);
+        replacements.reverse();
+        nextReplacement = replacements.pop();
         for (let block of node.arguments[2].body.body.slice(2)) {
-            if (block.type === 'ExpressionStatement'
-                && _.get(block, 'expression.type') === 'AssignmentExpression'
-                && _.get(block, 'expression.left.object.name') === 'exports'
-            ) {
-                replacements.push(block.expression.left.object.range);
-            }
             let modifiedContent = String.prototype.slice.apply(content, block.range);
-            replacements.sort((a, b) => { return b[1] - a[1] }).forEach(n => {
-                modifiedContent = modifiedContent.slice(0, n[0] - block.range[0]) + define + modifiedContent.slice(n[1] - block.range[0]);
-            });
-            replacements = [];
+            let offset = 0;
+            for (;nextReplacement && nextReplacement[0] >= block.range[0] && nextReplacement[1] <= block.range[1];
+                    nextReplacement = replacements.pop()) {
+                modifiedContent = modifiedContent.slice(0, nextReplacement[0] - block.range[0] + offset) + define + modifiedContent.slice(nextReplacement[1] - block.range[0] + offset)
+                offset += define.length - (nextReplacement[1] - nextReplacement[0]);
+            }
             output.push(modifiedContent);
         }
     }
 });
 
-fs.writeFileSync('chrome-extension/dist/background.js', output.join('\n'));
-console.log(`Success.`);
+fs.writeFileSync(outputPath, output.join('\n'));
+console.log(`Successfully transformed ${inputPath} into ${outputPath}.`);

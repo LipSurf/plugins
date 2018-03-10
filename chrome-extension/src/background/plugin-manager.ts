@@ -3,12 +3,11 @@
  * so it persists across chrome sessions.
  */
 import * as _ from "lodash";
-import * as CT from "../constants";
+import * as CT from "../common/constants";
 import { PluginSandbox } from "./plugin-sandbox";
-import { store, IStorePlugin } from "./store";
+import { store } from "./store";
 import * as Preferences from "./preferences";
-import { IPluginConfig } from "./preferences";
-import { promisify } from "./util";
+import { promisify } from "../common/util";
 import { resolve } from "url";
 
 
@@ -17,8 +16,11 @@ export class PluginManager {
 
     constructor(pluginSandbox: PluginSandbox) {
         this.pluginSandbox = pluginSandbox;
+        Preferences.load().then(async (pluginPrefs) => {
+            let resolvedPlugin = await this.combinePrefsAndPlugins(pluginPrefs.plugins);
+            store.plugins = resolvedPlugin;
+        });
 
-        this.loadPluginStoreFromSyncStorage().then((loadedStorePlugin) => store.plugins = loadedStorePlugin);
     }
 
     // TODO: wait for promise of plugins loaded?
@@ -62,8 +64,7 @@ export class PluginManager {
 
     // Make more useable "PluginStore" by combining condensed preferences
     // with remote plugin code
-    async loadPluginStoreFromSyncStorage(): Promise<IStorePlugin[]> {
-        let pluginPrefs = (await Preferences.load()).plugins;
+    async combinePrefsAndPlugins(pluginPrefs: IPluginConfig[]): Promise<IStorePlugin[]> {
         let pluginResolvers = pluginPrefs.map((plugin) => this.fetchPluginCode(plugin.name));
         // and transform into a plugin object in the form that it is used
         let resolvedPlugins = await Promise.all(pluginResolvers);
