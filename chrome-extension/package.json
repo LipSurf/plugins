@@ -15,7 +15,7 @@
     "test-debug": "node_modules/mocha/bin/mocha debug tests",
     "test-debug-watch": "when-changed -1 -s tests/* chrome-extension/* -c bash -c 'node_modules/mocha/bin/mocha debug tests/tests.js'",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
-    "watch": "when-changed -1 -s tests/* src/* -c bash -c \"./node_modules/.bin/riot chrome-extension/views/tags chrome-extension/views/tags/all.js && tsc -p ./tsconfig.json && tsc -p ./tsconfig.background.json && node bin/flatten-amd-modules.js chrome-extension/dist/background-amd.js chrome-extension/dist/background.js ; rm chrome-extension/dist/background-amd.js && tsc -p ./tsconfig.rnh-cs.json && node bin/flatten-amd-modules.js chrome-extension/dist/rnh-cs-amd.js chrome-extension/dist/rnh-cs.js; rm chrome-extension/dist/rnh-cs-amd.js && node_modules/mocha/bin/mocha tests/tests.js \""
+    "watch": "when-changed -1 -s tests/* src/* -c bash -c \"./node_modules/.bin/riot chrome-extension/views/tags chrome-extension/views/tags/all.js && tsc -p ./tsconfig.json && tsc -p ./tsconfig.background.json && node bin/flatten-amd-modules.js chrome-extension/dist/background-amd.js chrome-extension/dist/background.js ; rm chrome-extension/dist/background-amd.js && tsc -p ./tsconfig.rnh-cs.json && node bin/flatten-amd-modules.js chrome-extension/dist/rnh-cs-amd.js chrome-extension/dist/rnh-cs.js; rm chrome-extension/dist/rnh-cs-amd.js && echo node_modules/mocha/bin/mocha tests/tests.js \""
   },
   "repository": {
     "type": "git",

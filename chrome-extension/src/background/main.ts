@@ -22,7 +22,7 @@ storage.local.save({activated: false});
 function cmdRecognizedCb(request) {
     if (request.cmdName) {
         let cmdPart = _.pick(request, ['cmdName', 'cmdPluginName', 'cmdArgs']);
-        ps.run(request.cmdName, request.cmdPluginName, request.cmdArgs);
+        ps.run(request.cmdPluginName, request.cmdName, request.cmdArgs);
         sendMsgToActiveTab(cmdPart);
         sendMsgToActiveTab({
             liveText: _.pick(request, ['text', 'isSuccess'])

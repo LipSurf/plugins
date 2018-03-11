@@ -1,17 +1,34 @@
 import * as _ from "lodash";
+import { store } from "./store";
+import { ExtensionUtil } from "./util";
+
+interface IPrivilegedCode {
+    string: {
+        string: () => any
+    }
+}
 
 export class PluginSandbox {
-    private privilegedCode: object = {};
+    private privilegedCode: IPrivilegedCode;
 
-    addCommands(pluginName: string, commands) {
-        this.privilegedCode[pluginName] = this.privilegedCode[pluginName] || {};
-        this.privilegedCode = _.reduce(commands, (memo, runStr, name) => {
-            memo[pluginName][name] = eval(runStr);
-            return memo;
-        }, this.privilegedCode);
+    constructor() {
+        this.privilegedCode = <IPrivilegedCode>{};
+        store.subscribe((plugins) => {
+            plugins.forEach((plugin) => {
+                this.addCommands(plugin.name, plugin.commands)
+            })
+        })
     }
 
-    run(cmdName: string, cmdPluginName: string, cmdArgs: any[]) {
+    private addCommands(pluginName: string, commands: IStoreCommand[]) {
+        // overwrites existing commands for plugin
+        this.privilegedCode[pluginName] = _.reduce(commands, (memo, cmd) => {
+            memo[cmd.name] = cmd.run;
+            return memo;
+        }, {});
+    }
+
+    run(cmdPluginName: string, cmdName: string, cmdArgs: any[]) {
         if (this.privilegedCode[cmdPluginName] && this.privilegedCode[cmdPluginName][cmdName]) {
             // run that bitch
             return this.privilegedCode[cmdPluginName][cmdName].apply(this, cmdArgs);

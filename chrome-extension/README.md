@@ -6,7 +6,6 @@ TODO
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
     replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
 
-* close tab isn't working
 * get test probe thing working so non-audio talkingbot can work
 * Cleanup iframe recursive code
 * postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing
@@ -22,6 +21,7 @@ Release to fam:
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
 * youtube, streamable, twitch support
 * reddit.com/domain/youtube.com
+* reddit css -- add numbers to all entries?
 
 v1.1
 * Turn on plugin for set time
