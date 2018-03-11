@@ -24,6 +24,7 @@ export class Recognizer {
     private lastNonFinalCmdExecuted = null;
     private _syn_keys: RegExp[] = [];
     private _syn_vals: string[] = [];
+    private delayCmd: number;
 
     constructor() {
         // outside functionality can update the commands list at any time
@@ -162,21 +163,19 @@ export class Recognizer {
                     }
                 }
                 if (out) {
-                    let delay = null;
+                    let delay:number = null;
                     if (curCmd._ordinalMatch) {
                         delay = CT.ORDINAL_CMD_DELAY;
-                    } else if (curCmd.delay && typeof curCmd.delay === 'object') {
-                        delay = curCmd.delay[matchPatternIndex];
-                    } else if (typeof curCmd.delay !== 'undefined') {
-                        delay = curCmd.delay;
+                    } else if (curCmd.delay) {
+                        delay = matchPatternIndex ? curCmd.delay[matchPatternIndex]: curCmd.delay[0];
                     }
                     return {
                         cmdName: curCmd.name,
                         cmdPluginName: store.plugins[g].name,
                         matchOutput: out,
-                        delay: delay,
                         nice: curCmd.nice,
-                        fn: curCmd.runOnPage
+                        fn: curCmd.runOnPage,
+                        delay,
                     };
                 }
             }
@@ -258,9 +257,8 @@ export class Recognizer {
                 // console.log(`start time ${+new Date()}`);
                 var { cmdName, cmdPluginName, matchOutput, delay, nice, fn } = this.getCmdForUserInput(transcript);
                 var niceOutput = null;
-                let delayCmd: number;
 
-                console.log(`input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+                console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
                 // console.log(`end time ${+new Date()}`);
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
@@ -268,11 +266,10 @@ export class Recognizer {
                     if (isFinal && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > CT.FINAL_COOLDOWN_TIME) {
                         console.log("Junked dupe.");
                         return;
-                    } else if (typeof delayCmd !== 'undefined') {
-                        clearTimeout(delayCmd);
                     }
+                    window.clearTimeout(this.delayCmd);
 
-                    delayCmd = window.setTimeout(() => {
+                    this.delayCmd = window.setTimeout(() => {
                         if (typeof nice === 'string') {
                             niceOutput = nice;
                         } else if (typeof nice === 'function') {

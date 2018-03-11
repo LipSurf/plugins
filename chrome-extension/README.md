@@ -1,7 +1,6 @@
 TODO
 ===
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
-* fixed delay not working well
 * middletown -- homonym is not translated in live text
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
@@ -10,7 +9,6 @@ TODO
 * close tab isn't working
 * get test probe thing working so non-audio talkingbot can work
 * Cleanup iframe recursive code
-* Delay not working
 * postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 

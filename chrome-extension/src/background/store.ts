@@ -4,7 +4,7 @@ export class Store {
     private listeners: ((plugins?: IStorePlugin[]) => void)[] = [];
     private _plugins: IStorePlugin[];
 
-    get plugins() {
+    get plugins(): IStorePlugin[] {
         return this._plugins;
     }
 
