@@ -57,6 +57,7 @@ var plugin = {
         'contract': 'collapse',
         'expanse': 'expand',
         'xpand': 'expand',
+        'spend': 'expand',
         'read it': 'reddit',
         'shrink': 'collapse',
         'on fullscreen': 'unfull screen',

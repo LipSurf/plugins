@@ -9,9 +9,10 @@ const {webkitSpeechRecognition} : IWindow = <IWindow>window;
 interface ICommand {
     cmdName: string,
     cmdPluginName: string,
+    // what the match function returns -- if anything
     matchOutput,
     delay,
-    nice,
+    niceTranscript,
     fn,
 }
 
@@ -109,74 +110,75 @@ export class Recognizer {
      *}
      */
     private getCmdForUserInput(input): ICommand {
-        // simplifies the input into a more limited set of words
-        let processedInput = this.expandSynonyms(input);
         // processedInput = dedupe(processedInput);
-        for (let g = 0; g < store.plugins.length; g++) {
-            for (let f = 0; f < store.plugins[g].commands.length; f++) {
-                let curCmd = store.plugins[g].commands[f];
-                let out;
-                let matchPatterns;
-                let matchPatternIndex;
-                if (typeof curCmd.match === 'function') {
-                    out = curCmd.match(processedInput);
-                } else {
-                    if (typeof curCmd.match === 'string') {
-                        matchPatterns = [curCmd.match];
+        let homophoneIterator = this.generateHomophones(input)
+        for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
+            for (let g = 0; g < store.plugins.length; g++) {
+                for (let f = 0; f < store.plugins[g].commands.length; f++) {
+                    let curCmd = store.plugins[g].commands[f];
+                    let out;
+                    let matchPatterns;
+                    let matchPatternIndex;
+                    if (typeof curCmd.match === 'function') {
+                        out = curCmd.match(processedInput);
                     } else {
-                        matchPatterns = curCmd.match;
-                    }
+                        if (typeof curCmd.match === 'string') {
+                            matchPatterns = [curCmd.match];
+                        } else {
+                            matchPatterns = curCmd.match;
+                        }
 
-                    for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                        let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
-                        let ords = [];
-                        let n = 0;
-                        let nextIsOrdinal = false;
-                        let inputSlice = processedInput;
-                        for (; n < tokens.length || nextIsOrdinal; n++) {
-                            let token = tokens[n];
-                            if (token == '#') {
-                                nextIsOrdinal = true;
-                            } else {
-                                let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
-                                if (matchPos == -1) {
-                                    break;
-                                } else if (nextIsOrdinal) {
-                                    nextIsOrdinal = false;
-                                    try {
-                                        ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
-                                    } catch (e) {
-                                        // not an ordinal
+                        for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
+                            let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                            let ords = [];
+                            let n = 0;
+                            let nextIsOrdinal = false;
+                            let inputSlice = processedInput;
+                            for (; n < tokens.length || nextIsOrdinal; n++) {
+                                let token = tokens[n];
+                                if (token == '#') {
+                                    nextIsOrdinal = true;
+                                } else {
+                                    let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
+                                    if (matchPos == -1) {
                                         break;
+                                    } else if (nextIsOrdinal) {
+                                        nextIsOrdinal = false;
+                                        try {
+                                            ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
+                                        } catch (e) {
+                                            // not an ordinal
+                                            break;
+                                        }
                                     }
+                                    inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                 }
-                                inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                             }
-                        }
 
-                        if (inputSlice.trim() === '') {
-                            // we have a match
-                            out = ords;
-                            break;
-                        }
+                            if (inputSlice.trim() === '') {
+                                // we have a match
+                                out = ords;
+                                break;
+                            }
 
+                        }
                     }
-                }
-                if (out) {
-                    let delay:number = null;
-                    if (curCmd._ordinalMatch) {
-                        delay = CT.ORDINAL_CMD_DELAY;
-                    } else if (curCmd.delay) {
-                        delay = matchPatternIndex ? curCmd.delay[matchPatternIndex]: curCmd.delay[0];
+                    if (out) {
+                        let delay:number = null;
+                        if (curCmd._ordinalMatch) {
+                            delay = CT.ORDINAL_CMD_DELAY;
+                        } else if (curCmd.delay) {
+                            delay = matchPatternIndex ? curCmd.delay[matchPatternIndex]: curCmd.delay[0];
+                        }
+                        return {
+                            cmdName: curCmd.name,
+                            cmdPluginName: store.plugins[g].name,
+                            matchOutput: out,
+                            niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput)) : processedInput,
+                            fn: curCmd.runOnPage,
+                            delay,
+                        };
                     }
-                    return {
-                        cmdName: curCmd.name,
-                        cmdPluginName: store.plugins[g].name,
-                        matchOutput: out,
-                        nice: curCmd.nice,
-                        fn: curCmd.runOnPage,
-                        delay,
-                    };
                 }
             }
         }
@@ -231,11 +233,16 @@ export class Recognizer {
     }
 
 
-    private expandSynonyms(input) {
+    private *generateHomophones(beforeInput) {
+        let afterInput;
+        // first yield the original
+        yield beforeInput;
         for (let i = 0; i < this._syn_keys.length; i++) {
-            input = input.replace(this._syn_keys[i], this._syn_vals[i]);
+            afterInput = beforeInput.replace(this._syn_keys[i], this._syn_vals[i]);
+            if (afterInput !== beforeInput)
+                beforeInput = afterInput;
+                yield afterInput;
         }
-        return input;
     }
 
 
@@ -255,7 +262,7 @@ export class Recognizer {
         if (elapsedTime > CT.COOLDOWN_TIME) {
             if (confidence > CT.CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
-                var { cmdName, cmdPluginName, matchOutput, delay, nice, fn } = this.getCmdForUserInput(transcript);
+                var { cmdName, cmdPluginName, matchOutput, delay, niceTranscript, fn } = this.getCmdForUserInput(transcript);
                 var niceOutput = null;
 
                 console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
@@ -270,11 +277,6 @@ export class Recognizer {
                     window.clearTimeout(this.delayCmd);
 
                     this.delayCmd = window.setTimeout(() => {
-                        if (typeof nice === 'string') {
-                            niceOutput = nice;
-                        } else if (typeof nice === 'function') {
-                            niceOutput = nice(matchOutput);
-                        }
                         console.log(`running command ${cmdName} isFinal:${isFinal}`);
                         if (isFinal) {
                             this.lastFinalTime = +new Date();
@@ -288,7 +290,7 @@ export class Recognizer {
                             cmdName: cmdName,
                             cmdPluginName: cmdPluginName,
                             cmdArgs: matchOutput,
-                            text: niceOutput ? niceOutput : transcript,
+                            text: niceTranscript,
                             isSuccess: true,
                         });
                     }, delay);

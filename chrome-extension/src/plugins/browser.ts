@@ -31,6 +31,7 @@ var plugin = {
         'time': 'next',
         'clothes': 'close',
         'scrolltop': 'scroll top',
+        'talk': 'top',
         'paws': 'pause',
     },
 
@@ -235,8 +236,8 @@ var plugin = {
     }, {
         name: 'Scroll Down',
         match: ["down", "scroll down"],
-        // We introduce a delay to distinguish between "down" "down a little" and "downvote"
-        delay: [300, 0],
+        // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
+        // delay: [300, 0],
         runOnPage: function() {
             $('html, body').animate({
                 scrollTop: window.scrollY + PluginUtil.getScrollDistance()

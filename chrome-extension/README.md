@@ -1,7 +1,6 @@
 TODO
 ===
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
-* middletown -- homonym is not translated in live text
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
     replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
@@ -13,7 +12,6 @@ TODO
 
 Release to fam:
 * Fix isSuccess rendering
-* Don't use synonyms on subreddit names
 * Make full screen black out background
 * Next page/prev page
 * Fix play command to play currently expanded video
@@ -24,6 +22,7 @@ Release to fam:
 * reddit css -- add numbers to all entries?
 
 v1.1
+* Use dict lookup on static match words to make command-transcript matching faster
 * Turn on plugin for set time
 * Auto turn off plugin after x amount of inactivity time
 * Options
