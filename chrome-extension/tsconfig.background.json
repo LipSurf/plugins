@@ -3,6 +3,8 @@
     "declaration": false,
     "module": "amd",
     "noEmitOnError": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitAny": false,
     "outFile": "chrome-extension/dist/background-amd.js",
     "removeComments": true,
@@ -13,6 +15,7 @@
   "exclude": [
     "node_modules",
     "src/content-scripts",
-    "src/plugins"
+    "src/plugins",
+    "tests"
   ]
 }

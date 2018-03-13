@@ -2,8 +2,9 @@ import { promisify } from './util';
 
 type LocalSaveable = IStorePlugins | IActivated;
 type LocalGettable = 'activated' | 'store-plugin';
-type RemoteSaveable = IPreferences;
+type RemoteSaveable = IUserPreferences;
 type RemoteGettable = 'plugin-preferences';
+
 
 export module storage {
     export module local {

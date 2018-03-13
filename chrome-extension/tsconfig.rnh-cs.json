@@ -3,8 +3,10 @@
     "declaration": false,
     "module": "amd",
     "noEmitOnError": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitAny": false,
-    "outFile": "chrome-extension/dist/rnh-cs-amd.js",
+    "outFile": "chrome-extension/dist/content-scripts/rnh-cs-amd.js",
     "removeComments": true,
     "sourceMap": false,
     "target": "ES2017"

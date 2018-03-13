@@ -138,9 +138,9 @@ window.addEventListener("message", function(evt) {
                         if (!frames[i].src.startsWith('http://') && !frames[i].src.startsWith('https://')) {
                             continue;
                         }
+                        frames[i].contentWindow.postMessage({...msg, frameId}, frames[i].src);
+                        tracker.pending.push(frameId);
                     } catch (e) {}
-                    tracker.pending.push(frameId);
-                    frames[i].contentWindow.postMessage({...msg, frameId}, frames[i].src);
                 }
 
                 if (tracker.pending.length == 0) {

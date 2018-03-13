@@ -1,16 +1,14 @@
 import * as CT from "../common/constants";
-import { store } from "./store";
+import { Store } from "./store";
 import * as _ from "lodash";
-export interface IWindow extends Window {
-    webkitSpeechRecognition: any;
-}
-const {webkitSpeechRecognition} : IWindow = <IWindow>window;
+import * as BrowserInterface from "../common/browser-interface";
+
 
 interface ICommand {
     cmdName: string,
     cmdPluginName: string,
     // what the match function returns -- if anything
-    matchOutput,
+    matchOutput: any[],
     delay,
     niceTranscript,
     fn,
@@ -27,9 +25,11 @@ export class Recognizer {
     private _syn_vals: string[] = [];
     private delayCmd: number;
 
-    constructor() {
+    constructor(private speechRecognizer, private store: Store) {
+        this.speechRecognizer = speechRecognizer;
+        this.store = store;
         // outside functionality can update the commands list at any time
-        store.subscribe((updatedStore) => {
+        this.store.subscribe((updatedStore) => {
             // TODO: currently flattens all the plugins homophones together -> do we want to
             let homophones = _.flatten(updatedStore.map((plugin) => plugin.homophones.filter((homo) => homo.enabled)));
             this._syn_keys = homophones.map((homo) => new RegExp(`\\b${homo.source}\\b`));
@@ -43,7 +43,7 @@ export class Recognizer {
         // until we get a `onerror` event.
         return new Promise((resolve, reject) => {
             this.cmdRecognizedCb = cmdRecognizedCb;
-            this.recognition = new webkitSpeechRecognition();
+            this.recognition = new this.speechRecognizer();
             this.recognition.continuous = true;
             this.recognition.interimResults = true;
             this.recognition.lang = 'en-US';
@@ -107,15 +107,15 @@ export class Recognizer {
 
     /* Return {
      *  matchOutput: the arguments to pass back to the command
-     *}
+     * }
      */
-    private getCmdForUserInput(input): ICommand {
+    getCmdForUserInput(input): ICommand {
         // processedInput = dedupe(processedInput);
         let homophoneIterator = this.generateHomophones(input)
         for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
-            for (let g = 0; g < store.plugins.length; g++) {
-                for (let f = 0; f < store.plugins[g].commands.length; f++) {
-                    let curCmd = store.plugins[g].commands[f];
+            for (let g = 0; g < this.store.plugins.length; g++) {
+                for (let f = 0; f < this.store.plugins[g].commands.length; f++) {
+                    let curCmd = this.store.plugins[g].commands[f];
                     let out;
                     let matchPatterns;
                     let matchPatternIndex;
@@ -172,7 +172,7 @@ export class Recognizer {
                         }
                         return {
                             cmdName: curCmd.name,
-                            cmdPluginName: store.plugins[g].name,
+                            cmdPluginName: this.store.plugins[g].name,
                             matchOutput: out,
                             niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput)) : processedInput,
                             fn: curCmd.runOnPage,

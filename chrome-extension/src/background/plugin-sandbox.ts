@@ -1,6 +1,6 @@
 import * as _ from "lodash";
-import { store } from "./store";
 import { ExtensionUtil } from "./util";
+import { Store } from "./store";
 
 interface IPrivilegedCode {
     string: {
@@ -11,9 +11,10 @@ interface IPrivilegedCode {
 export class PluginSandbox {
     private privilegedCode: IPrivilegedCode;
 
-    constructor() {
+    constructor(private store: Store) {
+        this.store = store;
         this.privilegedCode = <IPrivilegedCode>{};
-        store.subscribe((plugins) => {
+        this.store.subscribe((plugins) => {
             plugins.forEach((plugin) => {
                 this.addCommands(plugin.name, plugin.commands)
             })

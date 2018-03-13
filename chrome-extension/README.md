@@ -1,5 +1,6 @@
 TODO
 ===
+* Fix options
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
@@ -7,6 +8,7 @@ TODO
 
 * get test probe thing working so non-audio talkingbot can work
 * Cleanup iframe recursive code
+* Fix fullscreen
 * postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 
@@ -15,7 +17,6 @@ Release to fam:
 * Make full screen black out background
 * Next page/prev page
 * Fix play command to play currently expanded video
-* Error red text when command fails?
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
 * youtube, streamable, twitch support
 * reddit.com/domain/youtube.com
@@ -59,6 +60,10 @@ Stats: 231k users
   * r/speechrecognition
   * A distinguishing point of advantage over dragon would be crowd-sourced plugins -- dragon will never be able to handle hugely productive edge-cases like "forward 10s" for a video on say -- vimeo
     * + Works cross-OS
+
+TobiiDynavox is made for disabled users:
+  * Costs ~10k USD
+  https://twitter.com/TobiiDynavox?ref_src=twsrc%5Etfw&ref_url=http%3A%2F%2Fwww2.tobiidynavox.com%2Fmy-tobii-dynavox-overview%2F
 
 ---
 *send to the guy who couldn't use his hands and posted the video of the spoon on the magnet that he could feed himself with

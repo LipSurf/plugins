@@ -4,8 +4,14 @@ import * as Util from "./util";
 import { Recognizer } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
-import { Store } from "./store";
+import { store } from "./store";
 import { storage } from "../common/browser-interface";
+import { Preferences } from "./preferences";
+
+export interface IWindow extends Window {
+    webkitSpeechRecognition: any;
+}
+const {webkitSpeechRecognition} : IWindow = <IWindow>window;
 
 var activated = false;
 var audible = false;
@@ -13,9 +19,10 @@ var permissionDetector;
 var currentActiveTabId;
 var needsPermission = false;
 var delayCmd;
-var recg = new Recognizer();
-var ps = new PluginSandbox();
-var pm = new PluginManager(ps);
+var recg = new Recognizer(webkitSpeechRecognition, store);
+var ps = new PluginSandbox(store);
+var preferences = new Preferences();
+var pm = new PluginManager(store, preferences);
 
 storage.local.save({activated: false});
 

@@ -5,20 +5,19 @@
 import * as _ from "lodash";
 import * as CT from "../common/constants";
 import { PluginSandbox } from "./plugin-sandbox";
-import { store } from "./store";
-import * as Preferences from "./preferences";
+import { Store } from "./store";
+import { Preferences } from "./preferences";
 import { promisify } from "../common/util";
 import { resolve } from "url";
 
 
 export class PluginManager {
-    private pluginSandbox: PluginSandbox;
 
-    constructor(pluginSandbox: PluginSandbox) {
-        this.pluginSandbox = pluginSandbox;
-        Preferences.load().then(async (pluginPrefs) => {
-            let resolvedPlugin = await this.combinePrefsAndPlugins(pluginPrefs.plugins);
-            store.plugins = resolvedPlugin;
+    constructor(private store: Store, private preferences: Preferences) {
+        this.preferences.load().then(async (pluginPrefs) => {
+            debugger;
+            let resolvedPlugin = await PluginManager.combinePrefsAndPlugins(pluginPrefs.plugins);
+            this.store.plugins = resolvedPlugin;
         });
 
     }
@@ -27,7 +26,7 @@ export class PluginManager {
     // checks the given url and loads the necessary plugin command
     // code into the given tabId if the url matches.
     async loadCommandCodeIntoPage(tabId: number, url: string) {
-        store.plugins.forEach((plugin) => {
+        this.store.plugins.forEach((plugin) => {
             if (_.reduce(plugin.match, (memo, matchPattern) => matchPattern.test(url) || memo, true)) {
                 promisify<any>(chrome.tabs.executeScript)(tabId, {code: plugin.cs, runAt: "document_start"});
             }
@@ -36,7 +35,8 @@ export class PluginManager {
 
     // TODO: when ES6 System.import is supported, switch to using that
     // load options
-    private fetchPluginCode(name: string): Promise<IPlugin> {
+    // Needs to be public to keep this testable
+    static _fetchPluginCode(name: string): Promise<IPlugin> {
         return new Promise((resolve, reject) => {
             var plugin;
             var request = new XMLHttpRequest();
@@ -64,8 +64,8 @@ export class PluginManager {
 
     // Make more useable "PluginStore" by combining condensed preferences
     // with remote plugin code
-    async combinePrefsAndPlugins(pluginPrefs: IPluginConfig[]): Promise<IStorePlugin[]> {
-        let pluginResolvers = pluginPrefs.map((plugin) => this.fetchPluginCode(plugin.name));
+    static async combinePrefsAndPlugins(pluginPrefs: IPluginConfig[]): Promise<IStorePlugin[]> {
+        let pluginResolvers = pluginPrefs.map((plugin) => this._fetchPluginCode(plugin.name));
         // and transform into a plugin object in the form that it is used
         let resolvedPlugins = await Promise.all(pluginResolvers);
         return resolvedPlugins.map((resolved) => {

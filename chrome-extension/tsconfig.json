@@ -3,9 +3,11 @@
     "module": "none",
     "noEmitOnError": true,
     "noImplicitAny": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "removeComments": true,
     "declaration": false,
-    "outDir": "chrome-extension/dist/content-scripts",
+    "outDir": "chrome-extension/dist/",
     "rootDir": "src",
     "sourceMap": false,
     "target": "ES2017"
@@ -14,6 +16,7 @@
     "node_modules",
     "src/background",
     "src/common",
-    "src/content-scripts/rnh-cs.ts"
+    "src/content-scripts/rnh-cs.ts",
+    "tests"
   ]
 }

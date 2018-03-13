@@ -4,3 +4,4 @@ views/tags/all.js
 *.crx
 .vscode
 chrome-extension/dist/
+tests/build/

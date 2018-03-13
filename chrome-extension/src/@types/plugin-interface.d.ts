@@ -41,7 +41,7 @@ declare namespace ExtensionUtil {
     function queryActiveTab(tab: object): any;
 }
 
-declare interface IPreferences {
+declare interface IUserPreferences {
     plugins: IPluginConfig[],
     showLiveText: boolean,
 }
