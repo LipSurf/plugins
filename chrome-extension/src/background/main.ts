@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import * as CT from "../common/constants";
 import * as Util from "./util";
-import { Recognizer } from "./recognizer";
+import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { store } from "./store";
@@ -26,7 +26,7 @@ var pm = new PluginManager(store, preferences);
 
 storage.local.save({activated: false});
 
-function cmdRecognizedCb(request) {
+function cmdRecognizedCb(request: IRecognizedCallback): void {
     if (request.cmdName) {
         let cmdPart = _.pick(request, ['cmdName', 'cmdPluginName', 'cmdArgs']);
         ps.run(request.cmdPluginName, request.cmdName, request.cmdArgs);

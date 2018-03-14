@@ -8,8 +8,8 @@
   },
   "scripts": {
     "pretest": "tsc tests/*.ts -t ES2017 --outdir tests/build --module commonjs",
-    "test": "ava tests/build/tests/test.js",
-    "test-debug": "node debug node_modules/ava/profile.js tests/build/tests/test.js",
+    "test": "ava tests/build/tests/*-test.js --verbose",
+    "test-debug": "node debug node_modules/ava/profile.js tests/build/tests/*-test.js",
     "test-debug-watch": "when-changed -1 -s tests/* chrome-extension/* -c bash -c 'node_modules/mocha/bin/mocha debug tests/tests.js'",
     "test-plugins": "bin/test-plugins.sh tests/test-plugin.js",
     "test-plugins-debug": "bin/test-plugins.sh tests/test-plugin.js debug tests/test-plugin.js",
@@ -31,8 +31,10 @@
   "devDependencies": {
     "@types/chrome": "0.0.59",
     "@types/jquery": "^3.3.0",
+    "@types/jsdom": "^11.0.4",
     "@types/lodash": "^4.14.97",
     "@types/mocha": "^2.2.48",
+    "@types/sinon": "^4.3.0",
     "ava": "^1.0.0-beta.3",
     "crx": "^3.2.1",
     "esprima": "^4.0.0",
@@ -44,8 +46,5 @@
     "riot": "=3.7.3",
     "selenium-webdriver": "^3.6.0",
     "sinon": "^4.4.4"
-  },
-  "dependencies": {
-    "@types/sinon": "^4.3.0"
   }
 }

@@ -168,7 +168,7 @@ var plugin = {
         match: function(input) {
             const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
             let match = input.match(SUBREDDIT_REGX);
-            console.log(`navigate subreddit input: ${input} match: ${match}`);
+            // console.log(`navigate subreddit input: ${input} match: ${match}`);
             if (match) {
                 return [match[1].replace(/\s/g, "")];
             }

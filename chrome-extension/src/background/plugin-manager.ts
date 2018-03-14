@@ -15,7 +15,6 @@ export class PluginManager {
 
     constructor(private store: Store, private preferences: Preferences) {
         this.preferences.load().then(async (pluginPrefs) => {
-            debugger;
             let resolvedPlugin = await PluginManager.combinePrefsAndPlugins(pluginPrefs.plugins);
             this.store.plugins = resolvedPlugin;
         });

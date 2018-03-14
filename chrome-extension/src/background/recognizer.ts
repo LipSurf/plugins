@@ -14,6 +14,16 @@ interface ICommand {
     fn,
 }
 
+export interface IRecognizedCallback {
+    text: string,
+    hold?: boolean,
+    isUnsure?: boolean,
+    cmdName?: string,
+    cmdPluginName?: string,
+    cmdArgs?: any[],
+    isSuccess?: boolean,
+}
+
 export class Recognizer {
     private recognition;
     private recognizerKilled: boolean = false;
@@ -37,71 +47,68 @@ export class Recognizer {
         });
     }
 
-    start(cmdRecognizedCb: ((any) => void)) {
+    async start(cmdRecognizedCb: ((IRecognizedCallback) => void)) {
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.
-        return new Promise((resolve, reject) => {
-            this.cmdRecognizedCb = cmdRecognizedCb;
-            this.recognition = new this.speechRecognizer();
-            this.recognition.continuous = true;
-            this.recognition.interimResults = true;
-            this.recognition.lang = 'en-US';
-            this.recognition.maxAlternatives = 1;
-            this.recognition.start();
+        this.cmdRecognizedCb = cmdRecognizedCb;
+        this.recognition = new this.speechRecognizer();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+        this.recognition.maxAlternatives = 1;
+        this.recognition.start();
 
-            this.recognition.onresult = (event) => {
-                var lastE = event.results[event.results.length - 1];
-                console.dir(event);
-                this.handleTranscript(
-                    lastE[0].transcript.trim().toLowerCase(),
-                    lastE.isFinal,
-                    lastE[0].confidence,
-                );
-                this.recognizerKilled = false;
-            };
+        this.recognition.onresult = (event) => {
+            var lastE = event.results[event.results.length - 1];
+            console.dir(event);
+            this.handleTranscript(
+                lastE[0].transcript.trim().toLowerCase(),
+                lastE.isFinal,
+                lastE[0].confidence,
+            );
+            this.recognizerKilled = false;
+        };
 
-            // Error types:
-            //  'no-speech'
-            //  'network'
-            //  'not-allowed
-            this.recognition.onerror = (event) => {
-                if (event.error === 'not-allowed') {
-                    // TODO: throw an exception that stops the
-                    // add-on
-                    // throw "This should never happen";
-                    this.recognizerKilled = true;
-                } else if (event.error == 'network') {
-                    // TODO: special error message
-                } else if (event.error !== 'no-speech') {
-                    console.error(`unhandled error: ${event.error}`);
-                }
-            };
+        // Error types:
+        //  'no-speech'
+        //  'network'
+        //  'not-allowed
+        this.recognition.onerror = (event) => {
+            if (event.error === 'not-allowed') {
+                // TODO: throw an exception that stops the
+                // add-on
+                // throw "This should never happen";
+                this.recognizerKilled = true;
+            } else if (event.error == 'network') {
+                // TODO: special error message
+            } else if (event.error !== 'no-speech') {
+                console.error(`unhandled error: ${event.error}`);
+            }
+        };
 
-            this.recognition.onnomatch = (event) => {
-                console.error(`No match! ${event}`);
-            };
+        this.recognition.onnomatch = (event) => {
+            console.error(`No match! ${event}`);
+        };
 
-            this.recognition.onend = () => {
-                // don't restart in an infinite loop
-                if (!this.recognizerKilled) {
-                    console.log("ended. Restarting: ");
-                    this.recognition.start();
-                }
-            };
-
-        });
+        this.recognition.onend = () => {
+            // don't restart in an infinite loop
+            if (!this.recognizerKilled) {
+                console.log("ended. Restarting: ");
+                this.recognition.start();
+            }
+        };
     }
 
     shutdown() {
         try {
             this.recognition.stop();
-        } catch (e) {}
+        } catch (e) { }
         try {
             this.recognition.onresult = null;
             this.recognition.onerror = null;
             this.recognition.onend = null;
-        } catch (e) {}
+        } catch (e) { }
         this.recognition = null;
     }
 
@@ -164,11 +171,11 @@ export class Recognizer {
                         }
                     }
                     if (out) {
-                        let delay:number = null;
+                        let delay: number = null;
                         if (curCmd._ordinalMatch) {
                             delay = CT.ORDINAL_CMD_DELAY;
                         } else if (curCmd.delay) {
-                            delay = matchPatternIndex ? curCmd.delay[matchPatternIndex]: curCmd.delay[0];
+                            delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
                         }
                         return {
                             cmdName: curCmd.name,
@@ -241,7 +248,7 @@ export class Recognizer {
             afterInput = beforeInput.replace(this._syn_keys[i], this._syn_vals[i]);
             if (afterInput !== beforeInput)
                 beforeInput = afterInput;
-                yield afterInput;
+            yield afterInput;
         }
     }
 
@@ -274,9 +281,9 @@ export class Recognizer {
                         console.log("Junked dupe.");
                         return;
                     }
-                    window.clearTimeout(this.delayCmd);
+                    clearTimeout(this.delayCmd);
 
-                    this.delayCmd = window.setTimeout(() => {
+                    this.delayCmd = setTimeout(() => {
                         console.log(`running command ${cmdName} isFinal:${isFinal}`);
                         if (isFinal) {
                             this.lastFinalTime = +new Date();
