@@ -1,14 +1,13 @@
 import * as sinon from 'sinon';
 import {test} from 'ava';
+import {JSDOM} from 'jsdom';
 
-const jsdom = require('jsdom');
 const path = require('path');
 const fs = require('fs');
 
 // attachable shits
 const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8' });
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
-const { JSDOM } = jsdom;
 
 const csScripts = {
     rnh: `rnh-cs.js`,

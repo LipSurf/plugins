@@ -3,12 +3,9 @@
  * so it persists across chrome sessions.
  */
 import * as _ from "lodash";
-import * as CT from "../common/constants";
-import { PluginSandbox } from "./plugin-sandbox";
 import { Store } from "./store";
 import { Preferences } from "./preferences";
 import { promisify } from "../common/util";
-import { resolve } from "url";
 
 
 export class PluginManager {
@@ -43,9 +40,10 @@ export class PluginManager {
 
             request.onload = function() {
                 if (request.status >= 200 && request.status < 400) {
-                    let exports = {};
+                    let exports = {Plugin: null};
                     eval(`${request.responseText}`);
-                    plugin = exports[`${name}Plugin`];
+                    // we use the [] syntax to work around exports getting renamed to background_plugin_manager
+                    plugin = exports['Plugin'];
                 } else {
                     // We reached our target server, but it returned an error
 

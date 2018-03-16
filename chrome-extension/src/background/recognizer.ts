@@ -1,7 +1,6 @@
 import * as CT from "../common/constants";
 import { Store } from "./store";
 import * as _ from "lodash";
-import * as BrowserInterface from "../common/browser-interface";
 
 
 interface ICommand {
@@ -224,20 +223,21 @@ export class Recognizer {
         return ret;
     }
 
+    // TODO:
     // Maybe we want to execute each command seperately? Like "down down" should
     // be two downs. If the user chains commands like "down up" then
     // maybe we should split and match the first valid part of the command?
     // Needs thought...
-    private dedupe(input) {
-        let existingWords = {};
-        let processed = [];
-        for (let word of input.split(' ')) {
-            if (typeof existingWords[word] === 'undefined') {
-                processed.push(word);
-            }
-        }
-        return processed.join(' ');
-    }
+    //private dedupe(input) {
+        //let existingWords = {};
+        //let processed = [];
+        //for (let word of input.split(' ')) {
+            //if (typeof existingWords[word] === 'undefined') {
+                //processed.push(word);
+            //}
+        //}
+        //return processed.join(' ');
+    //}
 
 
     private *generateHomophones(beforeInput) {
@@ -269,7 +269,7 @@ export class Recognizer {
         if (elapsedTime > CT.COOLDOWN_TIME) {
             if (confidence > CT.CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
-                var { cmdName, cmdPluginName, matchOutput, delay, niceTranscript, fn } = this.getCmdForUserInput(transcript);
+                var { cmdName, cmdPluginName, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript);
                 var niceOutput = null;
 
                 console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);

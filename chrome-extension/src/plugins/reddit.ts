@@ -75,7 +75,7 @@ var plugin = {
                 $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
             } else {
                 // collapse first visible item (can be comment or post)
-                let $items = $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea .thing:not(.collapsed):not(.child div) a.expand:first`).each(function(i) {
+                $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea .thing:not(.collapsed):not(.child div) a.expand:first`).each(function(i) {
                     var $ele = $(this);
                     if (PluginUtil.isInView($ele)) {
                         $ele[0].click();
@@ -96,7 +96,7 @@ var plugin = {
 
             // make sure a child element is visible
             tierTwoComment = (await this.driver.findElements(this.By.xpath("//p[contains(text(), 'HE KNOWS')]")))[0];
-            this.assert((await tierTwoComment.isDisplayed()));
+            this.assert.true((await tierTwoComment.isDisplayed()));
             await this.say();
             // check that the child comment is no longer visible
             await this.driver.wait(async () => {
@@ -258,4 +258,4 @@ var plugin = {
     }],
 };
 
-export var RedditPlugin: IPlugin = { common, plugin };
+export var Plugin: IPlugin = { common, plugin };

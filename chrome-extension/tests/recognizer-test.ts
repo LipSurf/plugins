@@ -39,9 +39,9 @@ test.before(async(t) => {
     loadStub.resolves(Preferences.DEFAULT_PREFERENCES);
     let fetchPluginStub = sinon.stub(PluginManager, "_fetchPluginCode");
     fetchPluginStub.callsFake(async (pluginName:string) => {
-        let exports = {};
+        let exports = {Plugin: null};
         eval(eval(`PLUGINS_${pluginName.toUpperCase()}`));
-        return exports[`${pluginName}Plugin`];
+        return exports.Plugin;
     });
 
     let pluginManager = new PluginManager(store, preferences);

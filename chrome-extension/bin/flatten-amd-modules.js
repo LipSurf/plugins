@@ -59,7 +59,7 @@ esprima.parseScript(content, {
             if (!~definedAliases.indexOf(node.name)) {
                 output.push(`let ${node.name} = ${friendlyModuleName(alias.value)};`);
                 definedAliases.push(node.name);
-                console.log(output[output.length - 1]);
+                // console.log(output[output.length - 1]);
             }
         } else {
             isAliasing = -1;

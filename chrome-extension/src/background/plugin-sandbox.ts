@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+// @ts-ignore: ExtensionUtil is used by things that are eval'd
 import { ExtensionUtil } from "./util";
 import { Store } from "./store";
 

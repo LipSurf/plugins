@@ -5,3 +5,7 @@ views/tags/all.js
 .vscode
 chrome-extension/dist/
 tests/build/
+documents/
+*.code-workspace
+*.pem
+documents/

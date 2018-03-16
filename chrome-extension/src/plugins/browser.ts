@@ -61,11 +61,11 @@ var plugin = {
             var initialPageUrl = await this.driver.getCurrentUrl();
             await this.loadPage('https://www.duckduckgo.com');
             secondPageUrl = await this.driver.getCurrentUrl();
-            this.assert(secondPageUrl !== initialPageUrl);
+            this.assert.notEqual(secondPageUrl, initialPageUrl);
             await this.say();
             await this.driver.wait(async () => {
                 return (await this.driver.getCurrentUrl()) === initialPageUrl;
-            }, 1000);
+            }, 2000);
         }
     }, {
         name: 'Go Forward',
@@ -79,7 +79,7 @@ var plugin = {
             var initialPageUrl = await this.driver.getCurrentUrl();
             await this.loadPage('https://www.duckduckgo.com');
             secondPageUrl = await this.driver.getCurrentUrl();
-            this.assert(secondPageUrl !== initialPageUrl);
+            this.assert.notEqual(secondPageUrl, initialPageUrl);
             await this.driver.navigate().back();
             await this.say();
             await this.driver.wait(async () => {
@@ -120,7 +120,7 @@ var plugin = {
             //scrollTo($ele);
         },
         test: async function() {
-                    let frame, video;
+            let frame;
             await this.loadPage('https://www.reddit.com/r/videos/comments/7iv0n6/mike_tyson_hitting_a_heavy_bag_is_terrifying/');
             await this.say();
             await this.driver.wait(async () => {
@@ -208,7 +208,7 @@ var plugin = {
         },
         test: async function() {
             await this.loadPage('http://motherfuckingwebsite.com/');
-            this.assert(await this.driver.executeScript('return (window.innerHeight + window.scrollY) >= document.body.scrollHeight') === false);
+            this.assert.true(await this.driver.executeScript('return (window.innerHeight + window.scrollY) >= document.body.scrollHeight') === false);
             await this.say();
             await this.driver.wait(async () => {
                 return await this.driver.executeScript('return (window.innerHeight + window.scrollY) >= document.body.scrollHeight');
@@ -231,7 +231,7 @@ var plugin = {
             await this.say();
             await this.driver.wait(async () => {
                 return (await this.driver.executeScript('return window.pageYOffset')) > oldYPos;
-            }, 1000);
+            }, 3000);
         }
     }, {
         name: 'Scroll Down',
@@ -250,7 +250,7 @@ var plugin = {
             await this.say();
             await this.driver.wait(async () => {
                 return (await this.driver.executeScript('return window.pageYOffset')) > oldYPos;
-            }, 1000);
+            }, 3000);
         }
     }, {
         name: 'Scroll Top',
@@ -263,11 +263,11 @@ var plugin = {
         test: async function() {
             await this.loadPage('http://motherfuckingwebsite.com/');
             await this.driver.executeScript('window.scrollTo(0,1000)');
-            this.assert((await this.driver.executeScript('return window.pageYOffset !== 0')));
+            this.assert.true((await this.driver.executeScript('return window.pageYOffset !== 0')));
             await this.say();
             await this.driver.wait(async () => {
                 return await this.driver.executeScript('return window.pageYOffset === 0');
-            }, 1000);
+            }, 2000);
         }
     }, {
         name: 'Scroll Up a Little',
@@ -285,10 +285,9 @@ var plugin = {
             await this.driver.executeScript('window.scrollTo(0,1000)')
             oldYPos = await this.driver.executeScript('return window.pageYOffset');
             await this.say();
-            await this.timeout(1500);
             await this.driver.wait(async () => {
                 return (await this.driver.executeScript('return window.pageYOffset')) < oldYPos;
-            }, 1000);
+            }, 3000);
         }
     }, {
         name: 'Scroll Up',
@@ -307,7 +306,7 @@ var plugin = {
             await this.say();
             await this.driver.wait(async () => {
                 return (await this.driver.executeScript('return window.pageYOffset')) < oldYPos;
-            }, 1000);
+            }, 3000);
         }
     }, {
         name: 'Stop',
@@ -325,7 +324,7 @@ var plugin = {
             //this.say()
             //await this.timeout(1000);
             //// make sure it's still on google
-            //this.assert((await this.driver.getTitle()) === titleBefore);
+            //this.assert.equal((await this.driver.getTitle()), titleBefore);
         }
     }, {
         name: 'Close Tab',
@@ -342,7 +341,7 @@ var plugin = {
             await this.driver.wait(async () => {
                 anchors = await this.driver.findElements(this.By.tagName('a'));
                 return (anchors && anchors.length > 0) ? true : false;
-            }, 1000);
+            }, 2000);
             anchors[0].sendKeys(this.Key.CONTROL + this.Key.RETURN);
             beforeLen = (await this.driver.getAllWindowHandles()).length;
             await this.say();
@@ -351,7 +350,7 @@ var plugin = {
                 return this.driver.getAllWindowHandles().then(function(handles) {
                     return handles.length === beforeLen - 1;
                 });
-            }, 1000);
+            }, 3000);
         }
     }, {
         name: 'Next Tab',
@@ -415,11 +414,13 @@ var plugin = {
             });
         },
         test: async function() {
-            var beforeLen = (await this.driver.getAllWindowHandles()).length;
+            let beforeLen:number = (await this.driver.getAllWindowHandles()).length;
             await this.say();
-            var afterLen = (await this.driver.getAllWindowHandles()).length;
-            await this.timeout(400);
-            this.assert.equal(afterLen, beforeLen + 1);
+            let afterLen:number;
+            await this.driver.wait(async () => {
+                afterLen = (await this.driver.getAllWindowHandles()).length;
+                return afterLen !== beforeLen;
+            }, 3000);
         },
     }, {
         name: 'Previous Tab',
@@ -465,4 +466,4 @@ var plugin = {
     }, ],
 };
 
-export var BrowserPlugin: IPlugin = {plugin: plugin, common: function() { }}
+export var Plugin: IPlugin = {plugin: plugin, common: function() { }}

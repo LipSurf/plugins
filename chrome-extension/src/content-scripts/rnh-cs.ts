@@ -28,6 +28,7 @@ var $helpBox;
 var helpBoxOpen = false;
 
 //var PluginUtil: IPluginUtil = {
+// @ts-ignore: PluginUtil used by eval'd commands
 var PluginUtil: any = {
 
     toggleHelpBox: async (open) => {
@@ -53,7 +54,6 @@ var PluginUtil: any = {
     queryAllFrames: function(tagName, attrs): Promise<any[]> {
         return new Promise((resolve, reject) => {
             let msgName = 'get_send';
-            let frames = $('iframe');
             let id = +new Date();
             msgTracker[id] = {
                 cb: function(res) {
@@ -62,6 +62,7 @@ var PluginUtil: any = {
             };
             // post to self
             window.postMessage({ id: id, name: msgName, data: { tagName, attrs } }, window.location.href);
+            //let frames = $('iframe');
             //for (let i = 0; i < frames.length; i++) {
                 //// filter out `about:...`
                 //try {

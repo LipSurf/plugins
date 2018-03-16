@@ -41,8 +41,7 @@ function makeId() {
 window.addEventListener("message", function(evt) {
     let {
         data,
-        source,
-        origin
+        // source, origin
     } = evt;
     let msg:IIFrameParcel = data;
     let msgParts = (msg.name && typeof(msg.name) === 'string') ? msg.name.split('_') : [null];
