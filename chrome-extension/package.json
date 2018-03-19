@@ -7,17 +7,16 @@
     "node": ">=6.0"
   },
   "scripts": {
-    "pretest": "tsc -p ./tsconfig.json && tsc tests/*.ts -t ES2017 --outdir tests/build --module commonjs",
+    "pretest": "tsc -p ./tsconfig.json && tsc tests/*.ts tests/plugins/*.ts -t ES2017 --outdir tests/build --module commonjs",
     "test": "ava tests/build/tests/*-test.js --verbose",
     "test-debug": "node debug node_modules/ava/profile.js tests/build/tests/*-test.js",
     "test-debug-watch": "when-changed -1 -s tests/* chrome-extension/* -c 'npm run test-debug'",
-    "pre-test-plugins": "npm run compile && tsc tests/plugins/*.ts -t ES2017 --module commonjs",
-    "test-plugins": "echo npm run pre-test-plugins && tests/plugins/test-plugins.sh tests/plugins/plugin-test.js",
-    "test-plugins-debug": "echo not yet working npm run pre-test-plugins && tests/plugins/test-plugins.sh -d tests/plugins/plugin-test.js",
+    "test-plugins": "echo npm run pretest && tests/plugins/test-plugins.sh tests/build/tests/plugins/plugin-test.js",
+    "test-plugins-debug": "echo not yet working npm run pretest && tests/plugins/test-plugins.sh -d tests/build/tests/plugins/plugin-test.js",
     "test-plugins-watch": "when-changed -k -1 -s tests/plugins/*.ts src/plugins/* -c npm run test-plugins",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
-    "compile": "riot chrome-extension/views/tags chrome-extension/views/tags/all.js && tsc -p ./tsconfig.json && tsc -p ./tsconfig.background.json && node bin/flatten-amd-modules.js chrome-extension/dist/background-amd.js chrome-extension/dist/background.js ; rm chrome-extension/dist/background-amd.js && tsc -p ./tsconfig.rnh-cs.json && node bin/flatten-amd-modules.js chrome-extension/dist/content-scripts/rnh-cs-amd.js chrome-extension/dist/content-scripts/rnh-cs.js; rm chrome-extension/dist/content-scripts/rnh-cs-amd.js",
+    "compile": "riot chrome-extension/views/tags chrome-extension/views/tags/all.js && tsc -p ./tsconfig.json && tsc -p ./tsconfig.background.json && node bin/flatten-amd-modules.js chrome-extension/dist/background-amd.js chrome-extension/dist/background.js ; rm chrome-extension/dist/background-amd.js && tsc -p ./tsconfig.rnh-cs.json && node bin/flatten-amd-modules.js chrome-extension/dist/content-scripts/rnh-cs-amd.js chrome-extension/dist/content-scripts/rnh-cs.js; rm chrome-extension/dist/content-scripts/rnh-cs-amd.js && tsc -p ./tsconfig.frame-beacon.json && node bin/flatten-amd-modules.js chrome-extension/dist/content-scripts/frame-beacon-amd.js chrome-extension/dist/content-scripts/frame-beacon.js; rm chrome-extension/dist/content-scripts/frame-beacon-amd.js",
     "watch": "when-changed -1 -s tests/* src/* -c 'npm run compile'"
   },
   "repository": {
@@ -32,6 +31,7 @@
   "homepage": "https://github.com/mikob/reddit-no-hands#readme",
   "devDependencies": {
     "@types/chrome": "0.0.59",
+    "@types/esprima": "^4.0.1",
     "@types/jquery": "^3.3.0",
     "@types/jsdom": "^11.0.4",
     "@types/lodash": "^4.14.97",
@@ -39,7 +39,6 @@
     "@types/sinon": "^4.3.0",
     "ava": "^1.0.0-beta.3",
     "crx": "^3.2.1",
-    "esprima": "^4.0.0",
     "jsdom": "11.0.0",
     "jsdom-global": "3.0.2",
     "lodash": "^4.17.4",

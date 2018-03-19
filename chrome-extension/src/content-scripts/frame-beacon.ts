@@ -1,8 +1,5 @@
-// TODO: this isn't working in the compiled version because amd modules
-let CT = {
-    NO_COLLISION_UNIQUE_ATTR: 'rnh290318'
-};
-// import * as CT from "../constants";
+// TODO: this doesn't need to be defined for some reason
+import * as CT from  "../common/constants";
 
 interface IIFrameParcel {
     name: string,
@@ -18,7 +15,6 @@ interface IIFrameParcel {
 }
 
 console.log(`beacon 1 ${window.location}`);
-var playing = false;
 let UNIQUE_ATTR_NAME = `data-${CT.NO_COLLISION_UNIQUE_ATTR}-id`;
 // TODO: periodically clean-up?
 // [id]: [thissubframeid]
@@ -157,27 +153,3 @@ window.addEventListener("message", function(evt) {
         }
     }
 }, false);
-
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.bubbleDown) {
-        let bubbleDown = request.bubbleDown;
-        // doesn't do anything with full screen for now
-        if (typeof(bubbleDown.getVideos) !== 'undefined') {
-            sendResponse("yes");
-        }
-    }
-});
-
-
-document.addEventListener("webkitfullscreenchange", function(event) {
-    // a user initiated non-voice full screen change -- take off our special fullscreen
-    console.log(`frame-beacon.js rnh-cs removing fullscreen ${document.webkitIsFullScreen}`);
-    if (!document.webkitIsFullScreen) {
-        chrome.runtime.sendMessage({
-            bubbleDown: {
-                unFullScreen: null
-            }
-        });
-    }
-});

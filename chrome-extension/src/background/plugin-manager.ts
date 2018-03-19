@@ -7,6 +7,28 @@ import { Store } from "./store";
 import { Preferences } from "./preferences";
 import { promisify } from "../common/util";
 
+// HACK
+class PluginBase {
+    static friendlyName =  '';
+    static description = '';
+    static version = '';
+    static match = /^$/;
+
+    static commands = [];
+    static homophones = {};
+    static init = () => null;
+
+    static util: IPluginUtil = {
+        queryAllFrames: () => null,
+        postToAllFrames: () => null,
+        sendMsgToBeacon: () => null,
+        toggleHelpBox: (enabeld) => null,
+        getScrollDistance: () => 0,
+        scrollToAnimated: () => null,
+        isInView: () => true,
+        getNoCollisionUniqueAttr: () => '',
+    }
+};
 
 export class PluginManager {
 
@@ -29,26 +51,37 @@ export class PluginManager {
         });
     }
 
-    // TODO: when ES6 System.import is supported, switch to using that
+    static evalPluginCode(id: string, text: string): typeof PluginBase {
+        let plugin;
+        // HACK
+        // needed to prevent undefined error in common (init) code
+        // TODO: load plugin code in frontend --> send up the properties
+        // that must be stored (as strings if they have things undefined
+        // in the bg (get eval'd in the cs)). This way we don't have
+        // to define dumby PluginUtil shit here
+        // takes ~1ms
+        let $ = () => { return {ready: () => null}};
+        eval(`${text}; plugin = ${id}Plugin;`);
+        // END HACK
+        return plugin;
+    }
+
+    // TODO: when ES6 System.import is supported, switch to using that?
     // load options
     // Needs to be public to keep this testable
-    static _fetchPluginCode(name: string): Promise<IPlugin> {
+    static fetchPluginCode(id: string): Promise<string>  {
         return new Promise((resolve, reject) => {
-            var plugin;
-            var request = new XMLHttpRequest();
-            request.open('GET', chrome.runtime.getURL(`dist/plugins/${name.toLowerCase()}.js`), true);
+            let plugin: typeof PluginBase;
+            let request = new XMLHttpRequest();
+            request.open('GET', chrome.runtime.getURL(`dist/plugins/${id.toLowerCase()}.js`), true);
 
-            request.onload = function() {
+            request.onload = () => {
                 if (request.status >= 200 && request.status < 400) {
-                    let exports = {Plugin: null};
-                    eval(`${request.responseText}`);
-                    // we use the [] syntax to work around exports getting renamed to background_plugin_manager
-                    plugin = exports['Plugin'];
+                    resolve(request.responseText);
                 } else {
                     // We reached our target server, but it returned an error
-
+                    reject();
                 }
-                resolve(plugin);
             };
 
             request.onerror = function() {
@@ -62,18 +95,28 @@ export class PluginManager {
     // Make more useable "PluginStore" by combining condensed preferences
     // with remote plugin code
     static async combinePrefsAndPlugins(pluginPrefs: IPluginConfig[]): Promise<IStorePlugin[]> {
-        let pluginResolvers = pluginPrefs.map((plugin) => this._fetchPluginCode(plugin.name));
         // and transform into a plugin object in the form that it is used
-        let resolvedPlugins = await Promise.all(pluginResolvers);
-        return resolvedPlugins.map((resolved) => {
-            let resolvedPlugin = resolved.plugin;
+        return Promise.all(pluginPrefs.map(async (pluginPrefs) => {
+            let plugin = this.evalPluginCode(pluginPrefs.id, (await this.fetchPluginCode(pluginPrefs.id)));
             // everything that the user declares in the class
             // that might be shared in command run code.
-            let commandsStr = resolvedPlugin.commands.filter((cmd) => cmd.runOnPage).map((cmd) => `commands['${resolvedPlugin.name}']['${cmd.name}'] = ${cmd.runOnPage.toString()}`);
-            let csStr = `commands = commands || {}; ${resolvedPlugin.name}PluginCommon = (${resolved.common.toString()})(); commands['${resolvedPlugin.name}'] = {};${commandsStr.join(';')}`;
+            let commandsStr = plugin.commands
+                    .filter((cmd) => cmd.runOnPage)
+                    .map((cmd) => `'${cmd.name}': ${cmd.runOnPage.toString()}`);
+            // members that the plugin uses internally (shared across commands)
+            let privateMembers = Object.keys(plugin)
+                    .filter((member) => typeof PluginBase[member] === 'undefined')
+                    .map((member) => `${pluginPrefs.id}Plugin.${member} = ${plugin[member] ? plugin[member].toString(): plugin[member]};`);
+            let initStr = plugin.init.toString();
+            let csStr = `window.${pluginPrefs.id}Plugin = class ${pluginPrefs.id}Plugin {};
+                    ${pluginPrefs.id}Plugin.commands = {${commandsStr.join(',')}};
+                    ${privateMembers.join('\n')}
+                    ${initStr.substr(0, initStr.lastIndexOf('}')).replace('init() {', '')};
+                     `;
             return {
+                id: pluginPrefs.id,
                 enabled: true,
-                commands: resolvedPlugin.commands.map((cmd) => {
+                commands: plugin.commands.map((cmd: ICommand) => {
                     return {
                         delay: _.flatten([cmd.delay]),
                         enabled: true,
@@ -85,16 +128,16 @@ export class PluginManager {
                     };
                 }),
                 cs: csStr,
-                homophones: Object.keys(resolvedPlugin.homophones).map((key, index) => {
+                homophones: Object.keys(plugin.homophones).map((key, index) => {
                     return {
                         enabled: true,
                         source: key,
-                        destination: resolvedPlugin.homophones[key],
+                        destination: plugin.homophones[key],
                     };
                 }),
-                match: _.flatten([resolvedPlugin.match]),
-                ... _.pick(resolvedPlugin, 'name')
+                match: _.flatten([plugin.match]),
+                ... _.pick(plugin, 'friendlyName')
             };
-        });
+        }));
     }
 }

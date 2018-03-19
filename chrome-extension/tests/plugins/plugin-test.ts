@@ -10,6 +10,7 @@ import { readFile } from 'fs';
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PluginManager } from "../../src/background/plugin-manager";
 
 const gtts = require('node-gtts')('en');
 
@@ -22,16 +23,7 @@ const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8'
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 const MAX_TRIES_PER_TEST = 3;
 const BLACKLISTED_PHRASES = [];
-const WHITELISTED_PHRASES = [
-    'bottom of page',
-    'scroll little down',
-    'top',
-    'little scroll up',
-    'up little',
-    'scroll up',
-    'new tab',
-    'open tab',
-];
+const WHITELISTED_PHRASES = [];
 const REAL_AUDIO = false;
 const DEBUG = false;
 
@@ -167,10 +159,11 @@ test.afterEach.always((t) => {
 
 let pluginFilePath: string;
 for (pluginFilePath of pluginFilePaths) {
-    let exports = {Plugin: undefined};
-    eval(readFileSync(pluginFilePath))
-    let Plugin: IPlugin = exports.Plugin;
-    for (let cmd of Plugin.plugin.commands) {
+    let pathArr = pluginFilePath.split('/');
+    let pluginId = pathArr[pathArr.length - 1].split('.')[0];
+    pluginId = pluginId[0].toUpperCase() + pluginId.substr(1, pluginId.length);
+    let Plugin = PluginManager.evalPluginCode(pluginId, readFileSync(pluginFilePath));
+    for (let cmd of Plugin.commands) {
         if (cmd.test) {
             for (let pluginTest of _.flatten([cmd.test])) {
                 var phrases = typeof cmd.match !== 'function' ? _.flatten([cmd.match]) : [];
@@ -180,7 +173,7 @@ for (pluginFilePath of pluginFilePaths) {
                         continue
                     if (WHITELISTED_PHRASES.length > 0 && !~WHITELISTED_PHRASES.indexOf(phrase))
                         continue
-                    test.serial(`${Plugin.plugin.name} -- ${cmd.name} -- #${phrase}`, async (t) => {
+                    test.serial(`${Plugin.friendlyName} -- ${cmd.name} -- #${phrase}`, async (t) => {
                         try {
                             let res = await pluginTest.apply({
                                 driver: t.context.driver,
@@ -202,7 +195,7 @@ for (pluginFilePath of pluginFilePaths) {
                             });
                         } catch(e) {
                             if (DEBUG) {
-                                console.log(`DEBUG mode activated, caught error: ${Plugin.plugin.name} -- ${cmd.name} -- ${phrase}\n${e}`);
+                                console.log(`DEBUG mode activated, caught error: ${Plugin.friendlyName} -- ${cmd.name} -- ${phrase}\n${e}`);
                                 await timeout(20 * 60 * 1000);
                             } else {
                                 throw e;

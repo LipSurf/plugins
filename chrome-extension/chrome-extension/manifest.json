@@ -34,7 +34,10 @@
       "matches": [
         "<all_urls>"
       ],
-      "js": ["vendor/jquery-3.2.1.min.js", "dist/content-scripts/frame-beacon.js"],
+      "js": [
+        "vendor/jquery-3.2.1.min.js", 
+        "dist/content-scripts/frame-beacon.js"
+      ],
       "all_frames": true
     },
     {

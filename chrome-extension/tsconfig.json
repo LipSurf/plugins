@@ -16,7 +16,7 @@
     "node_modules",
     "src/background",
     "src/common",
-    "src/content-scripts/rnh-cs.ts",
+    "src/content-scripts",
     "tests"
   ]
 }

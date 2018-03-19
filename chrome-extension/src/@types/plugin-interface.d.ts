@@ -1,16 +1,27 @@
-declare interface IPlugin {
-    // common utilities for the commands
-    common: object,
-    plugin: {
-        name: string,
-        version: string,
-        description: string,
-        match: RegExp | RegExp[],
-        homophones: { [s: string]: string },
-        commands: ICommand[], // allows for a closure
-        init?: () => object,
-    }
+declare abstract class PluginBase {
+    static friendlyName: string;
+    static description: string;
+    static version: string;
+    static match: RegExp | RegExp[];
+
+    static commands: ICommand[];
+    static homophones: IHomophones;
+    static init?: () => void;
+
+    static util: IPluginUtil;
+
+    // don't allow non-static properties
+    [propName: string]: never;
+    // limit the static members to be functions (doesn't work yet)
+    // https://github.com/Microsoft/TypeScript/issues/6480
+    // static [propName: string]: null | () => any;
 }
+
+
+declare interface IHomophones { 
+    [s: string]: string 
+}
+
 
 declare interface ICommand {
     name: string,
@@ -35,6 +46,7 @@ declare interface IPluginUtil {
     getScrollDistance: () => number;
     scrollToAnimated: (HTMLElement) => void;
     isInView: (HTMLElement) => boolean;
+    getNoCollisionUniqueAttr: () => string;
 }
 
 declare namespace ExtensionUtil {
@@ -50,7 +62,7 @@ declare interface IUserPreferences {
 // all the user preferences for a plugin
 // (we don't store the entire plugin code as there's a limit to the chrome syncdata space)
 declare interface IPluginConfig {
-    name: string,    // the name of the plugin that's installed (used to find the plugin code on MealtimeBrowsing.com)
+    id: string,    // generally the name of the plugin that's installed, no spaces or hyphens( class RedditPlugin -> id: Reddit)
     version: string, // semantic versioning
     enabled: boolean,
     expanded: boolean,
@@ -71,7 +83,10 @@ declare interface IStorePlugins {
 
 // cached and computed plugin data (caches fetch, computes _ordinalMatch...)
 declare interface IStorePlugin {
-    name: string,
+    // basically name. But name is a reserved property for classes.
+    // for RedditPlugin would be Reddit. 
+    id: string,
+    friendlyName: string,
     match: RegExp[],
     commands: IStoreCommand[],
     homophones: IStoreHomophone[],

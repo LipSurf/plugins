@@ -5,7 +5,7 @@ import * as _ from "lodash";
 
 interface ICommand {
     cmdName: string,
-    cmdPluginName: string,
+    cmdPluginId: string,
     // what the match function returns -- if anything
     matchOutput: any[],
     delay,
@@ -13,20 +13,27 @@ interface ICommand {
     fn,
 }
 
-export interface IRecognizedCallback {
+export type IRecognizedCallback = IRecognizedText | IRecognizedCmd;
+
+export interface IRecognizedText{
     text: string,
     hold?: boolean,
     isUnsure?: boolean,
-    cmdName?: string,
-    cmdPluginName?: string,
-    cmdArgs?: any[],
     isSuccess?: boolean,
+}
+
+export interface IRecognizedCmd {
+    cmdName: string,
+    cmdPluginId: string,
+    cmdArgs: any[],
+    text: string,
+    isSuccess: boolean,
 }
 
 export class Recognizer {
     private recognition;
     private recognizerKilled: boolean = false;
-    private cmdRecognizedCb;
+    private cmdRecognizedCb: (cb: IRecognizedCallback) => void;
     private lastFinalTime: number = 0;
     private lastNonFinalCmdExecutedTime: number = 0;
     private lastNonFinalCmdExecuted = null;
@@ -178,7 +185,7 @@ export class Recognizer {
                         }
                         return {
                             cmdName: curCmd.name,
-                            cmdPluginName: this.store.plugins[g].name,
+                            cmdPluginId: this.store.plugins[g].id,
                             matchOutput: out,
                             niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput)) : processedInput,
                             fn: curCmd.runOnPage,
@@ -269,7 +276,7 @@ export class Recognizer {
         if (elapsedTime > CT.COOLDOWN_TIME) {
             if (confidence > CT.CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
-                var { cmdName, cmdPluginName, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript);
+                var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript);
                 var niceOutput = null;
 
                 console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
@@ -294,11 +301,11 @@ export class Recognizer {
 
                         console.log(`transcript in closure ${transcript}`);
                         return this.cmdRecognizedCb({
-                            cmdName: cmdName,
-                            cmdPluginName: cmdPluginName,
+                            isSuccess: true,
                             cmdArgs: matchOutput,
                             text: niceTranscript,
-                            isSuccess: true,
+                            cmdName,
+                            cmdPluginId,
                         });
                     }, delay);
                     return this.cmdRecognizedCb({

@@ -17,7 +17,7 @@ let nextReplacement = null;
 
 
 function friendlyModuleName(moduleName) {
-    return moduleName.replace(/-/g, '_').replace(/\//g, '_');
+    return `rnh_${moduleName.replace(/-/g, '_').replace(/\//g, '_')}`;
 }
 // global module names must be unique across whole codebase
 //

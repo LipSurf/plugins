@@ -1,17 +1,8 @@
-declare var toggleFullScreen: (boolean) => void;
-//const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
+/// <reference path="../@types/cs-interface.d.ts"/>
+
+declare let rnh_common_constants:any;
 import { promisify } from "../common/util";
-interface ILiveText {
-    text: string,
-    isSuccess: boolean,
-}
-interface IBackgroundParcel {
-    cmdName: undefined | string,
-    cmdPluginName: undefined | string,
-    liveText: undefined | ILiveText,
-    toggleActivated: undefined | boolean,
-    cmdArgs: undefined | any[],
-}
+
 var activated = false;
 const LABEL_FADE_TIME = 2000;
 const SCROLL_DISTANCE = 550;
@@ -27,9 +18,8 @@ let msgTracker = {};
 var $helpBox;
 var helpBoxOpen = false;
 
-//var PluginUtil: IPluginUtil = {
 // @ts-ignore: PluginUtil used by eval'd commands
-var PluginUtil: any = {
+var PluginUtil: IPluginUtil = {
 
     toggleHelpBox: async (open) => {
         helpBoxOpen = open;
@@ -126,7 +116,15 @@ var PluginUtil: any = {
     // TODO: make scroll distance a configurable property
     getScrollDistance: () => {
         return SCROLL_DISTANCE;
+    },
+
+    getNoCollisionUniqueAttr: () => {
+        return rnh_common_constants.NO_COLLISION_UNIQUE_ATTR;
     }
+}
+
+class PluginBase {
+    static util = PluginUtil;
 }
 
 async function getFrameHtml(id) {
@@ -251,25 +249,28 @@ async function showLiveText(text: string, isSuccess: boolean = false, isUnsure: 
     }, hold ? LABEL_FADE_TIME * 3 : LABEL_FADE_TIME);
 }
 
+function instanceOfCmd(object: any): object is ICmdParcel {
+    return 'cmdName' in object;
+}
+
+function instanceOfText(object: any): object is ILiveTextParcel {
+    return !('cmdName' in object) && !('toggleActivated' in object);
+}
+
+function instanceOfToggle(object: any): object is IToggleParcel {
+    return 'toggleActivated' in object;
+}
 
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function(msg: IBackgroundParcel) {
-    if (typeof msg.cmdName !== 'undefined') {
-        commands[msg.cmdPluginName][msg.cmdName].apply(null, msg.cmdArgs);
-    } else if (typeof msg.liveText !== 'undefined') {
+    if (instanceOfCmd(msg)) {
+        window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].apply(null, msg.cmdArgs);
+    } else if (instanceOfText(msg)) {
         showLiveText(msg.liveText.text, msg.liveText.isSuccess);
-    } else if (typeof msg.toggleActivated !== "undefined") {
+    } else if (instanceOfToggle(msg)) {
         toggleActivated(msg.toggleActivated);
     }
 });
-
-
-document.addEventListener("webkitfullscreenchange", function(event) {
-    // a user initiated non-voice full screen change -- take off our special fullscreen
-    console.log(`rnh-cs removing fullscreen ${document.webkitIsFullScreen}`);
-    toggleFullScreen(false);
-});
-
 
 // page was switched back to, it was open before the extension
 // was activated -- now it's visible again

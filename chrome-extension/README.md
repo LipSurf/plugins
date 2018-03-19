@@ -1,26 +1,27 @@
 TODO
 ===
+By today:
+* Fix nice
 * Fix options
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
+* Get build pipeline optimized (obfuscate output)
+
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
     replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
 
-* get test probe thing working so non-audio talkingbot can work
 * Cleanup iframe recursive code
 * Fix fullscreen
 * postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 
 Release to fam:
-* Fix isSuccess rendering
 * Make full screen black out background
 * Next page/prev page
 * Fix play command to play currently expanded video
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
 * youtube, streamable, twitch support
 * reddit.com/domain/youtube.com
-* reddit css -- add numbers to all entries?
 
 v1.1
 * Use dict lookup on static match words to make command-transcript matching faster
@@ -30,18 +31,24 @@ v1.1
 * Reddit Sorting by best/all etc.
 * undo
 * mute video
+* Improve speed
 
 v1.2
 * Reddit login
 
-
-nhm script spec
+plugins
 ===
 `matches`: array of match patterns.
 	Should be in order of what should match first (likely want matches with optional parameters first)
  Why not always regx? User-friendly presentation to in options is important.
 `delay`: can be single value or array if different matches should have different delays (indexes correspond to matches)
 `test`: async function. The tests have every match phrase tested against.
+
+Design rationale:
+* Typescript classes converted into js
+    * Biggest current downside is the static members, and the fact
+    that the static members need to be functions...
+    * We don't convert into a special parseable JSON as that adds an extra step -- without being justified by extra convenience.
 
 hacks
 ===
@@ -78,6 +85,7 @@ Sikulix
 stretch goals
 ===
 support undo/redo
+discourse forum
 
 API
 ===

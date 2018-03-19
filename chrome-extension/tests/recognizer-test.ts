@@ -4,7 +4,7 @@ import anyTest, {TestInterface} from 'ava';
 const path = require('path');
 const fs = require('fs');
 
-import { Recognizer, IRecognizedCallback } from "../src/background/recognizer";
+import { Recognizer, IRecognizedCallback, IRecognizedCmd } from "../src/background/recognizer";
 import { PluginManager } from "../src/background/plugin-manager";
 import { Store } from "../src/background/store";
 import { Preferences } from "../src/background/preferences";
@@ -37,11 +37,9 @@ test.before(async(t) => {
     let preferences = new Preferences();
     let loadStub = sinon.stub(preferences, 'load');
     loadStub.resolves(Preferences.DEFAULT_PREFERENCES);
-    let fetchPluginStub = sinon.stub(PluginManager, "_fetchPluginCode");
+    let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
     fetchPluginStub.callsFake(async (pluginName:string) => {
-        let exports = {Plugin: null};
-        eval(eval(`PLUGINS_${pluginName.toUpperCase()}`));
-        return exports.Plugin;
+        return eval(`PLUGINS_${pluginName.toUpperCase()}`)
     });
 
     let pluginManager = new PluginManager(store, preferences);
@@ -106,7 +104,7 @@ test('should parse ordinals', async (t) => {
 
 test.cb('should only execute last input', (t) => {
     let seq = ['click', '16', 'click', 'click 16'];
-    t.context.recg.start((req: IRecognizedCallback) => {
+    t.context.recg.start((req: IRecognizedCmd) => {
         if (req.cmdName === 'Visit Post' && req.cmdArgs[0] === 16) {
             t.end()
         }

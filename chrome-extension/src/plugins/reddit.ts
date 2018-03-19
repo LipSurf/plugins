@@ -1,42 +1,34 @@
-// ==UserVoiceScript==
-declare var PluginUtil: IPluginUtil;
+/*
+ * LipSurf plugin for Reddit.com
+ */
+class RedditPlugin extends PluginBase {
+    static friendlyName = 'Reddit';
+    static description = 'Commands for Reddit.com';
+    static version = '1.0.0';
+    static match = /https?:\/\/www.reddit.com\/.*/;
 
-var common = function() {
-    return {
-        $lastExpanded: null,
-        COMMENTS_REGX: /reddit.com\/r\/[^\/]*\/comments\//,
-        opened: null,
-        thingAtIndex: function(i) {
-            return `#siteTable>div.thing:not(.promoted):not(.linkflair-modpost):not(.stickied):eq(${i - 1})`;
-        },
-        toggleFullScreen: function(on) {
-            // let $ele = $lastExpanded.closest('*[data-url]');
-            // let $iframe = $ele.find('iframe');
-            // $iframe.toggleClass('nhm-full-screen', false);
-            if (on) {
-                $('#header').hide();
-                $('.side').hide();
-                $(document.body).css('overflow', 'hidden');
-            } else {
-                $('#header').show();
-                $('.side').show();
-                $(document.body).css('overflow', 'visible');
-                $('iframe.nhm-full-screen').toggleClass('nhm-full-screen', false);
-            }
-        }
-    };
-};
+    // "private"
+    // TODO: (low priority) how can we make the fact that these need to be functions better 
+    static opened = null;
+    static getThingAttr = () => `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
+    static getCommentsRegX = () => /reddit.com\/r\/[^\/]*\/comments\//;
+    static thingAtIndex = (i) => {
+        return `#siteTable>div.thing[${RedditPlugin.getThingAttr()}="${i}"]`;
+    }
 
-var RedditPluginCommon = common();
-
-var plugin = {
-    name: 'Reddit',
-    description: 'Commands for Reddit.com',
-    version: '1.0.0',
-    match: /https?:\/\/www.reddit.com\/.*/,
-
+    // runs when page loads
+    static init() {
+        $(document).ready(() => {
+            $('#siteTable>div.thing').each((i, ele) => {
+                let index = i + 1;
+                $(ele).attr(RedditPlugin.getThingAttr(), index);
+                $(ele).find('.rank').css('display', 'block').css('margin-right', '10px').text('' + index);
+            });
+        });
+    }
+        
     // less common -> common
-    homophones: {
+    static homophones = {
         'download': 'downvote',
         'down vote': 'downvote',
         'up vote': 'upvote',
@@ -51,7 +43,6 @@ var plugin = {
         'common': 'comments',
         'commons': 'comments',
         'quick': 'click',
-        'full-screen': 'fullscreen',
         'navigate': 'go',
         'pretty': 'preview',
         'contract': 'collapse',
@@ -60,24 +51,20 @@ var plugin = {
         'spend': 'expand',
         'read it': 'reddit',
         'shrink': 'collapse',
-        'on fullscreen': 'unfull screen',
-        'on full screen': 'unfull screen',
-        'unfor screen': 'unfull screen',
-        'unfold screen': 'unfull screen',
-    },
+    };
 
-    commands: [{
+    static commands = [{
         name: "Collapse",
         description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
         match: ["collapse #", "close", "close preview", "collapse"],
-        runOnPage: function(index) {
+        runOnPage: (index) => {
             if (index) {
                 $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
             } else {
                 // collapse first visible item (can be comment or post)
                 $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea .thing:not(.collapsed):not(.child div) a.expand:first`).each(function(i) {
                     var $ele = $(this);
-                    if (PluginUtil.isInView($ele)) {
+                    if (PluginBase.util.isInView($ele)) {
                         $ele[0].click();
                         return;
                     }
@@ -107,7 +94,7 @@ var plugin = {
         name: 'Expand All Comments',
         description: "Expands all the comments.",
         match: "expand all",
-        runOnPage: function() {
+        runOnPage: () => {
             $('.thing.comment.collapsed a.expand').each(function() {
                 this.click();
             });
@@ -133,29 +120,29 @@ var plugin = {
         description: "Expand a preview of a post, or a comment.",
         match: ["preview #", "expand #", "preview", "expand"], // in comments view
         delay: 600,
-        runOnPage: function(i) {
+        runOnPage: (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             if (!isNaN(index)) {
-                let $ele = $(RedditPluginCommon.thingAtIndex(index) + ' .expando-button');
+                let $ele = $(RedditPlugin.thingAtIndex(index) + ' .expando-button');
                 try {
                     // close previously open ones
-                    RedditPluginCommon.opened.click();
+                    RedditPlugin.opened.click();
                 } catch (e) {}
-                RedditPluginCommon.opened = $ele;
+                RedditPlugin.opened = $ele;
                 $ele.click();
-                PluginUtil.scrollToAnimated($ele);
+                PluginBase.util.scrollToAnimated($ele);
             } else {
                 // if expando-button is in frame expand that, otherwise expand last (furthest down) visible comment
                 let mainItem = $(`#siteTable>.thing .expando-button.collapsed:first`);
                 let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
 
-                if (mainItem.length > 0 && PluginUtil.isInView(mainItem)) {
+                if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
                     mainItem[0].click();
                 } else {
                     for (let ele of commentItems.reverse()) {
                         let $ele = $(ele);
-                        if (PluginUtil.isInView($ele)) {
-                            PluginUtil.scrollToAnimated($ele);
+                        if (PluginBase.util.isInView($ele)) {
+                            PluginBase.util.scrollToAnimated($ele);
                             $ele.find('a.expand:first')[0].click();
                             return;
                         }
@@ -177,85 +164,57 @@ var plugin = {
         nice: function(match) {
             return `go to r/${match}`;
         },
-        runOnPage: function(subredditName) {
+        runOnPage: (subredditName) => {
             window.location.href = `https://www.reddit.com/r/${subredditName}`;
         }
     }, {
         name: 'Go to Reddit',
         match: ["home", "reddit", "reddit.com"],
-        runOnPage: function() {
+        runOnPage: () => {
             document.location.href = "https://www.reddit.com";
         },
     }, {
         name: 'Clear Vote',
         description: "Unsets the last vote so it's neither up or down.",
         match: ["clear vote #", "clear vote"],
-        runOnPage: function(i) {
+        runOnPage: (i) => {
 
         },
     }, {
         name: 'Downvote',
         match: ["downvote #", "downvote"],
-        runOnPage: function(i) {
+        runOnPage: (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
-            $(RedditPluginCommon.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
+            $(RedditPlugin.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
         },
     }, {
         name: 'Upvote',
         match: ["upvote #", "upvote"],
-        runOnPage: function(i) {
+        runOnPage: (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
-            $(RedditPluginCommon.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
+            $(RedditPlugin.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
         },
     }, {
-        name: 'Fullscreen Video',
-        match: ["fullscreen", "full screen"],
-        runOnPage: function() {
-            let $ele = RedditPluginCommon.$lastExpanded.closest('*[data-url]');
-            let videoUrl = $ele.data('url');
-            let redditId = $ele.data('fullname').split('_')[1];
-            let $iframe = $ele.find('iframe');
-            $iframe.toggleClass('nhm-full-screen', true);
-            RedditPluginCommon.toggleFullScreen(true);
-            console.log(`video url ${videoUrl}. Reddit id ${redditId}`);
-            PluginUtil.sendMsgToBeacon({
-                fullScreen: {
-                    redditId: redditId,
-                    videoUrl: videoUrl
-                }
-            });
-        },
-    }, {
-        name: 'Unfullscreen Video',
-        match: ["unfullscreen", "unfull screen", "no full screen"],
-        runOnPage: function() {
-            RedditPluginCommon.toggleFullScreen(false);
-            PluginUtil.sendMsgToBeacon({
-                unFullScreen: null
-            });
-        },
-    },  {
         name: 'View Comments',
         description: "View the comments of a reddit post.",
         match: ["comments #", "view comments #"],
-        runOnPage: function(i) {
-            $(RedditPluginCommon.thingAtIndex(i) + ' a.comments')[0].click();
+        runOnPage: (i) => {
+            $(RedditPlugin.thingAtIndex(i) + ' a.comments')[0].click();
         },
     }, {
         name: 'Visit Post',
         description: "Equivalent of clicking a reddit post.",
         match: ['click #', 'click', 'visit'],
-        runOnPage: function(i) {
+        runOnPage: (i) => {
             // if we're on the post
-            if (RedditPluginCommon.COMMENTS_REGX.test(window.location.href)) {
+            if (RedditPlugin.getCommentsRegX().test(window.location.href)) {
                 $('#siteTable p.title a.title:first')[0].click();
             } else {
-                $(RedditPluginCommon.thingAtIndex(i) + ' a.title')[0].click();
+                $(RedditPlugin.thingAtIndex(i) + ' a.title')[0].click();
             }
         },
-    }],
-};
+    }];
+}
 
-export var Plugin: IPlugin = { common, plugin };

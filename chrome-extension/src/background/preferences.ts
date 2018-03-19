@@ -6,7 +6,7 @@ export class Preferences {
     static DEFAULT_PREFERENCES: IUserPreferences = {
         plugins: [
             {
-                name: 'Browser',
+                id: 'Browser',
                 version: '1.0.0',
                 enabled: true,
                 expanded: true,
@@ -14,7 +14,7 @@ export class Preferences {
                 disabledHomophones: []
             },
             {
-                name: 'Reddit',
+                id: 'Reddit',
                 version: '1.0.0',
                 enabled: true,
                 expanded: true,
@@ -33,7 +33,6 @@ export class Preferences {
 
     // Load the defaults if nothing is in the preferences
     async load(): Promise<IUserPreferences> {
-        debugger;
         let loaded = <IUserPreferences>(await (storage.remote.load)('plugin-preferences'));
         if (!(_.get(loaded, 'plugins.length', 0) > 0)) {
             loaded = Preferences.DEFAULT_PREFERENCES;
