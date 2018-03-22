@@ -1,5 +1,26 @@
 const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
 
+// TODO: This would be nice to have
+// export class DisableableArray<T extends IDisableable> extends Array<T> {
+//     constructor(...items) {
+//         super(...items);
+//         // Object.setPrototypeOf(this, DisableableArray.prototype);
+//     }
+
+//     public onlyEnabled(): DisableableArray<T>
+//     {
+//         // TODO: can this be improved?
+//         // let ret = new DisableableArray<T>();
+//         // ret.concat(this.filter((item) => item.enabled))
+//         // return ret;
+//         let ret = this.filter((item) => item.enabled);
+//         // Object.setPrototypeOf(ret, DisableableArray.prototype);
+//         return new DisableableArray<T>(ret);
+//     }
+
+// }
+
+
 export function promisify<T>(original, withError: boolean = false): (...args) => Promise<T> {
 
     // Ensure the argument is a function

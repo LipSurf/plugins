@@ -45,6 +45,7 @@
     "node-gtts": "^2.0.2",
     "riot": "=3.7.3",
     "selenium-webdriver": "^3.6.0",
-    "sinon": "^4.4.4"
+    "sinon": "^4.4.4",
+    "tslib": "^1.9.0"
   }
 }

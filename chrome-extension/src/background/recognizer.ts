@@ -1,21 +1,42 @@
 import * as CT from "../common/constants";
-import { Store } from "./store";
+import { Store, IToggleableHomophones, StoreSynced, IPluginConfig } from "./store";
 import * as _ from "lodash";
 
+let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
-interface ICommand {
+interface IRecgCommand {
+    // computed property that describes if match strings have ordinal
+    // placeholders and we should wait a bit of extra time to let
+    // them get captured before executing
+    name: string,
+    match: string[] | ((transcript: string) => any[]),
+    ordinalMatch: boolean,
+    nice?: (match: string) => string,
+    delay?: number[],
+}
+
+// transformations of the plugin store go here
+interface IPluginRecgStore extends IToggleableHomophones {
+    id: string,
+    commands: IRecgCommand[],
+    match: RegExp[],
+    synKeys: RegExp[],
+    synVals: string[],
+}
+
+interface IMatchCommand {
     cmdName: string,
     cmdPluginId: string,
     // what the match function returns -- if anything
     matchOutput: any[],
-    delay,
-    niceTranscript,
-    fn,
+    // the actual delay being used (after matching, so not an array)
+    delay: number,
+    niceTranscript: string,
 }
 
 export type IRecognizedCallback = IRecognizedText | IRecognizedCmd;
 
-export interface IRecognizedText{
+export interface IRecognizedText {
     text: string,
     hold?: boolean,
     isUnsure?: boolean,
@@ -30,27 +51,41 @@ export interface IRecognizedCmd {
     isSuccess: boolean,
 }
 
-export class Recognizer {
+export class Recognizer extends StoreSynced {
     private recognition;
     private recognizerKilled: boolean = false;
     private cmdRecognizedCb: (cb: IRecognizedCallback) => void;
     private lastFinalTime: number = 0;
     private lastNonFinalCmdExecutedTime: number = 0;
     private lastNonFinalCmdExecuted = null;
-    private _syn_keys: RegExp[] = [];
-    private _syn_vals: string[] = [];
     private delayCmd: number;
+    private pluginsRecgStore: IPluginRecgStore[];
+    private curActiveTabUrl: string;
 
-    constructor(private speechRecognizer, private store: Store) {
-        this.speechRecognizer = speechRecognizer;
-        this.store = store;
-        // outside functionality can update the commands list at any time
-        this.store.subscribe((updatedStore) => {
-            // TODO: currently flattens all the plugins homophones together -> do we want to
-            let homophones = _.flatten(updatedStore.map((plugin) => plugin.homophones.filter((homo) => homo.enabled)));
-            this._syn_keys = homophones.map((homo) => new RegExp(`\\b${homo.source}\\b`));
-            this._syn_vals = homophones.map((homo) => homo.destination);
+    constructor(store: Store, onUrlUpdate: ((cb: ((url: string) => void)) => void), private speechRecognizer) {
+        super(store);
+        onUrlUpdate((url) => {
+            this.curActiveTabUrl = url;
         });
+    }
+
+    protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
+        this.pluginsRecgStore = newPluginsConfig
+            .filter(plugin => plugin.enabled)
+            .map(plugin => {
+                let enabledHomophones = plugin.homophones.filter((homo) => homo.enabled);
+                return {
+                    synKeys: enabledHomophones.map((homo) => new RegExp(`\\b${homo.source}\\b`)),
+                    synVals: enabledHomophones.map((homo) => homo.destination),
+                    commands: plugin.commands
+                        .filter(cmd => cmd.enabled)
+                        .map((cmd) => ({
+                            ordinalMatch: typeof cmd.match !== 'function' ? !!_.find(_.flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
+                            ..._.pick(cmd, ['name', 'delay', 'nice', 'match'])
+                        })),
+                    ..._.pick(plugin, ['id', 'match'])
+                }
+            });
     }
 
     async start(cmdRecognizedCb: ((IRecognizedCallback) => void)) {
@@ -66,7 +101,7 @@ export class Recognizer {
         this.recognition.start();
 
         this.recognition.onresult = (event) => {
-            var lastE = event.results[event.results.length - 1];
+            let lastE = event.results[event.results.length - 1];
             console.dir(event);
             this.handleTranscript(
                 lastE[0].transcript.trim().toLowerCase(),
@@ -118,84 +153,89 @@ export class Recognizer {
         this.recognition = null;
     }
 
-    /* Return {
+    /* 
+     * The plugin store already has filtered out disabled commands
+     * 
+     *  Return {
      *  matchOutput: the arguments to pass back to the command
      * }
      */
-    getCmdForUserInput(input): ICommand {
+    getCmdForUserInput(input: string, url: string): IMatchCommand {
         // processedInput = dedupe(processedInput);
-        let homophoneIterator = this.generateHomophones(input)
+        let homophoneIterator = this.generateHomophones(input, url);
         for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
-            for (let g = 0; g < this.store.plugins.length; g++) {
-                for (let f = 0; f < this.store.plugins[g].commands.length; f++) {
-                    let curCmd = this.store.plugins[g].commands[f];
-                    let out;
-                    let matchPatterns;
-                    let matchPatternIndex;
-                    if (typeof curCmd.match === 'function') {
-                        out = curCmd.match(processedInput);
-                    } else {
-                        if (typeof curCmd.match === 'string') {
-                            matchPatterns = [curCmd.match];
+            for (let g = 0; g < this.pluginsRecgStore.length; g++) {
+                let plugin = this.pluginsRecgStore[g];
+                if (_.find(plugin.match, regx => regx.test(url))) {
+                    for (let f = 0; f < plugin.commands.length; f++) {
+                        let curCmd = plugin.commands[f];
+                        let out;
+                        let matchPatterns;
+                        let matchPatternIndex;
+                        if (typeof curCmd.match === 'function') {
+                            out = curCmd.match(processedInput);
                         } else {
-                            matchPatterns = curCmd.match;
-                        }
+                            if (typeof curCmd.match === 'string') {
+                                matchPatterns = [curCmd.match];
+                            } else {
+                                matchPatterns = curCmd.match;
+                            }
 
-                        for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                            let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
-                            let ords = [];
-                            let n = 0;
-                            let nextIsOrdinal = false;
-                            let inputSlice = processedInput;
-                            for (; n < tokens.length || nextIsOrdinal; n++) {
-                                let token = tokens[n];
-                                if (token == '#') {
-                                    nextIsOrdinal = true;
-                                } else {
-                                    let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
-                                    if (matchPos == -1) {
-                                        break;
-                                    } else if (nextIsOrdinal) {
-                                        nextIsOrdinal = false;
-                                        try {
-                                            ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
-                                        } catch (e) {
-                                            // not an ordinal
+                            for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
+                                let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                                let ords = [];
+                                let n = 0;
+                                let nextIsOrdinal = false;
+                                let inputSlice = processedInput;
+                                for (; n < tokens.length || nextIsOrdinal; n++) {
+                                    let token = tokens[n];
+                                    if (token == '#') {
+                                        nextIsOrdinal = true;
+                                    } else {
+                                        let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
+                                        if (matchPos == -1) {
                                             break;
+                                        } else if (nextIsOrdinal) {
+                                            nextIsOrdinal = false;
+                                            try {
+                                                ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
+                                            } catch (e) {
+                                                // not an ordinal
+                                                break;
+                                            }
                                         }
+                                        inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                     }
-                                    inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                 }
-                            }
 
-                            if (inputSlice.trim() === '') {
-                                // we have a match
-                                out = ords;
-                                break;
-                            }
+                                if (inputSlice.trim() === '') {
+                                    // we have a match
+                                    out = ords;
+                                    break;
+                                }
 
+                            }
                         }
-                    }
-                    if (out) {
-                        let delay: number = null;
-                        if (curCmd._ordinalMatch) {
-                            delay = CT.ORDINAL_CMD_DELAY;
-                        } else if (curCmd.delay) {
-                            delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                        if (out) {
+                            let delay: number = null;
+                            if (curCmd.ordinalMatch) {
+                                delay = CT.ORDINAL_CMD_DELAY;
+                            } else if (curCmd.delay) {
+                                delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                            }
+                            return {
+                                cmdName: curCmd.name,
+                                cmdPluginId: plugin.id,
+                                matchOutput: out,
+                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput)) : processedInput,
+                                delay,
+                            };
                         }
-                        return {
-                            cmdName: curCmd.name,
-                            cmdPluginId: this.store.plugins[g].id,
-                            matchOutput: out,
-                            niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput)) : processedInput,
-                            fn: curCmd.runOnPage,
-                            delay,
-                        };
                     }
                 }
             }
         }
-        return <ICommand>{};
+        return <IMatchCommand>{};
     }
 
 
@@ -236,26 +276,32 @@ export class Recognizer {
     // maybe we should split and match the first valid part of the command?
     // Needs thought...
     //private dedupe(input) {
-        //let existingWords = {};
-        //let processed = [];
-        //for (let word of input.split(' ')) {
-            //if (typeof existingWords[word] === 'undefined') {
-                //processed.push(word);
-            //}
-        //}
-        //return processed.join(' ');
+    //let existingWords = {};
+    //let processed = [];
+    //for (let word of input.split(' ')) {
+    //if (typeof existingWords[word] === 'undefined') {
+    //processed.push(word);
+    //}
+    //}
+    //return processed.join(' ');
     //}
 
 
-    private *generateHomophones(beforeInput) {
+    private *generateHomophones(beforeInput: string, url: string) {
         let afterInput;
         // first yield the original
         yield beforeInput;
-        for (let i = 0; i < this._syn_keys.length; i++) {
-            afterInput = beforeInput.replace(this._syn_keys[i], this._syn_vals[i]);
-            if (afterInput !== beforeInput)
-                beforeInput = afterInput;
-            yield afterInput;
+        // already has filtered out disabled commands and plugins
+        for (let x = 0; x < this.pluginsRecgStore.length; x++) {
+            let plugin = this.pluginsRecgStore[x];
+            if (_.find(plugin.match, regx => regx.test(url))) {
+                for (let i = 0; i < plugin.synKeys.length; i++) {
+                    afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);
+                    if (afterInput !== beforeInput)
+                        beforeInput = afterInput;
+                    yield afterInput;
+                }
+            }
         }
     }
 
@@ -276,7 +322,7 @@ export class Recognizer {
         if (elapsedTime > CT.COOLDOWN_TIME) {
             if (confidence > CT.CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
-                var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript);
+                var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript, this.curActiveTabUrl);
                 var niceOutput = null;
 
                 console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
@@ -290,7 +336,9 @@ export class Recognizer {
                     }
                     clearTimeout(this.delayCmd);
 
-                    this.delayCmd = setTimeout(() => {
+                    // it ambiguous so the tests can work in node
+                    // @ts-ignore: setTimeout === window.setTimeout but we keep
+                    this.delayCmd = safeSetTimeout(() => {
                         console.log(`running command ${cmdName} isFinal:${isFinal}`);
                         if (isFinal) {
                             this.lastFinalTime = +new Date();

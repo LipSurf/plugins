@@ -1,5 +1,7 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 
+// kinda hacky
+// TODO: the bin/flatten-amd-modules.js transforms constants into this name, can we do better?
 declare let rnh_common_constants:any;
 import { promisify } from "../common/util";
 

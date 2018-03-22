@@ -1,11 +1,19 @@
+/// <reference path="./store.ts" />
+/// <reference path="../common/util.ts" />
 /*
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
 import * as _ from "lodash";
-import { Store } from "./store";
-import { Preferences } from "./preferences";
+import { StoreSynced, IPluginConfig, } from "./store";
 import { promisify } from "../common/util";
+
+// Plugin content-script store for easily loading front-end
+// code into pages
+interface IPluginCSStore extends IDisableable {
+    match: RegExp[],
+    cs: string,
+}
 
 // HACK
 class PluginBase {
@@ -14,8 +22,8 @@ class PluginBase {
     static version = '';
     static match = /^$/;
 
-    static commands = [];
-    static homophones = {};
+    static commands: IPluginDefCommand[] = [];
+    static homophones: IPluginDefHomophones = {};
     static init = () => null;
 
     static util: IPluginUtil = {
@@ -30,25 +38,60 @@ class PluginBase {
     }
 };
 
-export class PluginManager {
+export class PluginManager extends StoreSynced {
+    private pluginsCSStore:IPluginCSStore[];
 
-    constructor(private store: Store, private preferences: Preferences) {
-        this.preferences.load().then(async (pluginPrefs) => {
-            let resolvedPlugin = await PluginManager.combinePrefsAndPlugins(pluginPrefs.plugins);
-            this.store.plugins = resolvedPlugin;
-        });
-
+    protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
+        this.pluginsCSStore = newPluginsConfig.map((pluginConfig) => 
+            _.pick(pluginConfig, ['enabled', 'cs', 'match']));
     }
 
     // TODO: wait for promise of plugins loaded?
     // checks the given url and loads the necessary plugin command
     // code into the given tabId if the url matches.
     async loadCommandCodeIntoPage(tabId: number, url: string) {
-        this.store.plugins.forEach((plugin) => {
-            if (_.reduce(plugin.match, (memo, matchPattern) => matchPattern.test(url) || memo, true)) {
-                promisify<any>(chrome.tabs.executeScript)(tabId, {code: plugin.cs, runAt: "document_start"});
-            }
-        });
+        let csStrs = this.pluginsCSStore
+            .filter((plugin) => plugin.enabled && _.reduce(plugin.match, (acc, matchPattern) => acc || matchPattern.test(url), false))
+            .map((plugin) => plugin.cs);
+        await promisify<any>(chrome.tabs.executeScript)(tabId, {code: csStrs.join('\n'), runAt: "document_start"});
+    }
+
+    // Take PluginBase subclass and 
+    // put into form ready for the plugin store
+    // only needs to be run when plugin version is changed 
+    // (most commonly when fetching new plugins, or updating version of
+    // existing plugins)
+    static async digestNewPlugin(id: string, version: string): Promise<ILocalPluginData> {
+        let plugin = PluginManager.evalPluginCode(id, (await PluginManager.fetchPluginCode(id)));
+        // everything that the user declares in the class
+        // that might be shared in command run code.
+        let commandsStr = plugin.commands
+                .filter((cmd) => cmd.runOnPage)
+                .map((cmd) => `'${cmd.name}': ${cmd.runOnPage.toString()}`);
+        // members that the plugin uses internally (shared across commands)
+        let privateMembers = Object.keys(plugin)
+                .filter((member) => typeof PluginBase[member] === 'undefined')
+                .map((member) => `${id}Plugin.${member} = ${plugin[member] ? plugin[member].toString(): plugin[member]};`);
+        let initStr = plugin.init.toString();
+        let cs = `window.${id}Plugin = class ${id}Plugin {};
+                ${id}Plugin.commands = {${commandsStr.join(',')}};
+                ${privateMembers.join('\n')}
+                ${initStr.substr(0, initStr.lastIndexOf('}')).replace('init() {', '')};
+                    `;
+        return {
+            commands: plugin.commands.map((cmd) => {
+                return {
+                    delay: cmd.delay ? _.flatten([cmd.delay]) : [],
+                    // Make all the functions strings (because we can't store them directly)
+                    match: typeof cmd.match === 'function' ? cmd.match : _.flatten([cmd.match]),
+                    ..._.pick(cmd, 'run', 'name', 'description', 'nice'),
+                };
+            }),
+            match: _.flatten([plugin.match]),
+            cs,
+            version,
+            ... _.pick(plugin, 'friendlyName', 'homophones')
+        };
     }
 
     static evalPluginCode(id: string, text: string): typeof PluginBase {
@@ -90,54 +133,5 @@ export class PluginManager {
 
             request.send();
         });
-    }
-
-    // Make more useable "PluginStore" by combining condensed preferences
-    // with remote plugin code
-    static async combinePrefsAndPlugins(pluginPrefs: IPluginConfig[]): Promise<IStorePlugin[]> {
-        // and transform into a plugin object in the form that it is used
-        return Promise.all(pluginPrefs.map(async (pluginPrefs) => {
-            let plugin = this.evalPluginCode(pluginPrefs.id, (await this.fetchPluginCode(pluginPrefs.id)));
-            // everything that the user declares in the class
-            // that might be shared in command run code.
-            let commandsStr = plugin.commands
-                    .filter((cmd) => cmd.runOnPage)
-                    .map((cmd) => `'${cmd.name}': ${cmd.runOnPage.toString()}`);
-            // members that the plugin uses internally (shared across commands)
-            let privateMembers = Object.keys(plugin)
-                    .filter((member) => typeof PluginBase[member] === 'undefined')
-                    .map((member) => `${pluginPrefs.id}Plugin.${member} = ${plugin[member] ? plugin[member].toString(): plugin[member]};`);
-            let initStr = plugin.init.toString();
-            let csStr = `window.${pluginPrefs.id}Plugin = class ${pluginPrefs.id}Plugin {};
-                    ${pluginPrefs.id}Plugin.commands = {${commandsStr.join(',')}};
-                    ${privateMembers.join('\n')}
-                    ${initStr.substr(0, initStr.lastIndexOf('}')).replace('init() {', '')};
-                     `;
-            return {
-                id: pluginPrefs.id,
-                enabled: true,
-                commands: plugin.commands.map((cmd: ICommand) => {
-                    return {
-                        delay: _.flatten([cmd.delay]),
-                        enabled: true,
-                        // Make all the functions strings (because we can't store them directly)
-                        runOnPage: cmd.runOnPage ? cmd.runOnPage.toString() : '() => null',
-                        match: typeof cmd.match === 'function' ? cmd.match : _.flatten([cmd.match]),
-                        _ordinalMatch: typeof cmd.match !== 'function' ? !!_.find(_.flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
-                        ..._.pick(cmd, 'name', 'description', 'run', 'nice'),
-                    };
-                }),
-                cs: csStr,
-                homophones: Object.keys(plugin.homophones).map((key, index) => {
-                    return {
-                        enabled: true,
-                        source: key,
-                        destination: plugin.homophones[key],
-                    };
-                }),
-                match: _.flatten([plugin.match]),
-                ... _.pick(plugin, 'friendlyName')
-            };
-        }));
     }
 }

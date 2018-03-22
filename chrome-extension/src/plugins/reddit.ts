@@ -5,7 +5,7 @@ class RedditPlugin extends PluginBase {
     static friendlyName = 'Reddit';
     static description = 'Commands for Reddit.com';
     static version = '1.0.0';
-    static match = /https?:\/\/www.reddit.com\/.*/;
+    static match = /^https?:\/\/www.reddit.com/;
 
     // "private"
     // TODO: (low priority) how can we make the fact that these need to be functions better 

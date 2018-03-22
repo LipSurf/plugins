@@ -1,6 +1,9 @@
 TODO
 ===
-By today:
+* stop goes to top of page
+* try namespaces for IPluginDefHomo... etc
+* Combine preferences and store?
+ -- options.ts needs a nice way to load user preferences and plugin data
 * Fix nice
 * Fix options
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone

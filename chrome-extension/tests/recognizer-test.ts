@@ -1,5 +1,5 @@
 import * as sinon from 'sinon';
-import anyTest, {TestInterface} from 'ava';
+import anyTest, {TestInterface, ExecutionContext} from 'ava';
 
 const path = require('path');
 const fs = require('fs');
@@ -7,7 +7,6 @@ const fs = require('fs');
 import { Recognizer, IRecognizedCallback, IRecognizedCmd } from "../src/background/recognizer";
 import { PluginManager } from "../src/background/plugin-manager";
 import { Store } from "../src/background/store";
-import { Preferences } from "../src/background/preferences";
 import { PluginSandbox } from '../src/background/plugin-sandbox';
 import { storage } from "../src/common/browser-interface";
 
@@ -32,31 +31,37 @@ class Recognition {
 
 
 test.before(async(t) => {
-    sinon.stub(storage.local, "save").resolves();
-    let store = new Store();
-    let preferences = new Preferences();
-    let loadStub = sinon.stub(preferences, 'load');
-    loadStub.resolves(Preferences.DEFAULT_PREFERENCES);
+    let biSyncStorageLoad = sinon.stub(storage.sync, 'load');
+    let biLocalStorageLoad = sinon.stub(storage.local, 'load');
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
+    let store, pluginManager, urlCb, onUrlUpdate;
+    sinon.stub(storage.local, "save").resolves();
+    biSyncStorageLoad.resolves(Store.DEFAULT_PREFERENCES);
+    biLocalStorageLoad.resolves({});
     fetchPluginStub.callsFake(async (pluginName:string) => {
         return eval(`PLUGINS_${pluginName.toUpperCase()}`)
     });
 
-    let pluginManager = new PluginManager(store, preferences);
-    t.context.recg = new Recognizer(Recognition, store);
+    store = new Store(PluginManager.digestNewPlugin);
+    await store.getPluginsConfig();
+    pluginManager = new PluginManager(store);
+    urlCb = (url: string) => null;
+    onUrlUpdate = () => urlCb;
+    t.context.recg = new Recognizer(store, onUrlUpdate, Recognition);
+    urlCb('https://www.reddit.com');
 });
 
-function testOutput(t, userInput: string, expectedCmd: string) {
-    let selectedCmd = t.context.recg.getCmdForUserInput(userInput).cmdName;
+function testOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, userInput: string, expectedCmd: string) {
+    let selectedCmd = t.context.recg.getCmdForUserInput(userInput, url).cmdName;
     t.is(selectedCmd ? selectedCmd.toLowerCase() : selectedCmd, expectedCmd, selectedCmd);
 }
 
-function testNoOutput(t, userInput: string) {
-    let cmdName = t.context.recg.getCmdForUserInput(userInput).cmdName;
+function testNoOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, userInput: string) {
+    let cmdName = t.context.recg.getCmdForUserInput(userInput, url).cmdName;
     t.truthy(cmdName === undefined, `${userInput} -> ${cmdName}`);
 }
 
-let cmdToPossibleInput = {
+let redditCmdToPossibleInput = {
     'collapse': ['shrink', 'shrink 1st', 'collapse 25', 'collapse'],
     'expand': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight', 'expand', 'preview'],
     'go back': ['back', 'go back', 'navigate back', 'navigate backwards', 'backwards', 'backward', 'go backwards'],
@@ -69,24 +74,30 @@ let cmdToPossibleInput = {
     'unfullscreen': ['unfullscreen', 'un fullscreen', 'unfull screen'],
 }
 
-for (let expectedCmd in cmdToPossibleInput) {
-    let possibleUserInputs = cmdToPossibleInput[expectedCmd];
+for (let expectedCmd in redditCmdToPossibleInput) {
+    let possibleUserInputs = redditCmdToPossibleInput[expectedCmd];
     for (let userInput of possibleUserInputs) {
         test(`"${userInput}" should execute expected ${expectedCmd}`, async (t) => {
-            testOutput(t, userInput, expectedCmd);
+            testOutput(t, 'https://www.reddit.com/', userInput, expectedCmd);
         });
     }
 }
 
 test('should not activate a command', async (t) => {
     for (let userInput of ['we are testing']) {
-        testNoOutput(t, userInput);
+        testNoOutput(t, userInput, 'http://yahoo.com');
     }
+});
+
+test('shouldn\'t parse commands that don\'t match for page', async(t) => {
+    let userInput = 'upvote';
+    var {cmdName, matchOutput, delay} = t.context.recg.getCmdForUserInput(userInput, 'http://yahoo.com');
+    t.is(cmdName, undefined);
 });
 
 test('should parse subreddit names without spaces', async (t) => {
     let userInput = 'go to r not the onion';
-    var {cmdName, matchOutput, delay} = t.context.recg.getCmdForUserInput(userInput);
+    var {cmdName, matchOutput, delay} = t.context.recg.getCmdForUserInput(userInput, 'http://www.reddit.com/');
     t.is(matchOutput[0], 'nottheonion', `${userInput} -> ${matchOutput}`);
 });
 
@@ -96,7 +107,7 @@ test('should parse ordinals', async (t) => {
         'preview 3rd': ['Expand', 3],
     };
     for (let input in ordinalTests) {
-        let sel = t.context.recg.getCmdForUserInput(input);
+        let sel = t.context.recg.getCmdForUserInput(input, 'https://www.reddit.com');
         t.is(sel.cmdName, ordinalTests[input][0]);
         t.is(sel.matchOutput[0], ordinalTests[input][1]);
     }

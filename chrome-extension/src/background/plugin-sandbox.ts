@@ -2,7 +2,7 @@
 import * as _ from "lodash";
 // @ts-ignore: ExtensionUtil is used by things that are eval'd
 import { ExtensionUtil } from "./util";
-import { Store } from "./store";
+import { Store, StoreSynced, IPluginConfig, IPluginConfigCommand } from "./store";
 
 interface IPrivilegedCode {
     string: {
@@ -10,25 +10,21 @@ interface IPrivilegedCode {
     }
 }
 
-export class PluginSandbox {
+export class PluginSandbox extends StoreSynced {
     private privilegedCode: IPrivilegedCode;
 
-    constructor(private store: Store) {
-        this.store = store;
+    protected init() {
         this.privilegedCode = <IPrivilegedCode>{};
-        this.store.subscribe((plugins) => {
-            plugins.forEach((plugin) => {
-                this.addCommands(plugin.id, plugin.commands)
-            })
-        })
     }
 
-    private addCommands(pluginId: string, commands: IStoreCommand[]) {
+    protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
+        newPluginsConfig.forEach((plugin) => {
         // overwrites existing commands for plugin
-        this.privilegedCode[pluginId] = _.reduce(commands, (memo, cmd) => {
-            memo[cmd.name] = cmd.run;
-            return memo;
-        }, {});
+            this.privilegedCode[plugin.id] = _.reduce(plugin.commands, (memo, cmd) => {
+                memo[cmd.name] = cmd.run;
+                return memo;
+            }, {});
+        })
     }
 
     run(parcel: ICmdParcel) {
