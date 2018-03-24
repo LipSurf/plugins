@@ -19,9 +19,10 @@ export class PluginSandbox extends StoreSynced {
 
     protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
         newPluginsConfig.forEach((plugin) => {
-        // overwrites existing commands for plugin
+            // overwrites existing commands for plugin
             this.privilegedCode[plugin.id] = _.reduce(plugin.commands, (memo, cmd) => {
-                memo[cmd.name] = cmd.run;
+                if (cmd.run)
+                    memo[cmd.name] = cmd.run;
                 return memo;
             }, {});
         })

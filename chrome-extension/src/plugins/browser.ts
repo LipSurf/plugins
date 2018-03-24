@@ -492,7 +492,14 @@ class BrowserPlugin extends PluginBase {
                 });
             });
         }
-    },
+    }, {
+        name: 'Settings',
+        description: "Open the settings page for LipSurf",
+        match: ['settings', 'options'],
+        run: () => {
+            chrome.runtime.openOptionsPage();
+        }
+    }
     ];
 }
 

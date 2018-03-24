@@ -2,8 +2,8 @@
 import { promisify } from './util';
 
 
-type LocalSaveable = ILocalData | IActivated;
-type LocalLoadable = keyof ILocalData;
+type LocalSaveable = ISerializedLocalData | IActivated;
+type LocalLoadable = keyof ISerializedLocalData;
 type SyncSaveable = ISyncData;
 type SyncLoadable = keyof ISyncData;
 
@@ -13,8 +13,8 @@ export module storage {
         export async function save(data: LocalSaveable) {
             return promisify(chrome.storage.local.set)(data);
         }
-        export async function load(key: LocalLoadable): Promise<any> {
-            return promisify(chrome.storage.local.get)(key);
+        export async function load(key: LocalLoadable): Promise<ISerializedLocalData> {
+            return promisify<ISerializedLocalData>(chrome.storage.local.get)(key);
         }
     }
 
@@ -22,8 +22,8 @@ export module storage {
         export async function save(data: SyncSaveable) {
             return promisify(chrome.storage.sync.set)(data);
         }
-        export async function load(key: SyncLoadable): Promise<any> {
-            return promisify(chrome.storage.sync.get)(key);
+        export async function load(key: SyncLoadable): Promise<ISyncData> {
+            return promisify<ISyncData>(chrome.storage.sync.get)(key);
         }
     }
 }

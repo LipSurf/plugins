@@ -24,7 +24,7 @@
         <div each={ cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: collapsed, enabled: enabled }">
                 <div class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
-                    <div class="label">{ name } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
+                    <div class="label">{ friendlyName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
                         <div class="desc">{ description }</div>
                     </div>
                 </div>

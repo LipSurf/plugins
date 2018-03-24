@@ -152,7 +152,7 @@ class RedditPlugin extends PluginBase {
         }
     }, {
         name: 'Go to Subreddit',
-        match: function(input) {
+        match: (input) => {
             const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
             let match = input.match(SUBREDDIT_REGX);
             // console.log(`navigate subreddit input: ${input} match: ${match}`);
@@ -161,7 +161,7 @@ class RedditPlugin extends PluginBase {
             }
         },
         delay: 1200,
-        nice: function(match) {
+        nice: (match) => {
             return `go to r/${match}`;
         },
         runOnPage: (subredditName) => {

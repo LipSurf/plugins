@@ -20,11 +20,11 @@ const { webkitSpeechRecognition }: IWindow = <IWindow>window;
 let activated = false;
 let audible = false;
 let permissionDetector;
-let store = new Store(PluginManager.digestNewPlugin);
+let store = new Store();
 let recg;
 
 // initial load -> get plugins from storage
-store.getPluginsConfig().then(x => {
+store.rebuildLocalPluginCache(PluginManager.digestNewPlugin).then(() => {
     recg = new Recognizer(store, tabs.onUrlUpdate, webkitSpeechRecognition);
     let ps = new PluginSandbox(store);
     let pm = new PluginManager(store);

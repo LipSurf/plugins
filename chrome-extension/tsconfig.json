@@ -3,7 +3,7 @@
     "module": "none",
     "noEmitOnError": true,
     "noImplicitAny": false,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "removeComments": true,
     "moduleResolution": "node",
     "declaration": false,

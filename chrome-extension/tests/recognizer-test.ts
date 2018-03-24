@@ -31,22 +31,22 @@ class Recognition {
 
 
 test.before(async(t) => {
+    let testSaveData:ILocalData = <ILocalData>{};
     let biSyncStorageLoad = sinon.stub(storage.sync, 'load');
     let biLocalStorageLoad = sinon.stub(storage.local, 'load');
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
-    let store, pluginManager, urlCb, onUrlUpdate;
-    sinon.stub(storage.local, "save").resolves();
+    sinon.stub(storage.local, "save").callsFake((saveData:ILocalData) => Object.assign(testSaveData, saveData));
     biSyncStorageLoad.resolves(Store.DEFAULT_PREFERENCES);
-    biLocalStorageLoad.resolves({});
+    biLocalStorageLoad.resolves(testSaveData);
     fetchPluginStub.callsFake(async (pluginName:string) => {
         return eval(`PLUGINS_${pluginName.toUpperCase()}`)
     });
 
-    store = new Store(PluginManager.digestNewPlugin);
-    await store.getPluginsConfig();
-    pluginManager = new PluginManager(store);
-    urlCb = (url: string) => null;
-    onUrlUpdate = () => urlCb;
+    let store = new Store();
+    await store.rebuildLocalPluginCache(PluginManager.digestNewPlugin);
+    let pluginManager = new PluginManager(store);
+    let urlCb = (url: string) => null;
+    let onUrlUpdate = () => urlCb;
     t.context.recg = new Recognizer(store, onUrlUpdate, Recognition);
     urlCb('https://www.reddit.com');
 });

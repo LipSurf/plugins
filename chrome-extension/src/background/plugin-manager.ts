@@ -80,10 +80,13 @@ export class PluginManager extends StoreSynced {
                     `;
         return {
             commands: plugin.commands.map((cmd) => {
+                let delay;
+                if (cmd.delay)
+                    delay = _.flatten([cmd.delay]);
                 return {
-                    delay: cmd.delay ? _.flatten([cmd.delay]) : [],
                     // Make all the functions strings (because we can't store them directly)
                     match: typeof cmd.match === 'function' ? cmd.match : _.flatten([cmd.match]),
+                    delay,
                     ..._.pick(cmd, 'run', 'name', 'description', 'nice'),
                 };
             }),

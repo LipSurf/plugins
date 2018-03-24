@@ -1,5 +1,6 @@
 TODO
 ===
+* on startup in main -- special fetch for store needs to occur, otherwise the simple fetch from local and remote storage can be used in options.ts
 * stop goes to top of page
 * try namespaces for IPluginDefHomo... etc
 * Combine preferences and store?

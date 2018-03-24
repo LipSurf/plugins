@@ -28,30 +28,55 @@ declare interface ILocalData {
     }
 }
 
+declare interface ISerializedLocalData {
+    activated: boolean,
+    pluginData: {
+        [id: string]: ISerializedLocalPluginData,
+    }
+}
+
 // not *exactly* how it is stored, because the JSON
 // needs to be converted/evald for regex, and fn types
 // only needs to be updated when plugin version
 // is updated?
-declare interface ILocalPluginData extends ICommonHomophones {
+declare interface ILocalPluginData extends _ILocalPluginDataCommon {
+    match: RegExp[],
+    commands: ICommonCommand[],
+}
+
+declare interface ISerializedLocalPluginData extends _ILocalPluginDataCommon {
+    match: string[],
+    commands: ISerializedCommand[],
+}
+
+declare interface _ILocalPluginDataCommon extends ICommonHomophones {
     // the version is stored in both local and sync storage because
     // sync storage can be updated on a different machine, and all
     // machines would need to update their local plugin versions
     version: string,
     friendlyName: string,
-    match: RegExp[],
     // combined init, cmds run
     cs: string,
-    commands: ICommonCommand[],
     description?: string,
 }
 
-declare interface ICommonCommand {
-    name: string,
+declare interface ISerializedCommand extends _ICommonCommand {
+    // non-array string stores stringified function
+    match: string[] | string,  
+    nice?: string,
+    run?: string,
+}
+
+declare interface ICommonCommand extends _ICommonCommand {
     match: string[] | ((transcript: string) => any[]),
-    delay?: number[],
-    description?: string,
     nice?: (match: string) => string,
     run?: (() => any) | ((tabIndex: number) => any),
+}
+
+declare interface _ICommonCommand {
+    name: string,
+    delay?: number[],
+    description?: string,
 }
 
 declare interface ICommonHomophones {
