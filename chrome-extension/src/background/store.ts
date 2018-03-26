@@ -1,6 +1,7 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
 import * as _ from "lodash";
+import { promisify } from "../common/util";
 import { storage } from "../common/browser-interface";
 
 // combined local and sync settings in a form that's
@@ -45,6 +46,13 @@ export class Store {
                 disabledCommands: [],
                 disabledHomophones: []
             },
+            'Google': {
+                version: '1.0.0',
+                enabled: true,
+                expanded: true,
+                disabledCommands: [],
+                disabledHomophones: []
+            },
             'Reddit': {
                 version: '1.0.0',
                 enabled: true,
@@ -55,14 +63,9 @@ export class Store {
         }
     };
 
-    // set plugins(plugins: IStorePlugin[]) {
-    //     this._plugins = plugins;
-    //     this.listeners.forEach((fn) => fn(this._plugins));
-    //     storage.local.save({'store-plugin': plugins});
-    // }
-    // async setPreferences(preferences: IUserPreferences) {
-    //     return await storage.remote.save(preferences);
-    // }
+    constructor() {
+        storage.sync.registerOnChangeCb(this.publish.bind(this));
+    }
 
     // the initial get (should only be called at extension startup or when preferences change)
     // saves to settings
@@ -96,7 +99,8 @@ export class Store {
                         cmd.run = cmd.run.toString();
                     // make function matchers not in an array so we can distinguish them during deserialization
                     // distinguish them
-                    return typeof cmd.match === 'function' ? cmd.match.toString() : cmd.match.map(cmd => cmd.toString());
+                    cmd.match = typeof cmd.match === 'function' ? cmd.match.toString() : cmd.match.map(cmd => cmd.toString());
+                    return cmd;
                 });
                 return val
             })
@@ -132,7 +136,7 @@ export class Store {
 
     private async getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
         let syncData: ISyncData = (await (storage.sync.load)('installedPlugins'));
-        if (!(_.get(syncData, 'keys().length', 0) > 0)) {
+        if (!syncData || Object.keys(syncData).length == 0) {
             syncData = Store.DEFAULT_PREFERENCES;
         }
         let serializedLocalData: Partial<ISerializedLocalData> = (await (storage.local.load)('pluginData'));
@@ -145,12 +149,14 @@ export class Store {
         // parse serialized regex/fns
         let localData = Object.assign(serializedLocalData, {
             pluginData: _.mapValues(serializedLocalData.pluginData, (val: any, id, pluginData) => {
-                val.match = typeof val.match === 'string' ? eval(val.match) : val.match.map(matchItem => RegExp(matchItem));
+                val.match = val.match.map(matchItem => RegExp(matchItem));
                 val.commands = val.commands.map(cmd => {
                     if (cmd.nice) 
                         cmd.nice = eval(cmd.nice);
                     if (cmd.run)
                         cmd.run = eval(cmd.run)
+                    if (typeof cmd.match === 'string')
+                        cmd.match = eval(cmd.match)
                     return cmd;
                 });
                 return val;
@@ -159,17 +165,24 @@ export class Store {
         return [syncData, <ILocalData>localData];
     }
 
-    async getPluginsConfig(): Promise<IPluginConfig[]> {
-        if (!this.pluginsConfig) {
+    async getPluginsConfig(forceRefresh = false): Promise<IPluginConfig[]> {
+        if (!this.pluginsConfig && !forceRefresh) {
             let [syncData, localData] = await this.getStoredOrDefault();
             this.pluginsConfig = this.transformToPluginsConfig(localData.pluginData, syncData.installedPlugins);
         }
         return this.pluginsConfig;
     }
 
-    // TODO: is this the right publish that we want?
-    publish(newIPluginConfig: IPluginConfig[]) {
-        this.listeners.forEach((fn) => fn(newIPluginConfig));
+    // save user preference changes
+    async save(data: ISyncData) {
+        await promisify(storage.sync.save)(data);
+        this.pluginsConfig = await this.getPluginsConfig(true);
+        this.publish();
+    }
+
+    // publish changes
+    publish() {
+        this.listeners.forEach((fn) => fn(this.pluginsConfig));
     }
 
     resetPreferences() {
@@ -184,7 +197,7 @@ export class Store {
 
 export class StoreSynced {
 
-    constructor(private store: Store) {
+    constructor(public store: Store) {
         // call once on initial load so plugin data is ready
         this.init();
         this.store.getPluginsConfig().then(pluginsConfig => {

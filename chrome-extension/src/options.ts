@@ -8,12 +8,14 @@ import { Store, StoreSynced, IPluginConfig } from "./background/store";
 
 // what's shown on the options page
 interface IPluginOptionsPageStore {
+    showLiveText: boolean,
     cmdGroups: IPluginPref[]
 }
 
 interface IPluginPref {
     expanded: boolean,
     enabled: boolean,
+    id: string,
     friendlyName: string,
     version: string,
     commands: ICommandPref[]
@@ -38,6 +40,8 @@ interface IHomophonePref {
 class OptionsPage extends StoreSynced {
     constructor(store: Store, private options: IPluginOptionsPageStore = <IPluginOptionsPageStore>{}) {
         super(store);
+        riot.observable(this.options);
+        riot.mount('options-page', {store: this.options});
     }
 
     storeUpdated(newPluginsConfig: IPluginConfig[]) {
@@ -47,25 +51,31 @@ class OptionsPage extends StoreSynced {
                         match: typeof cmd.match !== 'function' ? cmd.match : '',
                         ... _.pick(cmd, 'enabled', 'name', 'description'),
                     })),
-                    ... _.pick(plugin, 'version', 'expanded', 'enabled', 'friendlyName', 'description', 'homophones'),
+                    ... _.pick(plugin, 'version', 'expanded', 'enabled', 'friendlyName', 'id', 'description', 'homophones'),
             })),
         });
-        riot.mount('options-page', this.options);
-        // riot
+        // trigger exists once we call riot.observable
+        (this.options as any).trigger('update', this.options);
+    }
+
+    save() {
+        this.store.save({
+            installedPlugins: this.options.cmdGroups.reduce((memo, cmdGroup) => {
+                memo[cmdGroup.id] = {
+                    disabledCommands: cmdGroup.commands.filter(x => !x.enabled).map(cmd => cmd.name),
+                    disabledHomophones: cmdGroup.homophones.filter(x => !x.enabled).map(homo => homo.source),
+                    ... _.pick(cmdGroup, 'version', 'expanded', 'enabled'),
+                };
+                return memo;
+            }, {}),
+            ... _.pick(this.options, 'showLiveText'),
+        });
     }
 }
 
 
 let store = new Store();
-new OptionsPage(store);
-
-// function _save(obj) {
-//     // store.set
-//     // chrome.storage.local.set({'cmdGroups': obj}, function() {
-//     //     console.log("Settings saved " + JSON.stringify(obj));
-//     // });
-// }
-
+let options = new OptionsPage(store);
 
 // function _reset() {
 //     store.resetPreferences();

@@ -25,6 +25,15 @@ export module storage {
         export async function load(key: SyncLoadable): Promise<ISyncData> {
             return promisify<ISyncData>(chrome.storage.sync.get)(key);
         }
+        export function registerOnChangeCb(cb: (changes) => void) {
+            // namespace is either "sync" or "local"
+            chrome.storage.onChanged.addListener(function (changes, namespace) {
+                if (namespace === "sync") {
+                    cb(changes);
+                }
+            });
+        }
+
     }
 }
 

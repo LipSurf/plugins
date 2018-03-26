@@ -1,10 +1,10 @@
 TODO
 ===
+* saving of preferences -- not propogating to recognizer
+* delay needs to get reset when fresh shits come in
 * on startup in main -- special fetch for store needs to occur, otherwise the simple fetch from local and remote storage can be used in options.ts
 * stop goes to top of page
 * try namespaces for IPluginDefHomo... etc
-* Combine preferences and store?
- -- options.ts needs a nice way to load user preferences and plugin data
 * Fix nice
 * Fix options
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone

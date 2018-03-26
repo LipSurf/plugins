@@ -1,15 +1,15 @@
 <options-page>
     <div class="container">
         <div style="text-align: left">
-            <h1>No Hand Man</h1>
+            <h1>Lip Surf</h1>
             <h2>Permissions</h2>
             <p>We need permission to use the microphone. Please click "allow" and No Hand Man will work in any window. </p>
-            <p>Privacy: the speech recognizer is only activated for the active window when you click the No Hand Man icon in your extensions toolbar.</p>
             <div class="perms" ref="perms">
                 <span rel="mic-perm" class="notice {success: hasMicPerm, failure: hasMicPerm === false}">
                 <i class="material-icons">{hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</span>
                 </span>
             </div>
+            <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the No Hand Man icon in your extensions toolbar.</p>
         </div>
     </div>
     <!-- TODO do we still want this? -->
@@ -55,6 +55,10 @@
         </div>
     </div>
     <style>
+    .mute {
+        color: #555;
+    }
+
     .notice {
         padding: 9px 10px;
         border-radius: 4px;
@@ -243,11 +247,11 @@
     }
     </style>
     <script>
-    this.cmdGroups = opts.cmdGroups;
+    this.cmdGroups = opts.store.cmdGroups;
     this.hasMicPerm = null;
 
     save() {
-        _save(this.cmdGroups);
+        options.save();
     }
 
     reset() {
@@ -276,20 +280,18 @@
         navigator.mediaDevices.getUserMedia({
             audio: true,
         }).then((stream) => {
-            console.log("yes permission");
             this.hasMicPerm = true;
             this.update();
         }, () => {
             // Aw. No permission (or no microphone available).
-            console.log("no permission");
             this.hasMicPerm = false;
             this.update();
-            // let rec = new webkitSpeechRecognition();
-            // console.log(`rec ${rec}`);
-            // rec.start();
-            // recognition.onerror = function(event) {
         });
     }
+
+    opts.store.on('update', (store) => {
+        this.update(store);
+    });
 
     this.on('mount', function() {
         // the thing might already be collapsed
