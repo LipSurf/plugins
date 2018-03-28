@@ -14,6 +14,7 @@ const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8'
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
 const PLUGINS_BROWSER = readFileSync(`${BASE_DIR}dist/plugins/browser.js`);
 const PLUGINS_REDDIT = readFileSync(`${BASE_DIR}dist/plugins/reddit.js`);
+const PLUGINS_GOOGLE = readFileSync(`${BASE_DIR}dist/plugins/google.js`);
 const test = anyTest as TestInterface<{recg: Recognizer}>;
 
 
@@ -33,6 +34,7 @@ class Recognition {
 test.before(async(t) => {
     let testSaveData:ILocalData = <ILocalData>{};
     let biSyncStorageLoad = sinon.stub(storage.sync, 'load');
+    sinon.stub(storage.sync, 'registerOnChangeCb');
     let biLocalStorageLoad = sinon.stub(storage.local, 'load');
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
     sinon.stub(storage.local, "save").callsFake((saveData:ILocalData) => Object.assign(testSaveData, saveData));
@@ -42,8 +44,8 @@ test.before(async(t) => {
         return eval(`PLUGINS_${pluginName.toUpperCase()}`)
     });
 
-    let store = new Store();
-    await store.rebuildLocalPluginCache(PluginManager.digestNewPlugin);
+    let store = new Store(PluginManager.digestNewPlugin);
+    await store.rebuildLocalPluginCache();
     let pluginManager = new PluginManager(store);
     let urlCb = (url: string) => null;
     let onUrlUpdate = () => urlCb;

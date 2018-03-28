@@ -38,38 +38,42 @@ export class Store {
 
     static DEFAULT_PREFERENCES: ISyncData = {
         showLiveText: true,
-        installedPlugins: {
-            'Browser': {
-                version: '1.0.0',
-                enabled: true,
-                expanded: true,
-                disabledCommands: [],
-                disabledHomophones: []
-            },
-            'Google': {
-                version: '1.0.0',
-                enabled: true,
-                expanded: true,
-                disabledCommands: [],
-                disabledHomophones: []
-            },
-            'Reddit': {
-                version: '1.0.0',
-                enabled: true,
-                expanded: true,
-                disabledCommands: [],
-                disabledHomophones: []
-            },
-        }
+        installedPlugins: [
+                ['Browser', '1.0.0'],
+                ['Google', '1.0.0'],
+                ['Reddit', '1.0.0'],
+            ].reduce((memo, [id, version]) => Object.assign(memo, {
+                [id]: {
+                    version,
+                    enabled: true,
+                    expanded: true,
+                    disabledHomophones: [],
+                    disabledCommands: []
+                }}), {})
     };
 
-    constructor() {
-        storage.sync.registerOnChangeCb(this.publish.bind(this));
+    // fetchPlugin is only required to be set by one instance of store -- the one 
+    // that is responsible for updating the local cache (such as just the background
+    // page, instead of both the background page and the options page, etc.)
+    constructor(private fetchPlugin: (id: string, version: string) => Promise<ILocalPluginData> = null) {
+        storage.sync.registerOnChangeCb((changes) => {
+            // changes is not used currently, may be later
+
+            if (this.fetchPlugin) {
+                // might need to fetch new plugins
+                this.rebuildLocalPluginCache().then(async () => {
+                    await this.getPluginsConfig(true);
+                    this.publish();
+                });
+            } else {
+                this.getPluginsConfig(true).then(() => this.publish());
+            }
+        });
     }
 
     // the initial get (should only be called at extension startup or when preferences change)
     // saves to settings
-    async rebuildLocalPluginCache(fetchPlugin: (id: string, version: string) => Promise<ILocalPluginData>): Promise<void> {
+    async rebuildLocalPluginCache(): Promise<void> {
         let [syncData, localData] = await this.getStoredOrDefault();
         // digest plugins that don't match what we have in the 
         // local settings already
@@ -81,10 +85,9 @@ export class Store {
             || localData.pluginData[id].version !== syncData.installedPlugins[id].version
         );
 
-        // also purges plugins we don't need anymore
-        localData.pluginData = (await Promise.all(toInstallPluginIds.map(async (id: string) =>
-            ({ id, ...(await fetchPlugin(id, syncData.installedPlugins[id].version)) })
-        ))).reduce((memo, x) => { memo[x.id] = _.omit(x, 'id'); return memo }, {});
+        Object.assign(localData.pluginData, (await Promise.all(toInstallPluginIds.map(async (id: string) =>
+            ({ id, ...(await this.fetchPlugin(id, syncData.installedPlugins[id].version)) })
+        ))).reduce((memo, x) => { memo[x.id] = _.omit(x, 'id'); return memo }, {}));
 
         // TODO: purge sync data for plugins that are uninstalled?
 
@@ -166,7 +169,7 @@ export class Store {
     }
 
     async getPluginsConfig(forceRefresh = false): Promise<IPluginConfig[]> {
-        if (!this.pluginsConfig && !forceRefresh) {
+        if (!this.pluginsConfig || forceRefresh) {
             let [syncData, localData] = await this.getStoredOrDefault();
             this.pluginsConfig = this.transformToPluginsConfig(localData.pluginData, syncData.installedPlugins);
         }

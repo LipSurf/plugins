@@ -111,9 +111,9 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 //                 }),
 //                 homophones: plugin.homophones
 //                     .map((homo) => {
-//                         return { 
+//                         return {
 //                             enabled: ~disabledHomophones.indexOf(homo.source),
-//                             ...homo 
+//                             ...homo
 //                         }
 //                     }
 //                 ),
