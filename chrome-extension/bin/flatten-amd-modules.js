@@ -9,6 +9,7 @@ const content = fs.readFileSync(inputPath, 'utf8');
 var output = [];
 var replacements = [];
 let entries = [];
+let startTime = + new Date();
 let nodeNum = 0;
 let isAliasing = -1;
 let aliasMap = {};
@@ -86,5 +87,6 @@ esprima.parseScript(content, {
     }
 });
 
+let timeElapsed = (+new Date()) - startTime;
 fs.writeFileSync(outputPath, output.join('\n'));
-console.log(`Successfully transformed ${inputPath} into ${outputPath}.`);
+console.log(`Successfully transformed ${inputPath} into ${outputPath}. Time elapsed: ${timeElapsed/10}`);
