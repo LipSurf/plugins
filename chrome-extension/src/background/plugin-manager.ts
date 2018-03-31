@@ -73,7 +73,7 @@ export class PluginManager extends StoreSynced {
                 .filter((member) => typeof PluginBase[member] === 'undefined')
                 .map((member) => `${id}Plugin.${member} = ${plugin[member] ? plugin[member].toString(): plugin[member]};`);
         let initStr = plugin.init.toString();
-        let cs = `window.${id}Plugin = class ${id}Plugin {};
+        let cs = `${id}Plugin = class ${id}Plugin {};
                 ${id}Plugin.commands = {${commandsStr.join(',')}};
                 ${privateMembers.join('\n')}
                 ${initStr.substr(0, initStr.lastIndexOf('}')).replace('init() {', '')};

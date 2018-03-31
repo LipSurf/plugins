@@ -1,16 +1,16 @@
 /*
  * LipSurf plugin for Reddit.com
  */
-import { PluginBase } from "../common/plugin-lib";
+/// <reference path="../@types/plugin-interface.d.ts"/>
 
-class RedditPlugin extends PluginBase {
+export class RedditPlugin extends PluginBase {
     static friendlyName = 'Reddit';
     static description = 'Commands for Reddit.com';
     static version = '1.0.0';
     static match = /^https?:\/\/www.reddit.com/;
 
     // "private"
-    // TODO: (low priority) how can we make the fact that these need to be functions better 
+    // TODO: (low priority) how can we make the fact that these need to be functions better
     static opened = null;
     static getThingAttr = () => `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
     static getCommentsRegX = () => /reddit.com\/r\/[^\/]*\/comments\//;
@@ -28,7 +28,7 @@ class RedditPlugin extends PluginBase {
             });
         });
     }
-        
+
     // less common -> common
     static homophones = {
         'download': 'downvote',
@@ -219,4 +219,3 @@ class RedditPlugin extends PluginBase {
         },
     }];
 }
-

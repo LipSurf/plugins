@@ -59,7 +59,7 @@ export function retrialAndError(f, f_check, delay, times) {
     });
 }
 
-export class PluginBase {
+export abstract class PluginBase {
     static friendlyName: string;
     static description: string;
     static version: string;

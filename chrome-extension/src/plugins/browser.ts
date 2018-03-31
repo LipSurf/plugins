@@ -1,9 +1,9 @@
 /*
  * primary LipSurf plugin for browser functionality
  */
-import { PluginBase } from "../common/plugin-lib";
+/// <reference path="../@types/plugin-interface.d.ts"/>
 
-class BrowserPlugin extends PluginBase {
+export class BrowserPlugin extends PluginBase {
     static friendlyName = 'Browser';
     static description = 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.';
     static version = '1.0.0';
@@ -504,4 +504,3 @@ class BrowserPlugin extends PluginBase {
     }
     ];
 }
-

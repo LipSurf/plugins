@@ -157,20 +157,21 @@ let pageFrameBeaconConfig = Object.assign({}, commonPageConfig, {
 }, getRules('tsconfig.page-frame-beacon.json'));
 
 let pluginsConfig = Object.assign({}, commonPageConfig, {
-	//context: path.resolve(__dirname, 'src/plugins/'),
+	context: path.resolve(__dirname, 'src/plugins/'),
+	devtool: false,
 	entry: {
-		google: 'src/plugins/google.ts',
-		browser: 'src/plugins/browser.ts',
-		reddit: 'src/plugins/reddit.ts'
+		google: './google.ts',
+		browser: './browser.ts',
+		reddit: './reddit.ts'
 	},
 	output: {
 		filename: "[name].js",
 		path: path.resolve(__dirname, 'chrome-extension/dist/plugins'),
+		libraryTarget: 'window'
 	}
 }, getRules('tsconfig.plugins.json'));
 
 
-console.log(JSON.stringify(riotConfig));
 module.exports = [
-	bgConfig, pageMainConfig, pageFrameBeaconConfig, optionsConfig, //pluginsConfig,
+	bgConfig, pageMainConfig, pageFrameBeaconConfig, optionsConfig, pluginsConfig,
 ]

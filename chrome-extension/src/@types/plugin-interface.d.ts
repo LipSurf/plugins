@@ -1,10 +1,29 @@
+declare abstract class PluginBase {
+    static friendlyName: string;
+    static description: string;
+    static version: string;
+    static match: RegExp | RegExp[];
+
+    static commands: IPluginDefCommand[];
+    static homophones: IPluginDefHomophones;
+    static init?: () => void;
+
+    // don't allow non-static properties
+    [propName: string]: never;
+    // limit the static members to be functions (doesn't work yet)
+    // https://github.com/Microsoft/TypeScript/issues/6480
+    // static [propName: string]: null | () => any;
+
+    static util: IPluginUtil;
+}
+
 declare interface IDisableable {
     enabled: boolean,
 }
 
 // for 3rd party plugins definitions
-declare interface IPluginDefHomophones { 
-    [s: string]: string 
+declare interface IPluginDefHomophones {
+    [s: string]: string
 }
 
 // for 3rd party plugins definitions

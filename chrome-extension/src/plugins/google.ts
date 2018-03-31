@@ -1,9 +1,9 @@
 /*
  * LipSurf plugin for Google search
  */
-import { PluginBase } from "../common/plugin-lib";
+/// <reference path="../@types/plugin-interface.d.ts"/>
 
-class GooglePlugin extends PluginBase {
+export class GooglePlugin extends PluginBase {
     static friendlyName = 'Google';
     static description = 'The google search engine.';
     static version = '1.0.0';
@@ -29,4 +29,3 @@ class GooglePlugin extends PluginBase {
     }
     ];
 }
-
