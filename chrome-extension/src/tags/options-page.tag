@@ -247,26 +247,29 @@
     }
     </style>
     <script>
+	require('./cmd-group.tag');
+	require('./cmd.tag');
+	require('./homophone.tag');
     this.cmdGroups = opts.store.cmdGroups;
     this.hasMicPerm = null;
 
-    save() {
+    this.save = () => {
         options.save();
     }
 
-    reset() {
+    this.reset = () => {
         if (confirm("This will erase any settings you have configured and load default settings! Press OK if you're sure you want to continue.")) {
             _reset()
         }
     }
 
-    toggleGroupEnabled(e) {
+    this.toggleGroupEnabled = (e) => {
         e.stopPropagation()
-        e.item.enabled = e.srcElement.checked;
+        e.item.enabled = !e.item.enabled;
         this.save();
     }
 
-    toggleCollapsed(e) {
+    this.toggleCollapsed = (e) => {
         // hack to get around propagation not being stopped in riot
         if (e.target.nodeName.toLowerCase() != 'input' &&
             e.target.nodeName.toLowerCase() != 'label') {

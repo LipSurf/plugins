@@ -1,5 +1,4 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
-import * as _ from "lodash";
 // @ts-ignore: ExtensionUtil is used by things that are eval'd
 import { ExtensionUtil } from "./util";
 import { Store, StoreSynced, IPluginConfig, IPluginConfigCommand } from "./store";
@@ -20,7 +19,7 @@ export class PluginSandbox extends StoreSynced {
     protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
         newPluginsConfig.forEach((plugin) => {
             // overwrites existing commands for plugin
-            this.privilegedCode[plugin.id] = _.reduce(plugin.commands, (memo, cmd) => {
+            this.privilegedCode[plugin.id] = plugin.commands.reduce((memo, cmd) => {
                 if (cmd.run)
                     memo[cmd.name] = cmd.run;
                 return memo;

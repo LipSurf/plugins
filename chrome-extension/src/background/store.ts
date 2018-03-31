@@ -1,6 +1,6 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import * as _ from "lodash";
+import { omit, mapValues, pick } from "lodash-es";
 import { promisify } from "../common/util";
 import { storage } from "../common/browser-interface";
 
@@ -29,7 +29,7 @@ export interface IToggleableHomophones {
     }[],
 }
 
-/* 
+/*
  *  User preferences as well as parsed plugins
  */
 export class Store {
@@ -52,7 +52,7 @@ export class Store {
                 }}), {})
     };
 
-    // fetchPlugin is only required to be set by one instance of store -- the one 
+    // fetchPlugin is only required to be set by one instance of store -- the one
     // that is responsible for updating the local cache (such as just the background
     // page, instead of both the background page and the options page, etc.)
     constructor(private fetchPlugin: (id: string, version: string) => Promise<ILocalPluginData> = null) {
@@ -75,7 +75,7 @@ export class Store {
     // saves to settings
     async rebuildLocalPluginCache(): Promise<void> {
         let [syncData, localData] = await this.getStoredOrDefault();
-        // digest plugins that don't match what we have in the 
+        // digest plugins that don't match what we have in the
         // local settings already
         // in case versions have changed (for example remotely)
         let neededPluginIds = Object.keys(syncData.installedPlugins);
@@ -87,18 +87,18 @@ export class Store {
 
         Object.assign(localData.pluginData, (await Promise.all(toInstallPluginIds.map(async (id: string) =>
             ({ id, ...(await this.fetchPlugin(id, syncData.installedPlugins[id].version)) })
-        ))).reduce((memo, x) => { memo[x.id] = _.omit(x, 'id'); return memo }, {}));
+        ))).reduce((memo, x) => { memo[x.id] = omit(x, 'id'); return memo }, {}));
 
         // TODO: purge sync data for plugins that are uninstalled?
 
         // convert to JSON safe values
         let serializedLocalData = Object.assign(localData, {
-            pluginData: _.mapValues(localData.pluginData, (val:any, id, obj) => {
+            pluginData: mapValues(localData.pluginData, (val:any, id, obj) => {
                 val.match = val.match.map(x => x.toString().substr(1, val.match.toString().length - 2))
                 val.commands.map((cmd) => {
                     if (cmd.nice)
                         cmd.nice = cmd.nice.toString();
-                    if (cmd.run) 
+                    if (cmd.run)
                         cmd.run = cmd.run.toString();
                     // make function matchers not in an array so we can distinguish them during deserialization
                     // distinguish them
@@ -131,8 +131,8 @@ export class Store {
                         destination: _localPluginData.homophones[homo],
                     })
                 ),
-                ..._.pick(_localPluginData, 'friendlyName', 'match', 'cs', 'description', ),
-                ..._.pick(_syncPluginData, 'expanded', 'version', 'enabled'),
+                ... pick(_localPluginData, 'friendlyName', 'match', 'cs', 'description', ),
+                ... pick(_syncPluginData, 'expanded', 'version', 'enabled'),
             }
         });
     }
@@ -151,10 +151,10 @@ export class Store {
         }
         // parse serialized regex/fns
         let localData = Object.assign(serializedLocalData, {
-            pluginData: _.mapValues(serializedLocalData.pluginData, (val: any, id, pluginData) => {
+            pluginData: mapValues(serializedLocalData.pluginData, (val: any, id, pluginData) => {
                 val.match = val.match.map(matchItem => RegExp(matchItem));
                 val.commands = val.commands.map(cmd => {
-                    if (cmd.nice) 
+                    if (cmd.nice)
                         cmd.nice = eval(cmd.nice);
                     if (cmd.run)
                         cmd.run = eval(cmd.run)
@@ -211,8 +211,8 @@ export class StoreSynced {
         });
     }
 
-    // We use init instead of a constructor because storeUpdated is called before the 
-    // constructor is called on the inheriting class, so this init allows things 
+    // We use init instead of a constructor because storeUpdated is called before the
+    // constructor is called on the inheriting class, so this init allows things
     // to be initialized before storeUpdated (basically a constructor)
     protected init() { }
 

@@ -1,11 +1,13 @@
 {
   "name": "no-hands-man",
   "version": "1.0.0",
-  "description": "Control reddit.com with voice.",
-  "main": "rnh.js",
+  "description": "Control the browser with your voice.",
   "engines": {
     "node": ">=6.0"
   },
+  "sideEffects": [
+    "./src/page/main.ts"
+  ],
   "scripts": {
     "pretest": "tsc -p ./tsconfig.json && tsc tests/*.ts tests/plugins/*.ts -t ES2017 --outdir tests/build --module commonjs",
     "test": "ava tests/build/tests/*-test.js --verbose",
@@ -16,8 +18,10 @@
     "test-plugins-watch": "when-changed -k -1 -s tests/plugins/*.ts src/plugins/* -c npm run test-plugins",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
-    "compile": "riot chrome-extension/views/tags chrome-extension/views/tags/all.js && tsc -p ./tsconfig.json && tsc -p ./tsconfig.background.json && node bin/flatten-amd-modules.js chrome-extension/dist/background-amd.js chrome-extension/dist/background.js ; rm chrome-extension/dist/background-amd.js && tsc -p ./tsconfig.rnh-cs.json && node bin/flatten-amd-modules.js chrome-extension/dist/content-scripts/rnh-cs-amd.js chrome-extension/dist/content-scripts/rnh-cs.js; rm chrome-extension/dist/content-scripts/rnh-cs-amd.js && tsc -p ./tsconfig.frame-beacon.json && node bin/flatten-amd-modules.js chrome-extension/dist/content-scripts/frame-beacon-amd.js chrome-extension/dist/content-scripts/frame-beacon.js; rm chrome-extension/dist/content-scripts/frame-beacon-amd.js && tsc -p ./tsconfig.options.json && node bin/flatten-amd-modules.js chrome-extension/dist/options-amd.js chrome-extension/dist/options.js; rm chrome-extension/dist/options-amd.js",
-    "watch": "when-changed -1 -s tests/* src/* -c 'npm run compile'"
+    "build": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "build-prod": "webpack --mode production",
+    "build-prod-watch": "webpack --mode production --watch"
   },
   "repository": {
     "type": "git",
@@ -34,19 +38,29 @@
     "@types/esprima": "^4.0.1",
     "@types/jquery": "^3.3.0",
     "@types/jsdom": "^11.0.4",
-    "@types/lodash": "^4.14.97",
     "@types/selenium-webdriver": "^3.0.8",
     "@types/sinon": "^4.3.0",
+    "@types/lodash-es": "^4.17.0",
+    "lodash-cli": "^4.17.5",
+    "lodash-es": "^4.17.8",
+    "riot-hot-reload": "^1.0.0",
     "ava": "^1.0.0-beta.3",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-es2015-riot": "^1.1.0",
     "crx": "^3.2.1",
     "jsdom": "11.0.0",
     "jsdom-global": "3.0.2",
-    "lodash": "^4.17.4",
     "node-gtts": "^2.0.2",
-    "riot": "=3.7.3",
-    "riot-typescript": "^1.0.10",
+    "riot": "^3.9.0",
+    "riot-tag-loader": "^2.0.2",
     "selenium-webdriver": "^3.6.0",
     "sinon": "^4.4.4",
-    "tslib": "^1.9.0"
+    "ts-loader": "^4.1.0",
+    "tslib": "^1.9.0",
+    "typescript": "^2.8.1",
+    "webpack": "^4.3.0",
+    "webpack-cli": "^2.0.13",
+    "webpack-merge": "^4.1.2"
   }
 }

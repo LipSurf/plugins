@@ -1,6 +1,6 @@
 import * as CT from "../common/constants";
 import { Store, IToggleableHomophones, StoreSynced, IPluginConfig } from "./store";
-import * as _ from "lodash";
+import { find, flatten, pick } from "lodash-es";
 
 let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
@@ -80,10 +80,10 @@ export class Recognizer extends StoreSynced {
                     commands: plugin.commands
                         .filter(cmd => cmd.enabled)
                         .map((cmd) => ({
-                            ordinalMatch: typeof cmd.match !== 'function' ? !!_.find(_.flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
-                            ..._.pick(cmd, ['name', 'delay', 'nice', 'match'])
+                            ordinalMatch: typeof cmd.match !== 'function' ? !! find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
+                            ... pick(cmd, ['name', 'delay', 'nice', 'match'])
                         })),
-                    ..._.pick(plugin, ['id', 'match'])
+                    ... pick(plugin, ['id', 'match'])
                 }
             });
     }
@@ -96,6 +96,7 @@ export class Recognizer extends StoreSynced {
         this.recognition = new this.speechRecognizer();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
+        //this.recognition.lang = 'ja';
         this.recognition.lang = 'en-US';
         this.recognition.maxAlternatives = 1;
         this.recognition.start();
@@ -153,9 +154,9 @@ export class Recognizer extends StoreSynced {
         this.recognition = null;
     }
 
-    /* 
+    /*
      * The plugin store already has filtered out disabled commands
-     * 
+     *
      *  Return {
      *  matchOutput: the arguments to pass back to the command
      * }
@@ -166,7 +167,7 @@ export class Recognizer extends StoreSynced {
         for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
             for (let g = 0; g < this.pluginsRecgStore.length; g++) {
                 let plugin = this.pluginsRecgStore[g];
-                if (_.find(plugin.match, regx => regx.test(url))) {
+                if (find(plugin.match, regx => regx.test(url))) {
                     for (let f = 0; f < plugin.commands.length; f++) {
                         let curCmd = plugin.commands[f];
                         let out;
@@ -294,7 +295,7 @@ export class Recognizer extends StoreSynced {
         // already has filtered out disabled commands and plugins
         for (let x = 0; x < this.pluginsRecgStore.length; x++) {
             let plugin = this.pluginsRecgStore[x];
-            if (_.find(plugin.match, regx => regx.test(url))) {
+            if (find(plugin.match, regx => regx.test(url))) {
                 for (let i = 0; i < plugin.synKeys.length; i++) {
                     afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);
                     if (afterInput !== beforeInput)

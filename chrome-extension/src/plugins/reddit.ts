@@ -1,6 +1,8 @@
 /*
  * LipSurf plugin for Reddit.com
  */
+import { PluginBase } from "../common/plugin-lib";
+
 class RedditPlugin extends PluginBase {
     static friendlyName = 'Reddit';
     static description = 'Commands for Reddit.com';

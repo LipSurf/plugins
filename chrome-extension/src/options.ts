@@ -2,9 +2,10 @@
 /*
  * Included in the options.html script
  */
-declare var riot: any;
-import * as _ from "lodash";
+import riot from 'riot';
+import { pick }  from "lodash-es";
 import { Store, StoreSynced, IPluginConfig } from "./background/store";
+require('./tags/options-page.tag');
 
 // what's shown on the options page
 interface IPluginOptionsPageStore {
@@ -47,11 +48,11 @@ class OptionsPage extends StoreSynced {
     storeUpdated(newPluginsConfig: IPluginConfig[]) {
         Object.assign(this.options,  {
             cmdGroups: newPluginsConfig.map(plugin => ({
-                    commands: _.map(plugin.commands, cmd => ({
+                    commands: plugin.commands.map(cmd => ({
                         match: typeof cmd.match !== 'function' ? cmd.match : '',
-                        ... _.pick(cmd, 'enabled', 'name', 'description'),
+                        ... pick(cmd, 'enabled', 'name', 'description'),
                     })),
-                    ... _.pick(plugin, 'version', 'expanded', 'enabled', 'friendlyName', 'id', 'description', 'homophones'),
+                    ... pick(plugin, 'version', 'expanded', 'enabled', 'friendlyName', 'id', 'description', 'homophones'),
             })),
         });
         // trigger exists once we call riot.observable
@@ -64,11 +65,11 @@ class OptionsPage extends StoreSynced {
                 memo[cmdGroup.id] = {
                     disabledCommands: cmdGroup.commands.filter(x => !x.enabled).map(cmd => cmd.name),
                     disabledHomophones: cmdGroup.homophones.filter(x => !x.enabled).map(homo => homo.source),
-                    ... _.pick(cmdGroup, 'version', 'expanded', 'enabled'),
+                    ... pick(cmdGroup, 'version', 'expanded', 'enabled'),
                 };
                 return memo;
             }, {}),
-            ... _.pick(this.options, 'showLiveText'),
+            ... pick(this.options, 'showLiveText'),
         });
     }
 }
@@ -96,6 +97,8 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
+// so riot can access the options as well
+window['options'] = options;
 
 
 // store.getPreferences().then((prefs) => {
@@ -105,7 +108,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 //             let {disabledCommands, disabledHomophones, expanded, enabled} = prefs.plugins[plugin.id];
 //             let ret:IPluginPref = {
 //                 commands: plugin.commands.map((cmd) => {
-//                     let ret: any = _.pick(cmd, ['name', 'match']);
+//                     let ret: any = pick(cmd, ['name', 'match']);
 //                     ret.enabled = ~disabledCommands.indexOf(cmd.name);
 //                     return ret;
 //                 }),
@@ -119,7 +122,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 //                 ),
 //                 enabled,
 //                 expanded,
-//                 ... _.pick(plugin, ['friendlyName', 'description'])
+//                 ... pick(plugin, ['friendlyName', 'description'])
 //             };
 //             return ret;
 //         }),

@@ -1,22 +1,15 @@
 {
   "compilerOptions": {
-    "module": "none",
-    "noEmitOnError": true,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
-    "removeComments": true,
-    "moduleResolution": "node",
     "declaration": false,
-    "outDir": "chrome-extension/dist/",
-    "rootDir": "src",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "es6",
+    "noEmitOnError": true,
+    "noUnusedLocals": false,
+    "noImplicitAny": false,
+    "moduleResolution": "node",
+    "removeComments": true,
     "sourceMap": false,
     "target": "ES2017"
-  },
-  "exclude": [
-    "node_modules",
-    "src/background",
-    "src/common",
-    "src/content-scripts",
-    "tests"
-  ]
+  }
 }

@@ -4,7 +4,7 @@
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
-import * as _ from "lodash";
+import { flatten, pick } from "lodash-es";
 import { StoreSynced, IPluginConfig, } from "./store";
 import { promisify } from "../common/util";
 
@@ -42,8 +42,8 @@ export class PluginManager extends StoreSynced {
     private pluginsCSStore:IPluginCSStore[];
 
     protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
-        this.pluginsCSStore = newPluginsConfig.map((pluginConfig) => 
-            _.pick(pluginConfig, ['enabled', 'cs', 'match']));
+        this.pluginsCSStore = newPluginsConfig.map((pluginConfig) =>
+            pick(pluginConfig, ['enabled', 'cs', 'match']));
     }
 
     // TODO: wait for promise of plugins loaded?
@@ -51,14 +51,14 @@ export class PluginManager extends StoreSynced {
     // code into the given tabId if the url matches.
     async loadCommandCodeIntoPage(tabId: number, url: string) {
         let csStrs = this.pluginsCSStore
-            .filter((plugin) => plugin.enabled && _.reduce(plugin.match, (acc, matchPattern) => acc || matchPattern.test(url), false))
+            .filter((plugin) => plugin.enabled && plugin.match.reduce((acc, matchPattern) => acc || matchPattern.test(url), false))
             .map((plugin) => plugin.cs);
         await promisify<any>(chrome.tabs.executeScript)(tabId, {code: csStrs.join('\n'), runAt: "document_start"});
     }
 
-    // Take PluginBase subclass and 
+    // Take PluginBase subclass and
     // put into form ready for the plugin store
-    // only needs to be run when plugin version is changed 
+    // only needs to be run when plugin version is changed
     // (most commonly when fetching new plugins, or updating version of
     // existing plugins)
     static async digestNewPlugin(id: string, version: string): Promise<ILocalPluginData> {
@@ -82,18 +82,18 @@ export class PluginManager extends StoreSynced {
             commands: plugin.commands.map((cmd) => {
                 let delay;
                 if (cmd.delay)
-                    delay = _.flatten([cmd.delay]);
+                    delay = flatten([cmd.delay]);
                 return {
                     // Make all the functions strings (because we can't store them directly)
-                    match: typeof cmd.match === 'function' ? cmd.match : _.flatten([cmd.match]),
+                    match: typeof cmd.match === 'function' ? cmd.match : flatten([cmd.match]),
                     delay,
-                    ..._.pick(cmd, 'run', 'name', 'description', 'nice'),
+                    ... pick(cmd, 'run', 'name', 'description', 'nice'),
                 };
             }),
-            match: _.flatten([plugin.match]),
+            match: flatten([plugin.match]),
             cs,
             version,
-            ... _.pick(plugin, 'friendlyName', 'homophones')
+            ... pick(plugin, 'friendlyName', 'homophones')
         };
     }
 

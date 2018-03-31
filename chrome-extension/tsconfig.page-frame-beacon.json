@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "files": [
-    "src/background/main.ts"
+    "src/page/frame-beacon.ts"
   ]
 }

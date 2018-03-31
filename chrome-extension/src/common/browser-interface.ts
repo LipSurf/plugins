@@ -30,7 +30,7 @@ export module storage {
             chrome.storage.onChanged.addListener(function(rawChanges, namespace) {
                 if (namespace === "sync") {
                     // we don't use the specific changes yet -- so this is unnecessary for now
-                    // let changes = _.reduce(Object.keys(rawChanges), (memo, key) => Object.assign(memo, {[key]: rawChanges[key].newValue}), {});
+                    // let changes = Object.keys(rawChanges).reduce((memo, key) => Object.assign(memo, {[key]: rawChanges[key].newValue}), {});
                     cb(rawChanges);
                 }
             });

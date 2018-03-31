@@ -1,6 +1,8 @@
 /*
  * primary LipSurf plugin for browser functionality
  */
+import { PluginBase } from "../common/plugin-lib";
+
 class BrowserPlugin extends PluginBase {
     static friendlyName = 'Browser';
     static description = 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.';

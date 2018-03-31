@@ -8,9 +8,9 @@
     <td if={ typeof match=='string' }><span class="tag">{ match }</span></td>
     <script>
 
-    save(e) {
+    save = (e) => {
     	// binding
-    	e.item.enabled = this.refs.input.checked;
+    	e.item.enabled = !e.item.enabled;
 	    this.parent.save(e);
     }
 

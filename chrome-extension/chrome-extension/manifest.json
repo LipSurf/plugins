@@ -1,14 +1,12 @@
 {
   "manifest_version": 2,
-  "name": "No Hand Man",
-  "description": "Control reddit with your voice. Great for browsing reddit while you eat or do \"other\" things.",
+  "name": "Lip Surf",
+  "description": "Control the browser with your voice. Great for browsing while you eat or your hands are busy.",
   "version": "1.0.1",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg+SanKtJug6OqAAPsf+y+Af1wlI9yYZfGH8hDCb0zzPjKCVLomQ6eKyTr91piKLr37TOWg1Wh4YFY5aKkgfkh5hU3QO7LBJ50AsiRGO22xXNZauaot1EymbaH/B4e5EURZde4kaG//YbO/Vtnso1jqdtX2+Uvx3BIdspY3PXJMhB0supqFFRwnApt6n+QSZWi6ALqIT+x3jgxBav8gjX5oq2WO22lA5Yr3Ck5+Yk0JsJ1Mfa0C+Ig+gcIFKwhYpeKJZTZVUysj+gj6IbfLW+dhxhr03LQOv3du10jmyw6LHphCOP+yZngTzR41ACLW4qpjYt6No/nlXzXBlcs94KMwIDAQAB",
   "background": {
     "scripts": [
-      "vendor/lodash.min.js",
-      "dist/background.js",
-      "tests/test-probe-bg.js"
+      "dist/background.js"
     ],
     "persistent": true
   },
@@ -26,8 +24,7 @@
       "css": ["assets/rnh.css"],
       "js": [
         "vendor/jquery-3.2.1.min.js",
-        "dist/content-scripts/rnh-cs.js",
-        "tests/test-probe-cs.js"
+        "dist/page/main.js"
       ]
     },
     {
@@ -35,8 +32,8 @@
         "<all_urls>"
       ],
       "js": [
-        "vendor/jquery-3.2.1.min.js", 
-        "dist/content-scripts/frame-beacon.js"
+        "vendor/jquery-3.2.1.min.js",
+        "dist/page/frame-beacon.js"
       ],
       "all_frames": true
     },

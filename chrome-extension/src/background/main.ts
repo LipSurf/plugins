@@ -1,9 +1,7 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
-/// <reference path="./plugin-manager.ts" />
-/// <reference path="./plugin-sandbox.ts" />
-/// <reference path="./store.ts" />
-/// <reference path="../common/browser-interface.ts" />
-import * as _ from "lodash";
+declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
+declare let CLEAR_SETTINGS: boolean;
+import { pick } from "lodash-es";
 import * as CT from "../common/constants";
 import * as Util from "./util";
 import { Recognizer, IRecognizedCallback, IRecognizedCmd, IRecognizedText } from "./recognizer";
@@ -137,11 +135,11 @@ store.rebuildLocalPluginCache().then(() => {
 
     function cmdRecognizedCb(request: IRecognizedCallback): void {
         if (instanceOfCmd(request)) {
-            let cmdPart: ICmdParcel = _.pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
+            let cmdPart: ICmdParcel = pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
             ps.run(cmdPart);
             sendMsgToActiveTab(cmdPart);
             sendMsgToActiveTab({
-                liveText: _.pick(request, ['text', 'isSuccess'])
+                liveText: pick(request, ['text', 'isSuccess'])
             });
         } else {
             sendMsgToActiveTab(<ILiveTextParcel>{
@@ -212,3 +210,20 @@ var InterferenceAudioDetector = (function () {
         }
     }
 })();
+
+
+// compile time optional includes
+if (CLEAR_SETTINGS) {
+    chrome.storage.local.clear();
+    chrome.storage.sync.clear();
+}
+if (INCLUDE_SPEECH_TEST_HARNESS) {
+    chrome.runtime.onConnect.addListener(function(port) {
+        if (port.name == 'test-probe') {
+            port.onMessage.addListener(function(msg:any) {
+                console.log(`RECEIVED A FKIN MSG`);
+                eval(msg.cmd);
+            });
+        }
+    });
+}
