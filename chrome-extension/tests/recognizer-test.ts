@@ -9,6 +9,7 @@ import { PluginManager } from "../src/background/plugin-manager";
 import { Store } from "../src/background/store";
 import { PluginSandbox } from '../src/background/plugin-sandbox';
 import { storage } from "../src/common/browser-interface";
+var {PluginBase} = require("../src/common/plugin-lib");
 
 const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8' });
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
@@ -37,12 +38,29 @@ test.before(async(t) => {
     sinon.stub(storage.sync, 'registerOnChangeCb');
     let biLocalStorageLoad = sinon.stub(storage.local, 'load');
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
+    let evalPluginsStub = sinon.stub(PluginManager, "evalPluginCode");
     sinon.stub(storage.local, "save").callsFake((saveData:ILocalData) => Object.assign(testSaveData, saveData));
     biSyncStorageLoad.resolves(Store.DEFAULT_PREFERENCES);
     biLocalStorageLoad.resolves(testSaveData);
     fetchPluginStub.callsFake(async (pluginName:string) => {
         return eval(`PLUGINS_${pluginName.toUpperCase()}`)
     });
+    evalPluginsStub.callsFake((function (id:string, text:string) {
+        let plugin;
+        // HACK
+        // needed to prevent undefined error in common (init) code
+        // TODO: load plugin code in frontend --> send up the properties
+        // that must be stored (as strings if they have things undefined
+        // in the bg (get eval'd in the cs)). This way we don't have
+        // to define dumby PluginUtil shit here
+        // takes ~1ms
+        let window = {};
+        let $ = () => { return {ready: () => null}};
+        // for tests to work in node, define window
+        eval(`${text}; plugin = window.${id}Plugin;`);
+        // END HACK
+        return plugin;
+    }).bind(PluginManager));
 
     let store = new Store(PluginManager.digestNewPlugin);
     await store.rebuildLocalPluginCache();

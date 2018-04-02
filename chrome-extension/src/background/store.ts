@@ -1,6 +1,6 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { omit, mapValues, pick } from "lodash-es";
+import { omit, mapValues, pick } from "lodash";
 import { promisify } from "../common/util";
 import { storage } from "../common/browser-interface";
 

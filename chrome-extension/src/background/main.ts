@@ -1,7 +1,7 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
-import { pick } from "lodash-es";
+import { pick } from "lodash";
 import * as CT from "../common/constants";
 import * as Util from "./util";
 import { Recognizer, IRecognizedCallback, IRecognizedCmd, IRecognizedText } from "./recognizer";

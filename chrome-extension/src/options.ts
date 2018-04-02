@@ -3,7 +3,7 @@
  * Included in the options.html script
  */
 import riot from 'riot';
-import { pick }  from "lodash-es";
+import { pick }  from "lodash";
 import { Store, StoreSynced, IPluginConfig } from "./background/store";
 require('./tags/options-page.tag');
 

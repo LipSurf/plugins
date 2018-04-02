@@ -1,8 +1,6 @@
 TODO
 ===
 
-* production mode -> PluginBase gets changed to main__pluginbase and it's not from the mangler -- make page/main not get mangled because it deals with content scripts
-
 * delay needs to get reset when fresh shits come in
 * on startup in main -- special fetch for store needs to occur, otherwise the simple fetch from local and remote storage can be used in options.ts
 * stop goes to top of page

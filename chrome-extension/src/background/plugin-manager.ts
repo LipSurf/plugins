@@ -4,9 +4,12 @@
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
-import { flatten, pick } from "lodash-es";
+import { flatten, pick } from "lodash";
 import { StoreSynced, IPluginConfig, } from "./store";
 import { promisify } from "../common/util";
+// HACK
+// Force PluginBase class to be included so that eval doesn't bitch
+let { PluginBase } = require("../common/plugin-lib");
 
 // Plugin content-script store for easily loading front-end
 // code into pages
@@ -15,28 +18,6 @@ interface IPluginCSStore extends IDisableable {
     cs: string,
 }
 
-// HACK
-class PluginBase {
-    static friendlyName =  '';
-    static description = '';
-    static version = '';
-    static match = /^$/;
-
-    static commands: IPluginDefCommand[] = [];
-    static homophones: IPluginDefHomophones = {};
-    static init = () => null;
-
-    static util: IPluginUtil = {
-        queryAllFrames: () => null,
-        postToAllFrames: () => null,
-        sendMsgToBeacon: () => null,
-        toggleHelpBox: (enabeld) => null,
-        getScrollDistance: () => 0,
-        scrollToAnimated: () => null,
-        isInView: () => true,
-        getNoCollisionUniqueAttr: () => '',
-    }
-};
 
 export class PluginManager extends StoreSynced {
     private pluginsCSStore:IPluginCSStore[];
@@ -72,11 +53,11 @@ export class PluginManager extends StoreSynced {
         let privateMembers = Object.keys(plugin)
                 .filter((member) => typeof PluginBase[member] === 'undefined')
                 .map((member) => `${id}Plugin.${member} = ${plugin[member] ? plugin[member].toString(): plugin[member]};`);
-        let initStr = plugin.init.toString();
+        let initStr = plugin.init ? plugin.init.toString() : '';
         let cs = `${id}Plugin = class ${id}Plugin {};
                 ${id}Plugin.commands = {${commandsStr.join(',')}};
                 ${privateMembers.join('\n')}
-                ${initStr.substr(0, initStr.lastIndexOf('}')).replace('init() {', '')};
+                ${initStr.substr(0, initStr.lastIndexOf('}')).replace(/init\(\)\s*{/, '')};
                     `;
         return {
             commands: plugin.commands.map((cmd) => {

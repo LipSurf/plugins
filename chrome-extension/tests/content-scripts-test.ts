@@ -1,3 +1,6 @@
+/*
+ *  Tests compiled versions that are in chrome-extension/dist
+ */
 import * as sinon from 'sinon';
 import {test} from 'ava';
 import {JSDOM} from 'jsdom';
@@ -9,10 +12,8 @@ const fs = require('fs');
 const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8' });
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
 
-const csScripts = {
-    rnh: `rnh-cs.js`,
-    beacon: `frame-beacon.js`,
-};
+const csScripts = [`main.js`, `frame-beacon.js`];
+
 const CS_BUILTINS = `
     var chrome = {
         runtime: {
@@ -20,6 +21,7 @@ const CS_BUILTINS = `
                 addListener: function () { },
             },
             sendMessage: function () { },
+            connect: function() {},
         },
         storage: {
             local: {
@@ -38,16 +40,16 @@ function attachScript(dom, scriptContent) {
 }
 
 
-for (let csName in csScripts) {
+for (let csName of csScripts) {
     test.cb(`${csName} has no errors when added to DOM`, (t) => {
             JSDOM.fromFile("tests/mock.html", {
                 runScripts: 'dangerously',
             }).then(dom => {
                 dom.window.onerror = function(messageOrEvent, source, lineno, colno, error) {
-                    t.fail(messageOrEvent);
+                    t.fail(messageOrEvent.toString());
                 };
                 attachScript(dom, CS_BUILTINS);
-                attachScript(dom, readFileSync(`${BASE_DIR}dist/content-scripts/${csScripts[csName]}`));
+                attachScript(dom, readFileSync(`${BASE_DIR}dist/page/${csName}`));
                 t.end();
             });
     });

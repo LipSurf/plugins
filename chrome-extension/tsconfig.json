@@ -10,6 +10,10 @@
     "moduleResolution": "node",
     "removeComments": true,
     "sourceMap": false,
+    "baseUrl": ".",
+    "paths": {
+      "lodash": ["node_modules/lodash-es"]
+    },
     "target": "ES2017"
   }
 }

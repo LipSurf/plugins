@@ -1,6 +1,7 @@
-import * as CT from "../common/constants";
+import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME,
+        CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME } from "../common/constants";
 import { Store, IToggleableHomophones, StoreSynced, IPluginConfig } from "./store";
-import { find, flatten, pick } from "lodash-es";
+import { find, flatten, pick } from "lodash";
 
 let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
@@ -220,7 +221,7 @@ export class Recognizer extends StoreSynced {
                         if (out) {
                             let delay: number = null;
                             if (curCmd.ordinalMatch) {
-                                delay = CT.ORDINAL_CMD_DELAY;
+                                delay = ORDINAL_CMD_DELAY;
                             } else if (curCmd.delay) {
                                 delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
                             }
@@ -310,7 +311,7 @@ export class Recognizer extends StoreSynced {
     // prefix or suffix match
     private ordinalOrNumberToDigit(ordinal) {
         try {
-            return CT.ORDINALS_TO_DIGITS[ordinal] || CT.NUMBERS_TO_DIGITS[ordinal];
+            return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
         } catch (e) {
             console.debug(`Could not convert to number ${e}`);
         }
@@ -319,9 +320,9 @@ export class Recognizer extends StoreSynced {
 
     handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
         let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
-        console.log(`elapsed time ${elapsedTime} ${CT.COOLDOWN_TIME} ${CT.CONFIDENCE_THRESHOLD}`);
-        if (elapsedTime > CT.COOLDOWN_TIME) {
-            if (confidence > CT.CONFIDENCE_THRESHOLD) {
+        console.log(`elapsed time ${elapsedTime} ${COOLDOWN_TIME} ${CONFIDENCE_THRESHOLD}`);
+        if (elapsedTime > COOLDOWN_TIME) {
+            if (confidence > CONFIDENCE_THRESHOLD) {
                 // console.log(`start time ${+new Date()}`);
                 var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript, this.curActiveTabUrl);
                 var niceOutput = null;
@@ -331,7 +332,7 @@ export class Recognizer extends StoreSynced {
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
                     console.log(`isFinal: ${isFinal} lastNonFinalCmdExecuted: ${this.lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${this.lastFinalTime} `);
-                    if (isFinal && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > CT.FINAL_COOLDOWN_TIME) {
+                    if (isFinal && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > FINAL_COOLDOWN_TIME) {
                         console.log("Junked dupe.");
                         return;
                     }
@@ -367,7 +368,7 @@ export class Recognizer extends StoreSynced {
                     });
                 }
             }
-            if (isFinal && confidence <= CT.CONFIDENCE_THRESHOLD) {
+            if (isFinal && confidence <= CONFIDENCE_THRESHOLD) {
                 return this.cmdRecognizedCb({
                     text: transcript,
                     isUnsure: true

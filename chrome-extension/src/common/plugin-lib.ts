@@ -59,14 +59,16 @@ export function retrialAndError(f, f_check, delay, times) {
     });
 }
 
+// we define all the members so that typeof PluginBase[member] works
+// and we can distinguish what the private methods are of the plugin are
 export abstract class PluginBase {
-    static friendlyName: string;
-    static description: string;
-    static version: string;
-    static match: RegExp | RegExp[];
+    static friendlyName: string = '';
+    static description: string = '';
+    static version: string = '';
+    static match: RegExp | RegExp[] = [];
 
-    static commands: IPluginDefCommand[];
-    static homophones: IPluginDefHomophones;
+    static commands: IPluginDefCommand[] = [];
+    static homophones: IPluginDefHomophones = {};
     static init?: () => void;
 
     // don't allow non-static properties
