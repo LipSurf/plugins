@@ -28,7 +28,7 @@ export class Detector {
     private check() {
         this.checks += 1;
         new Promise(this.sentinelFn).then((x) => {
-            console.log(`calling check ${this.checks} ${new Date()}`);
+            //console.log(`calling check ${this.checks} ${new Date()}`);
             clearInterval(this.intervalId);
             this.detectCb(x);
         }, () => {});
@@ -77,7 +77,6 @@ export namespace ExtensionUtil {
         new Detector((resolve, reject) => {
                 _queryActiveTab((tab) => {
                     if (tab) {
-                        console.log(`tabs ${tab}`);
                         resolve(tab);
                     } else {
                         reject();

@@ -1,12 +1,13 @@
 TODO
 ===
 
+* annotations -- match needs context of runOnPage to be able to match elements dynamically?
+
 * delay needs to get reset when fresh shits come in
 * on startup in main -- special fetch for store needs to occur, otherwise the simple fetch from local and remote storage can be used in options.ts
 * stop goes to top of page
 * try namespaces for IPluginDefHomo... etc
 * Fix nice
-* Fix options
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
 * Get build pipeline optimized (obfuscate output)
 
@@ -62,6 +63,8 @@ from both the background and option pages.
 
 marketing/profit
 ===
+Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
+
 The browser extensions for Dragon are apparently atrocious. Make a better chrome extension and take a piece of that market.
 Stats: 231k users
 ![chrome extension reviews](./res/dragon-chrome-ext-reviews.png)

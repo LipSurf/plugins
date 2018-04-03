@@ -164,6 +164,7 @@ export class Recognizer extends StoreSynced {
      */
     getCmdForUserInput(input: string, url: string): IMatchCommand {
         // processedInput = dedupe(processedInput);
+        let startTime = +new Date();
         let homophoneIterator = this.generateHomophones(input, url);
         for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
             for (let g = 0; g < this.pluginsRecgStore.length; g++) {
@@ -225,6 +226,7 @@ export class Recognizer extends StoreSynced {
                             } else if (curCmd.delay) {
                                 delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
                             }
+                            console.log(`Recg. timer: ${+new Date() - startTime}`);
                             return {
                                 cmdName: curCmd.name,
                                 cmdPluginId: plugin.id,
@@ -237,6 +239,7 @@ export class Recognizer extends StoreSynced {
                 }
             }
         }
+        console.log(`Recg. timer: ${+new Date() - startTime}`);
         return <IMatchCommand>{};
     }
 
@@ -321,14 +324,13 @@ export class Recognizer extends StoreSynced {
     handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
         let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime} ${COOLDOWN_TIME} ${CONFIDENCE_THRESHOLD}`);
+        clearTimeout(this.delayCmd);
         if (elapsedTime > COOLDOWN_TIME) {
             if (confidence > CONFIDENCE_THRESHOLD) {
-                // console.log(`start time ${+new Date()}`);
                 var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript, this.curActiveTabUrl);
                 var niceOutput = null;
 
                 console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                // console.log(`end time ${+new Date()}`);
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
                     console.log(`isFinal: ${isFinal} lastNonFinalCmdExecuted: ${this.lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${this.lastFinalTime} `);
@@ -336,7 +338,6 @@ export class Recognizer extends StoreSynced {
                         console.log("Junked dupe.");
                         return;
                     }
-                    clearTimeout(this.delayCmd);
 
                     // it ambiguous so the tests can work in node
                     // @ts-ignore: setTimeout === window.setTimeout but we keep

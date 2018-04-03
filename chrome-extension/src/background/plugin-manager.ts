@@ -52,7 +52,15 @@ export class PluginManager extends StoreSynced {
         // members that the plugin uses internally (shared across commands)
         let privateMembers = Object.keys(plugin)
                 .filter((member) => typeof PluginBase[member] === 'undefined')
-                .map((member) => `${id}Plugin.${member} = ${plugin[member] ? plugin[member].toString(): plugin[member]};`);
+                .map((member) => {
+                    let val;
+                    let _type = typeof plugin[member];
+                    if (_type === 'function')
+                        val = plugin[member].toString()
+                    else if (_type === 'object')
+                        val = JSON.stringify(plugin[member]);
+                    return `${id}Plugin.${member} = ${val};`
+                });
         let initStr = plugin.init ? plugin.init.toString() : '';
         let cs = `${id}Plugin = class ${id}Plugin {};
                 ${id}Plugin.commands = {${commandsStr.join(',')}};

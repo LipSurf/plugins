@@ -44,17 +44,106 @@ export class BrowserPlugin extends PluginBase {
         'paws': 'pause',
     };
 
+    static visibleOnPage = (docViewTop:number, docViewBottom:number, $ele) => {
+        let eleTop = $ele.offset().top;
+        let eleBottom = eleTop + $ele.height();
+
+        return ((eleBottom <= docViewBottom) && (eleTop >= docViewTop));
+    }
+
+    static LETTERS = 'ACFGHIJKLOQRSTVXYZ'.split('');
+    static NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 20, 30, 40, 50, 60, 70, 80, 90];
+    static genName = (i) => {
+        return BrowserPlugin.LETTERS[Math.floor(i/BrowserPlugin.NUMBERS.length)] + BrowserPlugin.NUMBERS[i % BrowserPlugin.NUMBERS.length];
+    }
+
+    static annotated = {};
+
+    static init() {
+        // inject the CSS
+        let STYLE = `
+            .${PluginBase.util.getNoCollisionUniqueAttr()}-anno {
+                border: 1px solid red;
+                display: inline-block;
+                background-color: yellow;
+                border-style: dotted;
+                opacity: 0.7;
+                padding: 2px;
+                font-size: 0.9rem;
+                margin: 0px 0px 0 5px;
+                box-shadow: #000000a1 2px 2px 1px;
+            }
+        `;
+        $(`<style type='text/css'>${STYLE}</style>`).appendTo("head");
+    }
+
     static commands = [{
+        name: 'Annotate',
+        description: 'Give elements on the page a special annotation so they can be easily referred to and "clicked" on with voice controls.',
+        match: ['annotate', 'annotations on', 'turn on annotations'],
+        runOnPage: function() {
+            let count = 0, removedCount = 0;
+            let windowTop = $(window).scrollTop();
+            let windowBottom = $(window).height() + windowTop;
+            let noCollisionAttr = PluginBase.util.getNoCollisionUniqueAttr();
+            // remove invisible annotations and mark their names as available again
+            $(`div[${noCollisionAttr}-anno]`).each((i, ele) => {
+                let $ele = $(ele);
+                let name = ele.getAttribute(`${noCollisionAttr}-anno`);
+                if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
+                    removedCount += 1;
+                    delete BrowserPlugin.annotated[name.toLowerCase()];
+                }
+             });
+            // .filter has better perf.
+            $('a').filter(':visible').each((i, ele) => {
+                let $ele = $(ele);
+                if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
+                    count += 1;
+                    let label = document.createElement("div");
+                    let name = BrowserPlugin.genName(i);
+                    label.className = `${noCollisionAttr}-anno`;
+                    label.setAttribute(`${noCollisionAttr}-anno`, name);
+                    BrowserPlugin.annotated[name.toLowerCase()] = null;
+                    let labelContent = document.createTextNode(name);
+                    label.appendChild(labelContent);
+                    ele.appendChild(label);
+                }
+            })
+            console.log(`Removed ${removedCount}, annotated ${count} elements`);
+        }
+    },
+    {
+        name: 'Unannotate',
+        description: 'Hide the annotations',
+        match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off'],
+        runOnPage: function() {
+            $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-anno]`).remove();
+        }
+    },
+    {
+        name: 'Click',
+        description: 'Click an annotated element',
+        match: (input) => {
+            let noSpaces = input.replace(/\s*/, '');
+            if (typeof BrowserPlugin.annotated[noSpaces] !== 'undefined')
+                return [noSpaces];
+        },
+        runOnPage: (annotationName:string) => {
+            $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-attr=${annotationName}]`).parent().click();
+        }
+    },
+    {
         name: 'Close Help',
         description: "Close the help box.",
-        match: "close help",
+        match: ["close help", "hide help", "help off"],
         runOnPage: function () {
             PluginBase.util.toggleHelpBox(false);
         }
     }, {
         name: 'Open Help',
         description: "Open the help box.",
-        match: ["help", "open help", "help open", "commands"],
+        match: ["help", "open help", "help open", "commands", "help on"],
         runOnPage: function () {
             PluginBase.util.toggleHelpBox(true);
         }

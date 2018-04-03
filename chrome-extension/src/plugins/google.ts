@@ -22,7 +22,7 @@ export class GooglePlugin extends PluginBase {
                 return [match[1]];
             }
         },
-        delay: 3000,
+        delay: 1000,
         runOnPage: function (searchQuery) {
             window.location.href = `https://www.google.com/search?q=${searchQuery}`;
         }

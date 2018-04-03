@@ -1,4 +1,5 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
+/// <reference path="../@types/plugin-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { promisify } from "../common/util";
 import { attachOverlay, retrialAndError, PluginBase } from "../common/plugin-lib";

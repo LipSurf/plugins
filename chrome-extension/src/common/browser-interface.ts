@@ -1,4 +1,5 @@
 /// <reference path="../@types/store.d.ts" />
+/// <reference path="../@types/plugin-interface.d.ts" />
 import { promisify } from './util';
 
 

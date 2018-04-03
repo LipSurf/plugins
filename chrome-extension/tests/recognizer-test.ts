@@ -47,18 +47,9 @@ test.before(async(t) => {
     });
     evalPluginsStub.callsFake((function (id:string, text:string) {
         let plugin;
-        // HACK
-        // needed to prevent undefined error in common (init) code
-        // TODO: load plugin code in frontend --> send up the properties
-        // that must be stored (as strings if they have things undefined
-        // in the bg (get eval'd in the cs)). This way we don't have
-        // to define dumby PluginUtil shit here
-        // takes ~1ms
         let window = {};
         let $ = () => { return {ready: () => null}};
-        // for tests to work in node, define window
         eval(`${text}; plugin = window.${id}Plugin;`);
-        // END HACK
         return plugin;
     }).bind(PluginManager));
 
