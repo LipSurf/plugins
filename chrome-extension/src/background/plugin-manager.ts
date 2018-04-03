@@ -48,7 +48,15 @@ export class PluginManager extends StoreSynced {
         // that might be shared in command run code.
         let commandsStr = plugin.commands
                 .filter((cmd) => cmd.runOnPage)
-                .map((cmd) => `'${cmd.name}': ${cmd.runOnPage.toString()}`);
+                .map((cmd) => {
+                    let cmdVal:any = {
+                        runOnPage: cmd.runOnPage.toString(),
+                    };
+                    if (typeof cmd.match === 'function')
+                        cmdVal.match = cmd.match.toString()
+                    let cmdValStr = Object.keys(cmdVal).map((key) => `${key}:${cmdVal[key]}`).join(',');
+                    return `'${cmd.name}': {${cmdValStr}}`
+                });
         // members that the plugin uses internally (shared across commands)
         let privateMembers = Object.keys(plugin)
                 .filter((member) => typeof PluginBase[member] === 'undefined')
@@ -57,8 +65,13 @@ export class PluginManager extends StoreSynced {
                     let _type = typeof plugin[member];
                     if (_type === 'function')
                         val = plugin[member].toString()
-                    else if (_type === 'object')
-                        val = JSON.stringify(plugin[member]);
+                    else if (_type === 'object') {
+                        if (plugin[member] instanceof Set) {
+                            val = `new Set(${JSON.stringify(Array.from(plugin[member]))})`
+                        } else {
+                            val = JSON.stringify(plugin[member]);
+                        }
+                    }
                     return `${id}Plugin.${member} = ${val};`
                 });
         let initStr = plugin.init ? plugin.init.toString() : '';

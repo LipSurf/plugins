@@ -7,13 +7,15 @@ export class GooglePlugin extends PluginBase {
     static friendlyName = 'Google';
     static description = 'The google search engine.';
     static version = '1.0.0';
-    static match = /.*/;
+    static apiVersion = '1';
+    static match = /.*google.com/;
     static homophones = {
     };
 
     static commands = [{
         name: 'Search',
         description: "Do a google search",
+        global: true,
         match: (input) => {
             const REGX = /^(?:search|google) (.*)/;
             let match = input.match(REGX);

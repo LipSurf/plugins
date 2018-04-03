@@ -7,6 +7,7 @@ export class BrowserPlugin extends PluginBase {
     static friendlyName = 'Browser';
     static description = 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.';
     static version = '1.0.0';
+    static apiVersion = '1';
     static match = /.*/;
     static homophones = {
         'closeout': 'close help',
@@ -51,13 +52,35 @@ export class BrowserPlugin extends PluginBase {
         return ((eleBottom <= docViewBottom) && (eleTop >= docViewTop));
     }
 
+    // Annotations
     static LETTERS = 'ACFGHIJKLOQRSTVXYZ'.split('');
     static NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 20, 30, 40, 50, 60, 70, 80, 90];
-    static genName = (i) => {
-        return BrowserPlugin.LETTERS[Math.floor(i/BrowserPlugin.NUMBERS.length)] + BrowserPlugin.NUMBERS[i % BrowserPlugin.NUMBERS.length];
-    }
+    static popName = () => {
+        let name;
+        for (let key of BrowserPlugin.availAnnotations) {
+            if (BrowserPlugin.availAnnotations.has(key)) {
+                name = key;
+                break;
+            }
+        }
+        // more performant than delete
+        BrowserPlugin.availAnnotations.delete(name);
+        BrowserPlugin.annotated.add(name);
+        return name;
+    };
 
-    static annotated = {};
+    static annotated = new Set();
+
+    static availAnnotations = (function() {
+        let ret = new Set();
+        for (let i = 0; i < BrowserPlugin.LETTERS.length * BrowserPlugin.NUMBERS.length; i++) {
+            ret.add(BrowserPlugin.LETTERS[Math.floor(i/BrowserPlugin.NUMBERS.length)] + BrowserPlugin.NUMBERS[i % BrowserPlugin.NUMBERS.length]);
+        }
+        return ret;
+    })();
+
+    static annotationsTimer = null;
+    // End annotations
 
     static init() {
         // inject the CSS
@@ -66,6 +89,8 @@ export class BrowserPlugin extends PluginBase {
                 border: 1px solid red;
                 display: inline-block;
                 background-color: yellow;
+                font-weight: normal;
+                color: #222;
                 border-style: dotted;
                 opacity: 0.7;
                 padding: 2px;
@@ -82,35 +107,51 @@ export class BrowserPlugin extends PluginBase {
         description: 'Give elements on the page a special annotation so they can be easily referred to and "clicked" on with voice controls.',
         match: ['annotate', 'annotations on', 'turn on annotations'],
         runOnPage: function() {
-            let count = 0, removedCount = 0;
-            let windowTop = $(window).scrollTop();
-            let windowBottom = $(window).height() + windowTop;
+            let prevCount = null;
             let noCollisionAttr = PluginBase.util.getNoCollisionUniqueAttr();
-            // remove invisible annotations and mark their names as available again
-            $(`div[${noCollisionAttr}-anno]`).each((i, ele) => {
-                let $ele = $(ele);
-                let name = ele.getAttribute(`${noCollisionAttr}-anno`);
-                if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
-                    removedCount += 1;
-                    delete BrowserPlugin.annotated[name.toLowerCase()];
+
+            BrowserPlugin.annotationsTimer = setInterval(() => {
+                let windowTop = $(window).scrollTop();
+                let windowBottom = $(window).height() + windowTop;
+                let count = 0;
+                let removedCount = 0;
+                // remove invisible annotations and mark their names as available again
+                $(`div[${noCollisionAttr}-anno]`).each((i, ele) => {
+                    let $ele = $(ele);
+                    let name = ele.getAttribute(`${noCollisionAttr}-anno`);
+                    if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
+                        removedCount += 1;
+                        // make the annotation name avail again
+                        BrowserPlugin.availAnnotations.add(name);
+                        BrowserPlugin.annotated.delete(name);
+                        $ele.remove();
+                    }
+                });
+                // .filter has better perf.
+                $('a')
+                    .filter(':visible')
+                    .filter(`:not(:has(div[${noCollisionAttr}-anno]))`)
+                    .each((i, ele) => {
+                        let $ele = $(ele);
+                        if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
+                            count += 1;
+                            let label = document.createElement("div");
+                            let name = BrowserPlugin.popName();
+                            if (name) {
+                                label.className = `${noCollisionAttr}-anno`;
+                                label.setAttribute(`${noCollisionAttr}-anno`, name);
+                                let labelContent = document.createTextNode(name);
+                                label.appendChild(labelContent);
+                                ele.appendChild(label);
+                            }
+                        }
+                    }
+                )
+                if (prevCount != count) {
+                    prevCount = count;
+                    console.log(`Removed ${removedCount}, annotated ${count} elements`);
                 }
-             });
-            // .filter has better perf.
-            $('a').filter(':visible').each((i, ele) => {
-                let $ele = $(ele);
-                if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
-                    count += 1;
-                    let label = document.createElement("div");
-                    let name = BrowserPlugin.genName(i);
-                    label.className = `${noCollisionAttr}-anno`;
-                    label.setAttribute(`${noCollisionAttr}-anno`, name);
-                    BrowserPlugin.annotated[name.toLowerCase()] = null;
-                    let labelContent = document.createTextNode(name);
-                    label.appendChild(labelContent);
-                    ele.appendChild(label);
-                }
-            })
-            console.log(`Removed ${removedCount}, annotated ${count} elements`);
+            }, 800);
         }
     },
     {
@@ -118,6 +159,7 @@ export class BrowserPlugin extends PluginBase {
         description: 'Hide the annotations',
         match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off'],
         runOnPage: function() {
+            clearInterval(BrowserPlugin.annotationsTimer);
             $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-anno]`).remove();
         }
     },
@@ -125,12 +167,13 @@ export class BrowserPlugin extends PluginBase {
         name: 'Click',
         description: 'Click an annotated element',
         match: (input) => {
-            let noSpaces = input.replace(/\s*/, '');
-            if (typeof BrowserPlugin.annotated[noSpaces] !== 'undefined')
+            let noSpaces = input.replace(/\s*/, '').toUpperCase();
+            if (BrowserPlugin.annotated.has(noSpaces))
                 return [noSpaces];
         },
         runOnPage: (annotationName:string) => {
-            $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-attr=${annotationName}]`).parent().click();
+            // do we need to query parent? Because we're placing this inside the anchor
+            $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-anno=${annotationName.toUpperCase()}]`).click();
         }
     },
     {

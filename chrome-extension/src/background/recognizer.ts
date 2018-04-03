@@ -2,6 +2,7 @@ import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME
         CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME } from "../common/constants";
 import { Store, IToggleableHomophones, StoreSynced, IPluginConfig } from "./store";
 import { find, flatten, pick } from "lodash";
+import { promisify } from "../common/util";
 
 let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
@@ -106,7 +107,7 @@ export class Recognizer extends StoreSynced {
             let lastE = event.results[event.results.length - 1];
             console.dir(event);
             this.handleTranscript(
-                lastE[0].transcript.trim().toLowerCase(),
+                lastE[0].transcript.trim().toLowerCase().replace(/-/g, ''),
                 lastE.isFinal,
                 lastE[0].confidence,
             );
@@ -162,7 +163,7 @@ export class Recognizer extends StoreSynced {
      *  matchOutput: the arguments to pass back to the command
      * }
      */
-    getCmdForUserInput(input: string, url: string): IMatchCommand {
+    async getCmdForUserInput(input: string, url: string): Promise<IMatchCommand> {
         // processedInput = dedupe(processedInput);
         let startTime = +new Date();
         let homophoneIterator = this.generateHomophones(input, url);
@@ -172,11 +173,14 @@ export class Recognizer extends StoreSynced {
                 if (find(plugin.match, regx => regx.test(url))) {
                     for (let f = 0; f < plugin.commands.length; f++) {
                         let curCmd = plugin.commands[f];
-                        let out;
+                        // an array of args to pass to runOnPage
+                        let out: string[];
                         let matchPatterns;
                         let matchPatternIndex;
                         if (typeof curCmd.match === 'function') {
-                            out = curCmd.match(processedInput);
+                            // HACK: make this cleaner as Recg shouldn't call chrome apis directly?
+                            let tabs = await promisify(chrome.tabs.query)({active: true, currentWindow: true}); 
+                            out = await promisify<string[]>(chrome.tabs.sendMessage)(tabs[0].id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput}); 
                         } else {
                             if (typeof curCmd.match === 'string') {
                                 matchPatterns = [curCmd.match];
@@ -321,13 +325,13 @@ export class Recognizer extends StoreSynced {
     }
 
 
-    handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
+    async handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
         let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime} ${COOLDOWN_TIME} ${CONFIDENCE_THRESHOLD}`);
         clearTimeout(this.delayCmd);
         if (elapsedTime > COOLDOWN_TIME) {
             if (confidence > CONFIDENCE_THRESHOLD) {
-                var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = this.getCmdForUserInput(transcript, this.curActiveTabUrl);
+                var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = await this.getCmdForUserInput(transcript, this.curActiveTabUrl);
                 var niceOutput = null;
 
                 console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);

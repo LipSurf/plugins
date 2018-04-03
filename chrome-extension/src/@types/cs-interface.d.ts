@@ -1,14 +1,20 @@
-declare interface ILiveText {
-    text: string,
-    isSuccess: boolean,
-}
+declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel | ITranscriptParcel;
 
-declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel;
+declare interface ITranscriptParcel {
+    processedInput: string,
+    cmdName: string,
+    cmdPluginId: string,
+}
 
 declare interface ICmdParcel {
     cmdName: string,
     cmdPluginId: string,
     cmdArgs: undefined | any[],
+}
+
+declare interface ILiveText {
+    text: string,
+    isSuccess: boolean,
 }
 
 declare interface ILiveTextParcel {

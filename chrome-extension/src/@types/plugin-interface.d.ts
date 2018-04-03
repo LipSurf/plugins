@@ -2,6 +2,7 @@ declare abstract class PluginBase {
     static friendlyName: string;
     static description: string;
     static version: string;
+    static apiVersion: string;
     static match: RegExp | RegExp[];
 
     static commands: IPluginDefCommand[];
@@ -34,6 +35,8 @@ declare interface IPluginDefCommand {
     match: string | string[] | ((transcript: string) => any[]),
     description?: string,
     test?: () => any,
+    // let command match on any page (not restricted by plugin level match regex)
+    global?: boolean,
     run?: (() => any) | ((tabIndex: number) => any),
     runOnPage?: (() => any) | ((number) => any),
     nice?: (match: string) => string,

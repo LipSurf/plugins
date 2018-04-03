@@ -7,6 +7,7 @@ export class RedditPlugin extends PluginBase {
     static friendlyName = 'Reddit';
     static description = 'Commands for Reddit.com';
     static version = '1.0.0';
+    static apiVersion = '1';
     static match = /^https?:\/\/www.reddit.com/;
 
     // "private"
@@ -154,6 +155,7 @@ export class RedditPlugin extends PluginBase {
         }
     }, {
         name: 'Go to Subreddit',
+        global: true,
         match: (input) => {
             const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
             let match = input.match(SUBREDDIT_REGX);
@@ -171,7 +173,8 @@ export class RedditPlugin extends PluginBase {
         }
     }, {
         name: 'Go to Reddit',
-        match: ["home", "reddit", "reddit.com"],
+        global: true,
+        match: ["reddit", "reddit.com"],
         runOnPage: () => {
             document.location.href = "https://www.reddit.com";
         },

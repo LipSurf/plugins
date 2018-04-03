@@ -82,21 +82,27 @@ async function showLiveText(text: string, isSuccess: boolean = false, isUnsure: 
 }
 
 function instanceOfCmd(object: any): object is ICmdParcel {
-    return 'cmdName' in object;
+    return 'cmdName' in object && !('processedInput' in object);
 }
 
 function instanceOfText(object: any): object is ILiveTextParcel {
-    return !('cmdName' in object) && !('toggleActivated' in object);
+    return !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object);
 }
 
 function instanceOfToggle(object: any): object is IToggleParcel {
     return 'toggleActivated' in object;
 }
 
+function instanceOfTranscript(object: any): object is ITranscriptParcel {
+    return 'processedInput' in object;
+}
+
 // TODO: needs tests
-chrome.runtime.onMessage.addListener(function(msg: IBackgroundParcel) {
-    if (instanceOfCmd(msg)) {
-        window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].apply(null, msg.cmdArgs);
+chrome.runtime.onMessage.addListener(function(msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
+    if (instanceOfTranscript(msg)) {
+        sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.processedInput));
+    } else if (instanceOfCmd(msg)) {
+        window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs);
     } else if (instanceOfText(msg)) {
         showLiveText(msg.liveText.text, msg.liveText.isSuccess);
     } else if (instanceOfToggle(msg)) {
