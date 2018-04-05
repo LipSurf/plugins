@@ -48,5 +48,13 @@ export module tabs {
                     cb(tab.url);
             }
         );
+        chrome.tabs.onActivated.addListener(
+            function ({tabId, windowId}) {
+                chrome.tabs.get(tabId, function(tab) {
+                    if (tab.url)
+                        cb(tab.url);
+                });
+            }
+        );
     }
 }

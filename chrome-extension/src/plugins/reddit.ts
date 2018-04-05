@@ -165,8 +165,8 @@ export class RedditPlugin extends PluginBase {
             }
         },
         delay: 1200,
-        nice: (match) => {
-            return `go to r/${match}`;
+        nice: (rawInput:string, matchOutput:any[]) => {
+            return `go to r/${matchOutput[0]}`;
         },
         runOnPage: (subredditName) => {
             window.location.href = `https://www.reddit.com/r/${subredditName}`;

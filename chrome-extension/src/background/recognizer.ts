@@ -13,7 +13,7 @@ interface IRecgCommand {
     name: string,
     match: string[] | ((transcript: string) => any[]),
     ordinalMatch: boolean,
-    nice?: (match: string) => string,
+    nice?: (rawInput: string, matchOutput: any[]) => string,
     delay?: number[],
 }
 
@@ -59,7 +59,7 @@ class ResettableTimeout {
     private ran: boolean = false;
 
     constructor(private fn: () => void, private delay:number) {
-        this.wrapper();        
+        this.wrapper();
     }
 
     private wrapper() {
@@ -74,7 +74,7 @@ class ResettableTimeout {
             clearTimeout(this.timeoutRef);
             // just in case a race-condition is possible
             this.ran = false;
-            this.wrapper();        
+            this.wrapper();
         }
     }
 
@@ -209,9 +209,9 @@ export class Recognizer extends StoreSynced {
                         let matchPatternIndex;
                         if (typeof curCmd.match === 'function') {
                             // HACK: make this cleaner as Recg shouldn't call chrome apis directly?
-                            let tabs = await promisify(chrome.tabs.query)({active: true, currentWindow: true}); 
+                            let tabs = await promisify(chrome.tabs.query)({active: true, currentWindow: true});
                             if (tabs[0] && tabs[0].id)
-                                out = await promisify<string[]>(chrome.tabs.sendMessage)(tabs[0].id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput}); 
+                                out = await promisify<string[]>(chrome.tabs.sendMessage)(tabs[0].id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
                         } else {
                             if (typeof curCmd.match === 'string') {
                                 matchPatterns = [curCmd.match];
@@ -266,7 +266,7 @@ export class Recognizer extends StoreSynced {
                                 cmdName: curCmd.name,
                                 cmdPluginId: plugin.id,
                                 matchOutput: out,
-                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput)) : processedInput,
+                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput, out)) : processedInput,
                                 delay,
                             };
                         }

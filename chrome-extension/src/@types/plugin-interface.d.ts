@@ -30,7 +30,7 @@ declare interface IPluginDefHomophones {
 // for 3rd party plugins definitions
 declare interface IPluginDefCommand {
     name: string,
-    // rsturns processsed transcript result -- an array of args to
+    // returns processsed transcript result -- an array of args to
     // pass to runOnPage
     match: string | string[] | ((transcript: string) => any[]),
     description?: string,
@@ -39,7 +39,10 @@ declare interface IPluginDefCommand {
     global?: boolean,
     run?: (() => any) | ((tabIndex: number) => any),
     runOnPage?: (() => any) | ((number) => any),
-    nice?: (match: string) => string,
+    // returns the complete liveText that should be shown.
+    // raw input would be eg. "go to are meal time video"
+    // matchOutput is the array returned form the match function (if there's a match fn)
+    nice?: (rawInput: string, matchOutput: any[]) => string,
     delay?: number | number[],
 }
 

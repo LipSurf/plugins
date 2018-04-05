@@ -19,7 +19,6 @@ v1.0
 * Per-plugin settings -- auto annotate
 * stop goes to top of page
 * Auto turn off plugin after x amount of inactivity time (make a user setting)
-* Fix nice
 * Make logo/icon
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
 * Get build pipeline optimized (obfuscate output)
