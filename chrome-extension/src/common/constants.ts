@@ -1,4 +1,3 @@
-export const DEBUG = true;
 // to prevent variable collisions when working with unknown js code/html
 export const NO_COLLISION_UNIQUE_ATTR = 'rnh290318';
 export const ON_ICON: string = "assets/icon-on-128.png";
@@ -534,4 +533,6 @@ export const HOMOPHONES = {
     'stirred': 'third',
     'for': 'four',
     'aladdin': 'eleven',
+    '\\.': ' dot ',
+    ',': ' comma ',
 };

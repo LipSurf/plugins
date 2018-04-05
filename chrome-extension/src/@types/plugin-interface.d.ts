@@ -32,6 +32,8 @@ declare interface IPluginDefCommand {
     name: string,
     // returns processsed transcript result -- an array of args to
     // pass to runOnPage
+    // strings should not have any punctuation in them as puncutation
+    // is converted into it's spelled out form eg. "." -> "dot"
     match: string | string[] | ((transcript: string) => any[]),
     description?: string,
     test?: () => any,

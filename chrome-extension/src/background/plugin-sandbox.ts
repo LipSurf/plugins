@@ -1,7 +1,11 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 // @ts-ignore: ExtensionUtil is used by things that are eval'd
 import { Store, StoreSynced, IPluginConfig, IPluginConfigCommand } from "./store";
-var { ExtensionUtil } = require("./util");
+import { tabs } from '../common/browser-interface';
+
+namespace ExtensionUtil {
+    let queryActiveTab = tabs.queryActiveTab;
+}
 
 interface IPrivilegedCode {
     string: {

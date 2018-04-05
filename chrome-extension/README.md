@@ -1,6 +1,8 @@
 TODO
 ===
 v1.0
+* Fix queryActiveTab is now async (extenion util closet ab)
+* Commands getting executed twice (new tab)
 * When turning off plugin, remove all page annotations
 * Fix partial matching -- unfullscreen/fullscreen issue
 * make liveText nicer

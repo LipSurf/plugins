@@ -2,12 +2,12 @@
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
 import { pick } from "lodash";
-import * as CT from "../common/constants";
-import * as Util from "./util";
+import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback, IRecognizedCmd, IRecognizedText } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store } from "./store";
+import { Detector } from "../common/util";
 import { storage, tabs } from "../common/browser-interface";
 
 export interface IWindow extends Window {
@@ -23,43 +23,45 @@ let recg;
 
 // initial load -> get plugins from storage
 store.rebuildLocalPluginCache().then(() => {
-    recg = new Recognizer(store, tabs.onUrlUpdate, webkitSpeechRecognition);
+    recg = new Recognizer(store, 
+        tabs.onUrlUpdate, 
+        tabs.queryActiveTab, 
+        tabs.sendMsgToTab,
+        webkitSpeechRecognition
+    );
     let ps = new PluginSandbox(store);
     let pm = new PluginManager(store);
 
-    chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
         if (request.bubbleDown) {
-            Util.queryActiveTab(function (tab) {
-                if (typeof request.bubbleDown.fullScreen !== 'undefined') {
-                    console.log(`1. full screen`);
-                    chrome.windows.update(tab.windowId, {
-                        state: "fullscreen"
-                    }, function (windowUpdated) {
-                        //do whatever with the maximized window
-                        this.fullscreen = true;
-                    });
-                } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
-                    console.log(`2. unfull screen`);
-                    chrome.windows.update(tab.windowId, {
-                        state: "maximized"
-                    }, function (windowUpdated) {
-                        //do whatever with the maximized window
-                    });
-                }
-                chrome.tabs.sendMessage(tab.id, request, function (response) {
-                    // not working (cannot get message in other content script
-                    sendResponse(response);
+            let tab = await tabs.queryActiveTab();
+            if (typeof request.bubbleDown.fullScreen !== 'undefined') {
+                console.log(`1. full screen`);
+                chrome.windows.update(tab.windowId, {
+                    state: "fullscreen"
+                }, function (windowUpdated) {
+                    //do whatever with the maximized window
+                    this.fullscreen = true;
                 });
+            } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
+                console.log(`2. unfull screen`);
+                chrome.windows.update(tab.windowId, {
+                    state: "maximized"
+                }, function (windowUpdated) {
+                    //do whatever with the maximized window
+                });
+            }
+            chrome.tabs.sendMessage(tab.id, request, function (response) {
+                // not working (cannot get message in other content script
+                sendResponse(response);
             });
         } else if (request.bubbleUp) {
             // go back up to all the frames
-            Util.queryActiveTab((tab) => {
-                chrome.tabs.connect(tab.id, { name: 'getVideos' });
-            });
+            let tab = await tabs.queryActiveTab();
+            chrome.tabs.connect(tab.id, { name: 'getVideos' });
         } else if (request === 'loadPlugins') {
-            Util.queryActiveTab((tab) => {
-                pm.loadCommandCodeIntoPage(tab.id, tab.url);
-            });
+            let tab = await tabs.queryActiveTab();
+            pm.loadCommandCodeIntoPage(tab.id, tab.url);
         }
     });
 
@@ -70,12 +72,13 @@ store.rebuildLocalPluginCache().then(() => {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
                 console.log("easy on");
                 toggleActivated();
-            }, () => {
+            }, async () => {
                 // Aw. No permission (or no microphone available).
                 needsPermissionCb();
                 if (!permissionDetector) {
                     // check a maximum of 15 times (~23s)
-                    permissionDetector = new Util.Detector((resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
+                    permissionDetector = new Detector(
+                        (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
                         .then((stream) => {
                             console.log("yep1");
                             if (typeof (stream) !== 'undefined') {
@@ -87,9 +90,10 @@ store.rebuildLocalPluginCache().then(() => {
                         }, function () {
                             reject();
                         }).catch(() => { }),
-                        toggleActivated,
                         1500,
                         15);
+                    await permissionDetector.detected();
+                    toggleActivated();
                 }
             });
         }
@@ -113,7 +117,7 @@ store.rebuildLocalPluginCache().then(() => {
         activated = _activated;
         storage.local.save({ activated: activated });
         chrome.browserAction.setIcon({
-            path: activated ? CT.ON_ICON : CT.OFF_ICON
+            path: activated ? ON_ICON : OFF_ICON
         });
         sendMsgToActiveTab({
             'toggleActivated': activated
@@ -151,15 +155,14 @@ store.rebuildLocalPluginCache().then(() => {
 
 
 chrome.browserAction.setIcon({
-    path: activated ? CT.ON_ICON : CT.OFF_ICON
+    path: activated ? ON_ICON : OFF_ICON
 });
 storage.local.save({ activated: false });
 
 
-function sendMsgToActiveTab(request: IBackgroundParcel) {
-    Util.queryActiveTab(function (tab) {
-        chrome.tabs.sendMessage(tab.id, request);
-    });
+async function sendMsgToActiveTab(request: IBackgroundParcel) {
+    let tab = await tabs.queryActiveTab();
+    chrome.tabs.sendMessage(tab.id, request);
 }
 
 

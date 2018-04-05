@@ -70,3 +70,48 @@ export function promisify<T>(original, withError: boolean = false): (...args) =>
         });
     };
 }
+
+
+export class Detector {
+    private intervalId: number;
+    private checks: number = 0;
+    private maxChecks: number;
+    private sentinelFn;
+    private detectCb: Promise<any>;
+    private resolveCb: (any) => void;
+
+    // sentinelFn -- returns true when something is detected
+    // detectCb -- is run when sentinelFn returns true (once)
+    // interval -- how often to run sentinelFn
+    constructor(sentinelFn, interval: number, maxChecks: number) {
+        this.maxChecks = maxChecks;
+        this.sentinelFn = sentinelFn;
+        this.detectCb = new Promise((resolve, reject) => {
+            this.resolveCb = resolve;
+        });
+        this.check();
+        this.intervalId = window.setInterval(() => {
+            this.check();
+        }, interval);
+    }
+
+    destroy() {
+        clearInterval(this.intervalId);
+    }
+
+    async detected() {
+        return this.detectCb;
+    }
+
+    private check() {
+        this.checks += 1;
+        new Promise(this.sentinelFn).then((x) => {
+            //console.log(`calling check ${this.checks} ${new Date()}`);
+            clearInterval(this.intervalId);
+            this.resolveCb(x);
+        }, () => {});
+        if (typeof(this.maxChecks) !== 'undefined' && this.checks > this.maxChecks) {
+            clearInterval(this.intervalId);
+        }
+    }
+}

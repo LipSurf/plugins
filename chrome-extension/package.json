@@ -9,7 +9,7 @@
     "./src/page/main.ts"
   ],
   "scripts": {
-    "pretest": "tsc tests/*.ts tests/plugins/*.ts --allowSyntheticDefaultImports --module umd --allowJs --esModuleInterop --noEmitOnError -t ES2017 --moduleResolution node --outdir tests/build",
+    "pretest": "echo 'make sure to compile plugins!' && tsc tests/*.ts tests/plugins/*.ts --allowSyntheticDefaultImports --module umd --allowJs --esModuleInterop --noEmitOnError -t ES2017 --moduleResolution node --outdir tests/build",
     "test": "ava tests/build/tests/*-test.js --verbose",
     "test-debug": "node debug node_modules/ava/profile.js tests/build/tests/*-test.js",
     "test-debug-watch": "when-changed -1 -s tests/* chrome-extension/* -c 'npm run test-debug'",
@@ -18,8 +18,8 @@
     "test-plugins-watch": "when-changed -k -1 -s tests/plugins/*.ts src/plugins/* -c npm run test-plugins",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
-    "build": "webpack --mode development",
-    "watch": "webpack --mode development --watch",
+    "build": "webpack --mode development --progress",
+    "watch": "webpack --mode development --watch --progress",
     "build-prod": "webpack --mode production",
     "watch-prod": "webpack --mode production --watch"
   },

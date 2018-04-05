@@ -42,7 +42,7 @@ export class RedditPlugin extends PluginBase {
         'comet': 'comments',
         'comets': 'comments',
         'comment': 'comments',
-        ',': 'comments',
+        'comma': 'comments',
         'common': 'comments',
         'commons': 'comments',
         'quick': 'click',
@@ -52,6 +52,7 @@ export class RedditPlugin extends PluginBase {
         'expanse': 'expand',
         'xpand': 'expand',
         'spend': 'expand',
+        'reddit dot com': 'reddit',
         'read it': 'reddit',
         'shrink': 'collapse',
     };
@@ -174,7 +175,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Go to Reddit',
         global: true,
-        match: ["reddit", "reddit.com"],
+        match: ["reddit", "go to reddit"],
         runOnPage: () => {
             document.location.href = "https://www.reddit.com";
         },

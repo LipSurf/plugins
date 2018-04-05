@@ -1,5 +1,5 @@
 import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME,
-        CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME } from "../common/constants";
+        CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME, HOMOPHONES } from "../common/constants";
 import { Store, IToggleableHomophones, StoreSynced, IPluginConfig } from "./store";
 import { find, flatten, pick } from "lodash";
 import { promisify } from "../common/util";
@@ -93,9 +93,20 @@ export class Recognizer extends StoreSynced {
     private delayCmd: ResettableTimeout;
     private pluginsRecgStore: IPluginRecgStore[];
     private curActiveTabUrl: string;
+    // for global homonyms
+    private synKeys: RegExp[];
+    private synVals: string[];
 
-    constructor(store: Store, onUrlUpdate: ((cb: ((url: string) => void)) => void), private speechRecognizer) {
+    constructor(store: Store,
+            onUrlUpdate: ((cb: ((url: string) => void)) => void),
+            private queryActiveTab: () => Promise<chrome.tabs.Tab>,
+            private sendMsgToTab: (tabId: number, object) => Promise<string[]>,
+            private speechRecognizer,
+        ) {
         super(store);
+        let homoKeys = Object.keys(HOMOPHONES);
+        this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
+        this.synVals = homoKeys.map((key) => HOMOPHONES[key]);
         onUrlUpdate((url) => {
             this.curActiveTabUrl = url;
         });
@@ -208,10 +219,9 @@ export class Recognizer extends StoreSynced {
                         let matchPatterns;
                         let matchPatternIndex;
                         if (typeof curCmd.match === 'function') {
-                            // HACK: make this cleaner as Recg shouldn't call chrome apis directly?
-                            let tabs = await promisify(chrome.tabs.query)({active: true, currentWindow: true});
-                            if (tabs[0] && tabs[0].id)
-                                out = await promisify<string[]>(chrome.tabs.sendMessage)(tabs[0].id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
+                            // TODO: not a big fan of how this works
+                            let tab = await this.queryActiveTab();
+                            out = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
                         } else {
                             if (typeof curCmd.match === 'string') {
                                 matchPatterns = [curCmd.match];
@@ -327,19 +337,33 @@ export class Recognizer extends StoreSynced {
     //}
 
 
+    /*
+     * TODO: to truly generate each permutation, need to
+     * do nxm here (since this only generates in one order after
+     * going through the homophones linearly currently)
+     */
     private *generateHomophones(beforeInput: string, url: string) {
         let afterInput;
         // first yield the original
         yield beforeInput;
+        // go through global homophones
+        for (let q = 0; q < this.synKeys.length; q++) {
+            afterInput = beforeInput.replace(this.synKeys[q], this.synVals[q]);
+            if (afterInput !== beforeInput) {
+                beforeInput = afterInput;
+                yield afterInput;
+            }
+        }
         // already has filtered out disabled commands and plugins
         for (let x = 0; x < this.pluginsRecgStore.length; x++) {
             let plugin = this.pluginsRecgStore[x];
             if (find(plugin.match, regx => regx.test(url))) {
                 for (let i = 0; i < plugin.synKeys.length; i++) {
                     afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);
-                    if (afterInput !== beforeInput)
+                    if (afterInput !== beforeInput) {
                         beforeInput = afterInput;
-                    yield afterInput;
+                        yield afterInput;
+                    }
                 }
             }
         }
