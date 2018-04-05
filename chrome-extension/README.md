@@ -1,45 +1,50 @@
 TODO
 ===
-
-* annotations -- match needs context of runOnPage to be able to match elements dynamically?
-
-* delay needs to get reset when fresh shits come in
-* on startup in main -- special fetch for store needs to occur, otherwise the simple fetch from local and remote storage can be used in options.ts
+v1.0
+* When turning off plugin, remove all page annotations
+* Fix partial matching -- unfullscreen/fullscreen issue
+* make liveText nicer
+-- make sure works on youtube
+* Make annotations beautiful
+-- query everything with cursor: pointer to be annotated (study vim plugin)
+* Tutorial Page
+-- auto reload tabs when plugin is first installed
+-- rules:
+----Only 1 speaker at a time
+----Beware of background noise
+----sound from speakers (when headphones aren't in)
+----Auto turn off after 5m of inactivity
+* make global commands work
+* Make help good (context aware)
+* Per-plugin settings -- auto annotate
 * stop goes to top of page
-* try namespaces for IPluginDefHomo... etc
+* Auto turn off plugin after x amount of inactivity time (make a user setting)
 * Fix nice
+* Make logo/icon
 * If mic is accidently blocked by user, link them to chrome://settings/content/microphone
 * Get build pipeline optimized (obfuscate output)
-
-* testing:
-    record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
-    replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
-
-* Cleanup iframe recursive code
 * Fix fullscreen
-* postToIframe needs to check if the message has already been processed -- the msg "click" getting sent multiple times is likely preventing video from playing
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
-
-Release to fam:
 * Make full screen black out background
-* Next page/prev page
-* Fix play command to play currently expanded video
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
-* youtube, streamable, twitch support
-* reddit.com/domain/youtube.com
+* Reddit Next page/prev page
 
 v1.1
+* Integrate with other add-ons. Eg. "ad-blocker off" would turn off addblocker. Make docs on how to do this.
+* Not seeing where the click is happening is disorienting -- highlight element just before clicking?
+* Cleanup iframe recursive code
+* try namespaces for IPluginDefHomo... etc
 * Use dict lookup on static match words to make command-transcript matching faster
-* Turn on plugin for set time
-* Auto turn off plugin after x amount of inactivity time
-* Options
+* Turn on plugin for set time via context menu
 * Reddit Sorting by best/all etc.
-* undo
+* undo?
 * mute video
 * Improve speed
 
-v1.2
+vNext
 * Reddit login
+* Click live text when there's no match to add a correction
+* Allow sites to embed commands in the markup?
 
 plugins
 ===
@@ -55,6 +60,12 @@ Design rationale:
     that the static members need to be functions...
     * We don't convert into a special parseable JSON as that adds an extra step -- without being justified by extra convenience.
 
+testing
+===
+* testing:
+    record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
+    replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
+
 hacks
 ===
 When this is available: `navigator.permissions.query({name: 'microphone'})` use it instead of
@@ -64,6 +75,12 @@ from both the background and option pages.
 marketing/profit
 ===
 Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
+
+Other successfull payed chrome extensions:
+  * https://momentumdash.com/
+☆☆☆ Featured in Tim Ferriss’ Tools of Titans, BuzzFeed, TheNextWeb, Lifehacker, Reddit, Product Hunt, Hootsuite, Zapier, and TheDailyMuse! ☆☆☆
+
+  * https://chrome.google.com/webstore/detail/vidiq-vision-for-youtube/pachckjkecffpdphbpmfolblodfkgbhl?hl=en
 
 The browser extensions for Dragon are apparently atrocious. Make a better chrome extension and take a piece of that market.
 Stats: 231k users
@@ -101,9 +118,6 @@ cs --loadPlugins--> background.js
 cs <--{cmdName: cmd name}-- backgronud.js
 cs <--{liveText: live text}-- backgronud.js
 cs <--{toggleActivated: boolean}-- background.js
-
-Storage Schema
-activated [boolean] -- whether extension is activated
 
 
 Known Issues:

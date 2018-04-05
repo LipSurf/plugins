@@ -156,11 +156,9 @@ export class Store {
                 val.match = val.match.map(matchItem => RegExp(matchItem));
                 val.commands = val.commands.map(cmd => {
                     if (cmd.nice)
-                        cmd.nice = eval(cmd.nice);
-                    if (cmd.run)
-                        cmd.run = eval(cmd.run)
+                        eval(`cmd.nice = ${cmd.nice}`);
                     if (typeof cmd.match === 'string')
-                        cmd.match = eval(cmd.match)
+                        cmd.match = eval(cmd.match);
                     return cmd;
                 });
                 return val;

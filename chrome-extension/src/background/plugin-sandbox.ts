@@ -1,7 +1,7 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 // @ts-ignore: ExtensionUtil is used by things that are eval'd
-import { ExtensionUtil } from "./util";
 import { Store, StoreSynced, IPluginConfig, IPluginConfigCommand } from "./store";
+var { ExtensionUtil } = require("./util");
 
 interface IPrivilegedCode {
     string: {
@@ -21,7 +21,8 @@ export class PluginSandbox extends StoreSynced {
             // overwrites existing commands for plugin
             this.privilegedCode[plugin.id] = plugin.commands.reduce((memo, cmd) => {
                 if (cmd.run)
-                    memo[cmd.name] = cmd.run;
+                    // eval in the sandbox -- to make sure ExtensionUtil is defined
+                    eval(`memo[cmd.name] = ${cmd.run}`);
                 return memo;
             }, {});
         })

@@ -15,6 +15,7 @@ export class BrowserPlugin extends PluginBase {
         'close tap': 'close tab',
         'app': 'up',
         'downwards': 'down',
+        'town': 'down',
         'downward': 'down',
         'full-screen': 'fullscreen',
         'full screen': 'fullscreen',
@@ -492,7 +493,7 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Close Tab',
         match: "close tab",
-        run: () => {
+        run: function() {
             // window.close cannot close windows that weren't opened via js
             ExtensionUtil.queryActiveTab(function (tab) {
                 chrome.tabs.remove(tab.id);

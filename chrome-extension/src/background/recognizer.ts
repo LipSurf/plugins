@@ -53,6 +53,36 @@ export interface IRecognizedCmd {
     isSuccess: boolean,
 }
 
+// starts the timer from 0
+class ResettableTimeout {
+    private timeoutRef: number;
+    private ran: boolean = false;
+
+    constructor(private fn: () => void, private delay:number) {
+        this.wrapper();        
+    }
+
+    private wrapper() {
+        this.timeoutRef = safeSetTimeout(() => {
+            this.fn();
+            this.ran = true;
+        }, this.delay);
+    }
+
+    public reset() {
+        if (!this.ran) {
+            clearTimeout(this.timeoutRef);
+            // just in case a race-condition is possible
+            this.ran = false;
+            this.wrapper();        
+        }
+    }
+
+    public clear() {
+        clearTimeout(this.timeoutRef);
+    }
+}
+
 export class Recognizer extends StoreSynced {
     private recognition;
     private recognizerKilled: boolean = false;
@@ -60,7 +90,7 @@ export class Recognizer extends StoreSynced {
     private lastFinalTime: number = 0;
     private lastNonFinalCmdExecutedTime: number = 0;
     private lastNonFinalCmdExecuted = null;
-    private delayCmd: number;
+    private delayCmd: ResettableTimeout;
     private pluginsRecgStore: IPluginRecgStore[];
     private curActiveTabUrl: string;
 
@@ -180,7 +210,8 @@ export class Recognizer extends StoreSynced {
                         if (typeof curCmd.match === 'function') {
                             // HACK: make this cleaner as Recg shouldn't call chrome apis directly?
                             let tabs = await promisify(chrome.tabs.query)({active: true, currentWindow: true}); 
-                            out = await promisify<string[]>(chrome.tabs.sendMessage)(tabs[0].id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput}); 
+                            if (tabs[0] && tabs[0].id)
+                                out = await promisify<string[]>(chrome.tabs.sendMessage)(tabs[0].id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput}); 
                         } else {
                             if (typeof curCmd.match === 'string') {
                                 matchPatterns = [curCmd.match];
@@ -328,7 +359,8 @@ export class Recognizer extends StoreSynced {
     async handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
         let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime} ${COOLDOWN_TIME} ${CONFIDENCE_THRESHOLD}`);
-        clearTimeout(this.delayCmd);
+        if (this.delayCmd)
+            this.delayCmd.reset();
         if (elapsedTime > COOLDOWN_TIME) {
             if (confidence > CONFIDENCE_THRESHOLD) {
                 var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = await this.getCmdForUserInput(transcript, this.curActiveTabUrl);
@@ -343,9 +375,11 @@ export class Recognizer extends StoreSynced {
                         return;
                     }
 
+                    if (this.delayCmd)
+                        this.delayCmd.clear();
                     // it ambiguous so the tests can work in node
                     // @ts-ignore: setTimeout === window.setTimeout but we keep
-                    this.delayCmd = safeSetTimeout(() => {
+                    this.delayCmd = new ResettableTimeout(() => {
                         console.log(`running command ${cmdName} isFinal:${isFinal}`);
                         if (isFinal) {
                             this.lastFinalTime = +new Date();
