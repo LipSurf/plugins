@@ -62,7 +62,7 @@ declare interface _ILocalPluginDataCommon extends ICommonHomophones {
 
 declare interface ISerializedCommand extends _ICommonCommand {
     // non-array string stores stringified function
-    match: string[] | string,  
+    match: string[] | string,
     nice?: string,
     run?: string,
 }
@@ -75,6 +75,7 @@ declare interface ICommonCommand extends _ICommonCommand {
 
 declare interface _ICommonCommand {
     name: string,
+    global?: boolean,
     delay?: number[],
     description?: string,
 }

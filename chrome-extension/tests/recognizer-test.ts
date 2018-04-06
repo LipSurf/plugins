@@ -110,9 +110,13 @@ test('should not activate a command', async (t) => {
 });
 
 test('shouldn\'t parse commands that don\'t match for page', async(t) => {
-    let userInput = 'upvote';
-    let {cmdName, matchOutput, delay} = await t.context.recg.getCmdForUserInput(userInput, 'http://yahoo.com');
+    let {cmdName} = await t.context.recg.getCmdForUserInput('upvote', 'http://yahoo.com');
     t.is(cmdName, undefined);
+});
+
+test('should execute plugin global commands everywhere', async(t) => {
+    let {cmdName} = await t.context.recg.getCmdForUserInput('reddit', 'http://yahoo.com');
+    t.is(cmdName.toLowerCase(), 'go to reddit');
 });
 
 test('should parse subreddit names without spaces', async (t) => {

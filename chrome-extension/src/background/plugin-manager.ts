@@ -89,7 +89,8 @@ export class PluginManager extends StoreSynced {
                     // Make all the functions strings (because we can't store them directly)
                     match: typeof cmd.match === 'function' ? cmd.match : flatten([cmd.match]),
                     delay,
-                    ... pick(cmd, 'run', 'name', 'description', 'nice'),
+                    // don't pick test... perhaps others (so we whitelist)
+                    ... pick(cmd, 'run', 'name', 'description', 'nice', 'global',),
                 };
             }),
             match: flatten([plugin.match]),

@@ -13,6 +13,7 @@ interface IRecgCommand {
     name: string,
     match: string[] | ((transcript: string) => any[]),
     ordinalMatch: boolean,
+    global?: boolean,
     nice?: (rawInput: string, matchOutput: any[]) => string,
     delay?: number[],
 }
@@ -124,7 +125,7 @@ export class Recognizer extends StoreSynced {
                         .filter(cmd => cmd.enabled)
                         .map((cmd) => ({
                             ordinalMatch: typeof cmd.match !== 'function' ? !! find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
-                            ... pick(cmd, ['name', 'delay', 'nice', 'match'])
+                            ... pick(cmd, ['name', 'delay', 'global', 'nice', 'match'])
                         })),
                     ... pick(plugin, ['id', 'match'])
                 }
@@ -211,77 +212,78 @@ export class Recognizer extends StoreSynced {
         for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
             for (let g = 0; g < this.pluginsRecgStore.length; g++) {
                 let plugin = this.pluginsRecgStore[g];
-                if (find(plugin.match, regx => regx.test(url))) {
-                    for (let f = 0; f < plugin.commands.length; f++) {
-                        let curCmd = plugin.commands[f];
-                        // an array of args to pass to runOnPage
-                        let out: string[];
-                        let matchPatterns;
-                        let matchPatternIndex;
-                        if (typeof curCmd.match === 'function') {
-                            // TODO: not a big fan of how this works
-                            let tab = await this.queryActiveTab();
-                            out = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
+                // get all global commands
+                let cmdsToTest = [...(find(plugin.match, regx => regx.test(url)) ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)];
+                for (let f = 0; f < cmdsToTest.length; f++) {
+                    let curCmd = cmdsToTest[f];
+                    // an array of args to pass to runOnPage
+                    let out: string[];
+                    let matchPatterns;
+                    let matchPatternIndex;
+                    if (typeof curCmd.match === 'function') {
+                        // TODO: not a big fan of how this works
+                        let tab = await this.queryActiveTab();
+                        out = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
+                    } else {
+                        if (typeof curCmd.match === 'string') {
+                            matchPatterns = [curCmd.match];
                         } else {
-                            if (typeof curCmd.match === 'string') {
-                                matchPatterns = [curCmd.match];
-                            } else {
-                                matchPatterns = curCmd.match;
-                            }
-
-                            for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                                let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
-                                let ords = [];
-                                let n = 0;
-                                let nextIsOrdinal = false;
-                                let inputSlice = processedInput;
-                                for (; n < tokens.length || nextIsOrdinal; n++) {
-                                    let token = tokens[n];
-                                    if (token == '#') {
-                                        nextIsOrdinal = true;
-                                    } else {
-                                        let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
-                                        if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
-                                            break;
-                                        } else if (nextIsOrdinal) {
-                                            nextIsOrdinal = false;
-                                            try {
-                                                ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
-                                            } catch (e) {
-                                                // not an ordinal
-                                                break;
-                                            }
-                                        }
-                                        inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
-                                    }
-                                }
-
-                                if (inputSlice.trim() === '') {
-                                    // we have a match
-                                    out = ords;
-                                    break;
-                                }
-
-                            }
+                            matchPatterns = curCmd.match;
                         }
-                        if (out) {
-                            let delay: number = null;
-                            if (curCmd.ordinalMatch) {
-                                delay = ORDINAL_CMD_DELAY;
-                            } else if (curCmd.delay) {
-                                delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+
+                        for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
+                            let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                            let ords = [];
+                            let n = 0;
+                            let nextIsOrdinal = false;
+                            let inputSlice = processedInput;
+                            for (; n < tokens.length || nextIsOrdinal; n++) {
+                                let token = tokens[n];
+                                if (token == '#') {
+                                    nextIsOrdinal = true;
+                                } else {
+                                    let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
+                                    if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
+                                        break;
+                                    } else if (nextIsOrdinal) {
+                                        nextIsOrdinal = false;
+                                        try {
+                                            ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
+                                        } catch (e) {
+                                            // not an ordinal
+                                            break;
+                                        }
+                                    }
+                                    inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
+                                }
                             }
-                            console.log(`Recg. timer: ${+new Date() - startTime}`);
-                            return {
-                                cmdName: curCmd.name,
-                                cmdPluginId: plugin.id,
-                                matchOutput: out,
-                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput, out)) : processedInput,
-                                delay,
-                            };
+
+                            if (inputSlice.trim() === '') {
+                                // we have a match
+                                out = ords;
+                                break;
+                            }
+
                         }
                     }
+                    if (out) {
+                        let delay: number = null;
+                        if (curCmd.ordinalMatch) {
+                            delay = ORDINAL_CMD_DELAY;
+                        } else if (curCmd.delay) {
+                            delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                        }
+                        console.log(`Recg. timer: ${+new Date() - startTime}`);
+                        return {
+                            cmdName: curCmd.name,
+                            cmdPluginId: plugin.id,
+                            matchOutput: out,
+                            niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput, out)) : processedInput,
+                            delay,
+                        };
+                    }
                 }
+
             }
         }
         console.log(`Recg. timer: ${+new Date() - startTime}`);

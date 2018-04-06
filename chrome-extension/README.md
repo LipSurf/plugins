@@ -14,7 +14,6 @@ v1.0
 ----Beware of background noise
 ----sound from speakers (when headphones aren't in)
 ----Auto turn off after 5m of inactivity
-* make global commands work
 * Make help good (context aware)
 * Per-plugin settings -- auto annotate
 * stop goes to top of page
