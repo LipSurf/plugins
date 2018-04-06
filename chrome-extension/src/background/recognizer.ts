@@ -241,7 +241,7 @@ export class Recognizer extends StoreSynced {
                                         nextIsOrdinal = true;
                                     } else {
                                         let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
-                                        if (matchPos == -1) {
+                                        if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
                                             break;
                                         } else if (nextIsOrdinal) {
                                             nextIsOrdinal = false;

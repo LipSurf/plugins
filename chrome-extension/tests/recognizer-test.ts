@@ -62,9 +62,9 @@ test.before(async(t) => {
         let plugin = eval(getPlugin(data.cmdPluginId));
         return window[`${data.cmdPluginId}Plugin`].commands.find((cmd) => cmd.name === data.cmdName).match(data.processedInput)
     };
-    t.context.recg = new Recognizer(store, 
-        t.context.urlUpdate, 
-        queryActiveTab, 
+    t.context.recg = new Recognizer(store,
+        t.context.urlUpdate,
+        queryActiveTab,
         sendMsgToActiveTab,
         Recognition
     );
@@ -91,7 +91,7 @@ let redditCmdToPossibleInput = {
     'go to reddit': ['reddit', 'go to reddit', 'reddit dot com', 'reddit.com'],
     'scroll top': ['top', 'scroll top', 'scrolltop'],
     'scroll bottom': ['bottom', 'scroll bottom'],
-    'unfullscreen': ['unfullscreen', 'un fullscreen', 'unfull screen'],
+    'unfullscreen video': ['unfullscreen', 'un fullscreen', 'unfull screen'],
 }
 
 for (let expectedCmd in redditCmdToPossibleInput) {
@@ -126,6 +126,7 @@ test('should parse ordinals', async (t) => {
     let ordinalTests = {
         'upvote 1st': ['Upvote', 1],
         'preview 3rd': ['Expand', 3],
+        '4th expand': ['Expand', 4],
     };
     for (let input in ordinalTests) {
         let sel = await t.context.recg.getCmdForUserInput(input, 'https://www.reddit.com');

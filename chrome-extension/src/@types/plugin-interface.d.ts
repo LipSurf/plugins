@@ -62,7 +62,7 @@ declare interface IPluginUtil {
 }
 
 declare namespace ExtensionUtil {
-    function queryActiveTab(tab: object): any;
+    function queryActiveTab(): Promise<chrome.tabs.Tab>;
 }
 
 declare interface IActivated {

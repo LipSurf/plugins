@@ -24,6 +24,8 @@ export class BrowserPlugin extends PluginBase {
         'unfor screen': 'un-fullscreen',
         'unfold screen': 'un-fullscreen',
         'unfull screen': 'un-fullscreen',
+        'unfullscreen': 'un-fullscreen',
+        'un fullscreen': 'un-fullscreen',
         'middletown': 'little down',
         'little rock': 'little up',
         'school little rock': 'scroll little up',
@@ -493,11 +495,10 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Close Tab',
         match: "close tab",
-        run: function() {
+        run: async function() {
             // window.close cannot close windows that weren't opened via js
-            ExtensionUtil.queryActiveTab(function (tab) {
-                chrome.tabs.remove(tab.id);
-            });
+            let tab = await ExtensionUtil.queryActiveTab();
+            chrome.tabs.remove(tab.id);
         },
         test: async function () {
             var beforeLen, anchors;

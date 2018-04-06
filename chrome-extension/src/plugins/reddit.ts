@@ -122,7 +122,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Expand',
         description: "Expand a preview of a post, or a comment.",
-        match: ["preview #", "expand #", "preview", "expand"], // in comments view
+        match: ["preview #", "expand #", "# expand", "preview", "expand"], // in comments view
         delay: 600,
         runOnPage: (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
