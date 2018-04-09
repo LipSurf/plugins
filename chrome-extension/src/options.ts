@@ -72,60 +72,16 @@ class OptionsPage extends StoreSynced {
             ... pick(this.options, 'showLiveText'),
         });
     }
+
+    reset() {
+        this.store.resetPreferences();
+    }
 }
 
 
 let store = new Store();
 let options = new OptionsPage(store);
 
-// function _reset() {
-//     store.resetPreferences();
-// }
-
-
-
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-    console.log("Chrome storage changes");
-    for (let key in changes) {
-        var storageChange = changes[key];
-        console.log('Storage key "%s" in namespace "%s" changed. ' +
-            'Old value was "%s", new value is "%s".',
-            key,
-            namespace,
-            storageChange.oldValue,
-            storageChange.newValue);
-    }
-});
 
 // so riot can access the options as well
 window['options'] = options;
-
-
-// store.getPreferences().then((prefs) => {
-//     let pluginData = store.plugins;
-//     let combined = {
-//         cmdGroups: pluginData.map((plugin) => {
-//             let {disabledCommands, disabledHomophones, expanded, enabled} = prefs.plugins[plugin.id];
-//             let ret:IPluginPref = {
-//                 commands: plugin.commands.map((cmd) => {
-//                     let ret: any = pick(cmd, ['name', 'match']);
-//                     ret.enabled = ~disabledCommands.indexOf(cmd.name);
-//                     return ret;
-//                 }),
-//                 homophones: plugin.homophones
-//                     .map((homo) => {
-//                         return {
-//                             enabled: ~disabledHomophones.indexOf(homo.source),
-//                             ...homo
-//                         }
-//                     }
-//                 ),
-//                 enabled,
-//                 expanded,
-//                 ... pick(plugin, ['friendlyName', 'description'])
-//             };
-//             return ret;
-//         }),
-//     };
-//     startup(combined);
-// });

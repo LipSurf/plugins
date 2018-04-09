@@ -187,8 +187,10 @@ export class Store {
         this.listeners.forEach((fn) => fn(this.pluginsConfig));
     }
 
-    resetPreferences() {
-        chrome.storage.local.clear();
+    async resetPreferences() {
+        await storage.sync.clear();
+        this.pluginsConfig = await this.getPluginsConfig(true);
+        this.publish();
     }
 
     // call fn when pluginconfig changes

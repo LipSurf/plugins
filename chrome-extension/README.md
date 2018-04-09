@@ -41,6 +41,7 @@ v1.1
 
 vNext
 * Reddit login
+* Text mode allows users to type commands (and they work in the browser)
 * Click live text when there's no match to add a correction
 * Allow sites to embed commands in the markup?
 

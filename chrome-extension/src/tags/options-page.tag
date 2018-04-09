@@ -259,7 +259,7 @@
 
     this.reset = () => {
         if (confirm("This will erase any settings you have configured and load default settings! Press OK if you're sure you want to continue.")) {
-            _reset()
+            options.reset()
         }
     }
 

@@ -27,6 +27,9 @@ export module storage {
         export async function load(key: SyncLoadable): Promise<ISyncData> {
             return promisify<ISyncData>(chrome.storage.sync.get)(key);
         }
+        export async function clear(): Promise<void> {
+            return promisify<null>(chrome.storage.sync.clear)();
+        }
         export function registerOnChangeCb(cb: (changes) => void) {
             // namespace is either "sync" or "local"
             chrome.storage.onChanged.addListener(function(rawChanges, namespace) {
