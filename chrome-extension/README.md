@@ -25,7 +25,6 @@ v1.0
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 * Make full screen black out background
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
-* Reddit Next page/prev page
 
 v1.1
 * Don't just use highest match for recognizer, look at all output from google STT

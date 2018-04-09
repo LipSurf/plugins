@@ -180,6 +180,18 @@ export class RedditPlugin extends PluginBase {
             document.location.href = "https://www.reddit.com";
         },
     }, {
+        name: 'Next Page',
+        match: 'next page',
+        runOnPage: () => {
+            $('.next-button a').get(0).click();
+        }
+    }, {
+        name: 'Previous Page',
+        match: 'previous page',
+        runOnPage: () => {
+            $('.prev-button a').get(0).click();
+        }
+    }, {
         name: 'Clear Vote',
         description: "Unsets the last vote so it's neither up or down.",
         match: ["clear vote #", "clear vote"],
