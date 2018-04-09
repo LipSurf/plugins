@@ -28,6 +28,7 @@ v1.0
 * Reddit Next page/prev page
 
 v1.1
+* Don't just use highest match for recognizer, look at all output from google STT
 * Integrate with other add-ons. Eg. "ad-blocker off" would turn off addblocker. Make docs on how to do this.
 * Not seeing where the click is happening is disorienting -- highlight element just before clicking?
 * Cleanup iframe recursive code

@@ -59,13 +59,19 @@ export module tabs {
         );
     }
 
+    export async function sendMsgToTab(tabId: number, msg: object): Promise<any[]> {
+        return await promisify<any[]>(chrome.tabs.sendMessage)(tabId, msg);
+    }
+}
+
+export namespace ExtensionUtil {
     async function _queryActiveTab(): Promise<chrome.tabs.Tab> {
         let promisifiedChromeTabsQuery = promisify<chrome.tabs.Tab[]>(chrome.tabs.query);
         if (DEBUG) {
             let mostActive;
             let tabs = await promisifiedChromeTabsQuery({ /*active: true, currentWindow: true,*/
                 windowType: "normal"
-            }); 
+            });
             for (let tab of tabs) {
                 if (tab.url.startsWith('http')) {
                     if (tab.active) {
@@ -83,7 +89,7 @@ export module tabs {
             });
 
             if (tabs.length > 0) {
-                return tabs[0];                
+                return tabs[0];
             } else {
                 // try again soon
             }
@@ -106,9 +112,6 @@ export module tabs {
         );
         return await det.detected();
     }
-
-    export async function sendMsgToTab(tabId: number, msg: object): Promise<any[]> {
-        return await promisify<any[]>(chrome.tabs.sendMessage)(tabId, msg);
-    }
 }
 
+export let queryActiveTab = ExtensionUtil.queryActiveTab;

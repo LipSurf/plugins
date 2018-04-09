@@ -4,7 +4,7 @@
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
-import { flatten, pick } from "lodash";
+import { flatten, pick, find } from "lodash";
 import { StoreSynced, IPluginConfig, } from "./store";
 import { promisify } from "../common/util";
 // HACK
@@ -16,6 +16,8 @@ let { PluginBase } = require("../common/plugin-lib");
 interface IPluginCSStore extends IDisableable {
     match: RegExp[],
     cs: string,
+    // if it has at least 1 global command
+    hasGlobalCmd: boolean,
 }
 
 
@@ -23,17 +25,21 @@ export class PluginManager extends StoreSynced {
     private pluginsCSStore:IPluginCSStore[];
 
     protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
-        this.pluginsCSStore = newPluginsConfig.map((pluginConfig) =>
-            pick(pluginConfig, ['enabled', 'cs', 'match']));
+        this.pluginsCSStore = newPluginsConfig.map(pluginConfig =>
+            ({
+                hasGlobalCmd: !!find(pluginConfig.commands, cmd => cmd.global),
+                ...pick(pluginConfig, ['enabled', 'cs', 'match']),
+            }));
     }
 
     // TODO: wait for promise of plugins loaded?
     // checks the given url and loads the necessary plugin command
     // code into the given tabId if the url matches.
     async loadCommandCodeIntoPage(tabId: number, url: string) {
+        // either matches the url, or has at least one global
         let csStrs = this.pluginsCSStore
-            .filter((plugin) => plugin.enabled && plugin.match.reduce((acc, matchPattern) => acc || matchPattern.test(url), false))
-            .map((plugin) => plugin.cs);
+            .filter(plugin => plugin.enabled && (plugin.hasGlobalCmd || plugin.match.reduce((acc, matchPattern) => acc || matchPattern.test(url), false)))
+            .map(plugin => plugin.cs);
         await promisify<any>(chrome.tabs.executeScript)(tabId, {code: csStrs.join('\n'), runAt: "document_start"});
     }
 

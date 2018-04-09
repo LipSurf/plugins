@@ -8,7 +8,7 @@ import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store } from "./store";
 import { Detector } from "../common/util";
-import { storage, tabs } from "../common/browser-interface";
+import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
 export interface IWindow extends Window {
     webkitSpeechRecognition: any;
@@ -23,9 +23,9 @@ let recg;
 
 // initial load -> get plugins from storage
 store.rebuildLocalPluginCache().then(() => {
-    recg = new Recognizer(store, 
-        tabs.onUrlUpdate, 
-        tabs.queryActiveTab, 
+    recg = new Recognizer(store,
+        tabs.onUrlUpdate,
+        queryActiveTab,
         tabs.sendMsgToTab,
         webkitSpeechRecognition
     );
@@ -34,7 +34,7 @@ store.rebuildLocalPluginCache().then(() => {
 
     chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
         if (request.bubbleDown) {
-            let tab = await tabs.queryActiveTab();
+            let tab = await queryActiveTab();
             if (typeof request.bubbleDown.fullScreen !== 'undefined') {
                 console.log(`1. full screen`);
                 chrome.windows.update(tab.windowId, {
@@ -57,10 +57,10 @@ store.rebuildLocalPluginCache().then(() => {
             });
         } else if (request.bubbleUp) {
             // go back up to all the frames
-            let tab = await tabs.queryActiveTab();
+            let tab = await queryActiveTab();
             chrome.tabs.connect(tab.id, { name: 'getVideos' });
         } else if (request === 'loadPlugins') {
-            let tab = await tabs.queryActiveTab();
+            let tab = await queryActiveTab();
             pm.loadCommandCodeIntoPage(tab.id, tab.url);
         }
     });
@@ -161,7 +161,7 @@ storage.local.save({ activated: false });
 
 
 async function sendMsgToActiveTab(request: IBackgroundParcel) {
-    let tab = await tabs.queryActiveTab();
+    let tab = await queryActiveTab();
     chrome.tabs.sendMessage(tab.id, request);
 }
 
