@@ -6,24 +6,28 @@ import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback, IRecognizedCmd, IRecognizedText } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
-import { Store } from "./store";
-import { Detector } from "../common/util";
+import { Store, StoreSynced, IOptions } from "./store";
+import { Detector, ResettableTimeout } from "../common/util";
 import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
 export interface IWindow extends Window {
     webkitSpeechRecognition: any;
 }
+
+interface IMainStore {
+    inactivityAutoOffMins: number,
+}
+
 const { webkitSpeechRecognition }: IWindow = <IWindow>window;
 
 let activated = false;
 let audible = false;
 let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
-let recg;
 
 // initial load -> get plugins from storage
 store.rebuildLocalPluginCache().then(() => {
-    recg = new Recognizer(store,
+    let recg = new Recognizer(store,
         tabs.onUrlUpdate,
         queryActiveTab,
         tabs.sendMsgToTab,
@@ -31,116 +35,145 @@ store.rebuildLocalPluginCache().then(() => {
     );
     let ps = new PluginSandbox(store);
     let pm = new PluginManager(store);
+    let mn = new Main(store, pm, ps, recg);
+});
 
-    chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
-        if (request.bubbleDown) {
-            let tab = await queryActiveTab();
-            if (typeof request.bubbleDown.fullScreen !== 'undefined') {
-                console.log(`1. full screen`);
-                chrome.windows.update(tab.windowId, {
-                    state: "fullscreen"
-                }, function (windowUpdated) {
-                    //do whatever with the maximized window
-                    this.fullscreen = true;
+
+function instanceOfCmd(object: any): object is IRecognizedCmd {
+    return 'cmdName' in object;
+}
+
+
+class Main extends StoreSynced {
+
+    private inactiveTimer:ResettableTimeout;
+    private mainStore: IMainStore;
+
+    constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox, private recg: Recognizer) {
+        super(store)
+
+        chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
+            if (request.bubbleDown) {
+                let tab = await queryActiveTab();
+                if (typeof request.bubbleDown.fullScreen !== 'undefined') {
+                    console.log(`1. full screen`);
+                    chrome.windows.update(tab.windowId, {
+                        state: "fullscreen"
+                    }, function (windowUpdated) {
+                        //do whatever with the maximized window
+                        this.fullscreen = true;
+                    });
+                } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
+                    console.log(`2. unfull screen`);
+                    chrome.windows.update(tab.windowId, {
+                        state: "maximized"
+                    }, function (windowUpdated) {
+                        //do whatever with the maximized window
+                    });
+                }
+                chrome.tabs.sendMessage(tab.id, request, function (response) {
+                    // not working (cannot get message in other content script
+                    sendResponse(response);
                 });
-            } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
-                console.log(`2. unfull screen`);
-                chrome.windows.update(tab.windowId, {
-                    state: "maximized"
-                }, function (windowUpdated) {
-                    //do whatever with the maximized window
+            } else if (request.bubbleUp) {
+                // go back up to all the frames
+                let tab = await queryActiveTab();
+                chrome.tabs.connect(tab.id, { name: 'getVideos' });
+            } else if (request === 'loadPlugins') {
+                let tab = await queryActiveTab();
+                pm.loadCommandCodeIntoPage(tab.id, tab.url);
+            }
+        });
+
+        chrome.browserAction.onClicked.addListener(tab => {
+            if (activated) {
+                this.toggleActivated(false);
+            } else {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
+                    console.log("easy on");
+                    this.toggleActivated();
+                }, async () => {
+                    // Aw. No permission (or no microphone available).
+                    needsPermissionCb();
+                    if (!permissionDetector) {
+                        // check a maximum of 15 times (~23s)
+                        permissionDetector = new Detector(
+                            (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then((stream) => {
+                                console.log("yep1");
+                                if (typeof (stream) !== 'undefined') {
+                                    console.log("yep2");
+                                    resolve();
+                                } else {
+                                    reject();
+                                }
+                            }, function () {
+                                reject();
+                            }).catch(() => { }),
+                            1500,
+                            15);
+                        await permissionDetector.detected();
+                        this.toggleActivated();
+                    }
                 });
             }
-            chrome.tabs.sendMessage(tab.id, request, function (response) {
-                // not working (cannot get message in other content script
-                sendResponse(response);
-            });
-        } else if (request.bubbleUp) {
-            // go back up to all the frames
-            let tab = await queryActiveTab();
-            chrome.tabs.connect(tab.id, { name: 'getVideos' });
-        } else if (request === 'loadPlugins') {
-            let tab = await queryActiveTab();
-            pm.loadCommandCodeIntoPage(tab.id, tab.url);
+
+            // REMOVE THIS
+            // send test msg
+            // let cmds = ['play first', 'fullscreen'];
+            // for (let i = 0; i < cmds.length; i++) {
+            //     setTimeout(function() {
+            //         handleTranscript({
+            //             'isFinal': true,
+            //             'confidence': 1.0,
+            //             'transcript': cmds[i].trim().toLowerCase(),
+            //         });
+            //     }, 3500 * (i + 1));
+            // }
+        });
+
+
+    }
+
+    protected storeUpdated(newOptions: IOptions) {
+        this.mainStore = pick(newOptions, ['inactivityAutoOffMins']);
+    }
+
+    async toggleActivated(_activated = true) {
+        let inactivityMins = this.mainStore.inactivityAutoOffMins;
+        if (_activated && inactivityMins) {
+            this.inactiveTimer = new ResettableTimeout(() => {
+                this.toggleActivated(false);
+            }, inactivityMins * 60 * 1000);
+        } else if (this.inactiveTimer) {
+            this.inactiveTimer.clear();
+            this.inactiveTimer = undefined;
         }
-    });
-
-    chrome.browserAction.onClicked.addListener(function (tab) {
-        if (activated) {
-            toggleActivated(false);
-        } else {
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
-                console.log("easy on");
-                toggleActivated();
-            }, async () => {
-                // Aw. No permission (or no microphone available).
-                needsPermissionCb();
-                if (!permissionDetector) {
-                    // check a maximum of 15 times (~23s)
-                    permissionDetector = new Detector(
-                        (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
-                        .then((stream) => {
-                            console.log("yep1");
-                            if (typeof (stream) !== 'undefined') {
-                                console.log("yep2");
-                                resolve();
-                            } else {
-                                reject();
-                            }
-                        }, function () {
-                            reject();
-                        }).catch(() => { }),
-                        1500,
-                        15);
-                    await permissionDetector.detected();
-                    toggleActivated();
-                }
-            });
-        }
-
-        // REMOVE THIS
-        // send test msg
-        // let cmds = ['play first', 'fullscreen'];
-        // for (let i = 0; i < cmds.length; i++) {
-        //     setTimeout(function() {
-        //         handleTranscript({
-        //             'isFinal': true,
-        //             'confidence': 1.0,
-        //             'transcript': cmds[i].trim().toLowerCase(),
-        //         });
-        //     }, 3500 * (i + 1));
-        // }
-    });
-
-
-    function toggleActivated(_activated = true) {
         activated = _activated;
         storage.local.save({ activated: activated });
         chrome.browserAction.setIcon({
             path: activated ? ON_ICON : OFF_ICON
         });
         sendMsgToActiveTab({
-            'toggleActivated': activated
+            toggleActivated: activated
         });
         if (activated) {
             // only allow recg to start if at least default
             // commands are loaded
-            recg.start(cmdRecognizedCb);
+            this.recg.start(this.cmdRecognizedCb);
             InterferenceAudioDetector.init();
         } else {
-            recg.shutdown();
+            this.recg.shutdown();
             InterferenceAudioDetector.destroy();
         }
     }
 
-    function instanceOfCmd(object: any): object is IRecognizedCmd {
-        return 'cmdName' in object;
-    }
-
-    function cmdRecognizedCb(request: IRecognizedCallback): void {
+    cmdRecognizedCb(request: IRecognizedCallback): void {
         if (instanceOfCmd(request)) {
             let cmdPart: ICmdParcel = pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
-            ps.run(cmdPart);
+            if (this.inactiveTimer)
+                this.inactiveTimer.reset();
+            this.ps.run(cmdPart);
             sendMsgToActiveTab(cmdPart);
             sendMsgToActiveTab({
                 liveText: pick(request, ['text', 'isSuccess'])
@@ -151,7 +184,7 @@ store.rebuildLocalPluginCache().then(() => {
             });
         }
     }
-});
+}
 
 
 chrome.browserAction.setIcon({

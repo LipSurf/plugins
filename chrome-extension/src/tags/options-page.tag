@@ -3,25 +3,40 @@
         <div style="text-align: left">
             <h1>Lip Surf</h1>
             <h2>Permissions</h2>
-            <p>We need permission to use the microphone. Please click "allow" and No Hand Man will work in any window. </p>
+            <p>We need permission to use the microphone. Please click "allow" when your browser prompts you for microphone permission. </p>
             <div class="perms" ref="perms">
-                <span rel="mic-perm" class="notice {success: hasMicPerm, failure: hasMicPerm === false}">
-                <i class="material-icons">{hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</span>
+                <div rel="mic-perm" style="display: inline-block;" class="notice {success: hasMicPerm, failure: hasMicPerm === false}">
+                <i class="material-icons">{hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</div>
+				<div if={ !hasMicPerm } class="blocked-mic-instructions">
+					<img align="middle" src="/assets/mic-no-perm.png" style="max-width: 80px"/>
+					Click the blocked media icon in the address bar and click allow.
+				</div>
                 </span>
             </div>
-            <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the No Hand Man icon in your extensions toolbar.</p>
+            <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the Lip Surf icon in your extensions toolbar.</p>
         </div>
     </div>
-    <!-- TODO do we still want this? -->
-    <h4 id="done" style="visibility: hidden">You may now close this window.</h4>
-    <div class="container">
-        <h2>Options</h2>
-        <div style="height: 1.2rem">
-            <div class="right-controls">
+	<div class="container">
+		<h2>General</h2>
+		<div class="option">
+		<label>
+			<input type="checkbox" ref="showLiveText" onchange={ generalSave } checked={ options.showLiveText }/> Show live text
+		</label>
+		</div>
+		<div class="option">
+		<label>
+			Automatically shut off after <input ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> minutes without valid commands (set to 0 to never auto. shut off).
+		</label>
+		</div>
+        <div class="option" style="height: 1.2rem">
+            <div>
                 <button onclick="{ reset }">Reset to Factory Defaults</button>
             </div>
         </div>
-        <div each={ cmdGroups } class="cmd-group">
+	</div>
+    <div class="container">
+        <h2>Plugins</h2>
+        <div each={ options.cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: collapsed, enabled: enabled }">
                 <div class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
                     <div class="label">{ friendlyName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
@@ -30,7 +45,7 @@
                 </div>
                 <div class="collapsable">
                     <div class="collapsable-inner">
-                        <div class="homophones">
+                        <div class="homophones" if={ homophones.length > 0 }>
                             <div class="label">
                                 <strong>Homophones/synonyms: </strong>
                             </div>
@@ -95,7 +110,12 @@
         color: #f34040;
     }
 
+	.blocked-mic-instructions {
+		color: red;
+	}
+
     .perms {
+		text-align: center;
         margin: 10px;
     }
 
@@ -110,6 +130,10 @@
         float: left;
         width: 20%;
     }
+
+	.option {
+		margin: 10px 0;
+	}
 
     .homophones {
         margin-bottom: 15px;
@@ -250,7 +274,7 @@
 	require('./cmd-group.tag');
 	require('./cmd.tag');
 	require('./homophone.tag');
-    this.cmdGroups = opts.store.cmdGroups;
+    this.options = opts.store;
     this.hasMicPerm = null;
 
     this.save = () => {
@@ -262,6 +286,14 @@
             options.reset()
         }
     }
+
+	generalSave = (e) => {
+		Object.assign(options.options, {
+			showLiveText: this.refs.showLiveText.checked,
+			inactivityAutoOffMins: +this.refs.inactivityAutoOffMins.value,
+		});
+		this.save()
+	}
 
     this.toggleGroupEnabled = (e) => {
         e.stopPropagation()

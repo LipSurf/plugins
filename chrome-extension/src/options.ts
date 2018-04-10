@@ -3,13 +3,12 @@
  * Included in the options.html script
  */
 import riot from 'riot';
-import { pick }  from "lodash";
-import { Store, StoreSynced, IPluginConfig } from "./background/store";
+import { pick, omit }  from "lodash";
+import { Store, StoreSynced, IOptions } from "./background/store";
 require('./tags/options-page.tag');
 
 // what's shown on the options page
-interface IPluginOptionsPageStore {
-    showLiveText: boolean,
+interface IPluginOptionsPageStore extends IGeneralOptions {
     cmdGroups: IPluginPref[]
 }
 
@@ -45,9 +44,10 @@ class OptionsPage extends StoreSynced {
         riot.mount('options-page', {store: this.options});
     }
 
-    storeUpdated(newPluginsConfig: IPluginConfig[]) {
+    storeUpdated(newOptions: IOptions) {
         Object.assign(this.options,  {
-            cmdGroups: newPluginsConfig.map(plugin => ({
+            ... omit(newOptions, 'plugins'),
+            cmdGroups: newOptions.plugins.map(plugin => ({
                     commands: plugin.commands.map(cmd => ({
                         match: typeof cmd.match !== 'function' ? cmd.match : '',
                         ... pick(cmd, 'enabled', 'name', 'description'),
@@ -60,8 +60,10 @@ class OptionsPage extends StoreSynced {
     }
 
     save() {
+        // @ts-ignore: omit takes out cmdGroups
         this.store.save({
-            installedPlugins: this.options.cmdGroups.reduce((memo, cmdGroup) => {
+            ... omit(this.options, 'cmdGroups'),
+            plugins: this.options.cmdGroups.reduce((memo, cmdGroup) => {
                 memo[cmdGroup.id] = {
                     disabledCommands: cmdGroup.commands.filter(x => !x.enabled).map(cmd => cmd.name),
                     disabledHomophones: cmdGroup.homophones.filter(x => !x.enabled).map(homo => homo.source),
@@ -69,7 +71,6 @@ class OptionsPage extends StoreSynced {
                 };
                 return memo;
             }, {}),
-            ... pick(this.options, 'showLiveText'),
         });
     }
 

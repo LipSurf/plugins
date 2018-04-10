@@ -5,7 +5,7 @@
  * so it persists across chrome sessions.
  */
 import { flatten, pick, find } from "lodash";
-import { StoreSynced, IPluginConfig, } from "./store";
+import { StoreSynced, IOptions, } from "./store";
 import { promisify } from "../common/util";
 // HACK
 // Force PluginBase class to be included so that eval doesn't bitch
@@ -24,8 +24,8 @@ interface IPluginCSStore extends IDisableable {
 export class PluginManager extends StoreSynced {
     private pluginsCSStore:IPluginCSStore[];
 
-    protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
-        this.pluginsCSStore = newPluginsConfig.map(pluginConfig =>
+    protected storeUpdated(newOptions: IOptions) {
+        this.pluginsCSStore = newOptions.plugins.map(pluginConfig =>
             ({
                 hasGlobalCmd: !!find(pluginConfig.commands, cmd => cmd.global),
                 ...pick(pluginConfig, ['enabled', 'cs', 'match']),

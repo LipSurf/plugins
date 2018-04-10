@@ -6,7 +6,7 @@ import { promisify, Detector } from './util';
 
 type LocalSaveable = ISerializedLocalData | IActivated;
 type LocalLoadable = keyof ISerializedLocalData;
-type SyncSaveable = ISyncData;
+type SyncSaveable = ISyncData | {plugins: IndexedPlugins} | {inactivityAutoOffMins: number} | {showLiveText: boolean};
 type SyncLoadable = keyof ISyncData;
 
 
@@ -24,8 +24,8 @@ export module storage {
         export async function save(data: SyncSaveable) {
             return promisify(chrome.storage.sync.set)(data);
         }
-        export async function load(key: SyncLoadable): Promise<ISyncData> {
-            return promisify<ISyncData>(chrome.storage.sync.get)(key);
+        export async function load<T extends SyncSaveable>(key:SyncLoadable = null): Promise<T> {
+            return promisify<T>(chrome.storage.sync.get)(key);
         }
         export async function clear(): Promise<void> {
             return promisify<null>(chrome.storage.sync.clear)();

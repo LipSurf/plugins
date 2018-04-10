@@ -1,10 +1,9 @@
 import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME,
         CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME, HOMOPHONES } from "../common/constants";
-import { Store, IToggleableHomophones, StoreSynced, IPluginConfig } from "./store";
+import { Store, IToggleableHomophones, StoreSynced, IOptions } from "./store";
 import { find, flatten, pick } from "lodash";
-import { promisify } from "../common/util";
+import { promisify, ResettableTimeout } from "../common/util";
 
-let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
 interface IRecgCommand {
     // computed property that describes if match strings have ordinal
@@ -54,35 +53,6 @@ export interface IRecognizedCmd {
     isSuccess: boolean,
 }
 
-// starts the timer from 0
-class ResettableTimeout {
-    private timeoutRef: number;
-    private ran: boolean = false;
-
-    constructor(private fn: () => void, private delay:number) {
-        this.wrapper();
-    }
-
-    private wrapper() {
-        this.timeoutRef = safeSetTimeout(() => {
-            this.fn();
-            this.ran = true;
-        }, this.delay);
-    }
-
-    public reset() {
-        if (!this.ran) {
-            clearTimeout(this.timeoutRef);
-            // just in case a race-condition is possible
-            this.ran = false;
-            this.wrapper();
-        }
-    }
-
-    public clear() {
-        clearTimeout(this.timeoutRef);
-    }
-}
 
 export class Recognizer extends StoreSynced {
     private recognition;
@@ -113,8 +83,8 @@ export class Recognizer extends StoreSynced {
         });
     }
 
-    protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
-        this.pluginsRecgStore = newPluginsConfig
+    protected storeUpdated(newOptions: IOptions) {
+        this.pluginsRecgStore = newOptions.plugins
             .filter(plugin => plugin.enabled)
             .map(plugin => {
                 let enabledHomophones = plugin.homophones.filter((homo) => homo.enabled);

@@ -1,4 +1,5 @@
 const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
+let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
 // TODO: This would be nice to have
 // export class DisableableArray<T extends IDisableable> extends Array<T> {
@@ -115,3 +116,34 @@ export class Detector {
         }
     }
 }
+
+// starts the timer from 0
+export class ResettableTimeout {
+    private timeoutRef: number;
+    private ran: boolean = false;
+
+    constructor(private fn: () => void, private delay:number) {
+        this.wrapper();
+    }
+
+    private wrapper() {
+        this.timeoutRef = safeSetTimeout(() => {
+            this.fn();
+            this.ran = true;
+        }, this.delay);
+    }
+
+    public reset() {
+        if (!this.ran) {
+            clearTimeout(this.timeoutRef);
+            // just in case a race-condition is possible
+            this.ran = false;
+            this.wrapper();
+        }
+    }
+
+    public clear() {
+        clearTimeout(this.timeoutRef);
+    }
+}
+

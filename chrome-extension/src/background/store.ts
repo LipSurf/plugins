@@ -5,9 +5,13 @@ import { omit, mapValues, pick } from "lodash";
 import { promisify } from "../common/util";
 import { storage } from "../common/browser-interface";
 
+export interface IOptions extends IGeneralOptions {
+    plugins: IPluginConfig[]
+}
+
 // combined local and sync settings in a form that's
 // easily digestable by the consumers: options page, PM, Recg
-export interface IPluginConfig extends IDisableable, IToggleableHomophones {
+interface IPluginConfig extends IDisableable, IToggleableHomophones {
     id: string,
     friendlyName: string,
     expanded: boolean,
@@ -18,7 +22,7 @@ export interface IPluginConfig extends IDisableable, IToggleableHomophones {
     description?: string,
 }
 
-export interface IPluginConfigCommand extends ICommonCommand, IDisableable {
+interface IPluginConfigCommand extends ICommonCommand, IDisableable {
 
 }
 
@@ -34,12 +38,13 @@ export interface IToggleableHomophones {
  *  User preferences as well as parsed plugins
  */
 export class Store {
-    private pluginsConfig: IPluginConfig[];
-    private listeners: ((plugins?: IPluginConfig[]) => void)[] = [];
+    private options: IOptions;
+    private listeners: ((plugins?: IOptions) => void)[] = [];
 
     static DEFAULT_PREFERENCES: ISyncData = {
         showLiveText: true,
-        installedPlugins: [
+        inactivityAutoOffMins: 5,
+        plugins: [
                 ['Browser', '1.0.0'],
                 ['Google', '1.0.0'],
                 ['Reddit', '1.0.0'],
@@ -79,15 +84,15 @@ export class Store {
         // digest plugins that don't match what we have in the
         // local settings already
         // in case versions have changed (for example remotely)
-        let neededPluginIds = Object.keys(syncData.installedPlugins);
+        let neededPluginIds = Object.keys(syncData.plugins);
 
         let toInstallPluginIds = neededPluginIds.filter(id =>
             typeof localData.pluginData[id] === 'undefined'
-            || localData.pluginData[id].version !== syncData.installedPlugins[id].version
+            || localData.pluginData[id].version !== syncData.plugins[id].version
         );
 
         Object.assign(localData.pluginData, (await Promise.all(toInstallPluginIds.map(async (id: string) =>
-            ({ id, ...(await this.fetchPlugin(id, syncData.installedPlugins[id].version)) })
+            ({ id, ...(await this.fetchPlugin(id, syncData.plugins[id].version)) })
         ))).reduce((memo, x) => { memo[x.id] = omit(x, 'id'); return memo }, {}));
 
         // TODO: purge sync data for plugins that are uninstalled?
@@ -139,7 +144,7 @@ export class Store {
     }
 
     private async getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
-        let syncData: ISyncData = (await (storage.sync.load)('installedPlugins'));
+        let syncData = await storage.sync.load<ISyncData>();
         if (!syncData || Object.keys(syncData).length == 0) {
             syncData = Store.DEFAULT_PREFERENCES;
         }
@@ -167,34 +172,37 @@ export class Store {
         return [syncData, <ILocalData>localData];
     }
 
-    async getPluginsConfig(forceRefresh = false): Promise<IPluginConfig[]> {
-        if (!this.pluginsConfig || forceRefresh) {
+    async getPluginsConfig(forceRefresh = false): Promise<IOptions> {
+        if (!this.options || forceRefresh) {
             let [syncData, localData] = await this.getStoredOrDefault();
-            this.pluginsConfig = this.transformToPluginsConfig(localData.pluginData, syncData.installedPlugins);
+            this.options = {
+                ... syncData,
+                plugins: this.transformToPluginsConfig(localData.pluginData, syncData.plugins),
+            }
         }
-        return this.pluginsConfig;
+        return this.options;
     }
 
     // save user preference changes
     async save(data: ISyncData) {
         await promisify(storage.sync.save)(data);
-        this.pluginsConfig = await this.getPluginsConfig(true);
+        this.options = await this.getPluginsConfig(true);
         this.publish();
     }
 
     // publish changes
     publish() {
-        this.listeners.forEach((fn) => fn(this.pluginsConfig));
+        this.listeners.forEach((fn) => fn(this.options));
     }
 
     async resetPreferences() {
         await storage.sync.clear();
-        this.pluginsConfig = await this.getPluginsConfig(true);
+        this.options = await this.getPluginsConfig(true);
         this.publish();
     }
 
     // call fn when pluginconfig changes
-    subscribe(fn: (plugins: IPluginConfig[]) => void) {
+    subscribe(fn: (plugins: IOptions) => void) {
         this.listeners.push(fn);
     }
 }
@@ -204,11 +212,11 @@ export class StoreSynced {
     constructor(public store: Store) {
         // call once on initial load so plugin data is ready
         this.init();
-        this.store.getPluginsConfig().then(pluginsConfig => {
-            this.storeUpdated(pluginsConfig);
+        this.store.getPluginsConfig().then(options => {
+            this.storeUpdated(options);
         })
-        this.store.subscribe((newPluginsConfig) => {
-            this.storeUpdated(newPluginsConfig);
+        this.store.subscribe(newOptions => {
+            this.storeUpdated(newOptions);
         });
     }
 
@@ -218,7 +226,7 @@ export class StoreSynced {
     protected init() { }
 
     // override this
-    protected storeUpdated(newPluginsConfig: IPluginConfig[]) {
+    protected storeUpdated(newOptions: IOptions) {
 
     }
 }

@@ -1,13 +1,18 @@
-
+declare type IndexedPlugins = {
+    // generally the name of the plugin that's installed, no spaces or hyphens( class RedditPlugin -> id: Reddit)
+    [id: string]: ISyncPluginData,
+}
 // this is what's saved in chrome.syncdata
 // all the user preferences for a plugin
 // (we don't store the entire plugin code as there's a limit to the chrome syncdata space)
-declare interface ISyncData {
+declare interface ISyncData extends IGeneralOptions {
+    // installed plugins
+    plugins: IndexedPlugins,
+}
+
+declare interface IGeneralOptions {
     showLiveText: boolean,
-    installedPlugins: {
-        // generally the name of the plugin that's installed, no spaces or hyphens( class RedditPlugin -> id: Reddit)
-        [id: string]: ISyncPluginData,
-    }
+    inactivityAutoOffMins: number,
 }
 
 declare interface ISyncPluginData extends IDisableable {
