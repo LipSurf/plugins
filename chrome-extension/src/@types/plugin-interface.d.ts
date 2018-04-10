@@ -27,6 +27,11 @@ declare interface IPluginDefHomophones {
     [s: string]: string
 }
 
+declare interface IDynamicMatch {
+    fn: ((transcript: string) => any[]),
+    description: string,
+}
+
 // for 3rd party plugins definitions
 declare interface IPluginDefCommand {
     name: string,
@@ -34,7 +39,7 @@ declare interface IPluginDefCommand {
     // pass to runOnPage
     // strings should not have any punctuation in them as puncutation
     // is converted into it's spelled out form eg. "." -> "dot"
-    match: string | string[] | ((transcript: string) => any[]),
+    match: string | string[] | IDynamicMatch,
     description?: string,
     test?: () => any,
     // let command match on any page (not restricted by plugin level match regex)

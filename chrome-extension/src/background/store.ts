@@ -2,7 +2,7 @@
 /// <reference path="../@types/plugin-interface.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
 import { omit, mapValues, pick } from "lodash";
-import { promisify } from "../common/util";
+import { promisify, instanceOfDynamicMatch } from "../common/util";
 import { storage } from "../common/browser-interface";
 
 export interface IOptions extends IGeneralOptions {
@@ -108,7 +108,7 @@ export class Store {
                         cmd.run = cmd.run.toString();
                     // make function matchers not in an array so we can distinguish them during deserialization
                     // distinguish them
-                    cmd.match = typeof cmd.match === 'function' ? cmd.match.toString() : cmd.match.map(cmd => cmd.toString());
+                    cmd.match = instanceOfDynamicMatch(cmd.match) ? {  ...cmd.match, fn: cmd.match.fn.toString() }  : cmd.match.map(match => match.toString());
                     return cmd;
                 });
                 return val

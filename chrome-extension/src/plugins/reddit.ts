@@ -157,13 +157,16 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Go to Subreddit',
         global: true,
-        match: (input) => {
-            const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
-            let match = input.match(SUBREDDIT_REGX);
-            // console.log(`navigate subreddit input: ${input} match: ${match}`);
-            if (match) {
-                return [match[1].replace(/\s/g, "")];
-            }
+        match: {
+            fn: (input) => {
+                const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
+                let match = input.match(SUBREDDIT_REGX);
+                // console.log(`navigate subreddit input: ${input} match: ${match}`);
+                if (match) {
+                    return [match[1].replace(/\s/g, "")];
+                }
+            },
+            description: 'go to/show r [subreddit name]',
         },
         delay: 1200,
         nice: (rawInput:string, matchOutput:any[]) => {

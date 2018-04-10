@@ -16,13 +16,16 @@ export class GooglePlugin extends PluginBase {
         name: 'Search',
         description: "Do a google search",
         global: true,
-        match: (input) => {
-            const REGX = /^(?:search|google) (.*)/;
-            let match = input.match(REGX);
-            // console.log(`navigate subreddit input: ${input} match: ${match}`);
-            if (match) {
-                return [match[1]];
-            }
+        match: {
+            fn: (input) => {
+                const REGX = /^(?:search|google) (.*)/;
+                let match = input.match(REGX);
+                // console.log(`navigate subreddit input: ${input} match: ${match}`);
+                if (match) {
+                    return [match[1]];
+                }
+            },
+            description: 'google/search [your search terms]',
         },
         delay: 1000,
         runOnPage: function (searchQuery) {

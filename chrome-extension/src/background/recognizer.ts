@@ -2,7 +2,7 @@ import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME
         CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME, HOMOPHONES } from "../common/constants";
 import { Store, IToggleableHomophones, StoreSynced, IOptions } from "./store";
 import { find, flatten, pick } from "lodash";
-import { promisify, ResettableTimeout } from "../common/util";
+import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
 
 
 interface IRecgCommand {
@@ -94,8 +94,9 @@ export class Recognizer extends StoreSynced {
                     commands: plugin.commands
                         .filter(cmd => cmd.enabled)
                         .map((cmd) => ({
-                            ordinalMatch: typeof cmd.match !== 'function' ? !! find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
-                            ... pick(cmd, ['name', 'delay', 'global', 'nice', 'match'])
+                            ordinalMatch: !instanceOfDynamicMatch(cmd.match)? !! find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
+                            match: instanceOfDynamicMatch(cmd.match) ? cmd.match.fn : cmd.match,
+                            ... pick(cmd, ['name', 'delay', 'global', 'nice', ])
                         })),
                     ... pick(plugin, ['id', 'match'])
                 }

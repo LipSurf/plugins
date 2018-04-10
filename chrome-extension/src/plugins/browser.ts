@@ -169,10 +169,13 @@ export class BrowserPlugin extends PluginBase {
     {
         name: 'Click',
         description: 'Click an annotated element',
-        match: (input) => {
-            let noSpaces = input.replace(/\s*/, '').toUpperCase();
-            if (BrowserPlugin.annotated.has(noSpaces))
-                return [noSpaces];
+        match: {
+            fn: (input) => {
+                let noSpaces = input.replace(/\s*/, '').toUpperCase();
+                if (BrowserPlugin.annotated.has(noSpaces))
+                    return [noSpaces];
+            },
+            description: 'Say what\'s annotated',
         },
         runOnPage: (annotationName:string) => {
             // do we need to query parent? Because we're placing this inside the anchor

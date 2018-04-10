@@ -9,7 +9,7 @@
                 <i class="material-icons">{hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</div>
 				<div if={ !hasMicPerm } class="blocked-mic-instructions">
 					<img align="middle" src="/assets/mic-no-perm.png" style="max-width: 80px"/>
-					Click the blocked media icon in the address bar and click allow.
+					Click the blocked media icon in the address bar and click always allow.
 				</div>
                 </span>
             </div>

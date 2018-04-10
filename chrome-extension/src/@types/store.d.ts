@@ -73,7 +73,7 @@ declare interface ISerializedCommand extends _ICommonCommand {
 }
 
 declare interface ICommonCommand extends _ICommonCommand {
-    match: string[] | ((transcript: string) => any[]),
+    match: string[] | IDynamicMatch,
     nice?: (match: string) => string,
     run?: (() => any) | ((tabIndex: number) => any),
 }

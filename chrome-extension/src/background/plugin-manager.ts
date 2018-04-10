@@ -6,8 +6,8 @@
  */
 import { flatten, pick, find } from "lodash";
 import { StoreSynced, IOptions, } from "./store";
-import { promisify } from "../common/util";
-// HACK
+import { promisify, instanceOfDynamicMatch } from "../common/util";
+// HACKY
 // Force PluginBase class to be included so that eval doesn't bitch
 let { PluginBase } = require("../common/plugin-lib");
 
@@ -52,14 +52,14 @@ export class PluginManager extends StoreSynced {
         let plugin = PluginManager.evalPluginCode(id, (await PluginManager.fetchPluginCode(id)));
         // everything that the user declares in the class
         // that might be shared in command run code.
-        let commandsStr = plugin.commands
+        let csCmdsStr = plugin.commands
                 .filter((cmd) => cmd.runOnPage)
                 .map((cmd) => {
                     let cmdVal:any = {
                         runOnPage: cmd.runOnPage.toString(),
                     };
-                    if (typeof cmd.match === 'function')
-                        cmdVal.match = cmd.match.toString()
+                    if (instanceOfDynamicMatch(cmd.match))
+                        cmdVal.match = cmd.match.fn.toString();
                     let cmdValStr = Object.keys(cmdVal).map((key) => `${key}:${cmdVal[key]}`).join(',');
                     return `'${cmd.name}': {${cmdValStr}}`
                 });
@@ -82,7 +82,7 @@ export class PluginManager extends StoreSynced {
                 });
         let initStr = plugin.init ? plugin.init.toString() : '';
         let cs = `${id}Plugin = class ${id}Plugin {};
-                ${id}Plugin.commands = {${commandsStr.join(',')}};
+                ${id}Plugin.commands = {${csCmdsStr.join(',')}};
                 ${privateMembers.join('\n')}
                 ${initStr.substr(0, initStr.lastIndexOf('}')).replace(/init\(\)\s*{/, '')};
                     `;
@@ -93,7 +93,7 @@ export class PluginManager extends StoreSynced {
                     delay = flatten([cmd.delay]);
                 return {
                     // Make all the functions strings (because we can't store them directly)
-                    match: typeof cmd.match === 'function' ? cmd.match : flatten([cmd.match]),
+                    match: instanceOfDynamicMatch(cmd.match) ? cmd.match : flatten([cmd.match]),
                     delay,
                     // don't pick test... perhaps others (so we whitelist)
                     ... pick(cmd, 'run', 'name', 'description', 'nice', 'global',),

@@ -4,6 +4,7 @@
  */
 import riot from 'riot';
 import { pick, omit }  from "lodash";
+import { instanceOfDynamicMatch } from "./common/util";
 import { Store, StoreSynced, IOptions } from "./background/store";
 require('./tags/options-page.tag');
 
@@ -27,6 +28,8 @@ interface ICommandPref {
     enabled: boolean,
     name: string,
     match: string | string[],
+    // special description for dynamic match functions
+    dynamicMatch: boolean,
     description?: string,
 }
 
@@ -49,7 +52,8 @@ class OptionsPage extends StoreSynced {
             ... omit(newOptions, 'plugins'),
             cmdGroups: newOptions.plugins.map(plugin => ({
                     commands: plugin.commands.map(cmd => ({
-                        match: typeof cmd.match !== 'function' ? cmd.match : '',
+                        dynamicMatch: instanceOfDynamicMatch(cmd.match),
+                        match: instanceOfDynamicMatch(cmd.match) ? cmd.match.description : cmd.match,
                         ... pick(cmd, 'enabled', 'name', 'description'),
                     })),
                     ... pick(plugin, 'version', 'expanded', 'enabled', 'friendlyName', 'id', 'description', 'homophones'),

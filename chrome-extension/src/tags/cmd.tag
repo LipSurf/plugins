@@ -5,7 +5,14 @@
     <td class="name">{ name }</td>
     <td class="desc">{ description }</td>
     <td if={ typeof match=='object' }><span class="tag" each="{ name, i in match }">{ name }</span></td>
-    <td if={ typeof match=='string' }><span class="tag">{ match }</span></td>
+    <td if={ typeof match=='string' && !dynamicMatch }><span class="tag">{ match }</span></td>
+    <td if={ typeof match=='string' && dynamicMatch }><span class="dynamic-match-str">{ match }</span></td>
+    <style>
+        .dynamic-match-str {
+            color: #555;
+            font-style: italic;
+        }
+    </style>
     <script>
 
     save = (e) => {

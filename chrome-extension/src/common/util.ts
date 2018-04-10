@@ -147,3 +147,7 @@ export class ResettableTimeout {
     }
 }
 
+export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
+    return typeof object === 'object' && 'description' in object && 'fn' in object;
+}
+

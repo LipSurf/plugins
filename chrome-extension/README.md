@@ -17,9 +17,7 @@ v1.0
 * Make help good (context aware)
 * Per-plugin settings -- auto annotate
 * stop goes to top of page
-* Auto turn off plugin after x amount of inactivity time (make a user setting)
 * Make logo/icon
-* If mic is accidently blocked by user, link them to chrome://settings/content/microphone
 * Get build pipeline optimized (obfuscate output)
 * Fix fullscreen
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
@@ -40,6 +38,7 @@ v1.1
 * Improve speed
 
 vNext
+* If mic is accidently blocked by user, link them to chrome://settings/content/microphone (necessary?)
 * Reddit login
 * Text mode allows users to type commands (and they work in the browser)
 * Click live text when there's no match to add a correction
