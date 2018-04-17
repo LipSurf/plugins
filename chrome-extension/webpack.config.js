@@ -1,6 +1,8 @@
 const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
+const WebpackShellPlugin = require('webpack-shell-plugin');
+
 
 function getRules(configFile) {
 	return {
@@ -31,6 +33,7 @@ let common = {
 	},
 	plugins: [
 		new webpack.DefinePlugin(featureFlags),
+		//new WebpackShellPlugin({onBuildEnd:['tests/plugins/test-plugins.sh']}),
 	]
 
 	//optimization: {

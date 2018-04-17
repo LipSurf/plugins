@@ -5,7 +5,7 @@
 import riot from 'riot';
 import { pick, omit }  from "lodash";
 import { instanceOfDynamicMatch } from "./common/util";
-import { Store, StoreSynced, IOptions } from "./background/store";
+import { Store, StoreSynced, } from "./background/store";
 require('./tags/options-page.tag');
 
 // what's shown on the options page

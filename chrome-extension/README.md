@@ -14,8 +14,6 @@ v1.0
 ----Beware of background noise
 ----sound from speakers (when headphones aren't in)
 ----Auto turn off after 5m of inactivity
-* Make help good (context aware)
-* Per-plugin settings -- auto annotate
 * stop goes to top of page
 * Make logo/icon
 * Get build pipeline optimized (obfuscate output)
@@ -23,8 +21,12 @@ v1.0
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 * Make full screen black out background
 * `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
+* 2 full days of testing?
 
 v1.1
+* Beep when error building
+* Improve help pop up -- more, details, etc.
+* Per-plugin settings -- auto annotate?
 * Don't just use highest match for recognizer, look at all output from google STT
 * Integrate with other add-ons. Eg. "ad-blocker off" would turn off addblocker. Make docs on how to do this.
 * Not seeing where the click is happening is disorienting -- highlight element just before clicking?

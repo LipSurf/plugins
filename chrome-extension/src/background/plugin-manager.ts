@@ -5,7 +5,7 @@
  * so it persists across chrome sessions.
  */
 import { flatten, pick, find } from "lodash";
-import { StoreSynced, IOptions, } from "./store";
+import { StoreSynced, } from "./store";
 import { promisify, instanceOfDynamicMatch } from "../common/util";
 // HACKY
 // Force PluginBase class to be included so that eval doesn't bitch
@@ -67,16 +67,19 @@ export class PluginManager extends StoreSynced {
         let privateMembers = Object.keys(plugin)
                 .filter((member) => typeof PluginBase[member] === 'undefined')
                 .map((member) => {
-                    let val;
-                    let _type = typeof plugin[member];
+                    let val = plugin[member];
+                    let _type = typeof val;
                     if (_type === 'function')
-                        val = plugin[member].toString()
+                        val = val.toString()
                     else if (_type === 'object') {
                         if (plugin[member] instanceof Set) {
                             val = `new Set(${JSON.stringify(Array.from(plugin[member]))})`
                         } else {
                             val = JSON.stringify(plugin[member]);
                         }
+                    } else if (_type === 'string') {
+                        // wrap it up
+                        val = ['`', val, '`'].join('');
                     }
                     return `${id}Plugin.${member} = ${val};`
                 });

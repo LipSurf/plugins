@@ -2,6 +2,10 @@
  * primary LipSurf plugin for browser functionality
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference path="../@types/store.d.ts"/>
+// TODO: would be better without the store.d.ts reference?
+
+type HelpPerPlugin = { name: string, commands: {global?: boolean, name: string, match: string[], description: string }[]};
 
 export class BrowserPlugin extends PluginBase {
     static friendlyName = 'Browser';
@@ -36,6 +40,7 @@ export class BrowserPlugin extends PluginBase {
         'forwards': 'forward',
         'upwards': 'up',
         'upward': 'up',
+        'you': 'u',
         'newtown': 'new tab',
         'utah': 'new tab',
         'school': 'scroll',
@@ -66,7 +71,7 @@ export class BrowserPlugin extends PluginBase {
                 break;
             }
         }
-        // more performant than delete
+        // more performant than delete?
         BrowserPlugin.availAnnotations.delete(name);
         BrowserPlugin.annotated.add(name);
         return name;
@@ -84,6 +89,176 @@ export class BrowserPlugin extends PluginBase {
 
     static annotationsTimer = null;
     // End annotations
+
+    static templateCache = {};
+    static parseTemplate:(string, object) => string = function(str, data) {
+        // Inspired by:
+        // Simple JavaScript Templating
+        // John Resig - http://ejohn.org/ - MIT Licensed
+
+        // Figure out if we're getting a template, or if we need to
+        // load the template - and be sure to cache the result.
+        let func = BrowserPlugin.templateCache[str];
+        if (!func) {
+            // Generate a reusable function that will serve as a template
+            // generator (and which will be cached).
+          let strFunc = "var p=[],print=function(){p.push.apply(p,arguments);};" +
+            "with(obj){p.push('" +
+            str.replace(/[\r\t\n]/g, " ")
+               .replace(/'(?=[^%]*%>)/g, "\t")
+               .split("'").join("\\'")
+               .split("\t").join("'")
+               .replace(/<%=(.+?)%>/g, "',$1,'")
+               .split("<%").join("');")
+               .split("%>").join("p.push('")
+               + "');}return p.join('');";
+
+            func = new Function("obj", strFunc);
+            BrowserPlugin.templateCache[str] = func;
+        }
+        return func(data);
+    };
+
+    // local('Barlow Regular'), local('Barlow-Regular'),
+    // Help box
+    static helpBoxTmpl = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+            /* latin-ext */
+            @font-face {
+              font-family: 'Barlow';
+              font-style: normal;
+              font-weight: 400;
+              src: url(chrome-extension://mgdafgphegpnakgebnmgfdfnfnnigjoc/assets/barlow-latin-ex.woff2) format('woff2');
+              unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+            }
+            /* latin */
+            @font-face {
+              font-family: 'Barlow';
+              font-style: normal;
+              font-weight: 400;
+              src: url(chrome-extension://mgdafgphegpnakgebnmgfdfnfnnigjoc/assets/barlow-latin.woff2) format('woff2');
+              unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+            }
+
+                body {
+                    font-family: "Barlow";
+                    background-color: rgba(30, 30, 30, 0.8);
+                    color: white;
+                    padding: 10px;
+                    column-count: 3;
+                }
+
+                section {
+                }
+
+                section h4 {
+                    padding: 5px 0;
+                    margin: 0;
+                    border-bottom: 1px #aaa solid;
+                    color: orange;
+                }
+
+                .cmd-line {
+                    margin: 5px;
+                    display: flex;
+                    justify-content: space-between;
+                    white-space: nowrap;
+                }
+
+                .cmd-name {
+
+                }
+
+                .cmd-matches {
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    margin: 0 0 0 1.6rem;
+                    display: inline;
+                    list-style: none;
+                    padding: 0px;
+                }
+
+                .cmd-matches li {
+                    display: inline;
+                }
+
+                .cmd-matches li::after {
+                    content: "| ";
+                }
+
+                .cmd-matches li:last-child::after {
+                    content: "";
+                }
+
+                .light {
+                    text-decoration: none;
+                    color: #ccc;
+                }
+
+                .match-link {
+                    text-decoration: underline;
+                    color: #927164;
+                }
+
+                .cmd-match {
+                    color: #ccc;
+                    background-color: #555;
+                }
+
+                .tag {
+                    background-color: #777;
+                    border-radius: 3px;
+                    display: inline-block;
+                    margin: 0 8px;
+                    padding: 2px 5px;
+                    color: #cccccc;
+                }
+
+                .top-bar {
+                    text-align: right;
+                }
+
+                .close-btn {
+                    font-size: 2em;
+                    cursor: pointer;
+                }
+            </style>
+            <script>
+                // TODO: Close button
+        //        parent.closeIFrame();
+            </script>
+        </head>
+        <body>
+            <!--<div class="top-bar">-->
+                <!--<span class="close-btn">×</span>-->
+            <!--</div>-->
+            <% for (let plugin of plugins) { %>
+            <section>
+                <h4><%= plugin.name %></h4>
+                <% for (let cmd of plugin.commands) { %>
+                <div class="cmd-line"><span><span class="cmd-name"><%= cmd.name %></span>
+                    <% if (cmd.global) { %>
+                    <span class="tag">global</span>
+                    <% } %>
+                    </span>
+                    <ul class="cmd-matches" title="<%= cmd.match.join(',') %>">
+                    <% for (let match of cmd.match) { %>
+                <li class="cmd-match"><a class="match-link"><span class="light"><%= match %></span></a></span>
+                    <% } %>
+                    </div>
+                </div>
+                <% } %>
+            </section>
+            <% } %>
+        </div>
+        </body>
+        </html>
+    `;
 
     static init() {
         // inject the CSS
@@ -187,14 +362,55 @@ export class BrowserPlugin extends PluginBase {
         description: "Close the help box.",
         match: ["close help", "hide help", "help off"],
         runOnPage: function () {
-            PluginBase.util.toggleHelpBox(false);
+            let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-browser-helpbox`;
+            let $ele = $(`#${id}`);
+
+            if ($ele) {
+                $ele.css('opacity', 0);
+                setTimeout(() => $ele.remove(), 600);
+            }
         }
     }, {
         name: 'Open Help',
         description: "Open the help box.",
-        match: ["help", "open help", "help open", "commands", "help on"],
-        runOnPage: function () {
-            PluginBase.util.toggleHelpBox(true);
+        match: ["help", "open help", "help open", "commands", "help on", "i am confused"],
+        runOnPage: async function () {
+            let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-browser-helpbox`;
+            if ($(`#${id}`).length === 0) {
+                let options = await PluginBase.util.getOptions();
+                let enabledPlugins = options.plugins.filter(plugin => plugin.enabled);
+                let url = window.location.href;
+                let score = {
+                    Reddit: 0,
+                    Google: 1,
+                    Browser: 2
+                };
+                let helpPerPlugin:any = enabledPlugins
+                    .map(plugin => ({
+                        name: plugin.friendlyName,
+                        commands: plugin.commands
+                            .filter(cmd => cmd.enabled && (cmd.global || plugin.match.reduce((acc, matchPattern) => acc || matchPattern.test(url), false)))
+                            .map(cmd => ({...cmd, match: typeof cmd.match === 'object' && 'description' in cmd.match ? [cmd.match.description] : cmd.match}))
+                            .map(cmd => PluginBase.util.pick(cmd, 'name', 'global', 'description', 'match'))
+                        }
+                    ))
+                // hard-coded sorting for now
+                // TODO: sort by relevance to the current url
+                    .sort((a, b) => score[a.name] - score[b.name]);
+                console.log(`help per plugin ${JSON.stringify(helpPerPlugin)}`);
+                let renderedHelp:string = BrowserPlugin.parseTemplate(BrowserPlugin.helpBoxTmpl, {plugins: helpPerPlugin});
+                let overlay = PluginBase.util.addOverlay(renderedHelp, {
+                    top: '10%',
+                    left: '10%',
+                    right: '10%',
+                    bottom: '10%',
+                    width: '80%',
+                    height: '430px',
+                    opacity: '0',
+                    transition: 'opacity 0.3s ease-in',
+                }, id);
+                setTimeout(() => $(overlay).css('opacity', '1'), 0);
+            }
         }
     }, {
         name: 'Fullscreen Video',
@@ -404,7 +620,7 @@ export class BrowserPlugin extends PluginBase {
         }
     }, {
         name: 'Scroll Down',
-        match: ["down", "scroll down"],
+        match: ["down", "scroll down", "d"],
         // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
         // delay: [300, 0],
         runOnPage: function () {
@@ -460,7 +676,7 @@ export class BrowserPlugin extends PluginBase {
         }
     }, {
         name: 'Scroll Up',
-        match: ["up", "scroll up"],
+        match: ["up", "scroll up", "u"],
         delay: [300, 0],
         runOnPage: function () {
             $('html, body').animate({
@@ -629,6 +845,48 @@ export class BrowserPlugin extends PluginBase {
                 chrome.tabs.update(tabs[0].id, {
                     active: true
                 });
+            });
+        }
+    }, {
+        name: 'Mute',
+        description: 'Mute volume on current tab',
+        match: 'mute',
+        run: async (tabIndex) => {
+            let tab = await ExtensionUtil.queryActiveTab();
+            chrome.tabs.update(tab.id, {muted: true});
+        }
+    }, {
+        name: 'Mute all',
+        description: 'Mute volume on all tabs',
+        match: 'mute all',
+        run: async (tabIndex) => {
+            chrome.tabs.query({
+                muted: false
+            }, function(tabs) {
+                for (let tab of tabs) {
+                    chrome.tabs.update(tab.id, {muted: true});
+                }
+            });
+        }
+    }, {
+        name: 'Unmute',
+        description: 'Unmute volume on current tab',
+        match: 'unmute',
+        run: async (tabIndex) => {
+            let tab = await ExtensionUtil.queryActiveTab();
+            chrome.tabs.update(tab.id, {muted: false});
+        }
+    }, {
+        name: 'Unmute all',
+        description: 'Unmute volume on all tabs',
+        match: 'unmute all',
+        run: async (tabIndex) => {
+            chrome.tabs.query({
+                muted: true
+            }, function(tabs) {
+                for (let tab of tabs) {
+                    chrome.tabs.update(tab.id, {muted: false});
+                }
             });
         }
     }, {

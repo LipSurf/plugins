@@ -3,36 +3,8 @@
 /// <reference path="../common/browser-interface.ts" />
 import { omit, mapValues, pick } from "lodash";
 import { promisify, instanceOfDynamicMatch } from "../common/util";
+import { getStoredOrDefault, getOptions } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
-
-export interface IOptions extends IGeneralOptions {
-    plugins: IPluginConfig[]
-}
-
-// combined local and sync settings in a form that's
-// easily digestable by the consumers: options page, PM, Recg
-interface IPluginConfig extends IDisableable, IToggleableHomophones {
-    id: string,
-    friendlyName: string,
-    expanded: boolean,
-    version: string,
-    match: RegExp[],
-    cs: string,
-    commands: IPluginConfigCommand[],
-    description?: string,
-}
-
-interface IPluginConfigCommand extends ICommonCommand, IDisableable {
-
-}
-
-export interface IToggleableHomophones {
-    homophones?: {
-        enabled: boolean,
-        source: string,
-        destination: string,
-    }[],
-}
 
 /*
  *  User preferences as well as parsed plugins
@@ -40,23 +12,6 @@ export interface IToggleableHomophones {
 export class Store {
     private options: IOptions;
     private listeners: ((plugins?: IOptions) => void)[] = [];
-
-    static DEFAULT_PREFERENCES: ISyncData = {
-        showLiveText: true,
-        inactivityAutoOffMins: 5,
-        plugins: [
-                ['Browser', '1.0.0'],
-                ['Google', '1.0.0'],
-                ['Reddit', '1.0.0'],
-            ].reduce((memo, [id, version]) => Object.assign(memo, {
-                [id]: {
-                    version,
-                    enabled: true,
-                    expanded: true,
-                    disabledHomophones: [],
-                    disabledCommands: []
-                }}), {})
-    };
 
     // fetchPlugin is only required to be set by one instance of store -- the one
     // that is responsible for updating the local cache (such as just the background
@@ -68,11 +23,11 @@ export class Store {
             if (this.fetchPlugin) {
                 // might need to fetch new plugins
                 this.rebuildLocalPluginCache().then(async () => {
-                    await this.getPluginsConfig(true);
+                    await this.getOptions(true);
                     this.publish();
                 });
             } else {
-                this.getPluginsConfig(true).then(() => this.publish());
+                this.getOptions(true).then(() => this.publish());
             }
         });
     }
@@ -80,7 +35,7 @@ export class Store {
     // the initial get (should only be called at extension startup or when preferences change)
     // saves to settings
     async rebuildLocalPluginCache(): Promise<void> {
-        let [syncData, localData] = await this.getStoredOrDefault();
+        let [syncData, localData] = await getStoredOrDefault();
         // digest plugins that don't match what we have in the
         // local settings already
         // in case versions have changed (for example remotely)
@@ -119,66 +74,9 @@ export class Store {
         await (storage.local.save)(localData);
     }
 
-    private transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginData }, syncPluginData: { [id: string]: ISyncPluginData }) {
-        return Object.keys(localPluginData).map((id: string) => {
-            let _localPluginData = localPluginData[id];
-            let _syncPluginData = syncPluginData[id];
-            return {
-                id,
-                commands: _localPluginData.commands.map(cmd =>
-                    Object.assign({
-                        enabled: !_syncPluginData.disabledCommands.includes(cmd.name),
-                    }, cmd)
-                ),
-                homophones: Object.keys(_localPluginData.homophones).map(homo =>
-                    Object.assign({
-                        enabled: !_syncPluginData.disabledHomophones.includes(homo),
-                        source: homo,
-                        destination: _localPluginData.homophones[homo],
-                    })
-                ),
-                ... pick(_localPluginData, 'friendlyName', 'match', 'cs', 'description', ),
-                ... pick(_syncPluginData, 'expanded', 'version', 'enabled'),
-            }
-        });
-    }
-
-    private async getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
-        let syncData = await storage.sync.load<ISyncData>();
-        if (!syncData || Object.keys(syncData).length == 0) {
-            syncData = Store.DEFAULT_PREFERENCES;
-        }
-        let serializedLocalData: Partial<ISerializedLocalData> = (await (storage.local.load)('pluginData'));
-        if (!serializedLocalData || !serializedLocalData.pluginData) {
-            serializedLocalData = {
-                pluginData: {},
-                activated: false,
-            }
-        }
-        // parse serialized regex/fns
-        let localData = Object.assign(serializedLocalData, {
-            pluginData: mapValues(serializedLocalData.pluginData, (val: any, id, pluginData) => {
-                val.match = val.match.map(matchItem => RegExp(matchItem));
-                val.commands = val.commands.map(cmd => {
-                    if (cmd.nice)
-                        eval(`cmd.nice = ${cmd.nice}`);
-                    if (typeof cmd.match === 'string')
-                        cmd.match = eval(cmd.match);
-                    return cmd;
-                });
-                return val;
-            }),
-        });
-        return [syncData, <ILocalData>localData];
-    }
-
-    async getPluginsConfig(forceRefresh = false): Promise<IOptions> {
+    async getOptions(forceRefresh = false): Promise<IOptions> {
         if (!this.options || forceRefresh) {
-            let [syncData, localData] = await this.getStoredOrDefault();
-            this.options = {
-                ... syncData,
-                plugins: this.transformToPluginsConfig(localData.pluginData, syncData.plugins),
-            }
+            this.options = await getOptions();
         }
         return this.options;
     }
@@ -186,7 +84,7 @@ export class Store {
     // save user preference changes
     async save(data: ISyncData) {
         await promisify(storage.sync.save)(data);
-        this.options = await this.getPluginsConfig(true);
+        this.options = await this.getOptions(true);
         this.publish();
     }
 
@@ -197,7 +95,7 @@ export class Store {
 
     async resetPreferences() {
         await storage.sync.clear();
-        this.options = await this.getPluginsConfig(true);
+        this.options = await this.getOptions(true);
         this.publish();
     }
 
@@ -212,7 +110,7 @@ export class StoreSynced {
     constructor(public store: Store) {
         // call once on initial load so plugin data is ready
         this.init();
-        this.store.getPluginsConfig().then(options => {
+        this.store.getOptions().then(options => {
             this.storeUpdated(options);
         })
         this.store.subscribe(newOptions => {

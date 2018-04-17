@@ -6,7 +6,7 @@ import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback, IRecognizedCmd, IRecognizedText } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
-import { Store, StoreSynced, IOptions } from "./store";
+import { Store, StoreSynced } from "./store";
 import { Detector, ResettableTimeout } from "../common/util";
 import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
@@ -51,6 +51,17 @@ class Main extends StoreSynced {
 
     constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox, private recg: Recognizer) {
         super(store)
+
+        if (INCLUDE_SPEECH_TEST_HARNESS) {
+            chrome.runtime.onConnect.addListener(function(port) {
+                if (port.name == 'test-probe') {
+                    port.onMessage.addListener(function(msg:any) {
+                        console.log(`RECEIVED A FKIN MSG`);
+                        eval(msg.cmd);
+                    });
+                }
+            });
+        }
 
         chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
             if (request.bubbleDown) {
@@ -160,7 +171,7 @@ class Main extends StoreSynced {
         if (activated) {
             // only allow recg to start if at least default
             // commands are loaded
-            this.recg.start(this.cmdRecognizedCb);
+            this.recg.start(this.cmdRecognizedCb.bind(this));
             InterferenceAudioDetector.init();
         } else {
             this.recg.shutdown();
@@ -252,14 +263,4 @@ var InterferenceAudioDetector = (function () {
 if (CLEAR_SETTINGS) {
     chrome.storage.local.clear();
     chrome.storage.sync.clear();
-}
-if (INCLUDE_SPEECH_TEST_HARNESS) {
-    chrome.runtime.onConnect.addListener(function(port) {
-        if (port.name == 'test-probe') {
-            port.onMessage.addListener(function(msg:any) {
-                console.log(`RECEIVED A FKIN MSG`);
-                eval(msg.cmd);
-            });
-        }
-    });
 }

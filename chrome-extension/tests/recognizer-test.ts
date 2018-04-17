@@ -9,6 +9,7 @@ import { PluginManager } from "../src/background/plugin-manager";
 import { Store } from "../src/background/store";
 import { PluginSandbox } from '../src/background/plugin-sandbox';
 import { storage } from "../src/common/browser-interface";
+import { DEFAULT_PREFERENCES } from "../src/common/store-lib";
 var {PluginBase} = require("../src/common/plugin-lib");
 
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
@@ -40,7 +41,7 @@ test.before(async(t) => {
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
     let evalPluginsStub = sinon.stub(PluginManager, "evalPluginCode");
     sinon.stub(storage.local, "save").callsFake((saveData:ILocalData) => Object.assign(testSaveData, saveData));
-    biSyncStorageLoad.resolves(Store.DEFAULT_PREFERENCES);
+    biSyncStorageLoad.resolves(DEFAULT_PREFERENCES);
     biLocalStorageLoad.resolves(testSaveData);
     fetchPluginStub.callsFake(async (pluginId:string) => getPlugin(pluginId));
     evalPluginsStub.callsFake((function (id:string, text:string) {
@@ -60,7 +61,9 @@ test.before(async(t) => {
         // get the match function for a plugin
         let window = {};
         let plugin = eval(getPlugin(data.cmdPluginId));
-        return window[`${data.cmdPluginId}Plugin`].commands.find((cmd) => cmd.name === data.cmdName).match(data.processedInput)
+        let cmd = window[`${data.cmdPluginId}Plugin`].commands.find((cmd) => cmd.name === data.cmdName);
+        if (typeof cmd.match === 'function')
+            return cmd.match(data.processedInput);
     };
     t.context.recg = new Recognizer(store,
         t.context.urlUpdate,

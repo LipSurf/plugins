@@ -1,3 +1,32 @@
+declare interface IOptions extends IGeneralOptions {
+    plugins: IPluginConfig[]
+}
+
+// combined local and sync settings in a form that's
+// easily digestable by the consumers: options page, PM, Recg
+interface IPluginConfig extends IDisableable, IToggleableHomophones {
+    id: string,
+    friendlyName: string,
+    expanded: boolean,
+    version: string,
+    match: RegExp[],
+    cs: string,
+    commands: IPluginConfigCommand[],
+    description?: string,
+}
+
+interface IPluginConfigCommand extends ICommonCommand, IDisableable {
+
+}
+
+declare interface IToggleableHomophones {
+    homophones?: {
+        enabled: boolean,
+        source: string,
+        destination: string,
+    }[],
+}
+
 declare type IndexedPlugins = {
     // generally the name of the plugin that's installed, no spaces or hyphens( class RedditPlugin -> id: Reddit)
     [id: string]: ISyncPluginData,

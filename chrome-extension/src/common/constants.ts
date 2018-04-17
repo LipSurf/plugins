@@ -535,4 +535,5 @@ export const HOMOPHONES = {
     'aladdin': 'eleven',
     '\\.': ' dot ',
     ',': ' comma ',
+    'i\'m': 'i am',
 };

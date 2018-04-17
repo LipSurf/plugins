@@ -54,16 +54,20 @@ declare interface IPluginDefCommand {
 }
 
 declare interface IPluginUtil {
+    // meta
+    getOptions: () => Promise<IOptions>;
+
+    addOverlay: (contents, extraCss?: {}, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLElement;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;
     postToAllFrames: (id, fnNames: string | string[], selector?) =>  void;
     // TODO: deprecate in favor of generic postToAllFrames?
     // currently used for fullscreen?
     sendMsgToBeacon: (object) => Promise<any>;
-    toggleHelpBox: (boolean) => void;
     getScrollDistance: () => number;
     scrollToAnimated: (HTMLElement) => void;
     isInView: (HTMLElement) => boolean;
     getNoCollisionUniqueAttr: () => string;
+    pick: (object, ...string) => object;
 }
 
 declare namespace ExtensionUtil {

@@ -1,6 +1,6 @@
 import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME,
         CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME, HOMOPHONES } from "../common/constants";
-import { Store, IToggleableHomophones, StoreSynced, IOptions } from "./store";
+import { Store, StoreSynced, } from "./store";
 import { find, flatten, pick } from "lodash";
 import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
 
@@ -95,7 +95,8 @@ export class Recognizer extends StoreSynced {
                         .filter(cmd => cmd.enabled)
                         .map((cmd) => ({
                             ordinalMatch: !instanceOfDynamicMatch(cmd.match)? !! find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
-                            match: instanceOfDynamicMatch(cmd.match) ? cmd.match.fn : cmd.match,
+                            // if it's a dynamic match, the fn is defined in the context of the CS
+                            match: instanceOfDynamicMatch(cmd.match) ? undefined : cmd.match,
                             ... pick(cmd, ['name', 'delay', 'global', 'nice', ])
                         })),
                     ... pick(plugin, ['id', 'match'])
@@ -191,7 +192,7 @@ export class Recognizer extends StoreSynced {
                     let out: string[];
                     let matchPatterns;
                     let matchPatternIndex;
-                    if (typeof curCmd.match === 'function') {
+                    if (typeof curCmd.match === 'undefined') {
                         // TODO: not a big fan of how this works
                         let tab = await this.queryActiveTab();
                         out = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
