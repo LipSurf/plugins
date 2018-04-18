@@ -1,7 +1,7 @@
 import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME,
         CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME, HOMOPHONES } from "../common/constants";
 import { Store, StoreSynced, } from "./store";
-import { find, flatten, pick } from "lodash";
+import { find, flatten, pick, map } from "lodash";
 import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
 
 
@@ -36,22 +36,7 @@ interface IMatchCommand {
     niceTranscript: string,
 }
 
-export type IRecognizedCallback = IRecognizedText | IRecognizedCmd;
-
-export interface IRecognizedText {
-    text: string,
-    hold?: boolean,
-    isUnsure?: boolean,
-    isSuccess?: boolean,
-}
-
-export interface IRecognizedCmd {
-    cmdName: string,
-    cmdPluginId: string,
-    cmdArgs: any[],
-    text: string,
-    isSuccess: boolean,
-}
+export type IRecognizedCallback = ILiveTextParcel | ICmdParcel;
 
 
 export class Recognizer extends StoreSynced {
@@ -118,13 +103,17 @@ export class Recognizer extends StoreSynced {
         this.recognition.start();
 
         this.recognition.onresult = (event) => {
-            let lastE = event.results[event.results.length - 1];
+            let res = [];
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                let rec = event.results[i][0];
+                res.push({
+                    text: rec.transcript.trim().toLowerCase().replace(/-/g, ''),
+                    confidence: rec.confidence,
+                    isFinal: event.results[i].isFinal
+                }) ;
+            }
             console.dir(event);
-            this.handleTranscript(
-                lastE[0].transcript.trim().toLowerCase().replace(/-/g, ''),
-                lastE.isFinal,
-                lastE[0].confidence,
-            );
+            this.handleTranscript(res);
             this.recognizerKilled = false;
         };
 
@@ -140,9 +129,11 @@ export class Recognizer extends StoreSynced {
                 this.recognizerKilled = true;
             } else if (event.error == 'network') {
                 // TODO: special error message
+            } else if (event.error == 'audio-capture') {
+                // no mic
             } else if (event.error !== 'no-speech') {
                 console.error(`unhandled error: ${event.error}`);
-            }
+            } 
         };
 
         this.recognition.onnomatch = (event) => {
@@ -354,21 +345,26 @@ export class Recognizer extends StoreSynced {
     }
 
 
-    async handleTranscript(transcript: string, isFinal: boolean, confidence: Number) {
+    async handleTranscript(transcripts: {text: string, isFinal: boolean, confidence: Number}[]) {
         let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
         console.log(`elapsed time ${elapsedTime} ${COOLDOWN_TIME} ${CONFIDENCE_THRESHOLD}`);
         if (this.delayCmd)
             this.delayCmd.reset();
         if (elapsedTime > COOLDOWN_TIME) {
-            if (confidence > CONFIDENCE_THRESHOLD) {
-                var { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = await this.getCmdForUserInput(transcript, this.curActiveTabUrl);
-                var niceOutput = null;
+            if (transcripts[0].confidence > CONFIDENCE_THRESHOLD) {
+                // TODO: for perf. benefit join the transcripts and see if there is a match across transcripts? eg. ["new", "tab"]
+                let joinedTrans = transcripts.map(x => x.text).join(' ');
+                let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = await this.getCmdForUserInput(joinedTrans, this.curActiveTabUrl);
+                let liveText = transcripts.map(x => ({
+                    isSuccess: niceTranscript ? !!~niceTranscript.indexOf(x.text): false,
+                    ...pick(x, 'text', 'isFinal'),
+                }));
 
-                console.log(`delay: ${delay}, input: ${transcript}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+                console.log(`delay: ${delay}, input: ${'transcript'}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
                 if (cmdName) {
                     // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                    console.log(`isFinal: ${isFinal} lastNonFinalCmdExecuted: ${this.lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${this.lastFinalTime} `);
-                    if (isFinal && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > FINAL_COOLDOWN_TIME) {
+                    console.log(`isFinal: ${'isFinal'} lastNonFinalCmdExecuted: ${this.lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${this.lastFinalTime} `);
+                    if (!'isFinal' && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > FINAL_COOLDOWN_TIME) {
                         console.log("Junked dupe.");
                         return;
                     }
@@ -378,37 +374,37 @@ export class Recognizer extends StoreSynced {
                     // it ambiguous so the tests can work in node
                     // @ts-ignore: setTimeout === window.setTimeout but we keep
                     this.delayCmd = new ResettableTimeout(() => {
-                        console.log(`running command ${cmdName} isFinal:${isFinal}`);
-                        if (isFinal) {
+                        console.log(`running command ${cmdName} isFinal:${'isFinal'}`);
+                        if (!'isFinal') {
                             this.lastFinalTime = +new Date();
                         } else {
                             this.lastNonFinalCmdExecuted = cmdName;
                             this.lastNonFinalCmdExecutedTime = +new Date();
                         }
 
-                        console.log(`transcript in closure ${transcript}`);
                         return this.cmdRecognizedCb({
-                            isSuccess: true,
+                            liveText: [
+                                {text: niceTranscript, isSuccess: true}
+                            ],
                             cmdArgs: matchOutput,
-                            text: niceTranscript,
                             cmdName,
                             cmdPluginId,
                         });
                     }, delay);
-                    return this.cmdRecognizedCb({
-                        text: transcript,
+                    return this.cmdRecognizedCb(<ILiveTextParcel>{
+                        liveText: liveText,
                         hold: true,
                     });
                 } else {
-                    return this.cmdRecognizedCb({
-                        text: niceOutput ? niceOutput : transcript
-                    });
+                    return this.cmdRecognizedCb({liveText});
                 }
-            }
-            if (isFinal && confidence <= CONFIDENCE_THRESHOLD) {
+            } else if ('isFinal' && transcripts[0].confidence <= CONFIDENCE_THRESHOLD) {
                 return this.cmdRecognizedCb({
-                    text: transcript,
-                    isUnsure: true
+                    liveText: transcripts.map(x => ({
+                        isFinal: true,
+                        text: x.text,
+                    })),
+                    hold: false,
                 });
             }
         }

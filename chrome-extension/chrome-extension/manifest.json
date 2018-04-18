@@ -58,8 +58,10 @@
   ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "web_accessible_resources": [
-    "views/preview-cmd-box.html",
+    "views/live-text-overlay.html",
     "assets/barlow-latin.woff2",
-    "assets/barlow-latin-ex.woff2"
+    "assets/barlow-latin-ex.woff2",
+    "assets/barlow-latin-200.woff2",
+    "assets/barlow-latin-ex-200.woff2"
   ]
 }

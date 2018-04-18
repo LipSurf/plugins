@@ -2,17 +2,27 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { promisify } from "../common/util";
-import { attachOverlay, retrialAndError, PluginBase } from "../common/plugin-lib";
+import { retrialAndError, PluginBase } from "../common/plugin-lib";
+import { instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript } from "../common/util";
 
-var activated = false;
-const LABEL_FADE_TIME = 2000;
-var $previewCmdBox;
-var lblTimeout;
-var commandsLoaded = false;
+declare global {
+    interface Window { 
+        commands: any; 
+        PluginBase: typeof PluginBase;
+        allPlugins: (typeof PluginBase)[]
+    }
+}
+
+const LIVE_TEXT_HOLD_TIME = 2000;// * 4000;
+let activated = false;
+let $liveTextOverlay: HTMLIFrameElement;
+let lblTimeout;
+let commandsLoaded = false;
+let ua = PluginBase.util.getNoCollisionUniqueAttr();
 // used to determine which video to fullscreen
-var $lastExpanded;
-var commands = {};
-
+window.commands = {};
+window.PluginBase = PluginBase;
+window.allPlugins = [];
 
 // f is what needs to be done -- can be function or promise
 // f_check checks whether it was done (optional if the check can't be done in f)
@@ -22,10 +32,16 @@ var commands = {};
 function toggleActivated(_activated = true, quiet = false) {
     if (!_activated && activated) {
         activated = false;
+
+        window.allPlugins.forEach(plugin => plugin.destroy ? plugin.destroy() : null);
+        
         // remove all overlays
-        try {
-            $previewCmdBox.remove();
-        } catch (e) {}
+        let $eles = $(`*[${ua}]`);
+        $eles.each((i, ele) => {
+            try {
+                ele.remove();
+            } catch (e) {}
+        });
     } else if (_activated && !activated) {
         activated = true;
         if (!commandsLoaded) {
@@ -35,16 +51,16 @@ function toggleActivated(_activated = true, quiet = false) {
         retrialAndError(async function() {
             await promisify($(document).ready)();
             if (activated) {
-                $previewCmdBox = await attachOverlay('preview-cmd-box');
+                await attachLiveTextOverlay();
             }
             if (!quiet) {
-                showLiveText("Ready");
+                // showLiveText("Ready");
             }
         }, function() {
-            if ($previewCmdBox) {
-                return document.body.contains($previewCmdBox[0]);
+            if ($liveTextOverlay) {
+                return document.body.contains($liveTextOverlay[0]);
             }
-        }, LABEL_FADE_TIME / 5, 5);
+        }, LIVE_TEXT_HOLD_TIME / 5, 5);
 
         // open help box
         // retrialAndError(async function() {
@@ -61,50 +77,79 @@ function toggleActivated(_activated = true, quiet = false) {
 }
 
 
-async function showLiveText(text: string, isSuccess: boolean = false, isUnsure: boolean = false, hold: boolean = false, isError: boolean = false) {
+async function getFrameHtml(id) {
+    // return data, status
+    return await $.get(chrome.extension.getURL(`views/${id}.html`));
+}
+
+let prevQ:Promise<any>;
+
+// queue async functions to happen synchronously.
+// Used to free up handlers to handle other things first
+async function queueUp(fn: () => Promise<any>) {
+    if (prevQ) {
+        prevQ.then(() => {
+            prevQ = fn();
+        })
+    } else {
+        prevQ = fn();
+    }
+}
+
+async function attachLiveTextOverlay() {
+    let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-live-text-overlay`;
+    $liveTextOverlay = PluginBase.util.addOverlay(await getFrameHtml('live-text-overlay'), null, id, document.body, true);
+}
+
+async function showLiveText(parcel: ILiveTextParcel) {
     // our element might not get reattached or might get removed from
     //   * bf cache
     //   * dom body overwrites from js
-    if (typeof $previewCmdBox === 'undefined' || !document.body.contains($previewCmdBox[0])) {
-        $previewCmdBox = await attachOverlay('preview-cmd-box');
+    if (typeof $liveTextOverlay === 'undefined' || !document.body.contains($liveTextOverlay)) {
+        await attachLiveTextOverlay();
+        console.log(`Reattaching live text overlay`);
     }
-    console.log(`showLiveText ${text} ${isSuccess} ${isUnsure}`);
-    let $previewCmdLbl = $previewCmdBox.contents().find('.preview-cmd');
+
+    let $liveText = $liveTextOverlay.contentDocument.getElementById('live-text');
     clearTimeout(lblTimeout);
-    $previewCmdLbl.toggleClass('success', isSuccess);
-    $previewCmdLbl.toggleClass('unsure', isUnsure);
-    $previewCmdLbl.toggleClass('error', isError);
-    $previewCmdLbl.text(text);
-    $previewCmdLbl.toggleClass('visible', true);
-    lblTimeout = setTimeout(function() {
-        $('iframe.nhm-iframe#nhm-preview-cmd-box').contents().find('.preview-cmd').toggleClass('visible', false)
-    }, hold ? LABEL_FADE_TIME * 3 : LABEL_FADE_TIME);
-}
-
-function instanceOfCmd(object: any): object is ICmdParcel {
-    return 'cmdName' in object && !('processedInput' in object);
-}
-
-function instanceOfText(object: any): object is ILiveTextParcel {
-    return !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object);
-}
-
-function instanceOfToggle(object: any): object is IToggleParcel {
-    return 'toggleActivated' in object;
-}
-
-function instanceOfTranscript(object: any): object is ITranscriptParcel {
-    return 'processedInput' in object;
+    // remove the old
+    $liveText.classList.remove('enter');
+    while ($liveText.lastChild) {
+        $liveText.removeChild($liveText.lastChild);
+    }
+    parcel.liveText.map(liveText => {
+        // split by word so spans are evenly spaced and can be animated in nicely
+        liveText.text.split(' ').map(word => {
+            let block = document.createElement('span');
+            if (liveText.isFinal)
+                block.classList.add('final') 
+            if (liveText.isSuccess)
+                block.classList.add('success') 
+            block.textContent = word.trim();
+            $liveText.appendChild(block);
+        })
+    });
+    setTimeout(() => { $liveText.classList.add('enter'); }, 0);
+    lblTimeout = setTimeout(() => {
+        $liveText.classList.remove('enter');
+        $liveText.classList.add('leave');
+        setTimeout(() => {
+            while ($liveText.lastChild) {
+                $liveText.removeChild($liveText.lastChild);
+            }
+            $liveText.classList.remove('leave');
+        }, 1000);
+    }, parcel.hold ? LIVE_TEXT_HOLD_TIME * 3 : LIVE_TEXT_HOLD_TIME);
 }
 
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function(msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
     if (instanceOfTranscript(msg)) {
         sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.processedInput));
-    } else if (instanceOfCmd(msg)) {
+    } else if (instanceOfCmdLiveTextParcel(msg)) {
         window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs);
     } else if (instanceOfText(msg)) {
-        showLiveText(msg.liveText.text, msg.liveText.isSuccess);
+        queueUp(() => showLiveText(msg));
     } else if (instanceOfToggle(msg)) {
         toggleActivated(msg.toggleActivated);
     }
@@ -129,8 +174,6 @@ function checkActivatedStatus() {
 }
 
 checkActivatedStatus();
-
-window['PluginBase'] = PluginBase;
 
 
 if (INCLUDE_SPEECH_TEST_HARNESS) {

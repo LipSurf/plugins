@@ -280,6 +280,10 @@ export class BrowserPlugin extends PluginBase {
         $(`<style type='text/css'>${STYLE}</style>`).appendTo("head");
     }
 
+    static destroy() {
+        clearInterval(BrowserPlugin.annotationsTimer);
+    }
+
     static commands = [{
         name: 'Annotate',
         description: 'Give elements on the page a special annotation so they can be easily referred to and "clicked" on with voice controls.',
@@ -294,9 +298,9 @@ export class BrowserPlugin extends PluginBase {
                 let count = 0;
                 let removedCount = 0;
                 // remove invisible annotations and mark their names as available again
-                $(`div[${noCollisionAttr}-anno]`).each((i, ele) => {
+                $(`div[${noCollisionAttr}][anno]`).each((i, ele) => {
                     let $ele = $(ele);
-                    let name = ele.getAttribute(`${noCollisionAttr}-anno`);
+                    let name = ele.getAttribute(`anno`);
                     if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
                         removedCount += 1;
                         // make the annotation name avail again
@@ -308,7 +312,7 @@ export class BrowserPlugin extends PluginBase {
                 // .filter has better perf.
                 $('a')
                     .filter(':visible')
-                    .filter(`:not(:has(div[${noCollisionAttr}-anno]))`)
+                    .filter(`:not(:has(div[${noCollisionAttr}][anno]))`)
                     .each((i, ele) => {
                         let $ele = $(ele);
                         if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
@@ -317,7 +321,8 @@ export class BrowserPlugin extends PluginBase {
                             let name = BrowserPlugin.popName();
                             if (name) {
                                 label.className = `${noCollisionAttr}-anno`;
-                                label.setAttribute(`${noCollisionAttr}-anno`, name);
+                                label.setAttribute(`anno`, name);
+                                label.setAttribute(`${noCollisionAttr}`, '');
                                 let labelContent = document.createTextNode(name);
                                 label.appendChild(labelContent);
                                 ele.appendChild(label);

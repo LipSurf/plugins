@@ -8,6 +8,7 @@ declare abstract class PluginBase {
     static commands: IPluginDefCommand[];
     static homophones: IPluginDefHomophones;
     static init?: () => void;
+    static destroy?: () => void;
 
     // don't allow non-static properties
     [propName: string]: never;
@@ -57,7 +58,7 @@ declare interface IPluginUtil {
     // meta
     getOptions: () => Promise<IOptions>;
 
-    addOverlay: (contents, extraCss?: {}, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLElement;
+    addOverlay: (contents, extraCss?: {}, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLIFrameElement;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;
     postToAllFrames: (id, fnNames: string | string[], selector?) =>  void;
     // TODO: deprecate in favor of generic postToAllFrames?

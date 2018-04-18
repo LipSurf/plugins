@@ -21,19 +21,6 @@ window.addEventListener('message', function(evt) {
 }, false);
 
 
-async function getFrameHtml(id) {
-    // return data, status
-    return await $.get(chrome.extension.getURL(`views/${id}.html`));
-}
-
-// TODO: deprecate?
-export async function attachOverlay(id) {
-    var $iframe = $(`<iframe class="${NO_COLLISION_UNIQUE_ATTR}-iframe" id="nhm-${id}"></iframe>`);
-    $iframe.appendTo(document.body).contents().find('body').append(await getFrameHtml(id));
-
-    return $iframe;
-}
-
 export function retrialAndError(f, f_check, delay, times) {
     return new Promise((resolve, reject) => {
         if (times > 0) {
@@ -75,6 +62,10 @@ export abstract class PluginBase {
     static homophones: IPluginDefHomophones = {};
     static init?: () => void;
 
+    // called when plugin is deactivated (speech recg paused)
+    // in page context
+    static destroy?: () => void;
+
     // don't allow non-static properties
     [propName: string]: never;
     // limit the static members to be functions (doesn't work yet)
@@ -84,8 +75,9 @@ export abstract class PluginBase {
     static util: IPluginUtil = {
         // automatically remove these overlays when add-on is deactivated
         // if hold == true, rerender the overlay even when page changes
-        addOverlay: (contents, extraCss=null, id=null, domLoc=document.body, hold=false): HTMLElement => {
+        addOverlay: (contents, extraCss=null, id=null, domLoc=document.body, hold=false): HTMLIFrameElement => {
             let iframe = document.createElement('iframe');
+            iframe.setAttribute(NO_COLLISION_UNIQUE_ATTR, '');
             iframe.className = `${NO_COLLISION_UNIQUE_ATTR}-iframe`;
             if (extraCss)
                 $(iframe).css(extraCss);

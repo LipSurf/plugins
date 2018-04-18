@@ -1,5 +1,6 @@
 declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel | ITranscriptParcel;
 
+// incoming transcript that we need to check match for
 declare interface ITranscriptParcel {
     processedInput: string,
     cmdName: string,
@@ -14,12 +15,16 @@ declare interface ICmdParcel {
 
 declare interface ILiveText {
     text: string,
-    isSuccess: boolean,
+    isFinal?: boolean,
+    isSuccess?: boolean,
 }
 
 declare interface ILiveTextParcel {
-    liveText: ILiveText,
+    liveText: ILiveText[],
+    hold?: boolean,
 }
+
+declare interface ICmdLiveTextParcel extends ILiveTextParcel, ICmdParcel {}
 
 declare interface IToggleParcel {
     toggleActivated: boolean,

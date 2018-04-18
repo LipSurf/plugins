@@ -3,11 +3,11 @@ declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
 import { pick } from "lodash";
 import { ON_ICON, OFF_ICON } from "../common/constants";
-import { Recognizer, IRecognizedCallback, IRecognizedCmd, IRecognizedText } from "./recognizer";
+import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
-import { Detector, ResettableTimeout } from "../common/util";
+import { Detector, ResettableTimeout, instanceOfCmdLiveTextParcel } from "../common/util";
 import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
 export interface IWindow extends Window {
@@ -39,11 +39,6 @@ store.rebuildLocalPluginCache().then(() => {
 });
 
 
-function instanceOfCmd(object: any): object is IRecognizedCmd {
-    return 'cmdName' in object;
-}
-
-
 class Main extends StoreSynced {
 
     private inactiveTimer:ResettableTimeout;
@@ -53,9 +48,9 @@ class Main extends StoreSynced {
         super(store)
 
         if (INCLUDE_SPEECH_TEST_HARNESS) {
-            chrome.runtime.onConnect.addListener(function(port) {
+            chrome.runtime.onConnect.addListener((port) => {
                 if (port.name == 'test-probe') {
-                    port.onMessage.addListener(function(msg:any) {
+                    port.onMessage.addListener((msg:any) => {
                         console.log(`RECEIVED A FKIN MSG`);
                         eval(msg.cmd);
                     });
@@ -180,20 +175,13 @@ class Main extends StoreSynced {
     }
 
     cmdRecognizedCb(request: IRecognizedCallback): void {
-        if (instanceOfCmd(request)) {
-            let cmdPart: ICmdParcel = pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
+        if (instanceOfCmdLiveTextParcel(request)) {
+            let cmdPart = pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
             if (this.inactiveTimer)
                 this.inactiveTimer.reset();
             this.ps.run(cmdPart);
-            sendMsgToActiveTab(cmdPart);
-            sendMsgToActiveTab({
-                liveText: pick(request, ['text', 'isSuccess'])
-            });
-        } else {
-            sendMsgToActiveTab(<ILiveTextParcel>{
-                liveText: request
-            });
         }
+        sendMsgToActiveTab(request);
     }
 }
 

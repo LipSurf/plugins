@@ -2,9 +2,6 @@ TODO
 ===
 v1.0
 * Commands getting executed twice (new tab)
-* When turning off plugin, remove all page annotations
-* make liveText nicer
--- make sure works on youtube
 * Make annotations beautiful
 -- query everything with cursor: pointer to be annotated (study vim plugin)
 * Tutorial Page
@@ -24,6 +21,7 @@ v1.0
 * 2 full days of testing?
 
 v1.1
+* Better live text animation?
 * Beep when error building
 * Improve help pop up -- more, details, etc.
 * Per-plugin settings -- auto annotate?
