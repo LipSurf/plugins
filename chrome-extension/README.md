@@ -2,8 +2,7 @@ TODO
 ===
 v1.0
 * Commands getting executed twice (new tab)
-* Make annotations beautiful
--- query everything with cursor: pointer to be annotated (study vim plugin)
+* Re-annotate setting keeps annotations on
 * Tutorial Page
 -- auto reload tabs when plugin is first installed
 -- rules:
@@ -21,6 +20,7 @@ v1.0
 * 2 full days of testing?
 
 v1.1
+* Faster annotations -- study link heavy reddit
 * Better live text animation?
 * Beep when error building
 * Improve help pop up -- more, details, etc.
@@ -122,3 +122,9 @@ Known Issues:
 [1] Infinite loading when extension is activated. Some workarounds implemented in tests so that
     we don't wait for selenium indefinitely to consider a page "loaded".
 [2] Clicking the extension and immediately turning it off leaves behind "ready" and help text
+
+
+References
+===
+typehint generation:
+https://github.com/philc/vimium/blob/master/content_scripts/link_hints.coffee

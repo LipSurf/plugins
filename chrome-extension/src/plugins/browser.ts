@@ -53,11 +53,15 @@ export class BrowserPlugin extends PluginBase {
         'paws': 'pause',
     };
 
-    static visibleOnPage = (docViewTop:number, docViewBottom:number, $ele) => {
-        let eleTop = $ele.offset().top;
-        let eleBottom = eleTop + $ele.height();
+    static visibleOnPage = (docViewTop:number, docViewBottom:number,
+            docViewLeft:number, docViewRight:number, $ele) => {
+        let offset = $ele.offset();
+        let eleTop = Math.floor(offset.top);
+        let eleLeft = Math.floor(offset.left);
+        let eleBottom = Math.floor(eleTop + $ele.height());
 
-        return ((eleBottom <= docViewBottom) && (eleTop >= docViewTop));
+        // pay close attention, this isn't a typical symettric check (we check left bounds twice)
+        return (eleTop + 5 <= docViewBottom && eleTop >= docViewTop && eleLeft >= docViewLeft && eleLeft - 5 < docViewRight);
     }
 
     // Annotations
@@ -87,7 +91,8 @@ export class BrowserPlugin extends PluginBase {
         return ret;
     })();
 
-    static annotationsTimer = null;
+    static annotate = false;
+    static annotationsMap: { [name: string]: HTMLElement } = {};
     // End annotations
 
     static templateCache = {};
@@ -150,6 +155,7 @@ export class BrowserPlugin extends PluginBase {
                     color: white;
                     padding: 10px;
                     column-count: 3;
+                    column-gap: 1.5rem;
                 }
 
                 section {
@@ -260,28 +266,50 @@ export class BrowserPlugin extends PluginBase {
         </html>
     `;
 
+    static getAnnoCont = () => {
+        let ua = PluginBase.util.getNoCollisionUniqueAttr();
+        let id = `${ua}-anno-cont`;
+        let cont = document.getElementById(id);
+        if (!cont) {
+            cont = document.createElement('div');
+            cont.setAttribute(ua, '');
+            cont.id = id;
+            document.body.appendChild(cont);
+        }
+        return cont;
+    }
+
     static init() {
         // inject the CSS
+        // WARNING: opacity changes stacking context!
         let STYLE = `
             .${PluginBase.util.getNoCollisionUniqueAttr()}-anno {
                 border: 1px solid red;
                 display: inline-block;
                 background-color: yellow;
                 font-weight: normal;
-                color: #222;
+                color: #111;
                 border-style: dotted;
-                opacity: 0.7;
                 padding: 2px;
-                font-size: 0.9rem;
-                margin: 0px 0px 0 5px;
-                box-shadow: #000000a1 2px 2px 1px;
+                border-radius: 6px;
+                font-size: 0.7rem;
+                font-weight: bold;
+                position: absolute;
+                box-shadow: #00000081 2px 2px 1px;
+            }
+
+            #${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont {
+                pointer-events: none;
             }
         `;
-        $(`<style type='text/css'>${STYLE}</style>`).appendTo("head");
+        $(document).ready(() => {
+            $(`<style type='text/css'>${STYLE}</style>`).appendTo("head");
+            BrowserPlugin.getAnnoCont();
+        });
     }
 
     static destroy() {
-        clearInterval(BrowserPlugin.annotationsTimer);
+        BrowserPlugin.annotate = false;
     }
 
     static commands = [{
@@ -289,52 +317,127 @@ export class BrowserPlugin extends PluginBase {
         description: 'Give elements on the page a special annotation so they can be easily referred to and "clicked" on with voice controls.',
         match: ['annotate', 'annotations on', 'turn on annotations'],
         runOnPage: function() {
+            // PERF: 
+            //   put coords of each annotated element in db -- that way we can quickly check if it's already been annotated (ordered set)
+            // TODO:
+            //  currently there's a selector that looks for classes with "button" -- mainly for reddit expando-button.
+            //  but this causes a lot of overlapping. Perhaps we can look at the parents and see if they're clickable.
             let prevCount = null;
-            let noCollisionAttr = PluginBase.util.getNoCollisionUniqueAttr();
+            let ua = PluginBase.util.getNoCollisionUniqueAttr();
+            BrowserPlugin.annotationsMap = {};
+            BrowserPlugin.annotate = true;
 
-            BrowserPlugin.annotationsTimer = setInterval(() => {
-                let windowTop = $(window).scrollTop();
-                let windowBottom = $(window).height() + windowTop;
+            let annotationsTimer = () => {
+                let startTime = performance.now();
+                let $window = $(window);
+                let windowTop = $window.scrollTop();
+                let windowBottom = $window.height() + windowTop;
+                let windowLeft = $window.scrollLeft();
+                let windowRight = $window.width() + windowLeft;
                 let count = 0;
                 let removedCount = 0;
+                let annoMapKeys = Object.keys(BrowserPlugin.annotationsMap);
                 // remove invisible annotations and mark their names as available again
-                $(`div[${noCollisionAttr}][anno]`).each((i, ele) => {
-                    let $ele = $(ele);
-                    let name = ele.getAttribute(`anno`);
-                    if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
+                annoMapKeys.forEach((anno) => {
+                    let $ele = $(BrowserPlugin.annotationsMap[anno]);
+                    if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, windowLeft, windowRight, $ele) 
+                            || $ele.css('visibility') === 'hidden') {
                         removedCount += 1;
                         // make the annotation name avail again
-                        BrowserPlugin.availAnnotations.add(name);
-                        BrowserPlugin.annotated.delete(name);
-                        $ele.remove();
+                        BrowserPlugin.availAnnotations.add(anno);
+                        BrowserPlugin.annotated.delete(anno);
+                        // remove the annotation
+                        // don't use text/contains because that will capture partial matches eg: H3 -> H30
+                        $(`#${ua}-anno-cont > div[anno="${anno}"]`).remove();
+                        try {
+                            delete BrowserPlugin.annotationsMap[anno];
+                        } catch(e) {}
+                    } else {
+                        // update positioning, in case element "moved" (like with youtube fixed sidebar)
+                        $(`#${ua}-anno-cont > div[anno]`).css({
+                            left: function() {
+                                let srcEle = BrowserPlugin.annotationsMap[this.getAttribute('anno')];
+                                if (srcEle) {
+                                    let offset = $(srcEle).offset();
+                                    return `${Math.max(0, offset.left - 5)}px`;
+                                }
+                            },
+                            top: function() {
+                                let srcEle = BrowserPlugin.annotationsMap[this.getAttribute('anno')];
+                                if (srcEle) {
+                                    let offset = $(srcEle).offset();
+                                    return `${Math.max(0, offset.top - 5)}px`;
+                                }
+                            },
+                        });
                     }
                 });
+
+                let cont = BrowserPlugin.getAnnoCont();
+                // create the master copy
+                let masterAnno = document.createElement("div");
+                masterAnno.className = `${ua}-anno`;
+
+                let allAnnotated = Object.values(BrowserPlugin.annotationsMap);
+
                 // .filter has better perf.
-                $('a')
+                $(`a,[role="button"],[role="option"],[role="combobox"],[role="option"]
+                    ,[role="checkbox"],[role="link"],[role="menuitem"],[role="menuteitemcheckbox"]
+                    ,[role="menuitemradio"],[role="radio"],[role="spinbutton"],[role="textbox"]
+                    ,[role="switch"],button,input,*[class*=button]
+                    `)
                     .filter(':visible')
-                    .filter(`:not(:has(div[${noCollisionAttr}][anno]))`)
+                    .not('[aria-hidden="true"]')
+                    .not('[aria-disabled="true"]')
+                    .filter(function() {
+                        let com = window.getComputedStyle(this);
+                        // specifically for filtering out stuff from *[class*=button], make sure it's clickable
+                        let nodeName = this.nodeName.toLowerCase();
+                        if (['button', 'input', 'a'].indexOf(nodeName) === -1)
+                            return (com.visibility !== 'hidden') && (com.cursor === 'pointer' || com.cursor === 'text');
+                        return true;
+                    })
                     .each((i, ele) => {
                         let $ele = $(ele);
-                        if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, $ele)) {
+                        if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, windowLeft, windowRight, $ele)
+                                && allAnnotated.indexOf(ele) === -1) {
                             count += 1;
-                            let label = document.createElement("div");
                             let name = BrowserPlugin.popName();
+                            let clone = <HTMLDivElement>masterAnno.cloneNode();
                             if (name) {
-                                label.className = `${noCollisionAttr}-anno`;
-                                label.setAttribute(`anno`, name);
-                                label.setAttribute(`${noCollisionAttr}`, '');
-                                let labelContent = document.createTextNode(name);
-                                label.appendChild(labelContent);
-                                ele.appendChild(label);
+                                let offset = $ele.offset();
+                                clone.textContent = name;
+                                clone.style.top = `${Math.max(0, offset.top - 5)}px`;
+                                clone.style.left = `${Math.max(0, offset.left - 5)}px`;
+                                // clone.style.zIndex = `${2000000000 + i}`; 
+                                // get max z-index
+                                let maxZIndex = 0;
+                                $ele.parents().each((i, ele) => {
+                                    let zIndex = parseInt($(ele).css('z-index'))
+                                    if (!isNaN(zIndex))
+                                        maxZIndex = Math.max(maxZIndex, zIndex);
+                                });
+                                clone.style.zIndex = maxZIndex === 0 ? 'auto' : `${maxZIndex}`;
+                                clone.setAttribute('anno', name);
+                                BrowserPlugin.annotationsMap[name] = ele;
+                                cont.appendChild(clone);
                             }
                         }
                     }
                 )
                 if (prevCount != count) {
                     prevCount = count;
-                    console.log(`Removed ${removedCount}, annotated ${count} elements`);
+                    console.log(`Elapsed: ${performance.now() - startTime}. Removed ${removedCount}, annotated ${count} elements`);
                 }
-            }, 800);
+                if (BrowserPlugin.annotate) {
+                    setTimeout(annotationsTimer, 100);
+                } else {
+                    // clear what we just made in case this came at a delay (race condition)
+                    $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
+                }
+            };
+
+            annotationsTimer();
         }
     },
     {
@@ -342,8 +445,8 @@ export class BrowserPlugin extends PluginBase {
         description: 'Hide the annotations',
         match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off'],
         runOnPage: function() {
-            clearInterval(BrowserPlugin.annotationsTimer);
-            $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-anno]`).remove();
+            BrowserPlugin.annotate = false;
+            $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
         }
     },
     {
@@ -351,7 +454,7 @@ export class BrowserPlugin extends PluginBase {
         description: 'Click an annotated element',
         match: {
             fn: (input) => {
-                let noSpaces = input.replace(/\s*/, '').toUpperCase();
+                let noSpaces = input.replace(/\s*/g, '').toUpperCase();
                 if (BrowserPlugin.annotated.has(noSpaces))
                     return [noSpaces];
             },
@@ -359,7 +462,18 @@ export class BrowserPlugin extends PluginBase {
         },
         runOnPage: (annotationName:string) => {
             // do we need to query parent? Because we're placing this inside the anchor
-            $(`div[${PluginBase.util.getNoCollisionUniqueAttr()}-anno=${annotationName.toUpperCase()}]`).click();
+            let ele = BrowserPlugin.annotationsMap[annotationName]
+            let clickTypes = ["button", "submit", "reset", "checkbox", "color", "file", "hidden", "image", "radio"];
+            if ((ele.nodeName.toLowerCase() === "input" && clickTypes.indexOf((<HTMLInputElement>ele).type) === -1)
+                || ele.nodeName.toLowerCase() === "textarea" || ele.isContentEditable) {
+                // settimeout is a workaround for chrome
+                setTimeout(() => {
+                    window.focus();
+                    ele.focus(); 
+                }, 0);
+            } else {
+                $(ele).click();
+            }
         }
     },
     {
