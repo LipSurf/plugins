@@ -30,6 +30,7 @@ export class BrowserPlugin extends PluginBase {
         'unfull screen': 'un-fullscreen',
         'unfullscreen': 'un-fullscreen',
         'un fullscreen': 'un-fullscreen',
+        'on annotate': 'unannotate',
         'middletown': 'little down',
         'little rock': 'little up',
         'school little rock': 'scroll little up',
@@ -302,9 +303,18 @@ export class BrowserPlugin extends PluginBase {
                 pointer-events: none;
             }
         `;
+
+        // async doesn't work here for some reason
         $(document).ready(() => {
+            console.log(`style ${STYLE}`);
             $(`<style type='text/css'>${STYLE}</style>`).appendTo("head");
             BrowserPlugin.getAnnoCont();
+
+            BrowserPlugin.getOption('annotate').then(annotate => {
+                if (annotate) {
+                    BrowserPlugin.commands['Annotate'].runOnPage();
+                }
+            });
         });
     }
 
@@ -324,6 +334,7 @@ export class BrowserPlugin extends PluginBase {
             //  but this causes a lot of overlapping. Perhaps we can look at the parents and see if they're clickable.
             let prevCount = null;
             let ua = PluginBase.util.getNoCollisionUniqueAttr();
+            BrowserPlugin.setOption('annotate', true);
             BrowserPlugin.annotationsMap = {};
             BrowserPlugin.annotate = true;
 
@@ -433,7 +444,7 @@ export class BrowserPlugin extends PluginBase {
                     setTimeout(annotationsTimer, 100);
                 } else {
                     // clear what we just made in case this came at a delay (race condition)
-                    $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
+                    $(`div[id=${ua}-anno-cont`).empty();
                 }
             };
 
@@ -447,6 +458,7 @@ export class BrowserPlugin extends PluginBase {
         runOnPage: function() {
             BrowserPlugin.annotate = false;
             $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
+            BrowserPlugin.setOption('annotate', false);
         }
     },
     {
@@ -472,7 +484,8 @@ export class BrowserPlugin extends PluginBase {
                     ele.focus(); 
                 }, 0);
             } else {
-                $(ele).click();
+                // jquery $().click() does not work for some reason
+                ele.click();
             }
         }
     },

@@ -52,6 +52,8 @@ declare interface ISyncPluginData extends IDisableable {
     disabledCommands: string[],
     // the source of the homophones
     disabledHomophones: string[],
+    // private plugin settings for now eg. annotate on setting
+    settings: {},
 }
 
 declare interface ILocalData {

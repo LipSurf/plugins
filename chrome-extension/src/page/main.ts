@@ -98,7 +98,10 @@ async function queueUp(fn: () => Promise<any>) {
 
 async function attachLiveTextOverlay() {
     let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-live-text-overlay`;
-    $liveTextOverlay = PluginBase.util.addOverlay(await getFrameHtml('live-text-overlay'), null, id, document.body, true);
+    // retries used by callers
+    try {
+        $liveTextOverlay = PluginBase.util.addOverlay(await getFrameHtml('live-text-overlay'), null, id, document.body, true);
+    } catch(e) {}
 }
 
 async function showLiveText(parcel: ILiveTextParcel) {

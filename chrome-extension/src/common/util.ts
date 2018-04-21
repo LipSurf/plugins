@@ -148,6 +148,21 @@ export class ResettableTimeout {
     }
 }
 
+export function deepSet(obj: object, path: string, val: any) {
+    let splitted = path.split('.');
+    let i = 0;
+    return splitted.reduce((memo, x) => {
+        i += 1;
+        if (i === splitted.length) {
+            memo[x] = val;
+            return obj;
+        } else if (typeof memo[x] === 'undefined') {
+            memo[x] = {};
+        }
+        return memo[x];
+    }, obj);
+}
+
 export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
     return typeof object === 'object' && 'description' in object && 'fn' in object;
 }

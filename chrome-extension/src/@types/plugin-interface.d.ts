@@ -10,6 +10,10 @@ declare abstract class PluginBase {
     static init?: () => void;
     static destroy?: () => void;
 
+    // should not be overridden by plugins
+    static getOption: (name: string) => Promise<any>;
+    static setOption: (name: string, val: any) => Promise<void>;
+
     // don't allow non-static properties
     [propName: string]: never;
     // limit the static members to be functions (doesn't work yet)

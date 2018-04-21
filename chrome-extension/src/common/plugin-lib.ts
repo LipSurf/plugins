@@ -4,6 +4,10 @@
 /// <reference path="../@types/store.d.ts" />
 import { NO_COLLISION_UNIQUE_ATTR } from "../common/constants";
 import { getOptions } from "./store-lib";
+import { storage } from "./browser-interface";
+import { get } from 'lodash';
+
+let { deepSet } = require('./util');
 //import { storage } from "./browser-interface";
 // TODO: make these settings
 const SCROLL_TIME = 450;
@@ -71,6 +75,18 @@ export abstract class PluginBase {
     // limit the static members to be functions (doesn't work yet)
     // https://github.com/Microsoft/TypeScript/issues/6480
     // static [propName: string]: null | () => any;
+
+    // should not be overwritten
+    static getOption = async (pluginId: string, name: string): Promise<any> => {
+        let curPlugins = await storage.sync.load('plugins');
+        return get(curPlugins, `plugins.${pluginId}.settings.${name}`);
+    };
+
+    static setOption = async (pluginId: string, name: string, val: any): Promise<void> => {
+        let curPlugins = await storage.sync.load<{plugins: IndexedPlugins}>('plugins');
+        deepSet(curPlugins, `plugins.${pluginId}.settings.${name}`, val);
+        await storage.sync.save(curPlugins);
+    };
 
     static util: IPluginUtil = {
         // automatically remove these overlays when add-on is deactivated

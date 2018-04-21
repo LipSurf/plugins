@@ -2,7 +2,6 @@ TODO
 ===
 v1.0
 * Commands getting executed twice (new tab)
-* Re-annotate setting keeps annotations on
 * Tutorial Page
 -- auto reload tabs when plugin is first installed
 -- rules:
@@ -20,6 +19,7 @@ v1.0
 * 2 full days of testing?
 
 v1.1
+* Shadow DOM for annotations
 * Faster annotations -- study link heavy reddit
 * Better live text animation?
 * Beep when error building
