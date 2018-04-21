@@ -10,7 +10,6 @@ v1.0
 ----sound from speakers (when headphones aren't in)
 ----Auto turn off after 5m of inactivity
 * stop goes to top of page
-* Make logo/icon
 * Get build pipeline optimized (obfuscate output)
 * Fix fullscreen
 * Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
