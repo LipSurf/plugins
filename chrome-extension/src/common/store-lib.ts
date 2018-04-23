@@ -1,5 +1,7 @@
 import { storage } from "./browser-interface";
 import { omit, mapValues, pick } from "lodash";
+import { objectAssignDeep } from "./util";
+
 
 export const DEFAULT_PREFERENCES: ISyncData = {
     showLiveText: true,
@@ -21,9 +23,7 @@ export const DEFAULT_PREFERENCES: ISyncData = {
 
 export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
     let syncData = await storage.sync.load<ISyncData>();
-    if (!syncData || Object.keys(syncData).length == 0) {
-        syncData = DEFAULT_PREFERENCES;
-    }
+    syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, syncData);
     let serializedLocalData: Partial<ISerializedLocalData> = (await (storage.local.load)('pluginData'));
     if (!serializedLocalData || !serializedLocalData.pluginData) {
         serializedLocalData = {

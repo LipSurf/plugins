@@ -148,6 +148,110 @@ export class ResettableTimeout {
     }
 }
 
+function getTypeOf (input) {
+
+	if (input === null) {
+		return 'null';
+	}
+
+	else if (typeof input === 'undefined') {
+		return 'undefined';
+	}
+
+	else if (typeof input === 'object') {
+		return (Array.isArray(input) ? 'array' : 'object');
+	}
+
+	return typeof input;
+
+}
+
+/*
+ * Branching logic which calls the correct function to clone the given value base on its type.
+ */
+function cloneValue (value) {
+
+	// The value is an object so lets clone it.
+	if (getTypeOf(value) === 'object') {
+		return quickCloneObject(value);
+	}
+
+	// The value is an array so lets clone it.
+	else if (getTypeOf(value) === 'array') {
+		return quickCloneArray(value);
+	}
+
+	// Any other value can just be copied.
+	return value;
+
+}
+
+/*
+ * Enumerates the given array and returns a new array, with each of its values cloned (i.e. references broken).
+ */
+function quickCloneArray (input) {
+	return input.map(cloneValue);
+}
+
+
+function quickCloneObject (input) {
+
+	const output = {};
+
+	for (const key in input) {
+		if (!input.hasOwnProperty(key)) { continue; }
+
+		output[key] = cloneValue(input[key]);
+	}
+
+	return output;
+
+}
+
+function executeDeepMerge (target, _objects = []) {
+	// Ensure we have actual objects for each.
+	const objects = _objects.map(object => object || {});
+	const output = target || {};
+
+	// Enumerate the objects and their keys.
+	for (let oindex = 0; oindex < objects.length; oindex++) {
+		const object = objects[oindex];
+		const keys = Object.keys(object);
+
+		for (let kindex = 0; kindex < keys.length; kindex++) {
+			const key = keys[kindex];
+			const value = object[key];
+			const type = getTypeOf(value);
+			const existingValueType = getTypeOf(output[key]);
+
+			if (type === 'object') {
+				if (existingValueType !== 'undefined') {
+					const existingValue = (existingValueType === 'object' ? output[key] : {});
+					output[key] = executeDeepMerge({}, [existingValue, quickCloneObject(value)]);
+				} else {
+					output[key] = quickCloneObject(value);
+				}
+			} else if (type === 'array') {
+				if (existingValueType === 'array') {
+					const newValue = quickCloneArray(value);
+					output[key] = newValue;
+				} else {
+					output[key] = quickCloneArray(value);
+				}
+			} else {
+				output[key] = value;
+			}
+		}
+	}
+
+	return output;
+
+}
+
+export function objectAssignDeep(target, ...objects) {
+	return executeDeepMerge(target, objects);
+}
+
 export function deepSet(obj: object, path: string, val: any) {
     let splitted = path.split('.');
     let i = 0;
@@ -168,7 +272,7 @@ export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
 }
 
 export function instanceOfCmdLiveTextParcel(object: any): object is ICmdLiveTextParcel {
-    return 'cmdName' in object && 'liveText' in object;
+    return 'cmdArgs' in object && 'cmdName' in object && 'text' in object;
 }
 
 export function instanceOfText(object: any): object is ILiveTextParcel {
@@ -180,6 +284,6 @@ export function instanceOfToggle(object: any): object is IToggleParcel {
 }
 
 export function instanceOfTranscript(object: any): object is ITranscriptParcel {
-    return 'processedInput' in object;
+    return 'text' in object && 'cmdName' in object && 'pluginId' in object;
 }
 

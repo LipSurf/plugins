@@ -50,7 +50,7 @@ declare interface IPluginDefCommand {
     // let command match on any page (not restricted by plugin level match regex)
     global?: boolean,
     run?: (() => any) | ((tabIndex: number) => any),
-    runOnPage?: (() => any) | ((number) => any),
+    runOnPage?: (() => Promise<any>) | ((number) => Promise<any>),
     // returns the complete liveText that should be shown.
     // raw input would be eg. "go to are meal time video"
     // matchOutput is the array returned form the match function (if there's a match fn)
@@ -67,12 +67,13 @@ declare interface IPluginUtil {
     postToAllFrames: (id, fnNames: string | string[], selector?) =>  void;
     // TODO: deprecate in favor of generic postToAllFrames?
     // currently used for fullscreen?
-    sendMsgToBeacon: (object) => Promise<any>;
+    sendMsgToBeacon: (msg: object) => Promise<any>;
     getScrollDistance: () => number;
-    scrollToAnimated: (HTMLElement) => void;
-    isInView: (HTMLElement) => boolean;
+    scrollToAnimated: (ele: JQuery<HTMLElement>) => void;
+    isInView: (ele: JQuery<HTMLElement>) => boolean;
     getNoCollisionUniqueAttr: () => string;
-    pick: (object, ...string) => object;
+    sleep: (number) => Promise<{}>;
+    pick: (obj: object, ...string) => object;
 }
 
 declare namespace ExtensionUtil {

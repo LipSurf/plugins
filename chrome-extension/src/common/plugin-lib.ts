@@ -7,7 +7,7 @@ import { getOptions } from "./store-lib";
 import { storage } from "./browser-interface";
 import { get } from 'lodash';
 
-let { deepSet } = require('./util');
+let { deepSet, promisify } = require('./util');
 //import { storage } from "./browser-interface";
 // TODO: make these settings
 const SCROLL_TIME = 450;
@@ -197,6 +197,10 @@ export abstract class PluginBase {
 
         getNoCollisionUniqueAttr: () => {
             return NO_COLLISION_UNIQUE_ATTR;
+        },
+
+        sleep: async (duration): Promise<{}> => {
+            return new Promise((resolve, reject) => setTimeout(() => resolve(), duration));
         },
 
         // pick<T extends object, U extends keyof T>(

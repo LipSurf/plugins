@@ -1,5 +1,7 @@
-import { ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS, COOLDOWN_TIME,
-        CONFIDENCE_THRESHOLD, FINAL_COOLDOWN_TIME, HOMOPHONES } from "../common/constants";
+import {
+    ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS,
+    CONFIDENCE_THRESHOLD, HOMOPHONES
+} from "../common/constants";
 import { Store, StoreSynced, } from "./store";
 import { find, flatten, pick, map } from "lodash";
 import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
@@ -43,10 +45,11 @@ export class Recognizer extends StoreSynced {
     private recognition;
     private recognizerKilled: boolean = false;
     private cmdRecognizedCb: (cb: IRecognizedCallback) => void;
-    private lastFinalTime: number = 0;
-    private lastNonFinalCmdExecutedTime: number = 0;
-    private lastNonFinalCmdExecuted = null;
-    private delayCmd: ResettableTimeout;
+    private matchedCmdsForIndex = [];
+    private lastFinalIndex: number;
+    // we index by transcript resultIndex in case a delayed cmd is pending and new voice
+    // recg comes in
+    private delayCmds: {[id: number]: ResettableTimeout[]} = {};
     private pluginsRecgStore: IPluginRecgStore[];
     private curActiveTabUrl: string;
     // for global homonyms
@@ -54,11 +57,11 @@ export class Recognizer extends StoreSynced {
     private synVals: string[];
 
     constructor(store: Store,
-            onUrlUpdate: ((cb: ((url: string) => void)) => void),
-            private queryActiveTab: () => Promise<chrome.tabs.Tab>,
-            private sendMsgToTab: (tabId: number, object) => Promise<string[]>,
-            private speechRecognizer,
-        ) {
+        onUrlUpdate: ((cb: ((url: string) => void)) => void),
+        private queryActiveTab: () => Promise<chrome.tabs.Tab>,
+        private sendMsgToTab: (tabId: number, object) => Promise<string[]>,
+        private speechRecognizer,
+    ) {
         super(store);
         let homoKeys = Object.keys(HOMOPHONES);
         this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
@@ -79,12 +82,12 @@ export class Recognizer extends StoreSynced {
                     commands: plugin.commands
                         .filter(cmd => cmd.enabled)
                         .map((cmd) => ({
-                            ordinalMatch: !instanceOfDynamicMatch(cmd.match)? !! find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
+                            ordinalMatch: !instanceOfDynamicMatch(cmd.match) ? !!find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
                             // if it's a dynamic match, the fn is defined in the context of the CS
                             match: instanceOfDynamicMatch(cmd.match) ? undefined : cmd.match,
-                            ... pick(cmd, ['name', 'delay', 'global', 'nice', ])
+                            ...pick(cmd, ['name', 'delay', 'global', 'nice',])
                         })),
-                    ... pick(plugin, ['id', 'match'])
+                    ...pick(plugin, ['id', 'match'])
                 }
             });
     }
@@ -100,27 +103,36 @@ export class Recognizer extends StoreSynced {
         //this.recognition.lang = 'ja';
         this.recognition.lang = 'en-US';
         this.recognition.maxAlternatives = 1;
+
+        // grammar not supported yet in chrome (as of v64)
+
         this.recognition.start();
 
         this.recognition.onresult = (event) => {
-            let res = [];
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                let rec = event.results[i][0];
-                res.push({
-                    text: rec.transcript.trim().toLowerCase().replace(/-/g, ''),
-                    confidence: rec.confidence,
-                    isFinal: event.results[i].isFinal
-                }) ;
-            }
+            let rec = event.results[event.resultIndex][0];
             console.dir(event);
-            this.handleTranscript(res);
+            if (event.resultIndex !== this.lastFinalIndex) {
+                this.matchedCmdsForIndex = [];
+                this.lastFinalIndex = event.resultIndex;
+            }
+            this.handleTranscript(
+                rec.transcript.trim().toLowerCase().replace(/-/g, ''),
+                <number>rec.confidence,
+                <boolean>event.results[event.resultIndex].isFinal,
+                <number>event.resultIndex,
+            );
             this.recognizerKilled = false;
         };
 
         // Error types:
-        //  'no-speech'
-        //  'network'
-        //  'not-allowed
+        //    "no-speech",
+        //    "aborted",
+        //    "audio-capture",
+        //    "network",
+        //    "not-allowed",
+        //    "service-not-allowed",
+        //    "bad-grammar",
+        //    "language-not-supported"
         this.recognition.onerror = (event) => {
             if (event.error === 'not-allowed') {
                 // TODO: throw an exception that stops the
@@ -133,7 +145,7 @@ export class Recognizer extends StoreSynced {
                 // no mic
             } else if (event.error !== 'no-speech') {
                 console.error(`unhandled error: ${event.error}`);
-            } 
+            }
         };
 
         this.recognition.onnomatch = (event) => {
@@ -142,11 +154,22 @@ export class Recognizer extends StoreSynced {
 
         this.recognition.onend = () => {
             // don't restart in an infinite loop
+            this.matchedCmdsForIndex = [];
             if (!this.recognizerKilled) {
                 console.log("ended. Restarting: ");
                 this.recognition.start();
             }
         };
+
+        // these are working and will be useful later
+        //this.recognition.onsoundstart = () => {
+        //console.log("sound start detected");
+        //};
+
+        //this.recognition.onsoundend = () => {
+        //console.log("sound end detected");
+        //};
+
     }
 
     shutdown() {
@@ -163,94 +186,116 @@ export class Recognizer extends StoreSynced {
 
     /*
      * The plugin store already has filtered out disabled commands
-     *
-     *  Return {
-     *  matchOutput: the arguments to pass back to the command
-     * }
+     * Splits up the input text and finds all the commands within the string. 
+     * Accounts for greedy matching commands, multiple commands, repeated commands.
+     * 
+     * Returns an array in order of the cmds found in the input.
      */
-    async getCmdForUserInput(input: string, url: string): Promise<IMatchCommand> {
+    async getCmdsForUserInput(input: string, useHomos: boolean, url: string): Promise<IMatchCommand[]> {
         // processedInput = dedupe(processedInput);
         let startTime = +new Date();
-        let homophoneIterator = this.generateHomophones(input, url);
-        for (let processedInput = homophoneIterator.next().value; processedInput; processedInput = homophoneIterator.next().value) {
-            for (let g = 0; g < this.pluginsRecgStore.length; g++) {
-                let plugin = this.pluginsRecgStore[g];
-                // get all global commands
-                let cmdsToTest = [...(find(plugin.match, regx => regx.test(url)) ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)];
-                for (let f = 0; f < cmdsToTest.length; f++) {
-                    let curCmd = cmdsToTest[f];
-                    // an array of args to pass to runOnPage
-                    let out: string[];
-                    let matchPatterns;
-                    let matchPatternIndex;
-                    if (typeof curCmd.match === 'undefined') {
-                        // TODO: not a big fan of how this works
-                        let tab = await this.queryActiveTab();
-                        out = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{cmdPluginId: plugin.id, cmdName: curCmd.name, processedInput});
-                    } else {
-                        if (typeof curCmd.match === 'string') {
-                            matchPatterns = [curCmd.match];
+        let homophoneIterator: IterableIterator<string>;
+        let cmdsByPlugin: { [pluginId: string]: IRecgCommand[] } = this.pluginsRecgStore.reduce((memo, plugin) => {
+            memo[plugin.id] = [...(find(plugin.match, regx => regx.test(url)) ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)];
+            return memo;
+        }, {});
+        let currActiveTabProm = this.queryActiveTab();
+        let inputParts = input.split(' ');
+        let inputPartStart = 0;
+        let inputPartEnd = inputParts.length;
+        let origInputPartEnd = inputPartEnd;
+        let retCmds: IMatchCommand[] = [];
+
+        while (inputPartStart < inputPartEnd) {
+            let inputPart = inputParts.slice(inputPartStart, inputPartEnd).join(' ');
+
+            if (useHomos) {
+                homophoneIterator = this.generateHomophones(inputPart, url);
+            } else {
+                homophoneIterator = [inputPart][Symbol.iterator]();
+            }
+
+            cmdsByPluginLoop:
+            for (let pluginId in cmdsByPlugin) {
+                let cmdsToTest = cmdsByPlugin[pluginId];
+                for (let honomizedInput = homophoneIterator.next().value; honomizedInput; honomizedInput = homophoneIterator.next().value) {
+                    for (let f = 0; f < cmdsToTest.length; f++) {
+                        let curCmd = cmdsToTest[f];
+                        let runOnPageArgs: string[];
+                        let matchPatterns;
+                        let matchPatternIndex;
+                        if (typeof curCmd.match === 'undefined') {
+                            // TODO: not a big fan of how this works
+                            let tab = await currActiveTabProm;
+                            runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: honomizedInput });
                         } else {
-                            matchPatterns = curCmd.match;
-                        }
+                            if (typeof curCmd.match === 'string') {
+                                matchPatterns = [curCmd.match];
+                            } else {
+                                matchPatterns = curCmd.match;
+                            }
 
-                        for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                            let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
-                            let ords = [];
-                            let n = 0;
-                            let nextIsOrdinal = false;
-                            let inputSlice = processedInput;
-                            for (; n < tokens.length || nextIsOrdinal; n++) {
-                                let token = tokens[n];
-                                if (token == '#') {
-                                    nextIsOrdinal = true;
-                                } else {
-                                    let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
-                                    if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
-                                        break;
-                                    } else if (nextIsOrdinal) {
-                                        nextIsOrdinal = false;
-                                        try {
-                                            ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
-                                        } catch (e) {
-                                            // not an ordinal
+                            for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
+                                let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                                let ords = [];
+                                let n = 0;
+                                let nextIsOrdinal = false;
+                                let inputSlice = honomizedInput;
+                                for (; n < tokens.length || nextIsOrdinal; n++) {
+                                    let token = tokens[n];
+                                    if (token == '#') {
+                                        nextIsOrdinal = true;
+                                    } else {
+                                        let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
+                                        if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
                                             break;
+                                        } else if (nextIsOrdinal) {
+                                            nextIsOrdinal = false;
+                                            try {
+                                                ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
+                                            } catch (e) {
+                                                // not an ordinal
+                                                break;
+                                            }
                                         }
+                                        inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                     }
-                                    inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                 }
-                            }
 
-                            if (inputSlice.trim() === '') {
-                                // we have a match
-                                out = ords;
-                                break;
-                            }
+                                if (inputSlice.trim() === '') {
+                                    // we have a match
+                                    runOnPageArgs = ords;
+                                    break;
+                                }
 
+                            }
                         }
-                    }
-                    if (out) {
-                        let delay: number = null;
-                        if (curCmd.ordinalMatch) {
-                            delay = ORDINAL_CMD_DELAY;
-                        } else if (curCmd.delay) {
-                            delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                        if (runOnPageArgs) {
+                            let delay: number = null;
+                            if (curCmd.ordinalMatch) {
+                                delay = ORDINAL_CMD_DELAY;
+                            } else if (curCmd.delay) {
+                                delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                            }
+                            console.log(`Recg. timer: ${+new Date() - startTime}`);
+                            retCmds.push({
+                                cmdName: curCmd.name,
+                                cmdPluginId: pluginId,
+                                matchOutput: runOnPageArgs,
+                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(honomizedInput, runOnPageArgs)) : honomizedInput,
+                                delay,
+                            });
+                            inputPartStart = inputPartEnd;
+                            inputPartEnd = origInputPartEnd + 1;
+                            break cmdsByPluginLoop;
                         }
-                        console.log(`Recg. timer: ${+new Date() - startTime}`);
-                        return {
-                            cmdName: curCmd.name,
-                            cmdPluginId: plugin.id,
-                            matchOutput: out,
-                            niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(processedInput, out)) : processedInput,
-                            delay,
-                        };
                     }
                 }
-
             }
+            inputPartEnd -= 1;
         }
         console.log(`Recg. timer: ${+new Date() - startTime}`);
-        return <IMatchCommand>{};
+        return retCmds;
     }
 
 
@@ -285,29 +330,13 @@ export class Recognizer extends StoreSynced {
         return ret;
     }
 
-    // TODO:
-    // Maybe we want to execute each command seperately? Like "down down" should
-    // be two downs. If the user chains commands like "down up" then
-    // maybe we should split and match the first valid part of the command?
-    // Needs thought...
-    //private dedupe(input) {
-    //let existingWords = {};
-    //let processed = [];
-    //for (let word of input.split(' ')) {
-    //if (typeof existingWords[word] === 'undefined') {
-    //processed.push(word);
-    //}
-    //}
-    //return processed.join(' ');
-    //}
-
 
     /*
      * TODO: to truly generate each permutation, need to
      * do nxm here (since this only generates in one order after
      * going through the homophones linearly currently)
      */
-    private *generateHomophones(beforeInput: string, url: string) {
+    private *generateHomophones(beforeInput: string, url: string): IterableIterator<string> {
         let afterInput;
         // first yield the original
         yield beforeInput;
@@ -345,68 +374,74 @@ export class Recognizer extends StoreSynced {
     }
 
 
-    async handleTranscript(transcripts: {text: string, isFinal: boolean, confidence: Number}[]) {
-        let elapsedTime = +new Date() - this.lastNonFinalCmdExecutedTime;
-        console.log(`elapsed time ${elapsedTime} ${COOLDOWN_TIME} ${CONFIDENCE_THRESHOLD}`);
-        if (this.delayCmd)
-            this.delayCmd.reset();
-        if (elapsedTime > COOLDOWN_TIME) {
-            if (transcripts[0].confidence > CONFIDENCE_THRESHOLD) {
-                // TODO: for perf. benefit join the transcripts and see if there is a match across transcripts? eg. ["new", "tab"]
-                let joinedTrans = transcripts.map(x => x.text).join(' ');
-                let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = await this.getCmdForUserInput(joinedTrans, this.curActiveTabUrl);
-                let liveText = transcripts.map(x => ({
-                    isSuccess: niceTranscript ? !!~niceTranscript.indexOf(x.text): false,
-                    ...pick(x, 'text', 'isFinal'),
-                }));
-
-                console.log(`delay: ${delay}, input: ${'transcript'}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                if (cmdName) {
-                    // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                    console.log(`isFinal: ${'isFinal'} lastNonFinalCmdExecuted: ${this.lastNonFinalCmdExecuted} cmdName: ${cmdName} lastFinalTime: ${this.lastFinalTime} `);
-                    if (!'isFinal' && this.lastNonFinalCmdExecuted && this.lastNonFinalCmdExecuted === cmdName && (+new Date() - this.lastFinalTime) > FINAL_COOLDOWN_TIME) {
-                        console.log("Junked dupe.");
-                        return;
-                    }
-
-                    if (this.delayCmd)
-                        this.delayCmd.clear();
-                    // it ambiguous so the tests can work in node
-                    // @ts-ignore: setTimeout === window.setTimeout but we keep
-                    this.delayCmd = new ResettableTimeout(() => {
-                        console.log(`running command ${cmdName} isFinal:${'isFinal'}`);
-                        if (!'isFinal') {
-                            this.lastFinalTime = +new Date();
-                        } else {
-                            this.lastNonFinalCmdExecuted = cmdName;
-                            this.lastNonFinalCmdExecutedTime = +new Date();
-                        }
-
-                        return this.cmdRecognizedCb({
-                            liveText: [
-                                {text: niceTranscript, isSuccess: true}
-                            ],
-                            cmdArgs: matchOutput,
-                            cmdName,
-                            cmdPluginId,
-                        });
-                    }, delay);
-                    return this.cmdRecognizedCb(<ILiveTextParcel>{
-                        liveText: liveText,
-                        hold: true,
-                    });
-                } else {
-                    return this.cmdRecognizedCb({liveText});
-                }
-            } else if ('isFinal' && transcripts[0].confidence <= CONFIDENCE_THRESHOLD) {
-                return this.cmdRecognizedCb({
-                    liveText: transcripts.map(x => ({
-                        isFinal: true,
-                        text: x.text,
-                    })),
-                    hold: false,
-                });
+    async handleTranscript(text: string, confidence: Number, isFinal: boolean, resultIndex: number) {
+        if (typeof this.delayCmds[resultIndex] !== 'undefined') {
+            for (let v = 0; v < this.delayCmds[resultIndex].length; v++) {
+                this.delayCmds[resultIndex][v].reset();
             }
+        }
+
+        if (confidence > CONFIDENCE_THRESHOLD) {
+            let recgCmds = await this.getCmdsForUserInput(text, true, this.curActiveTabUrl);
+
+            // check if the same commands
+            for (let i = 0; i < recgCmds.length; i++) {
+                let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
+                console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+                if (cmdName) {
+                    if (this.matchedCmdsForIndex.length > i) {
+                        if (cmdName === this.matchedCmdsForIndex[i]) {
+                            // we've already matched on this command, do nothing
+                            // unless it's a wildcard then extend it?
+                        } else {
+                            // cancel the old command?
+                            console.error("we're changing our mind about the command that should be run");
+                        }
+                    } else {
+                        // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
+                        console.log(`cmdName: ${cmdName}`);
+                        this.matchedCmdsForIndex[i] = cmdName;
+
+                        if (!this.delayCmds[resultIndex])
+                            this.delayCmds[resultIndex] = [];
+
+                        if (this.delayCmds[resultIndex][i])
+                            this.delayCmds[resultIndex][i].clear();
+
+                        // short-circuit delay if the command is said to be final from speechRecognizer
+                        if (isFinal)
+                            delay = 0;
+
+                        // TODO: make per command? 
+                        this.delayCmds[resultIndex][i] = new ResettableTimeout(() => {
+                            console.log(`running command ${cmdName}`);
+                            this.cmdRecognizedCb({
+                                text: niceTranscript,
+                                isSuccess: true,
+                                cmdArgs: matchOutput,
+                                cmdName,
+                                cmdPluginId,
+                            });
+                        }, delay);
+                        this.cmdRecognizedCb(<ILiveTextParcel>{
+                            text: niceTranscript,
+                            isSuccess: true,
+                            hold: true,
+                            isFinal,
+                        });
+                    }
+                } else {
+                    this.cmdRecognizedCb({
+                        text: text,
+                        isFinal,
+                    });
+                }
+            }
+        } else if (isFinal && confidence <= CONFIDENCE_THRESHOLD) {
+            return this.cmdRecognizedCb({
+                text,
+                isFinal,
+            });
         }
     }
 }

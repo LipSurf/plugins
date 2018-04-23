@@ -280,6 +280,8 @@ export class BrowserPlugin extends PluginBase {
         return cont;
     }
 
+    static SCROLL_DURATION = 400;
+
     static init() {
         // inject the CSS
         // WARNING: opacity changes stacking context!
@@ -306,7 +308,6 @@ export class BrowserPlugin extends PluginBase {
 
         // async doesn't work here for some reason
         $(document).ready(() => {
-            console.log(`style ${STYLE}`);
             $(`<style type='text/css'>${STYLE}</style>`).appendTo("head");
             BrowserPlugin.getAnnoCont();
 
@@ -316,6 +317,8 @@ export class BrowserPlugin extends PluginBase {
                 }
             });
         });
+
+        console.log('initialized browser');
     }
 
     static destroy() {
@@ -326,8 +329,8 @@ export class BrowserPlugin extends PluginBase {
         name: 'Annotate',
         description: 'Give elements on the page a special annotation so they can be easily referred to and "clicked" on with voice controls.',
         match: ['annotate', 'annotations on', 'turn on annotations'],
-        runOnPage: function() {
-            // PERF: 
+        runOnPage: async function() {
+            // PERF:
             //   put coords of each annotated element in db -- that way we can quickly check if it's already been annotated (ordered set)
             // TODO:
             //  currently there's a selector that looks for classes with "button" -- mainly for reddit expando-button.
@@ -351,7 +354,7 @@ export class BrowserPlugin extends PluginBase {
                 // remove invisible annotations and mark their names as available again
                 annoMapKeys.forEach((anno) => {
                     let $ele = $(BrowserPlugin.annotationsMap[anno]);
-                    if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, windowLeft, windowRight, $ele) 
+                    if (!BrowserPlugin.visibleOnPage(windowTop, windowBottom, windowLeft, windowRight, $ele)
                             || $ele.css('visibility') === 'hidden') {
                         removedCount += 1;
                         // make the annotation name avail again
@@ -420,7 +423,7 @@ export class BrowserPlugin extends PluginBase {
                                 clone.textContent = name;
                                 clone.style.top = `${Math.max(0, offset.top - 5)}px`;
                                 clone.style.left = `${Math.max(0, offset.left - 5)}px`;
-                                // clone.style.zIndex = `${2000000000 + i}`; 
+                                // clone.style.zIndex = `${2000000000 + i}`;
                                 // get max z-index
                                 let maxZIndex = 0;
                                 $ele.parents().each((i, ele) => {
@@ -455,7 +458,7 @@ export class BrowserPlugin extends PluginBase {
         name: 'Unannotate',
         description: 'Hide the annotations',
         match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off'],
-        runOnPage: function() {
+        runOnPage: async function() {
             BrowserPlugin.annotate = false;
             $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
             BrowserPlugin.setOption('annotate', false);
@@ -472,7 +475,7 @@ export class BrowserPlugin extends PluginBase {
             },
             description: 'Say what\'s annotated',
         },
-        runOnPage: (annotationName:string) => {
+        runOnPage: async (annotationName:string) => {
             // do we need to query parent? Because we're placing this inside the anchor
             let ele = BrowserPlugin.annotationsMap[annotationName]
             let clickTypes = ["button", "submit", "reset", "checkbox", "color", "file", "hidden", "image", "radio"];
@@ -481,7 +484,7 @@ export class BrowserPlugin extends PluginBase {
                 // settimeout is a workaround for chrome
                 setTimeout(() => {
                     window.focus();
-                    ele.focus(); 
+                    ele.focus();
                 }, 0);
             } else {
                 // jquery $().click() does not work for some reason
@@ -493,7 +496,7 @@ export class BrowserPlugin extends PluginBase {
         name: 'Close Help',
         description: "Close the help box.",
         match: ["close help", "hide help", "help off"],
-        runOnPage: function () {
+        runOnPage: async function () {
             let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-browser-helpbox`;
             let $ele = $(`#${id}`);
 
@@ -547,7 +550,7 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Fullscreen Video',
         match: "fullscreen",
-        runOnPage: function () {
+        runOnPage: async function () {
             PluginBase.util.queryAllFrames('video', ['src', 'style.width', 'style.height', 'duration'])
                 .then((res) => {
                     // filter out undefined, null
@@ -562,7 +565,7 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Unfullscreen Video',
         match: ["un-fullscreen", "no full screen"],
-        runOnPage: function () {
+        runOnPage: async function () {
             document.webkitExitFullscreen();
         },
     }, {
@@ -570,7 +573,7 @@ export class BrowserPlugin extends PluginBase {
         name: 'Go Back',
         description: "Equivalent of hitting the back button.",
         match: ["back", "go back"],
-        runOnPage: function () {
+        runOnPage: async function () {
             window.history.back();
         },
         test: async function () {
@@ -588,7 +591,7 @@ export class BrowserPlugin extends PluginBase {
         name: 'Go Forward',
         description: "Equivalent of hitting the forward button.",
         match: ["forward", "go forward"],
-        runOnPage: function () {
+        runOnPage: async function () {
             window.history.forward();
         },
         test: async function () {
@@ -606,7 +609,7 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Play Video',
         match: ['play #', 'play'],
-        runOnPage: function (i) {
+        runOnPage: async function (i) {
             // tested for youtube, twitch, streamable
             // vimeo -- needs a click to work -- because autoplay is off?
 
@@ -666,7 +669,7 @@ export class BrowserPlugin extends PluginBase {
     {
         name: 'Pause Video',
         match: ["pause", "pause video"],
-        runOnPage: function () {
+        runOnPage: async function () {
             PluginBase.util.queryAllFrames('video', ['paused', 'src', 'style.width', 'style.height', 'duration'])
                 .then((res) => {
                     // filter out undefined, null and already paused videos
@@ -683,7 +686,7 @@ export class BrowserPlugin extends PluginBase {
         description: "Continue playing a video that has already started.",
         // Works with any video that may have started, even with the mouse
         match: "resume",
-        runOnPage: function (i) {
+        runOnPage: async function (i) {
             PluginBase.util.queryAllFrames('video', ['paused', 'currentTime', 'duration'])
                 .then((res) => {
                     // filter out undefined, null, and not paused
@@ -705,7 +708,7 @@ export class BrowserPlugin extends PluginBase {
         name: 'Refresh',
         description: "Refresh the page.",
         match: "refresh",
-        runOnPage: function () {
+        runOnPage: async function () {
             location.reload();
         },
         test: async function () {
@@ -718,10 +721,11 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Scroll Bottom',
         match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
-        runOnPage: function () {
+        runOnPage: async function () {
             $('html, body').animate({
                 scrollTop: document.body.scrollHeight
             });
+            return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
             await this.loadPage('http://motherfuckingwebsite.com/');
@@ -733,11 +737,12 @@ export class BrowserPlugin extends PluginBase {
         }
     }, {
         name: 'Scroll Down a Little',
-        match: ["little down", "little scroll down", "scroll little down", "down little"],
-        runOnPage: function () {
+        match: ["little down", "little scroll down", "scroll little down"],
+        runOnPage: async function () {
             $('html, body').animate({
                 scrollTop: window.scrollY + PluginBase.util.getScrollDistance() / 2
             });
+            return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
             // does not test specifically for "little" down -- just check if scrolled down
@@ -755,10 +760,12 @@ export class BrowserPlugin extends PluginBase {
         match: ["down", "scroll down", "d"],
         // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
         // delay: [300, 0],
-        runOnPage: function () {
+        runOnPage: async function () {
             $('html, body').animate({
+                duration: BrowserPlugin.SCROLL_DURATION,
                 scrollTop: window.scrollY + PluginBase.util.getScrollDistance()
             });
+            return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
             var oldYPos;
@@ -772,10 +779,11 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Scroll Top',
         match: ["top", "top of page", "top of the page", "scroll top", "scroll to top", "scroll to the top of page", "scroll to the top of the page"],
-        runOnPage: function () {
+        runOnPage: async function () {
             $('html, body').animate({
                 scrollTop: 0
             });
+            return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
             await this.loadPage('http://motherfuckingwebsite.com/');
@@ -788,11 +796,12 @@ export class BrowserPlugin extends PluginBase {
         }
     }, {
         name: 'Scroll Up a Little',
-        match: ["little up", "little scroll up", "scroll little up", "up little"],
-        runOnPage: function () {
+        match: ["little up", "little scroll up", "scroll little up"],
+        runOnPage: async function () {
             $('html, body').animate({
                 scrollTop: window.scrollY - PluginBase.util.getScrollDistance() / 2
             });
+            return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
             // does not test specifically for "little" up -- just check if scrolled down
@@ -809,11 +818,11 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Scroll Up',
         match: ["up", "scroll up", "u"],
-        delay: [300, 0],
-        runOnPage: function () {
+        runOnPage: async function () {
             $('html, body').animate({
                 scrollTop: window.scrollY - PluginBase.util.getScrollDistance()
             });
+            return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
             var oldYPos;
@@ -829,7 +838,7 @@ export class BrowserPlugin extends PluginBase {
         name: 'Stop',
         description: "Equivalent of hitting the \"stop\" button to stop page navigation.",
         match: "stop",
-        runOnPage: function () {
+        runOnPage: async function () {
             window.stop();
         },
         test: async function () {

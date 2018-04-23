@@ -6,8 +6,8 @@ import { retrialAndError, PluginBase } from "../common/plugin-lib";
 import { instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript } from "../common/util";
 
 declare global {
-    interface Window { 
-        commands: any; 
+    interface Window {
+        commands: any;
         PluginBase: typeof PluginBase;
         allPlugins: (typeof PluginBase)[]
     }
@@ -34,13 +34,13 @@ function toggleActivated(_activated = true, quiet = false) {
         activated = false;
 
         window.allPlugins.forEach(plugin => plugin.destroy ? plugin.destroy() : null);
-        
+
         // remove all overlays
         let $eles = $(`*[${ua}]`);
         $eles.each((i, ele) => {
             try {
                 ele.remove();
-            } catch (e) {}
+            } catch (e) { }
         });
     } else if (_activated && !activated) {
         activated = true;
@@ -48,7 +48,7 @@ function toggleActivated(_activated = true, quiet = false) {
             chrome.runtime.sendMessage('loadPlugins');
             commandsLoaded = true;
         }
-        retrialAndError(async function() {
+        retrialAndError(async function () {
             await promisify($(document).ready)();
             if (activated) {
                 await attachLiveTextOverlay();
@@ -56,7 +56,7 @@ function toggleActivated(_activated = true, quiet = false) {
             if (!quiet) {
                 // showLiveText("Ready");
             }
-        }, function() {
+        }, function () {
             if ($liveTextOverlay) {
                 return document.body.contains($liveTextOverlay[0]);
             }
@@ -82,18 +82,16 @@ async function getFrameHtml(id) {
     return await $.get(chrome.extension.getURL(`views/${id}.html`));
 }
 
-let prevQ:Promise<any>;
+let cmdsQ: Promise<any>;
+let liveTextQ: Promise<any>;
 
 // queue async functions to happen synchronously.
 // Used to free up handlers to handle other things first
-async function queueUp(fn: () => Promise<any>) {
+async function queueUp(fn: () => Promise<any>, prevQ: Promise<any>) {
     if (prevQ) {
-        prevQ.then(() => {
-            prevQ = fn();
-        })
-    } else {
-        prevQ = fn();
-    }
+        await prevQ;
+    } 
+    return await fn();
 }
 
 async function attachLiveTextOverlay() {
@@ -101,7 +99,7 @@ async function attachLiveTextOverlay() {
     // retries used by callers
     try {
         $liveTextOverlay = PluginBase.util.addOverlay(await getFrameHtml('live-text-overlay'), null, id, document.body, true);
-    } catch(e) {}
+    } catch (e) { }
 }
 
 async function showLiveText(parcel: ILiveTextParcel) {
@@ -120,17 +118,15 @@ async function showLiveText(parcel: ILiveTextParcel) {
     while ($liveText.lastChild) {
         $liveText.removeChild($liveText.lastChild);
     }
-    parcel.liveText.map(liveText => {
-        // split by word so spans are evenly spaced and can be animated in nicely
-        liveText.text.split(' ').map(word => {
-            let block = document.createElement('span');
-            if (liveText.isFinal)
-                block.classList.add('final') 
-            if (liveText.isSuccess)
-                block.classList.add('success') 
-            block.textContent = word.trim();
-            $liveText.appendChild(block);
-        })
+    // split by word so spans are evenly spaced and can be animated in nicely
+    parcel.text.split(' ').map(word => {
+        let block = document.createElement('span');
+        if (parcel.isFinal)
+            block.classList.add('final')
+        if (parcel.isSuccess)
+            block.classList.add('success')
+        block.textContent = word.trim();
+        $liveText.appendChild(block);
     });
     setTimeout(() => { $liveText.classList.add('enter'); }, 0);
     lblTimeout = setTimeout(() => {
@@ -146,13 +142,13 @@ async function showLiveText(parcel: ILiveTextParcel) {
 }
 
 // TODO: needs tests
-chrome.runtime.onMessage.addListener(function(msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
-    if (instanceOfTranscript(msg)) {
-        sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.processedInput));
-    } else if (instanceOfCmdLiveTextParcel(msg)) {
-        window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs);
+chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
+    if (instanceOfCmdLiveTextParcel(msg)) {
+        cmdsQ = queueUp(() => window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
+    } else if (instanceOfTranscript(msg)) {
+        sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.text));
     } else if (instanceOfText(msg)) {
-        queueUp(() => showLiveText(msg));
+        liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfToggle(msg)) {
         toggleActivated(msg.toggleActivated);
     }
@@ -160,17 +156,17 @@ chrome.runtime.onMessage.addListener(function(msg: IBackgroundParcel, sender, se
 
 // page was switched back to, it was open before the extension
 // was activated -- now it's visible again
-document.addEventListener("webkitvisibilitychange", function(event) {
-	console.log(`hidden: ${document.hidden}`);
-	if (!document.hidden) {
-		checkActivatedStatus();
-	}
+document.addEventListener("webkitvisibilitychange", function (event) {
+    console.log(`hidden: ${document.hidden}`);
+    if (!document.hidden) {
+        checkActivatedStatus();
+    }
 });
 
 
 function checkActivatedStatus() {
-    chrome.storage.local.get('activated', function(activatedObj) {
-        if (typeof(activatedObj) == 'object' && activatedObj.activated) {
+    chrome.storage.local.get('activated', function (activatedObj) {
+        if (typeof (activatedObj) == 'object' && activatedObj.activated) {
             toggleActivated(true, true);
         }
     });
@@ -180,13 +176,13 @@ checkActivatedStatus();
 
 
 if (INCLUDE_SPEECH_TEST_HARNESS) {
-    let port = chrome.runtime.connect({name: "test-probe"});
+    let port = chrome.runtime.connect({ name: "test-probe" });
 
     window.addEventListener("message", function (evt) {
         let { data, source, origin } = evt;
         let msg = data;
         if (msg.test_probe) {
-            port.postMessage({cmd: msg.cmd});
+            port.postMessage({ cmd: msg.cmd });
         }
     });
 }

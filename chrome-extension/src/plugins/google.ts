@@ -28,7 +28,7 @@ export class GooglePlugin extends PluginBase {
             description: 'google/search [your search terms]',
         },
         delay: 1000,
-        runOnPage: function (searchQuery) {
+        runOnPage: async function (searchQuery) {
             window.location.href = `https://www.google.com/search?q=${searchQuery}`;
         }
     }

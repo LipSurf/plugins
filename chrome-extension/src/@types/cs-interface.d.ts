@@ -2,7 +2,7 @@ declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel | 
 
 // incoming transcript that we need to check match for
 declare interface ITranscriptParcel {
-    processedInput: string,
+    text: string,
     cmdName: string,
     cmdPluginId: string,
 }
@@ -13,14 +13,11 @@ declare interface ICmdParcel {
     cmdArgs: undefined | any[],
 }
 
-declare interface ILiveText {
-    text: string,
-    isFinal?: boolean,
-    isSuccess?: boolean,
-}
-
 declare interface ILiveTextParcel {
-    liveText: ILiveText[],
+    text: string,
+    isSuccess?: boolean,
+    // not final text is shown as lighter (less certainty)
+    isFinal?: boolean,
     hold?: boolean,
 }
 

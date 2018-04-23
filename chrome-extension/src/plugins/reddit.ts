@@ -61,7 +61,7 @@ export class RedditPlugin extends PluginBase {
         name: "Collapse",
         description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
         match: ["collapse #", "close", "close preview", "collapse"],
-        runOnPage: (index) => {
+        runOnPage: async (index) => {
             if (index) {
                 $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
             } else {
@@ -98,7 +98,7 @@ export class RedditPlugin extends PluginBase {
         name: 'Expand All Comments',
         description: "Expands all the comments.",
         match: "expand all",
-        runOnPage: () => {
+        runOnPage: async () => {
             $('.thing.comment.collapsed a.expand').each(function() {
                 this.click();
             });
@@ -124,7 +124,7 @@ export class RedditPlugin extends PluginBase {
         description: "Expand a preview of a post, or a comment.",
         match: ["preview #", "expand #", "# expand", "preview", "expand"], // in comments view
         delay: 600,
-        runOnPage: (i) => {
+        runOnPage: async (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             if (!isNaN(index)) {
                 let $ele = $(RedditPlugin.thingAtIndex(index) + ' .expando-button');
@@ -172,39 +172,39 @@ export class RedditPlugin extends PluginBase {
         nice: (rawInput:string, matchOutput:any[]) => {
             return `go to r/${matchOutput[0]}`;
         },
-        runOnPage: (subredditName) => {
+        runOnPage: async (subredditName) => {
             window.location.href = `https://www.reddit.com/r/${subredditName}`;
         }
     }, {
         name: 'Go to Reddit',
         global: true,
         match: ["reddit", "go to reddit"],
-        runOnPage: () => {
+        runOnPage: async () => {
             document.location.href = "https://www.reddit.com";
         },
     }, {
         name: 'Next Page',
         match: 'next page',
-        runOnPage: () => {
+        runOnPage: async () => {
             $('.next-button a').get(0).click();
         }
     }, {
         name: 'Previous Page',
         match: 'previous page',
-        runOnPage: () => {
+        runOnPage: async () => {
             $('.prev-button a').get(0).click();
         }
     }, {
         name: 'Clear Vote',
         description: "Unsets the last vote so it's neither up or down.",
         match: ["clear vote #", "clear vote"],
-        runOnPage: (i) => {
+        runOnPage: async (i) => {
 
         },
     }, {
         name: 'Downvote',
         match: ["downvote #", "downvote"],
-        runOnPage: (i) => {
+        runOnPage: async (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
             $(RedditPlugin.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
@@ -212,7 +212,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Upvote',
         match: ["upvote #", "upvote"],
-        runOnPage: (i) => {
+        runOnPage: async (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
             index = isNaN(index) ? 1 : index;
             $(RedditPlugin.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
@@ -221,14 +221,14 @@ export class RedditPlugin extends PluginBase {
         name: 'View Comments',
         description: "View the comments of a reddit post.",
         match: ["comments #", "view comments #"],
-        runOnPage: (i) => {
+        runOnPage: async (i) => {
             $(RedditPlugin.thingAtIndex(i) + ' a.comments')[0].click();
         },
     }, {
         name: 'Visit Post',
         description: "Equivalent of clicking a reddit post.",
         match: ['click #', 'click', 'visit'],
-        runOnPage: (i) => {
+        runOnPage: async (i) => {
             // if we're on the post
             if (RedditPlugin.getCommentsRegX().test(window.location.href)) {
                 $('#siteTable p.title a.title:first')[0].click();

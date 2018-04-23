@@ -1,6 +1,11 @@
 TODO
 ===
 v1.0
+*getCmdForUserInput -> getCmdsForUserInput -- greedy matching, sort commands by length then return array of commands
+  to be executed in order ['down', 'down', 'down', 'down']
+  how to cancel the delay when new commands come in?
+  -- cancel by command's getCmdsForUserInput result array position
+* Live text coming in should queue up nicely on the page with a timeout -- instead of continually getting replaced?
 * Commands getting executed twice (new tab)
 * Tutorial Page
 -- auto reload tabs when plugin is first installed
@@ -123,7 +128,21 @@ Known Issues:
 [2] Clicking the extension and immediately turning it off leaves behind "ready" and help text
 
 
+Competitors?
+===
+*Annyang is for developers to add voice commands to their own sites, not for controlling the whole browser
+https://ourcodeworld.com/articles/read/163/top-7-best-voice-commands-and-speech-recognition-related-javascript-libraries
+
 References
 ===
 typehint generation:
 https://github.com/philc/vimium/blob/master/content_scripts/link_hints.coffee
+
+Letter to W3C:
+===
+Hi all,
+
+As the SpeechRecognition spec stands, there's no way to distinguish recognized speech output as additional newly recognized utterances vs. corrected (but previously outputted) words.
+
+
+
