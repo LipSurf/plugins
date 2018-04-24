@@ -20,6 +20,7 @@ let liveTextShadowRootId = `${ua}-live-text-overlay`;
 let liveTextEle: HTMLDivElement;
 let lblTimeout: number;
 let commandsLoaded = false;
+let commandsLoading = false;
 let cmdsQ: Promise<any>;
 let liveTextQ: Promise<any>;
 
@@ -34,7 +35,30 @@ window.allPlugins = [];
 
 // Needs to be safe to call multipe times
 function toggleActivated(_activated = true, quiet = false) {
-    if (!_activated && activated) {
+    if (_activated) {
+        activated = true;
+        if (!commandsLoaded && !commandsLoading) {
+            commandsLoading = true;
+            window.allPlugins = [];
+            chrome.runtime.sendMessage('loadPlugins', () => {
+                window.allPlugins.forEach(plugin => plugin.init ? plugin.init() : null);
+                commandsLoaded = true;
+            });
+        } else {
+            window.allPlugins.forEach(plugin => plugin.init ? plugin.init() : null);
+        }
+        retrialAndError(async function () {
+            await promisify($(document).ready)();
+            if (activated) {
+                await attachLiveTextOverlay();
+            }
+            if (!quiet) {
+                // showLiveText("Ready");
+            }
+        }, function () {
+            return document.getElementById(liveTextShadowRootId);
+        }, LIVE_TEXT_HOLD_TIME / 5, 5);
+    } else {
         activated = false;
 
         window.allPlugins.forEach(plugin => plugin.destroy ? plugin.destroy() : null);
@@ -46,37 +70,6 @@ function toggleActivated(_activated = true, quiet = false) {
                 ele.remove();
             } catch (e) { }
         });
-    } else if (_activated && !activated) {
-        activated = true;
-        if (!commandsLoaded) {
-            chrome.runtime.sendMessage('loadPlugins');
-            commandsLoaded = true;
-        }
-        retrialAndError(async function () {
-            await promisify($(document).ready)();
-            if (activated) {
-                await attachLiveTextOverlay();
-            }
-            if (!quiet) {
-                // showLiveText("Ready");
-            }
-        }, function () {
-            if (liveTextEle) {
-                return document.body.contains(liveTextEle[0]);
-            }
-        }, LIVE_TEXT_HOLD_TIME / 5, 5);
-
-        // open help box
-        // retrialAndError(async function() {
-        //     await promisify($(document).ready)();
-        //     if (activated) {
-        //         console.log("opening help box");
-        //         $helpBox = await attachOverlay('help-box');
-        //         helpBoxOpen = true;
-        //     }
-        // }, function() {
-        //     return !helpBoxOpen || document.body.contains($helpBox[0]);
-        // }, 500, 25);
     }
 }
 
@@ -90,7 +83,11 @@ async function getFrameHtml(id) {
 // Used to free up handlers to handle other things first
 async function queueUp(fn: () => Promise<any>, prevQ: Promise<any>) {
     if (prevQ) {
-        await prevQ;
+        try {
+            await prevQ;
+        } catch (e) {
+            console.error(`Could not await previous in Q`);
+        }
     }
     return await fn();
 }
@@ -169,6 +166,7 @@ function checkActivatedStatus() {
 }
 
 checkActivatedStatus();
+
 
 if (INCLUDE_SPEECH_TEST_HARNESS) {
     let port = chrome.runtime.connect({ name: "test-probe" });

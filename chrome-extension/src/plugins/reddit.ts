@@ -50,6 +50,7 @@ export class RedditPlugin extends PluginBase {
         'pretty': 'preview',
         'contract': 'collapse',
         'expanse': 'expand',
+        'expanded': 'expand',
         'xpand': 'expand',
         'spend': 'expand',
         'reddit dot com': 'reddit',

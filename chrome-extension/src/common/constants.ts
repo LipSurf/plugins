@@ -4,14 +4,7 @@ export const ON_ICON: string = "assets/icon-on-128.png";
 export const OFF_ICON: string = "assets/icon-128.png";
 export const ORDINAL_CMD_DELAY = 500;
 
-// how long to wait before allowing another command
-export const COOLDOWN_TIME = 900;
-
-// max time to require before resetting the isFinal switch
-// that blocks a command from being run twice (once before isFinal
-// and once after)
-export const FINAL_COOLDOWN_TIME = 2200;
-export const CONFIDENCE_THRESHOLD = 0;
+export const CONFIDENCE_THRESHOLD = 0.1;
 export const ORDINALS_TO_DIGITS = {
     "first": 1,
     "1st": 1,

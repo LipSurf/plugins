@@ -14,6 +14,7 @@ export class BrowserPlugin extends PluginBase {
     static apiVersion = '1';
     static match = /.*/;
     static homophones = {
+        'auntie': 'annotate',
         'closeout': 'close help',
         'close up': 'close help',
         'close tap': 'close tab',
@@ -37,6 +38,8 @@ export class BrowserPlugin extends PluginBase {
         'time of the page': 'top of the page',
         'backwards': 'back',
         'backward': 'back',
+        'next app': 'next tab',
+        'previous app': 'previous tab',
         'ford': 'forward',
         'forwards': 'forward',
         'upwards': 'up',
@@ -51,6 +54,7 @@ export class BrowserPlugin extends PluginBase {
         'clothes': 'close',
         'scrolltop': 'scroll top',
         'talk': 'top',
+        'chop': 'top',
         'paws': 'pause',
     };
 
@@ -323,6 +327,7 @@ export class BrowserPlugin extends PluginBase {
 
     static destroy() {
         BrowserPlugin.annotate = false;
+        BrowserPlugin.setOption('annotate', false);
     }
 
     static commands = [{
@@ -366,25 +371,25 @@ export class BrowserPlugin extends PluginBase {
                         try {
                             delete BrowserPlugin.annotationsMap[anno];
                         } catch(e) {}
-                    } else {
-                        // update positioning, in case element "moved" (like with youtube fixed sidebar)
-                        $(`#${ua}-anno-cont > div[anno]`).css({
-                            left: function() {
-                                let srcEle = BrowserPlugin.annotationsMap[this.getAttribute('anno')];
-                                if (srcEle) {
-                                    let offset = $(srcEle).offset();
-                                    return `${Math.max(0, offset.left - 5)}px`;
-                                }
-                            },
-                            top: function() {
-                                let srcEle = BrowserPlugin.annotationsMap[this.getAttribute('anno')];
-                                if (srcEle) {
-                                    let offset = $(srcEle).offset();
-                                    return `${Math.max(0, offset.top - 5)}px`;
-                                }
-                            },
-                        });
-                    }
+                    } 
+                });
+
+                // update positioning, in case element "moved" (like with youtube fixed sidebar)
+                $(`#${ua}-anno-cont > div[anno]`).css({
+                    left: function() {
+                        let srcEle = BrowserPlugin.annotationsMap[this.getAttribute('anno')];
+                        if (srcEle) {
+                            let offset = $(srcEle).offset();
+                            return `${Math.max(0, offset.left - 5)}px`;
+                        }
+                    },
+                    top: function() {
+                        let srcEle = BrowserPlugin.annotationsMap[this.getAttribute('anno')];
+                        if (srcEle) {
+                            let offset = $(srcEle).offset();
+                            return `${Math.max(0, offset.top - 5)}px`;
+                        }
+                    },
                 });
 
                 let cont = BrowserPlugin.getAnnoCont();
@@ -400,6 +405,7 @@ export class BrowserPlugin extends PluginBase {
                     ,[role="menuitemradio"],[role="radio"],[role="spinbutton"],[role="textbox"]
                     ,[role="switch"],button,input,*[class*=button]
                     `)
+                    // this just means it takes up space in the dom
                     .filter(':visible')
                     .not('[aria-hidden="true"]')
                     .not('[aria-disabled="true"]')
@@ -407,8 +413,10 @@ export class BrowserPlugin extends PluginBase {
                         let com = window.getComputedStyle(this);
                         // specifically for filtering out stuff from *[class*=button], make sure it's clickable
                         let nodeName = this.nodeName.toLowerCase();
+                        if (com.visibility === 'hidden')
+                            return false;
                         if (['button', 'input', 'a'].indexOf(nodeName) === -1)
-                            return (com.visibility !== 'hidden') && (com.cursor === 'pointer' || com.cursor === 'text');
+                            return (com.cursor === 'pointer' || com.cursor === 'text');
                         return true;
                     })
                     .each((i, ele) => {
@@ -457,7 +465,7 @@ export class BrowserPlugin extends PluginBase {
     {
         name: 'Unannotate',
         description: 'Hide the annotations',
-        match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off'],
+        match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off', 'no annotations'],
         runOnPage: async function() {
             BrowserPlugin.annotate = false;
             $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();

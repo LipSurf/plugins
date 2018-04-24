@@ -63,7 +63,7 @@ export class Recognizer extends StoreSynced {
         private speechRecognizer,
     ) {
         super(store);
-        let homoKeys = Object.keys(HOMOPHONES);
+        let homoKeys = Object.keys(HOMOPHONES).sort((a, b) => a.length > b.length ? -1 : 1);
         this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
         this.synVals = homoKeys.map((key) => HOMOPHONES[key]);
         onUrlUpdate((url) => {
@@ -75,7 +75,7 @@ export class Recognizer extends StoreSynced {
         this.pluginsRecgStore = newOptions.plugins
             .filter(plugin => plugin.enabled)
             .map(plugin => {
-                let enabledHomophones = plugin.homophones.filter((homo) => homo.enabled);
+                let enabledHomophones = plugin.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
                 return {
                     synKeys: enabledHomophones.map((homo) => new RegExp(`\\b${homo.source}\\b`)),
                     synVals: enabledHomophones.map((homo) => homo.destination),
@@ -109,16 +109,20 @@ export class Recognizer extends StoreSynced {
         this.recognition.start();
 
         this.recognition.onresult = (event) => {
-            let rec = event.results[event.resultIndex][0];
+            // slice doesn't exist on the special event.results object, so we need to do a for loop
+            let recs = [];
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                recs.push(event.results[i][0])
+            }
             console.dir(event);
             if (event.resultIndex !== this.lastFinalIndex) {
                 this.matchedCmdsForIndex = [];
                 this.lastFinalIndex = event.resultIndex;
             }
             this.handleTranscript(
-                rec.transcript.trim().toLowerCase().replace(/-/g, ''),
-                <number>rec.confidence,
-                <boolean>event.results[event.resultIndex].isFinal,
+                recs.map(rec => rec.transcript).join(' ').trim().toLowerCase().replace(/-/g, '').replace(/\s+/g, ' '),
+                <number>recs.reduce((memo, rec) => memo + rec.confidence, 0) / recs.length,
+                <boolean>event.results[event.results.length - 1].isFinal,
                 <number>event.resultIndex,
             );
             this.recognizerKilled = false;
@@ -191,7 +195,7 @@ export class Recognizer extends StoreSynced {
      * 
      * Returns an array in order of the cmds found in the input.
      */
-    async getCmdsForUserInput(input: string, useHomos: boolean, url: string): Promise<IMatchCommand[]> {
+    async getCmdsForUserInput(input: string, url: string, useHomos: boolean = true): Promise<IMatchCommand[]> {
         let startTime = +new Date();
         let homophoneIterator: IterableIterator<string>;
         let cmdsByPlugin: { [pluginId: string]: IRecgCommand[] } = this.pluginsRecgStore.reduce((memo, plugin) => {
@@ -332,6 +336,8 @@ export class Recognizer extends StoreSynced {
 
 
     /*
+     * Assumes synKeys are sorted by length.
+     * 
      * TODO: to truly generate each permutation, need to
      * do n * m here (since this only generates in one order after
      * going through the homophones linearly currently)
@@ -382,7 +388,7 @@ export class Recognizer extends StoreSynced {
         }
 
         if (confidence > CONFIDENCE_THRESHOLD) {
-            let recgCmds = await this.getCmdsForUserInput(text, true, this.curActiveTabUrl);
+            let recgCmds = await this.getCmdsForUserInput(text, this.curActiveTabUrl);
 
             // check if the same commands
             if (recgCmds.length > 0) {
@@ -395,7 +401,9 @@ export class Recognizer extends StoreSynced {
                             // unless it's a wildcard then extend it?
                         } else {
                             // cancel the old command?
-                            console.error("we're changing our mind about the command that should be run");
+                            console.error(`we're changing our mind about the command that should be run. 
+                            Before: ${this.matchedCmdsForIndex[i]} After: ${cmdName}
+                            `);
                         }
                     } else {
                         // prevent dupe commands when cmd is said once, but finalized much later by speech recg.

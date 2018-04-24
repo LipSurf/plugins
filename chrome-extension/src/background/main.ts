@@ -72,37 +72,41 @@ class Main extends StoreSynced {
             });
         }
 
-        chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
-            if (request.bubbleDown) {
-                let tab = await queryActiveTab();
-                if (typeof request.bubbleDown.fullScreen !== 'undefined') {
-                    console.log(`1. full screen`);
-                    chrome.windows.update(tab.windowId, {
-                        state: "fullscreen"
-                    }, function (windowUpdated) {
-                        //do whatever with the maximized window
-                        this.fullscreen = true;
-                    });
-                } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
-                    console.log(`2. unfull screen`);
-                    chrome.windows.update(tab.windowId, {
-                        state: "maximized"
-                    }, function (windowUpdated) {
-                        //do whatever with the maximized window
-                    });
-                }
-                chrome.tabs.sendMessage(tab.id, request, function (response) {
-                    // not working (cannot get message in other content script
-                    sendResponse(response);
-                });
-            } else if (request.bubbleUp) {
-                // go back up to all the frames
-                let tab = await queryActiveTab();
-                chrome.tabs.connect(tab.id, { name: 'getVideos' });
-            } else if (request === 'loadPlugins') {
-                let tab = await queryActiveTab();
-                pm.loadCommandCodeIntoPage(tab.id, tab.url);
+        // this must be sync and return true in order to use sendResponse 
+        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+            // if (request.bubbleDown) {
+            //     // let tab = await queryActiveTab();
+            //     if (typeof request.bubbleDown.fullScreen !== 'undefined') {
+            //         console.log(`1. full screen`);
+            //         chrome.windows.update(tab.windowId, {
+            //             state: "fullscreen"
+            //         }, function (windowUpdated) {
+            //             //do whatever with the maximized window
+            //             this.fullscreen = true;
+            //         });
+            //     } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
+            //         console.log(`2. unfull screen`);
+            //         chrome.windows.update(tab.windowId, {
+            //             state: "maximized"
+            //         }, function (windowUpdated) {
+            //             //do whatever with the maximized window
+            //         });
+            //     }
+            //     chrome.tabs.sendMessage(tab.id, request, function (response) {
+            //         // not working (cannot get message in other content script
+            //         sendResponse(response);
+            //     });
+            // } else if (request.bubbleUp) {
+            //     // go back up to all the frames
+            //     // let tab = await queryActiveTab();
+            //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
+            if (request === 'loadPlugins') {
+                let tab = queryActiveTab().then(async (tab) => {
+                    await pm.loadCommandCodeIntoPage(tab.id, tab.url);
+                    sendResponse(null);
+                })
             }
+            return true;
         });
 
         chrome.browserAction.onClicked.addListener(tab => {
@@ -174,9 +178,11 @@ class Main extends StoreSynced {
         chrome.browserAction.setIcon({
             path: activated ? ON_ICON : OFF_ICON
         });
-        sendMsgToActiveTab({
-            toggleActivated: activated
-        });
+        chrome.tabs.query({}, function (tabs) {
+            for (let tab of tabs) {
+                chrome.tabs.sendMessage(tab.id, {toggleActivated: activated});
+            }
+        })
         if (activated) {
             // only allow recg to start if at least default
             // commands are loaded
