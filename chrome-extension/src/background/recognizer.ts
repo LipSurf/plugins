@@ -303,6 +303,81 @@ export class Recognizer extends StoreSynced {
     }
 
 
+    async handleTranscript(text: string, confidence: Number, isFinal: boolean, resultIndex: number) {
+        if (typeof this.delayCmds[resultIndex] !== 'undefined') {
+            for (let v = 0; v < this.delayCmds[resultIndex].length; v++) {
+                console.log(`Reset [${resultIndex}][${v}]`);
+                this.delayCmds[resultIndex][v].reset();
+            }
+        }
+
+        if (confidence > CONFIDENCE_THRESHOLD) {
+            let recgCmds = await this.getCmdsForUserInput(text, this.curActiveTabUrl);
+
+            // check if the same commands
+            if (recgCmds.length > 0) {
+                for (let i = 0; i < recgCmds.length; i++) {
+                    let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
+                    console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
+                    if (this.matchedCmdsForIndex.length > i && cmdName !== this.matchedCmdsForIndex[i]) {
+                        // cancel/undo the old command?
+                        console.error(`We're changing our mind about the command that should be run!
+                        Before: ${this.matchedCmdsForIndex[i]} After: ${cmdName}
+                        `);
+                    } else {
+                        // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
+                        if (!this.delayCmds[resultIndex])
+                            this.delayCmds[resultIndex] = [];
+
+                        if (!this.delayCmds[resultIndex][i] || !this.delayCmds[resultIndex][i].hasRan) {
+
+                            this.matchedCmdsForIndex[i] = cmdName;
+
+                            if (this.delayCmds[resultIndex][i]) {
+                                console.log(`clearing [${resultIndex}][${i}]`);
+                                this.delayCmds[resultIndex][i].clear();
+                            }
+
+                            // short-circuit delay if the command is said to be final from speechRecognizer
+                            if (isFinal)
+                                delay = 0;
+
+                            console.log(`cmdName: ${cmdName}. Setting [${resultIndex}][${i}] to ${delay}`);
+
+                            this.delayCmds[resultIndex][i] = new ResettableTimeout(() => {
+                                console.log(`running command ${cmdName}`);
+                                this.cmdRecognizedCb({
+                                    text: niceTranscript,
+                                    isSuccess: true,
+                                    cmdArgs: matchOutput,
+                                    cmdName,
+                                    cmdPluginId,
+                                });
+                            }, delay);
+                            this.cmdRecognizedCb(<ILiveTextParcel>{
+                                text: niceTranscript,
+                                isSuccess: true,
+                                hold: true,
+                                isFinal,
+                            });
+                        }
+                    }
+                }
+            } else {
+                this.cmdRecognizedCb({
+                    text: text,
+                    isFinal,
+                });
+            }
+        } else if (isFinal && confidence <= CONFIDENCE_THRESHOLD) {
+            return this.cmdRecognizedCb({
+                text,
+                isFinal,
+            });
+        }
+    }
+
+
     //
     // > tokenizeMatchPattern('# hello')
     // ['#', ' hello']
@@ -380,76 +455,4 @@ export class Recognizer extends StoreSynced {
     }
 
 
-    async handleTranscript(text: string, confidence: Number, isFinal: boolean, resultIndex: number) {
-        if (typeof this.delayCmds[resultIndex] !== 'undefined') {
-            for (let v = 0; v < this.delayCmds[resultIndex].length; v++) {
-                this.delayCmds[resultIndex][v].reset();
-            }
-        }
-
-        if (confidence > CONFIDENCE_THRESHOLD) {
-            let recgCmds = await this.getCmdsForUserInput(text, this.curActiveTabUrl);
-
-            // check if the same commands
-            if (recgCmds.length > 0) {
-                for (let i = 0; i < recgCmds.length; i++) {
-                    let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
-                    console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                    if (this.matchedCmdsForIndex.length > i) {
-                        if (cmdName === this.matchedCmdsForIndex[i]) {
-                            // we've already matched on this command, do nothing
-                            // unless it's a wildcard then extend it?
-                        } else {
-                            // cancel the old command?
-                            console.error(`we're changing our mind about the command that should be run. 
-                            Before: ${this.matchedCmdsForIndex[i]} After: ${cmdName}
-                            `);
-                        }
-                    } else {
-                        // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
-                        console.log(`cmdName: ${cmdName}`);
-                        this.matchedCmdsForIndex[i] = cmdName;
-
-                        if (!this.delayCmds[resultIndex])
-                            this.delayCmds[resultIndex] = [];
-
-                        if (this.delayCmds[resultIndex][i])
-                            this.delayCmds[resultIndex][i].clear();
-
-                        // short-circuit delay if the command is said to be final from speechRecognizer
-                        if (isFinal)
-                            delay = 0;
-
-                        // TODO: make per command? 
-                        this.delayCmds[resultIndex][i] = new ResettableTimeout(() => {
-                            console.log(`running command ${cmdName}`);
-                            this.cmdRecognizedCb({
-                                text: niceTranscript,
-                                isSuccess: true,
-                                cmdArgs: matchOutput,
-                                cmdName,
-                                cmdPluginId,
-                            });
-                        }, delay);
-                        this.cmdRecognizedCb(<ILiveTextParcel>{
-                            text: niceTranscript,
-                            isSuccess: true,
-                            hold: true,
-                            isFinal,
-                        });
-                    }
-                }
-            } else {
-                this.cmdRecognizedCb({
-                    text: text,
-                    isFinal,
-                });
-            }
-        } else if (isFinal && confidence <= CONFIDENCE_THRESHOLD) {
-            return this.cmdRecognizedCb({
-                text,
-                isFinal,
-            });
-        }
-    }
 }

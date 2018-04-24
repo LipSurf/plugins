@@ -121,7 +121,7 @@ export class Detector {
 // starts the timer from 0
 export class ResettableTimeout {
     private timeoutRef: number;
-    private ran: boolean = false;
+    public hasRan: boolean = false;
 
     constructor(private fn: () => void, private delay:number) {
         this.wrapper();
@@ -129,16 +129,16 @@ export class ResettableTimeout {
 
     private wrapper() {
         this.timeoutRef = safeSetTimeout(() => {
+            this.hasRan = true;
             this.fn();
-            this.ran = true;
         }, this.delay);
     }
 
     public reset() {
-        if (!this.ran) {
+        if (!this.hasRan) {
             clearTimeout(this.timeoutRef);
             // just in case a race-condition is possible
-            this.ran = false;
+            this.hasRan = false;
             this.wrapper();
         }
     }
