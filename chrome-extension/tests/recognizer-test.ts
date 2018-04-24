@@ -63,7 +63,7 @@ test.before(async(t) => {
         let plugin = eval(getPlugin(data.cmdPluginId));
         let cmd = window[`${data.cmdPluginId}Plugin`].commands.find((cmd) => cmd.name === data.cmdName);
         if (typeof cmd.match === 'function')
-            return cmd.match(data.processedInput);
+            return cmd.match(data.text);
     };
     t.context.recg = new Recognizer(store,
         t.context.urlUpdate,

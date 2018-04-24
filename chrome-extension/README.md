@@ -1,11 +1,8 @@
 TODO
 ===
 v1.0
-*getCmdForUserInput -> getCmdsForUserInput -- greedy matching, sort commands by length then return array of commands
-  to be executed in order ['down', 'down', 'down', 'down']
-  how to cancel the delay when new commands come in?
-  -- cancel by command's getCmdsForUserInput result array position
 * Live text coming in should queue up nicely on the page with a timeout -- instead of continually getting replaced?
+-- don't animate, just overwrite spans for now in shadow doms? 30m animating
 * Commands getting executed twice (new tab)
 * Tutorial Page
 -- auto reload tabs when plugin is first installed

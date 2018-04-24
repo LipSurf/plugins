@@ -284,6 +284,6 @@ export function instanceOfToggle(object: any): object is IToggleParcel {
 }
 
 export function instanceOfTranscript(object: any): object is ITranscriptParcel {
-    return 'text' in object && 'cmdName' in object && 'pluginId' in object;
+    return 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
 }
 

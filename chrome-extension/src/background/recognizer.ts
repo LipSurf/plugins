@@ -49,7 +49,7 @@ export class Recognizer extends StoreSynced {
     private lastFinalIndex: number;
     // we index by transcript resultIndex in case a delayed cmd is pending and new voice
     // recg comes in
-    private delayCmds: {[id: number]: ResettableTimeout[]} = {};
+    private delayCmds: { [id: number]: ResettableTimeout[] } = {};
     private pluginsRecgStore: IPluginRecgStore[];
     private curActiveTabUrl: string;
     // for global homonyms
@@ -192,7 +192,6 @@ export class Recognizer extends StoreSynced {
      * Returns an array in order of the cmds found in the input.
      */
     async getCmdsForUserInput(input: string, useHomos: boolean, url: string): Promise<IMatchCommand[]> {
-        // processedInput = dedupe(processedInput);
         let startTime = +new Date();
         let homophoneIterator: IterableIterator<string>;
         let cmdsByPlugin: { [pluginId: string]: IRecgCommand[] } = this.pluginsRecgStore.reduce((memo, plugin) => {
@@ -209,16 +208,17 @@ export class Recognizer extends StoreSynced {
         while (inputPartStart < inputPartEnd) {
             let inputPart = inputParts.slice(inputPartStart, inputPartEnd).join(' ');
 
-            if (useHomos) {
-                homophoneIterator = this.generateHomophones(inputPart, url);
-            } else {
-                homophoneIterator = [inputPart][Symbol.iterator]();
-            }
-
             cmdsByPluginLoop:
             for (let pluginId in cmdsByPlugin) {
                 let cmdsToTest = cmdsByPlugin[pluginId];
-                for (let honomizedInput = homophoneIterator.next().value; honomizedInput; honomizedInput = homophoneIterator.next().value) {
+
+                if (useHomos) {
+                    homophoneIterator = this.generateHomophones(inputPart, url);
+                } else {
+                    homophoneIterator = [inputPart][Symbol.iterator]();
+                }
+
+                for (let homonizedInput = homophoneIterator.next().value; homonizedInput; homonizedInput = homophoneIterator.next().value) {
                     for (let f = 0; f < cmdsToTest.length; f++) {
                         let curCmd = cmdsToTest[f];
                         let runOnPageArgs: string[];
@@ -227,7 +227,7 @@ export class Recognizer extends StoreSynced {
                         if (typeof curCmd.match === 'undefined') {
                             // TODO: not a big fan of how this works
                             let tab = await currActiveTabProm;
-                            runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: honomizedInput });
+                            runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput });
                         } else {
                             if (typeof curCmd.match === 'string') {
                                 matchPatterns = [curCmd.match];
@@ -240,7 +240,7 @@ export class Recognizer extends StoreSynced {
                                 let ords = [];
                                 let n = 0;
                                 let nextIsOrdinal = false;
-                                let inputSlice = honomizedInput;
+                                let inputSlice = homonizedInput;
                                 for (; n < tokens.length || nextIsOrdinal; n++) {
                                     let token = tokens[n];
                                     if (token == '#') {
@@ -282,7 +282,7 @@ export class Recognizer extends StoreSynced {
                                 cmdName: curCmd.name,
                                 cmdPluginId: pluginId,
                                 matchOutput: runOnPageArgs,
-                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(honomizedInput, runOnPageArgs)) : honomizedInput,
+                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(homonizedInput, runOnPageArgs)) : homonizedInput,
                                 delay,
                             });
                             inputPartStart = inputPartEnd;
@@ -333,7 +333,7 @@ export class Recognizer extends StoreSynced {
 
     /*
      * TODO: to truly generate each permutation, need to
-     * do nxm here (since this only generates in one order after
+     * do n * m here (since this only generates in one order after
      * going through the homophones linearly currently)
      */
     private *generateHomophones(beforeInput: string, url: string): IterableIterator<string> {
