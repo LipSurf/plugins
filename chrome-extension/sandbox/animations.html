@@ -1,0 +1,71 @@
+<html>
+
+<head>
+    <style>
+    </style>
+    <script src="./jquery-3.3.1.min.js" type="text/javascript"></script>
+    <script>
+        let saying = [
+            {text: 'pla', isFinal: false},
+            {text: 'plase', isFinal: false},
+            {text: 'please', isFinal: false},
+            {text: 'please', isFinal: false},
+            {text: 'please go', isFinal: false},
+            {text: 'please go', isFinal: false},
+            {text: 'please go uh', isFinal: false},
+            {text: 'please go up', isFinal: false},
+            {text: 'please go up', isFinal: true},
+        ];
+
+        let masterCopy = document.createElement('div');
+        let cont = document.createElement('div');
+        cont.className = 'live-text-cont'
+        let shadow;
+        masterCopy.className = 'live-text';
+
+        async function sleep(dur) {
+            return new Promise((resolve, reject) => setTimeout(() => resolve(), dur));
+        }
+
+        async function go() {
+            for (let say of saying) {
+                await sleep(100);
+                display(say);
+            }
+        }
+
+        function display(textObj) {
+            let clone = masterCopy.cloneNode();
+            clone.innerText = textObj.text;
+            cont.appendChild(clone);
+        }
+
+        $(document).ready(() => {
+            let rootEle = document.createElement('div');
+            shadow = rootEle.attachShadow({ mode: 'open' });
+            shadow.innerHTML = `
+                <style>
+                .live-text-cont {
+                    text-align: center;
+                }
+
+                .live-text {
+                    font-size: 2rem;
+                }
+                </style>
+            `;
+            shadow.appendChild(cont);
+            document.body.appendChild(rootEle);
+
+            go();
+        });
+
+    </script>
+
+</head>
+
+<body>
+    <h1>Welcome to shittywebpage.com</h1>
+</body>
+
+</html>
