@@ -15,10 +15,14 @@ declare global {
 
 const LIVE_TEXT_HOLD_TIME = 2000;// * 4000;
 let activated = false;
-let $liveTextOverlay: HTMLIFrameElement;
-let lblTimeout;
-let commandsLoaded = false;
 let ua = PluginBase.util.getNoCollisionUniqueAttr();
+let liveTextShadowRootId = `${ua}-live-text-overlay`;
+let liveTextEle: HTMLDivElement;
+let lblTimeout: number;
+let commandsLoaded = false;
+let cmdsQ: Promise<any>;
+let liveTextQ: Promise<any>;
+
 // used to determine which video to fullscreen
 window.commands = {};
 window.PluginBase = PluginBase;
@@ -57,8 +61,8 @@ function toggleActivated(_activated = true, quiet = false) {
                 // showLiveText("Ready");
             }
         }, function () {
-            if ($liveTextOverlay) {
-                return document.body.contains($liveTextOverlay[0]);
+            if (liveTextEle) {
+                return document.body.contains(liveTextEle[0]);
             }
         }, LIVE_TEXT_HOLD_TIME / 5, 5);
 
@@ -82,23 +86,24 @@ async function getFrameHtml(id) {
     return await $.get(chrome.extension.getURL(`views/${id}.html`));
 }
 
-let cmdsQ: Promise<any>;
-let liveTextQ: Promise<any>;
-
 // queue async functions to happen synchronously.
 // Used to free up handlers to handle other things first
 async function queueUp(fn: () => Promise<any>, prevQ: Promise<any>) {
     if (prevQ) {
         await prevQ;
-    } 
+    }
     return await fn();
 }
 
 async function attachLiveTextOverlay() {
-    let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-live-text-overlay`;
+    let shadowCont = document.createElement('div');
+    shadowCont.id = liveTextShadowRootId;
+    let shadow = shadowCont.attachShadow({ mode: 'open' });
+    shadow.innerHTML = await getFrameHtml('live-text-overlay');
+    liveTextEle = shadow.querySelector('#live-text');
     // retries used by callers
     try {
-        $liveTextOverlay = PluginBase.util.addOverlay(await getFrameHtml('live-text-overlay'), null, id, document.body, true);
+        document.body.appendChild(shadowCont);
     } catch (e) { }
 }
 
@@ -106,38 +111,29 @@ async function showLiveText(parcel: ILiveTextParcel) {
     // our element might not get reattached or might get removed from
     //   * bf cache
     //   * dom body overwrites from js
-    if (typeof $liveTextOverlay === 'undefined' || !document.body.contains($liveTextOverlay)) {
+    if (!document.getElementById(liveTextShadowRootId)) {
         await attachLiveTextOverlay();
         console.log(`Reattaching live text overlay`);
     }
+    liveTextEle.classList.remove('leave');
 
-    let $liveText = $liveTextOverlay.contentDocument.getElementById('live-text');
-    clearTimeout(lblTimeout);
-    // remove the old
-    $liveText.classList.remove('enter');
-    while ($liveText.lastChild) {
-        $liveText.removeChild($liveText.lastChild);
+    // clear it out
+    while (liveTextEle.firstChild) {
+        liveTextEle.removeChild(liveTextEle.firstChild);
     }
-    // split by word so spans are evenly spaced and can be animated in nicely
-    parcel.text.split(' ').map(word => {
-        let block = document.createElement('span');
-        if (parcel.isFinal)
-            block.classList.add('final')
-        if (parcel.isSuccess)
-            block.classList.add('success')
-        block.textContent = word.trim();
-        $liveText.appendChild(block);
-    });
-    setTimeout(() => { $liveText.classList.add('enter'); }, 0);
-    lblTimeout = setTimeout(() => {
-        $liveText.classList.remove('enter');
-        $liveText.classList.add('leave');
-        setTimeout(() => {
-            while ($liveText.lastChild) {
-                $liveText.removeChild($liveText.lastChild);
-            }
-            $liveText.classList.remove('leave');
-        }, 1000);
+    let spanned = document.createElement('span');
+    if (parcel.isFinal) 
+        spanned.classList.add('final');
+    if (parcel.isSuccess)  
+        spanned.classList.add('success');
+    spanned.innerText = parcel.text;
+    liveTextEle.appendChild(spanned);
+
+    if (lblTimeout) {
+        clearTimeout(lblTimeout);
+    } 
+    lblTimeout = window.setTimeout(() => {
+        liveTextEle.classList.add('leave');
     }, parcel.hold ? LIVE_TEXT_HOLD_TIME * 3 : LIVE_TEXT_HOLD_TIME);
 }
 
@@ -173,7 +169,6 @@ function checkActivatedStatus() {
 }
 
 checkActivatedStatus();
-
 
 if (INCLUDE_SPEECH_TEST_HARNESS) {
     let port = chrome.runtime.connect({ name: "test-probe" });

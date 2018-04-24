@@ -1,6 +1,8 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
+// automatically activate addon when installed (for faster testing)
+declare let AUTO_ON: boolean;
 import { pick } from "lodash";
 import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
@@ -36,6 +38,18 @@ store.rebuildLocalPluginCache().then(() => {
     let ps = new PluginSandbox(store);
     let pm = new PluginManager(store);
     let mn = new Main(store, pm, ps, recg);
+
+    if (AUTO_ON) {
+        // HACK
+        setTimeout(mn.toggleActivated.bind(mn), 100);
+        // refresh all tabs
+        chrome.tabs.query({}, function (tabs) {
+            for (let tab of tabs) {
+                if (tab.url.indexOf('chrome://') === -1)
+                chrome.tabs.reload(tab.id);
+            }
+        })
+    }
 });
 
 

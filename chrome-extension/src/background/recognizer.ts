@@ -385,10 +385,10 @@ export class Recognizer extends StoreSynced {
             let recgCmds = await this.getCmdsForUserInput(text, true, this.curActiveTabUrl);
 
             // check if the same commands
-            for (let i = 0; i < recgCmds.length; i++) {
-                let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
-                console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                if (cmdName) {
+            if (recgCmds.length > 0) {
+                for (let i = 0; i < recgCmds.length; i++) {
+                    let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
+                    console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
                     if (this.matchedCmdsForIndex.length > i) {
                         if (cmdName === this.matchedCmdsForIndex[i]) {
                             // we've already matched on this command, do nothing
@@ -430,12 +430,12 @@ export class Recognizer extends StoreSynced {
                             isFinal,
                         });
                     }
-                } else {
-                    this.cmdRecognizedCb({
-                        text: text,
-                        isFinal,
-                    });
                 }
+            } else {
+                this.cmdRecognizedCb({
+                    text: text,
+                    isFinal,
+                });
             }
         } else if (isFinal && confidence <= CONFIDENCE_THRESHOLD) {
             return this.cmdRecognizedCb({

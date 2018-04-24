@@ -1,8 +1,6 @@
 TODO
 ===
 v1.0
-* Live text coming in should queue up nicely on the page with a timeout -- instead of continually getting replaced?
--- don't animate, just overwrite spans for now in shadow doms? 30m animating
 * Commands getting executed twice (new tab)
 * Tutorial Page
 -- auto reload tabs when plugin is first installed
