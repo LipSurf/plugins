@@ -65,7 +65,7 @@ class Main extends StoreSynced {
             chrome.runtime.onConnect.addListener((port) => {
                 if (port.name == 'test-probe') {
                     port.onMessage.addListener((msg:any) => {
-                        console.log(`RECEIVED A FKIN MSG`);
+                        console.log(`RECEIVED A HXOR MSG`);
                         eval(msg.cmd);
                     });
                 }
@@ -101,10 +101,11 @@ class Main extends StoreSynced {
             //     // let tab = await queryActiveTab();
             //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
             if (request === 'loadPlugins') {
-                let tab = queryActiveTab().then(async (tab) => {
-                    await pm.loadCommandCodeIntoPage(tab.id, tab.url);
+                let tab = sender.tab;
+                pm.injectCmdCodeIntoPage(tab.id, tab.url).then(() => {
+                    // not sure this is needed
                     sendResponse(null);
-                })
+                });
             }
             return true;
         });

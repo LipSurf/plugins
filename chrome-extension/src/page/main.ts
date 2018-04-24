@@ -41,6 +41,7 @@ function toggleActivated(_activated = true, quiet = false) {
             commandsLoading = true;
             window.allPlugins = [];
             chrome.runtime.sendMessage('loadPlugins', () => {
+                console.log(`main.ts received loadPage ${window.allPlugins}`);
                 window.allPlugins.forEach(plugin => plugin.init ? plugin.init() : null);
                 commandsLoaded = true;
             });

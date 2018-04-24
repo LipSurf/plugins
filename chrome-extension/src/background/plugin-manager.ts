@@ -35,7 +35,7 @@ export class PluginManager extends StoreSynced {
     // TODO: wait for promise of plugins loaded?
     // checks the given url and loads the necessary plugin command
     // code into the given tabId if the url matches.
-    async loadCommandCodeIntoPage(tabId: number, url: string) {
+    async injectCmdCodeIntoPage(tabId: number, url: string): Promise<void> {
         // either matches the url, or has at least one global
         let csStrs = this.pluginsCSStore
             .filter(plugin => plugin.enabled && (plugin.hasGlobalCmd || plugin.match.reduce((acc, matchPattern) => acc || matchPattern.test(url), false)))

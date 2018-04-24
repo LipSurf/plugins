@@ -4,7 +4,7 @@ export const ON_ICON: string = "assets/icon-on-128.png";
 export const OFF_ICON: string = "assets/icon-128.png";
 export const ORDINAL_CMD_DELAY = 500;
 
-export const CONFIDENCE_THRESHOLD = 0.1;
+export const CONFIDENCE_THRESHOLD = 0.0;
 export const ORDINALS_TO_DIGITS = {
     "first": 1,
     "1st": 1,

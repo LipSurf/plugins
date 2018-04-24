@@ -117,6 +117,7 @@ export class Recognizer extends StoreSynced {
             console.dir(event);
             if (event.resultIndex !== this.lastFinalIndex) {
                 this.matchedCmdsForIndex = [];
+                this.delayCmds[this.lastFinalIndex] = [];
                 this.lastFinalIndex = event.resultIndex;
             }
             this.handleTranscript(
@@ -159,6 +160,7 @@ export class Recognizer extends StoreSynced {
         this.recognition.onend = () => {
             // don't restart in an infinite loop
             this.matchedCmdsForIndex = [];
+            this.delayCmds = {};
             if (!this.recognizerKilled) {
                 console.log("ended. Restarting: ");
                 this.recognition.start();
