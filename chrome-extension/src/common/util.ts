@@ -273,21 +273,21 @@ export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
 }
 
 export function instanceOfCmdLiveTextParcel(object: any): object is ICmdLiveTextParcel {
-    return 'cmdArgs' in object && 'cmdName' in object && 'text' in object;
+    return typeof object === 'object' && 'cmdArgs' in object && 'cmdName' in object && 'text' in object;
 }
 
 export function instanceOfText(object: any): object is ILiveTextParcel {
-    return !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object) && ('text' in object);
+    return typeof object === 'object' && !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object) && ('text' in object);
 }
 
 export function instanceOfToggle(object: any): object is IToggleParcel {
-    return 'toggleActivated' in object;
+    return typeof object === 'object' && 'toggleActivated' in object;
 }
 
 export function instanceOfTranscript(object: any): object is ITranscriptParcel {
-    return 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
+    return typeof object === 'object' && 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
 }
 
 export function instanceOfCode(object: any): object is ICodeParcel {
-    return 'code' in object;
+    return typeof object === 'object' && 'code' in object;
 }

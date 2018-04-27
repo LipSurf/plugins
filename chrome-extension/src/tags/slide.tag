@@ -1,8 +1,9 @@
 <slide>
-	<div class="card slide-in-right">
+	<div ref="card" class="card hide">
 	<yield/>
 	<div class="control-bar">
-		<a class="voice-btn" onclick={ nextSlide }>
+		<!-- HACK: can't get the next_slide fn passed in, so using parent.parent.parent... -->
+		<a class="voice-btn" onclick={ this.parent.next_slide } >
 			Say <span class="pulsate">&quot;next&quot;</span> to continue
 		</a>
 		<div>-or-</div>
@@ -18,6 +19,10 @@
 			background-color: #fff;
 			padding: 25px;
 			box-shadow: #b3b3b3 2px 8px 8px 2px;
+		}
+
+		.hide {
+			display: none;
 		}
 
 		.small {
@@ -129,9 +134,8 @@ pulsating-btn.small {
 
 	</style>
 	<script>
-		import route from 'riot-route/lib/tag';
 		let pulseStartTime = +this.opts.timing;
-		let slideRegx = /\/?slide\/(\d+)/;
+		let animTime = 500;
 		if (pulseStartTime) {
 			setTimeout(() => {
 				let pulsers = document.querySelector('.pulsate');
@@ -139,13 +143,37 @@ pulsating-btn.small {
 			}, pulseStartTime * 1000);
 		}
 
-		this.nextSlide = () => {
-			let curSlide = document.location.hash.match(slideRegx);
-			route(`/slide/${+curSlide[1] + 1}`);
+		this.slideIn = async () => {
+			let rt = this.refs.card;
+			rt.classList.remove('hide');
+			rt.classList.add('slide-in-right');
+			return new Promise((resolve, reject) => {
+				setTimeout(() => {
+					rt.classList.remove('slide-in-right');
+					resolve();
+				}, animTime);
+			});
+		};
+
+		this.slideOut = async () => {
+			let rt = this.refs.card;
+			rt.classList.add('slide-out-left');
+			return new Promise((resolve, reject) => {
+				setTimeout(() => {
+					rt.classList.remove('slide-out-left');
+					rt.classList.add('hide');
+					resolve();
+				}, animTime);
+			});
 		};
 
 		this.exitTutorial = () => {
 			window.close();
-		};
+		};	
+	
+		this.on('route', function(a, b, c) {
+			console.log('hello');
+		});
+
 	</script>
 </slide>

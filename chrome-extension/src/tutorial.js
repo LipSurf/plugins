@@ -5,7 +5,4 @@ require('./tags/slide.tag');
 require('./tags/pulsating-btn.tag');
 
 riot.mount('tutorial');
-riot.mount('slide');
 riot.mount('pulsating-btn');
-
-route.start(true);
