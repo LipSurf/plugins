@@ -1,7 +1,10 @@
 <options-page>
     <div class="container">
         <div style="text-align: left">
-            <h1>LipSurf</h1>
+			<div class="title-bar">
+				<img class="logo". src="../assets/icon-48.png"/>
+				<h1>LipSurf Options</h1>
+			</div>
             <h2>Permissions</h2>
             <p>We need permission to use the microphone. Please click "allow" when your browser prompts you for microphone permission. </p>
             <div class="perms" ref="perms">
@@ -29,11 +32,12 @@
 		</div>
 		<div class="option">
 		<label>
-			Automatically shut off after <input ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> minutes without valid commands (set to 0 to never automatically shut off)
+			Automatically shut off after &nbsp;&nbsp;<input ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
 		</label>
 		</div>
-        <div class="option" style="height: 1.2rem">
-            <div>
+        <div class="option" style="height: 1.2rem; margin: 20px">
+            <div class="btn-bar">
+                <button onclick="{ tutorial }">Open Tutorial</button>
                 <button onclick="{ reset }">Reset to Factory Defaults</button>
             </div>
         </div>
@@ -83,6 +87,23 @@
   		--bg-color: 245, 245, 245;
 		--max-homo-list-height: 80px;
   	}
+
+	.btn-bar * {
+		margin: 0 5px;
+	}
+
+	.title-bar {
+		font-family: "Special Elite";
+		text-align: center;
+	}
+
+	.title-bar img {
+		vertical-align: text-bottom;
+	}
+
+	.title-bar * {
+		display: inline-block;
+	}
 
 	.invisible {
 		opacity: 0 !important;
@@ -322,6 +343,17 @@
     th {
         padding: 0 .7rem;
     }
+
+    .container {
+        max-width: 900px;
+        margin: 50px auto;
+        text-align: left;
+    }
+
+	.container:first-child {
+		margin: 20px auto;
+	}
+
     </style>
     <script>
 	require('./cmd-group.tag');
@@ -339,6 +371,10 @@
             options.reset()
         }
     }
+
+	this.tutorial = () => {
+		window.location.href = "./tutorial.html";
+	}
 
 	generalSave = (e) => {
 		Object.assign(options.options, {

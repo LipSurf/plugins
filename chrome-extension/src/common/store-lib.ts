@@ -15,7 +15,7 @@ export const DEFAULT_PREFERENCES: ISyncData = {
             [id]: {
                 version,
                 enabled: true,
-                expanded: true,
+                expanded: false,
 				showMore: false,
                 disabledHomophones: [],
                 disabledCommands: []
