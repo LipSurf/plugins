@@ -1,10 +1,14 @@
-declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel | ITranscriptParcel;
+declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel | ITranscriptParcel | ICodeParcel;
 
 // incoming transcript that we need to check match for
 declare interface ITranscriptParcel {
     text: string,
     cmdName: string,
     cmdPluginId: string,
+}
+
+declare interface ICodeParcel {
+    code: string,
 }
 
 declare interface ICmdParcel {

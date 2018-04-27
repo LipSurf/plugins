@@ -288,3 +288,6 @@ export function instanceOfTranscript(object: any): object is ITranscriptParcel {
     return 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
 }
 
+export function instanceOfCode(object: any): object is ICodeParcel {
+    return 'code' in object;
+}

@@ -3,7 +3,7 @@
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { promisify } from "../common/util";
 import { retrialAndError, PluginBase } from "../common/plugin-lib";
-import { instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript } from "../common/util";
+import { instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript, instanceOfCode } from "../common/util";
 
 declare global {
     interface Window {
@@ -145,6 +145,10 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfToggle(msg)) {
         toggleActivated(msg.toggleActivated);
+    } else if (instanceOfCode(msg)) {
+        eval(msg.code);
+        sendResponse(null);
+        return true;
     }
 });
 
