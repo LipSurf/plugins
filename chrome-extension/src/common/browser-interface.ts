@@ -76,7 +76,7 @@ export namespace ExtensionUtil {
                 windowType: "normal"
             });
             for (let tab of tabs) {
-                if (tab.url.startsWith('http')) {
+                if (tab.url.startsWith('http') || tab.url.startsWith('chrome-extension://')) {
                     if (tab.active) {
                         return tab;
                     }

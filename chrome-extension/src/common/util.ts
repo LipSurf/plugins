@@ -267,6 +267,7 @@ export function deepSet(obj: object, path: string, val: any) {
     }, obj);
 }
 
+// TODO: can these just check for exactly a certain set of properties?
 export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
     return typeof object === 'object' && 'description' in object && 'fn' in object;
 }
@@ -276,7 +277,7 @@ export function instanceOfCmdLiveTextParcel(object: any): object is ICmdLiveText
 }
 
 export function instanceOfText(object: any): object is ILiveTextParcel {
-    return !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object);
+    return !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object) && ('text' in object);
 }
 
 export function instanceOfToggle(object: any): object is IToggleParcel {

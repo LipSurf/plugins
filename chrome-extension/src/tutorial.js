@@ -9,3 +9,11 @@ riot.mount('slide');
 riot.mount('pulsating-btn');
 
 route.start(true);
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.code) {
+        eval(msg.code);
+        sendResponse();
+        return true;
+    }
+});

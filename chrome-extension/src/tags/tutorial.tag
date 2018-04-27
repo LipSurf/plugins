@@ -12,7 +12,7 @@
 	</style>
 	<router>
 		<route path="slide/1">
-			<slide>
+			<slide timing="2">
 				<img class="logo" src="../assets/icon-128.png"/>
 				<h1 class="cowabunga">cowabunga.</h1>
 				<h2>You just installed LipSurf?</h2>
