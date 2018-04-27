@@ -19,9 +19,13 @@
 	<div class="container">
 		<h2>General</h2>
 		<div class="option">
-		<label>
-			<input type="checkbox" ref="showLiveText" onchange={ generalSave } checked={ options.showLiveText }/> Show live text
-		</label>
+			<label>
+				<input type="checkbox" ref="showLiveText" onchange={ generalSave } checked={ options.showLiveText }/> Show live text
+			</label>
+		</div>
+		<div class="option">
+			<label>
+				<input type="checkbox" ref="noHeadphonesMode" onchange={ generalSave } checked={ options.noHeadphonesMode }/> No headphones mode</label>
 		</div>
 		<div class="option">
 		<label>
@@ -289,6 +293,7 @@
 
 	generalSave = (e) => {
 		Object.assign(options.options, {
+			noHeadphonesMode: this.refs.noHeadphonesMode.checked,
 			showLiveText: this.refs.showLiveText.checked,
 			inactivityAutoOffMins: +this.refs.inactivityAutoOffMins.value,
 		});

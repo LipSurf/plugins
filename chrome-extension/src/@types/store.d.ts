@@ -41,6 +41,7 @@ declare interface ISyncData extends IGeneralOptions {
 
 declare interface IGeneralOptions {
     showLiveText: boolean,
+    noHeadphonesMode: boolean,
     inactivityAutoOffMins: number,
 }
 

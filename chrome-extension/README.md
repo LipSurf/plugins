@@ -74,11 +74,16 @@ marketing/profit
 Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
 
 Other successfull payed chrome extensions:
+  * https://www.streak.com/pricing
+  CRM for gmail targets biz users
+
   * https://momentumdash.com/
 ☆☆☆ Featured in Tim Ferriss’ Tools of Titans, BuzzFeed, TheNextWeb, Lifehacker, Reddit, Product Hunt, Hootsuite, Zapier, and TheDailyMuse! ☆☆☆
 
   * https://chrome.google.com/webstore/detail/vidiq-vision-for-youtube/pachckjkecffpdphbpmfolblodfkgbhl?hl=en
 
+  * https://www.diigo.com/premium
+  bookmark manager
 The browser extensions for Dragon are apparently atrocious. Make a better chrome extension and take a piece of that market.
 Stats: 231k users
 ![chrome extension reviews](./res/dragon-chrome-ext-reviews.png)

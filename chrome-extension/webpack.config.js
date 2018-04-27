@@ -62,9 +62,8 @@ let bgConfig = Object.assign({}, common, {
 	},
 }, getRules('tsconfig.background.json'));
 
-//let optionsRules = getRules('tsconfig.options.json');
-//Array.prototype.unshift(optionsRules.module.rules,[{
-let optionsRules = {module: {
+
+let riotAndTSRules = {module: {
 	rules: [
 		{
 			test: /\.tsx?$/,
@@ -122,16 +121,15 @@ let optionsConfig = Object.assign({}, common, {
 		path: path.resolve(__dirname, 'chrome-extension/dist'),
 		filename: 'options.js'
 	}
-}, optionsRules);
+}, riotAndTSRules);
 
-let riotConfig = Object.assign({}, commonPageConfig, {
-	entry: './src/tags/options-page.tag',
+let tutorialConfig = Object.assign({}, common, {
+	entry: './src/tutorial.js',
 	output: {
 		path: path.resolve(__dirname, 'chrome-extension/dist'),
-		filename: 'tags.js'
+		filename: 'tutorial.js'
 	}
-}, optionsRules);
-
+}, riotAndTSRules);
 
 let pageMainConfig = Object.assign({}, commonPageConfig, {
 	entry: './src/page/main.ts',
@@ -178,5 +176,5 @@ let pluginsConfig = Object.assign({}, commonPageConfig, {
 
 
 module.exports = [
-	bgConfig, pageMainConfig, pageFrameBeaconConfig, optionsConfig, pluginsConfig,
+	bgConfig, pageMainConfig, pageFrameBeaconConfig, optionsConfig, pluginsConfig, tutorialConfig,
 ]

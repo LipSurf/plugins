@@ -5,7 +5,8 @@ import { objectAssignDeep } from "./util";
 
 export const DEFAULT_PREFERENCES: ISyncData = {
     showLiveText: true,
-    inactivityAutoOffMins: 5,
+    noHeadphonesMode: false,
+    inactivityAutoOffMins: 20,
     plugins: [
             ['Browser', '1.0.0'],
             ['Google', '1.0.0'],

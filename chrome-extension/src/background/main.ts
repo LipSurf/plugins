@@ -72,7 +72,7 @@ class Main extends StoreSynced {
             });
         }
 
-        // this must be sync and return true in order to use sendResponse 
+        // this must be sync and return true in order to use sendResponse
         chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             // if (request.bubbleDown) {
             //     // let tab = await queryActiveTab();
@@ -211,6 +211,14 @@ chrome.browserAction.setIcon({
     path: activated ? ON_ICON : OFF_ICON
 });
 storage.local.save({ activated: false });
+// "install", "update", "chrome_update", or "shared_module_update"
+chrome.runtime.onInstalled.addListener((details) => {
+    console.log(`Installed reason: ${details.reason}`);
+    // if (details.reason === 'install') {
+    if (details.reason === 'update') {
+        openTutorial();
+    }
+});
 
 
 async function sendMsgToActiveTab(request: IBackgroundParcel) {
@@ -221,6 +229,25 @@ async function sendMsgToActiveTab(request: IBackgroundParcel) {
 
 function needsPermissionCb() {
     chrome.runtime.openOptionsPage();
+}
+
+function openTutorial() {
+    let foundExisting = false;
+    chrome.tabs.query({}, (tabs) => {
+        for (let tab of tabs) {
+            if (tab.url == chrome.extension.getURL(`views/tutorial.html`)) {
+                chrome.windows.update(tab.windowId, {focused: true});
+                chrome.tabs.update(tab.id, {active: true});
+                foundExisting = true;
+            }
+        }
+        if (!foundExisting) {
+            chrome.tabs.create({
+                active: true,
+                url: chrome.extension.getURL(`views/tutorial.html`)
+            });
+        }
+    });
 }
 
 
