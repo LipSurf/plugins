@@ -132,7 +132,7 @@
 	    position: relative;
 		transition: opacity .5s ease;
 		opacity: 1;
-		margin-top: calc(-1 * var(--max-homo-list-height) - 2px);
+		margin-top: calc(-1 * var(--max-homo-list-height) - 1px);
 	}
 
     .mute {
@@ -212,7 +212,7 @@
         width: 70%;
         text-align: left;
 		border-bottom: 1px solid #dddddd;
-		max-height: 1000px;
+		max-height: 500px;
 		transition: max-height .5s ease;
 		padding-bottom: 10px;
     }
@@ -300,7 +300,8 @@
         display: block;
         background-color: rgb(var(--bg-color));
         overflow: hidden;
-        /* max height is set via js dynamically for smooth animation*/
+		/* TODO: set dynamically */
+		max-height: 3000px;
     }
 
     .collapsable-inner {
@@ -363,7 +364,10 @@
     this.hasMicPerm = null;
 
     this.save = () => {
-        options.save();
+		// allow time to animate
+		setTimeout(() => {
+			options.save();
+		}, 1000);
     }
 
     this.reset = () => {
@@ -429,12 +433,12 @@
         // the thing might already be collapsed
         // set the max height on each accordion item, then shrink the ones
         // that need to be based on user settings
-        $('.collapsable').each(function(i, ele) {
-            let $ele = $(ele);
-            // TODO: this doesn't work anymore because when the page is loaded,
-            // $ele.css('max-height', $ele.parent().find('.collapsable').height());
-            $ele.css('max-height', 3000);
-        });
+        /*$('.collapsable').each(function(i, ele) {*/
+            /*let $ele = $(ele);*/
+            /*// TODO: this doesn't work anymore because when the page is loaded,*/
+            /*// $ele.css('max-height', $ele.parent().find('.collapsable').height());*/
+            /*$ele.css('max-height', 3000);*/
+        /*});*/
 
         checkForPermission.apply(this);
 
