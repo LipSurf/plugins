@@ -8,6 +8,7 @@ interface IPluginConfig extends IDisableable, IToggleableHomophones {
     id: string,
     friendlyName: string,
     expanded: boolean,
+	showMore: boolean,
     version: string,
     match: RegExp[],
     cs: string,
@@ -49,6 +50,7 @@ declare interface ISyncPluginData extends IDisableable {
     // semantically versioned
     version: string,
     expanded: boolean,
+	showMore: boolean,
     // the names of the commands
     disabledCommands: string[],
     // the source of the homophones

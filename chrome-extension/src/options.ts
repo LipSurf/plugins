@@ -16,6 +16,7 @@ interface IPluginOptionsPageStore extends IGeneralOptions {
 interface IPluginPref {
     expanded: boolean,
     enabled: boolean,
+    showMore: boolean,
     id: string,
     friendlyName: string,
     version: string,
@@ -56,7 +57,7 @@ class OptionsPage extends StoreSynced {
                         match: instanceOfDynamicMatch(cmd.match) ? cmd.match.description : cmd.match,
                         ... pick(cmd, 'enabled', 'name', 'description'),
                     })),
-                    ... pick(plugin, 'version', 'expanded', 'enabled', 'friendlyName', 'id', 'description', 'homophones'),
+                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'friendlyName', 'id', 'description', 'homophones'),
             })),
         });
         // trigger exists once we call riot.observable
@@ -71,7 +72,7 @@ class OptionsPage extends StoreSynced {
                 memo[cmdGroup.id] = {
                     disabledCommands: cmdGroup.commands.filter(x => !x.enabled).map(cmd => cmd.name),
                     disabledHomophones: cmdGroup.homophones.filter(x => !x.enabled).map(homo => homo.source),
-                    ... pick(cmdGroup, 'version', 'expanded', 'enabled'),
+                    ... pick(cmdGroup, 'version', 'expanded', 'enabled', 'showMore'),
                 };
                 return memo;
             }, {}),

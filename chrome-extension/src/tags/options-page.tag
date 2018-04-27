@@ -1,7 +1,7 @@
 <options-page>
     <div class="container">
         <div style="text-align: left">
-            <h1>Lip Surf</h1>
+            <h1>LipSurf</h1>
             <h2>Permissions</h2>
             <p>We need permission to use the microphone. Please click "allow" when your browser prompts you for microphone permission. </p>
             <div class="perms" ref="perms">
@@ -29,7 +29,7 @@
 		</div>
 		<div class="option">
 		<label>
-			Automatically shut off after <input ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> minutes without valid commands (set to 0 to never auto. shut off).
+			Automatically shut off after <input ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> minutes without valid commands (set to 0 to never automatically shut off)
 		</label>
 		</div>
         <div class="option" style="height: 1.2rem">
@@ -41,8 +41,8 @@
     <div class="container">
         <h2>Plugins</h2>
         <div each={ options.cmdGroups } class="cmd-group">
-            <div class="collapser-shell { collapsed: collapsed, enabled: enabled }">
-                <div class="collapser" title="Click to { collapsed ? 'expand' : 'collapse' }" onclick={ toggleCollapsed } href="#">
+            <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
+                <div class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
                     <div class="label">{ friendlyName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
                         <div class="desc">{ description }</div>
                     </div>
@@ -53,9 +53,14 @@
                             <div class="label">
                                 <strong>Homophones/synonyms: </strong>
                             </div>
-                            <div class="tag-list">
-                                <homophone each={homophones}></homophone>
-                            </div>
+							<div class="tag-list-cont">
+								<a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
+								<div class="tag-list {shrunk: !showMore}">
+									<homophone each={homophones}></homophone>
+								</div>
+								<div class="fade {invisible: showMore}">
+								</div>
+							</div>
                         </div>
                         <table>
                             <thead>
@@ -74,6 +79,41 @@
         </div>
     </div>
     <style>
+	:scope {
+  		--bg-color: 245, 245, 245;
+		--max-homo-list-height: 80px;
+  	}
+
+	.invisible {
+		opacity: 0 !important;
+	}
+
+	.tag-list-cont {
+		position: relative;
+	}
+
+	.show-more {
+		text-shadow: white 1px 1px;
+		text-decoration: none;
+		color: #7e7e7e;
+		position: absolute;
+		left: 50%;
+		z-index: 10;
+		bottom: -10px;
+		background-color: rgb(var(--bg-color));
+	    padding: 0 10px;
+	}
+
+	.fade {
+		pointer-events: none;
+		background: linear-gradient(to bottom, rgba(var(--bg-color),0) 20%,rgba(var(--bg-color),1) 90%);
+		height: var(--max-homo-list-height);
+	    position: relative;
+		transition: opacity .5s ease;
+		opacity: 1;
+		margin-top: calc(-1 * var(--max-homo-list-height) - 2px);
+	}
+
     .mute {
         color: #555;
     }
@@ -140,16 +180,25 @@
 	}
 
     .homophones {
-        margin-bottom: 15px;
+        margin-bottom: 30px;
         display: block;
         float: left;
     }
 
     .homophones .tag-list {
-        float: left;
+		position: relative;
+		overflow: hidden;
         width: 70%;
         text-align: left;
+		border-bottom: 1px solid #dddddd;
+		max-height: 1000px;
+		transition: max-height .5s ease;
+		padding-bottom: 10px;
     }
+
+	.homophones .tag-list.shrunk {
+		max-height: var(--max-homo-list-height);
+	}
 
     input[type=radio] {
         bottom: 2px;
@@ -228,7 +277,7 @@
     .collapsable {
         transition: max-height 0.35s ease-out;
         display: block;
-        background-color: #f5f5f5;
+        background-color: rgb(var(--bg-color));
         overflow: hidden;
         /* max height is set via js dynamically for smooth animation*/
     }
@@ -306,15 +355,22 @@
         this.save();
     }
 
-    this.toggleCollapsed = (e) => {
+    this.toggleExpanded = (e) => {
         // hack to get around propagation not being stopped in riot
         if (e.target.nodeName.toLowerCase() != 'input' &&
             e.target.nodeName.toLowerCase() != 'label') {
             let item = e.item;
-            item.collapsed = !item.collapsed;
+            item.expanded = !item.expanded;
             this.save();
         }
     }
+
+	this.toggleShowMore = (e) => {
+		e.stopPropagation()
+		e.preventDefault();
+		e.item.showMore = !e.item.showMore;
+		this.save();
+	}
 
     function checkForPermission() {
         navigator.mediaDevices.getUserMedia({

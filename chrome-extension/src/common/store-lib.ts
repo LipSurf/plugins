@@ -16,6 +16,7 @@ export const DEFAULT_PREFERENCES: ISyncData = {
                 version,
                 enabled: true,
                 expanded: true,
+				showMore: false,
                 disabledHomophones: [],
                 disabledCommands: []
             }}), {})
@@ -68,7 +69,7 @@ function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginD
                 })
             ),
             ... pick(_localPluginData, 'friendlyName', 'match', 'cs', 'description', ),
-            ... pick(_syncPluginData, 'expanded', 'version', 'enabled'),
+            ... pick(_syncPluginData, 'expanded', 'version', 'enabled', 'showMore'),
         }
     });
 }
