@@ -2,6 +2,7 @@ TODO
 ===
 v1.0
 * Fix reddit commands
+* Mic permission tag shared between options and tutorial
 * Tutorial Page
 -- auto reload tabs when plugin is first installed
 -- rules:

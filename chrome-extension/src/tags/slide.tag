@@ -3,13 +3,14 @@
 	<yield/>
 	<div class="control-bar">
 		<!-- HACK: can't get the next_slide fn passed in, so using parent.parent.parent... -->
-		<a class="voice-btn" onclick={ this.parent.next_slide } >
-			Say <span class="pulsate">&quot;next&quot;</span> to continue
+		<span class="voice-btn" onclick={ this.parent.next_slide } >
+			Say <a class="pulsate">&quot;next&quot;</span> to continue
 		</a>
 		<div>-or-</div>
 		<a class="voice-btn small" onclick={ exitTutorial }>
 			Say &quot;close tab&quot; to close the tutorial
 		</a>
+		<a style="display: none" onclick={ this.parent.prev_slide }>prev</a>
 	</div>
 	</div>
 	<style>

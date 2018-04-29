@@ -75,8 +75,9 @@ test.before(async(t) => {
 });
 
 async function testOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, userInput: string, expectedCmd: string) {
-    let selected = (await t.context.recg.getCmdsForUserInput(userInput, url))[0];
-    let selectedCmd = selected ? selected.cmdName.toLowerCase() : null;
+    let matchCmds = (await t.context.recg.getCmdsForUserInput(userInput, url));
+    t.is(matchCmds.length, 1);
+    let selectedCmd = matchCmds ? matchCmds[0].cmdName.toLowerCase() : null;
     t.is(selectedCmd, expectedCmd, selectedCmd);
 }
 
@@ -93,7 +94,7 @@ let redditCmdToPossibleInput = {
     'go to subreddit': ['go to our testing', 'are funny',
             'our world news', 'are worldnews'],
     'go to reddit': ['reddit', 'go to reddit', 'reddit dot com', 'reddit.com'],
-    'next tab': ['next app'],
+    'next tab': ['next app', 'next time'],
     'scroll top': ['top', 'scroll top', 'scrolltop'],
     'scroll bottom': ['bottom', 'scroll bottom'],
     'unfullscreen video': ['unfullscreen', 'un fullscreen', 'unfull screen'],
@@ -120,8 +121,9 @@ test('shouldn\'t parse commands that don\'t match for page', async(t) => {
 });
 
 test('should execute plugin global commands everywhere', async(t) => {
-    let {cmdName} = await t.context.recg.getCmdsForUserInput('reddit', 'http://yahoo.com')[0];
-    t.is(cmdName.toLowerCase(), 'go to reddit');
+    let cmdObj = await t.context.recg.getCmdsForUserInput('reddit', 'http://yahoo.com');
+    t.is(cmdObj.length, 1);
+    t.is(cmdObj[0].cmdName.toLowerCase(), 'go to reddit');
 });
 
 test('should parse subreddit names without spaces', async (t) => {

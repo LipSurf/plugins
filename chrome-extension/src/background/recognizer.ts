@@ -321,9 +321,10 @@ export class Recognizer extends StoreSynced {
                 for (let i = 0; i < recgCmds.length; i++) {
                     let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
                     console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                    if (this.matchedCmdsForIndex.length > i && cmdName !== this.matchedCmdsForIndex[i]) {
+                    if (this.matchedCmdsForIndex.length > i && cmdName !== this.matchedCmdsForIndex[i] 
+                            && this.delayCmds[resultIndex] && this.delayCmds[resultIndex][i] && this.delayCmds[resultIndex][i].hasRan) {
                         // cancel/undo the old command?
-                        console.error(`We're changing our mind about the command that should be run!
+                        console.error(`We're changing our mind about a command that already ran!
                         Before: ${this.matchedCmdsForIndex[i]} After: ${cmdName}
                         `);
                     } else {
@@ -332,7 +333,6 @@ export class Recognizer extends StoreSynced {
                             this.delayCmds[resultIndex] = [];
 
                         if (!this.delayCmds[resultIndex][i] || !this.delayCmds[resultIndex][i].hasRan) {
-
                             this.matchedCmdsForIndex[i] = cmdName;
 
                             if (this.delayCmds[resultIndex][i]) {
@@ -345,6 +345,7 @@ export class Recognizer extends StoreSynced {
                                 delay = 0;
 
                             console.log(`cmdName: ${cmdName}. Setting [${resultIndex}][${i}] to ${delay}`);
+                            console.dir(recgCmds);
 
                             this.delayCmds[resultIndex][i] = new ResettableTimeout(() => {
                                 console.log(`running command ${cmdName}`);

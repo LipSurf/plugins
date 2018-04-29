@@ -38,7 +38,10 @@ export class BrowserPlugin extends PluginBase {
         'time of the page': 'top of the page',
         'backwards': 'back',
         'backward': 'back',
+        'nextpage': 'next page',
+        'next pay': 'next page',
         'next app': 'next tab',
+        'next time': 'next tab',
         'previous app': 'previous tab',
         'ford': 'forward',
         'forwards': 'forward',
@@ -50,7 +53,6 @@ export class BrowserPlugin extends PluginBase {
         'school': 'scroll',
         'screw': 'scroll',
         'small': 'little',
-        'time': 'next',
         'clothes': 'close',
         'scrolltop': 'scroll top',
         'talk': 'top',
@@ -859,6 +861,47 @@ export class BrowserPlugin extends PluginBase {
             //await this.timeout(1000);
             //// make sure it's still on google
             //this.assert.equal((await this.driver.getTitle()), titleBefore);
+        }
+    }, {
+        name: 'Next Page',
+        match: ['next page', 'next'],
+        delay: [0, 500],
+        description: "Looks for a next button on the page and clicks it.",
+        runOnPage: async () => {
+            $('a:contains("next")')
+                // @ts-ignore
+                .filter((i, ele:HTMLAnchorElement) => {
+                    let goodHref = true;
+                    if (ele.href) {
+                        // check length to ignore #
+                        if (ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
+                            goodHref = false;
+                        }
+                    } 
+                    "next page"
+                    return goodHref && ele.innerText.length <= 11;
+                })
+                .get(0).click();
+        }
+    }, {
+        name: 'Previous Page',
+        match: ['previous page', 'previous'],
+        delay: [0, 500],
+        description: "Looks for a previous button on the page and clicks it.",
+        runOnPage: async () => {
+            $('a:contains("prev")')
+                // @ts-ignore
+                .filter((i, ele:HTMLAnchorElement) => {
+                    let goodHref = true;
+                    if (ele.href) {
+                        // check length to ignore #
+                        if (ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
+                            goodHref = false;
+                        }
+                    } 
+                    return goodHref && ele.innerText.length < 10;
+                })
+                .get(0).click();
         }
     }, {
         name: 'Close Tab',

@@ -51,9 +51,17 @@
 		console.log('hi from tutorial');
 		import route from 'riot-route';
 		let curSlide;
+		let totalSlides = 6;
+		let hasMicPerm = false;
 
 		this.next_slide = () => {
+			if (curSlide < totalSlides)
 			route(`/slide/${+curSlide + 1}`);
+		};
+
+		this.prev_slide = () => {
+			if (curSlide > 1)
+				route(`/slide/${+curSlide - 1}`);
 		};
 
 		route(async (collection, id, action) => {

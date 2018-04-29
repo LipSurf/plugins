@@ -47,7 +47,6 @@ export class RedditPlugin extends PluginBase {
         'commons': 'comments',
         'quick': 'click',
         'navigate': 'go',
-        'pretty': 'preview',
         'contract': 'collapse',
         'expanse': 'expand',
         'expanded': 'expand',
@@ -62,7 +61,7 @@ export class RedditPlugin extends PluginBase {
     static commands = [{
         name: "Collapse",
         description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
-        match: ["collapse #", "close", "close preview", "collapse"],
+        match: ["collapse #", "close", "collapse"],
         runOnPage: async (index) => {
             if (index) {
                 $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
@@ -124,7 +123,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Expand',
         description: "Expand a preview of a post, or a comment.",
-        match: ["preview #", "expand #", "# expand", "preview", "expand"], // in comments view
+        match: ["expand #", "# expand", "expand"], // in comments view
         delay: 600,
         runOnPage: async (i) => {
             let index = typeof i !== 'undefined' ? Number(i) : 1;
@@ -184,18 +183,6 @@ export class RedditPlugin extends PluginBase {
         runOnPage: async () => {
             document.location.href = "https://www.reddit.com";
         },
-    }, {
-        name: 'Next Page',
-        match: 'next page',
-        runOnPage: async () => {
-            $('.next-button a').get(0).click();
-        }
-    }, {
-        name: 'Previous Page',
-        match: 'previous page',
-        runOnPage: async () => {
-            $('.prev-button a').get(0).click();
-        }
     }, {
         name: 'Clear Vote',
         description: "Unsets the last vote so it's neither up or down.",
