@@ -78,6 +78,7 @@ declare interface IPluginUtil {
 
 declare namespace ExtensionUtil {
     function queryActiveTab(): Promise<chrome.tabs.Tab>;
+    function toggleActivated(_activated:boolean): Promise<void>;
 }
 
 declare interface IActivated {

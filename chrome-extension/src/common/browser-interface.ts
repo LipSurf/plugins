@@ -12,23 +12,34 @@ type SyncLoadable = keyof ISyncData;
 
 export module storage {
     export module local {
-        export async function save(data: LocalSaveable) {
-            return promisify(chrome.storage.local.set)(data);
+        export async function save(data: LocalSaveable): Promise<void> {
+            return promisify<void>(chrome.storage.local.set)(data);
         }
         export async function load(key: LocalLoadable): Promise<ISerializedLocalData> {
             return promisify<ISerializedLocalData>(chrome.storage.local.get)(key);
         }
+        export function registerOnChangeCb(cb: (changes) => void) {
+            // namespace is either "sync" or "local"
+            chrome.storage.onChanged.addListener(function(rawChanges, namespace) {
+                if (namespace === "local") {
+                    // we don't use the specific changes yet -- so this is unnecessary for now
+                    // let changes = Object.keys(rawChanges).reduce((memo, key) => Object.assign(memo, {[key]: rawChanges[key].newValue}), {});
+                    cb(rawChanges);
+                }
+            });
+        }
+
     }
 
     export module sync {
-        export async function save(data: SyncSaveable) {
-            return promisify(chrome.storage.sync.set)(data);
+        export async function save(data: SyncSaveable): Promise<void> {
+            return promisify<void>(chrome.storage.sync.set)(data);
         }
         export async function load<T extends SyncSaveable>(key:SyncLoadable = null): Promise<T> {
             return promisify<T>(chrome.storage.sync.get)(key);
         }
         export async function clear(): Promise<void> {
-            return promisify<null>(chrome.storage.sync.clear)();
+            return promisify<void>(chrome.storage.sync.clear)();
         }
         export function registerOnChangeCb(cb: (changes) => void) {
             // namespace is either "sync" or "local"
@@ -114,6 +125,10 @@ export namespace ExtensionUtil {
             2
         );
         return await det.detected();
+    }
+
+    export async function toggleActivated(_activated:boolean): Promise<void> {
+        return await storage.local.save({ activated: _activated });
     }
 }
 

@@ -22,7 +22,6 @@ interface IMainStore {
 
 const { webkitSpeechRecognition }: IWindow = <IWindow>window;
 
-let activated = false;
 let audible = false;
 let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
@@ -50,6 +49,14 @@ store.rebuildLocalPluginCache().then(() => {
             }
         })
     }
+
+    storage.local.registerOnChangeCb((changes) => {
+        if (changes && changes.activated && mn.activated !== changes.activated.newValue) {
+            mn.toggleActivated(changes.activated.newValue);
+        }
+    });
+
+
 });
 
 
@@ -57,6 +64,7 @@ class Main extends StoreSynced {
 
     private inactiveTimer:ResettableTimeout;
     private mainStore: IMainStore;
+    public activated = false;
 
     constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox, private recg: Recognizer) {
         super(store)
@@ -111,7 +119,7 @@ class Main extends StoreSynced {
         });
 
         chrome.browserAction.onClicked.addListener(tab => {
-            if (activated) {
+            if (this.activated) {
                 this.toggleActivated(false);
             } else {
                 navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
@@ -156,8 +164,6 @@ class Main extends StoreSynced {
             //     }, 3500 * (i + 1));
             // }
         });
-
-
     }
 
     protected storeUpdated(newOptions: IOptions) {
@@ -174,17 +180,17 @@ class Main extends StoreSynced {
             this.inactiveTimer.clear();
             this.inactiveTimer = undefined;
         }
-        activated = _activated;
-        storage.local.save({ activated: activated });
+        this.activated = _activated;
+        storage.local.save({ activated: this.activated });
         chrome.browserAction.setIcon({
-            path: activated ? ON_ICON : OFF_ICON
+            path: this.activated ? ON_ICON : OFF_ICON
         });
         chrome.tabs.query({}, function (tabs) {
             for (let tab of tabs) {
-                chrome.tabs.sendMessage(tab.id, {toggleActivated: activated});
+                chrome.tabs.sendMessage(tab.id, {toggleActivated: this.activated});
             }
         })
-        if (activated) {
+        if (this.activated) {
             // only allow recg to start if at least default
             // commands are loaded
             this.recg.start(this.cmdRecognizedCb.bind(this));
@@ -208,7 +214,7 @@ class Main extends StoreSynced {
 
 
 chrome.browserAction.setIcon({
-    path: activated ? ON_ICON : OFF_ICON
+    path: this.activated ? ON_ICON : OFF_ICON
 });
 storage.local.save({ activated: false });
 // "install", "update", "chrome_update", or "shared_module_update"
@@ -219,7 +225,6 @@ chrome.runtime.onInstalled.addListener((details) => {
         openTutorial();
     }
 });
-
 
 async function sendMsgToActiveTab(request: IBackgroundParcel) {
     let tab = await queryActiveTab();

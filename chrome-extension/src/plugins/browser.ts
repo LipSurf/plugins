@@ -43,6 +43,7 @@ export class BrowserPlugin extends PluginBase {
         'next app': 'next tab',
         'next time': 'next tab',
         'previous app': 'previous tab',
+        'please tab': 'previous tab',
         'ford': 'forward',
         'forwards': 'forward',
         'upwards': 'up',
@@ -58,6 +59,12 @@ export class BrowserPlugin extends PluginBase {
         'talk': 'top',
         'chop': 'top',
         'paws': 'pause',
+        'let\'s surf off': 'lipsurf off',
+        'ripsurf': 'lipsurf',
+        'lip surf': 'lipsurf',
+        'lexsurv': 'lipsurf',
+        'lexserv': 'lipsurf',
+        'lip service': 'lipsurf'
     };
 
     static visibleOnPage = (docViewTop:number, docViewBottom:number,
@@ -1087,6 +1094,13 @@ export class BrowserPlugin extends PluginBase {
         match: ['settings', 'options'],
         run: () => {
             chrome.runtime.openOptionsPage();
+        }
+    }, {
+        name: 'Turn off LipSurf',
+        description: "Deactivates lipsurf so it's no longer recognizing your speech and running on the page.",
+        match: ['deactivate', 'turn off lipsurf', 'lipsurf off'],
+        run: async () => {
+            await ExtensionUtil.toggleActivated(false);
         }
     }
     ];
