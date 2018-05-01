@@ -1,24 +1,23 @@
 TODO
 ===
 v1.0
-* Fix reddit commands
-* Mic permission tag shared between options and tutorial
-* Tutorial Page
+- [ ] Fix reddit commands
+- [ ] Polish up slides
+- [ ] Put license on code
+- [ ] Tutorial Page
 -- auto reload tabs when plugin is first installed
--- rules:
-----Only 1 speaker at a time
-----Beware of background noise
-----sound from speakers (when headphones aren't in)
-----Auto turn off after 5m of inactivity
-* stop goes to top of page
-* Get build pipeline optimized (obfuscate output)
-* Fix fullscreen
-* Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
-* Make full screen black out background
-* `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
-* 2 full days of testing?
+- [ ] stop goes to top of page
+- [ ] Get build pipeline optimized (obfuscate output)
+- [ ] Fix fullscreen
+- [ ] Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
+- [ ] Make full screen black out background
+- [ ] `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
+- [ ] Live text not showing when command errors (eg. command not loaded)
+- [ ] 2 full days of testing?
 
 v1.1
+* Use this for annotations? https://developer.chrome.com/extensions/automation
+* Standardize extension urls instead of hardcoding them
 * Shadow DOM for annotations
 * Faster annotations -- study link heavy reddit
 * Better live text animation?

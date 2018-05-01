@@ -2,16 +2,18 @@
 	<div ref="card" class="card hide">
 	<yield/>
 	<div class="control-bar">
-		<!-- HACK: can't get the next_slide fn passed in, so using parent.parent.parent... -->
-		<span class="voice-btn" onclick={ this.parent.next_slide } >
-			Say <a class="pulsate">&quot;next&quot;</span> to continue
+		<div if={ !this.finalSlide } class="voice-btn">
+			Say <a ref={this.finalSlide ? '' : 'pulser'} class="pulsate" href={`#slide/${this.slideNum + 1}`}>&quot;next&quot;</a> to continue
+		</div>
+		<div if={ this.slideNum > 1 } class="voice-btn small">
+			Say <a href={`#slide/${this.slideNum - 1}`}>&quot;previous&quot;</a> or "back" to go back
+		</div>
+		<a class="voice-btn {small: !this.finalSlide, first: this.finalSlide}" onclick={ exitTutorial }>
+			Say <span class="pulsate" ref={this.finalSlide ? 'pulser' : ''} >&quot;close tab&quot;</span> to {this.slideNum == 1 ? 'skip' : 'finish'} the tutorial
 		</a>
-		<div>-or-</div>
-		<a class="voice-btn small" onclick={ exitTutorial }>
-			Say &quot;close tab&quot; to close the tutorial
-		</a>
-		<a style="display: none" onclick={ this.parent.prev_slide }>prev</a>
+		<a style="display: none" href={`#slide/${this.slideNum - 1}`}>prev</a>
 	</div>
+	<div class="slide-num small">Page {this.slideNum}/{parent.totalSlides}</div>
 	</div>
 	<style>
 		.card {
@@ -22,8 +24,17 @@
 			box-shadow: #b3b3b3 2px 8px 8px 2px;
 		}
 
+		.first {
+			order: -1;
+		}
+
 		.hide {
 			display: none;
+		}
+
+		.slide-num {
+			text-align: right;
+			color: #8a8a8a;
 		}
 
 		.small {
@@ -33,8 +44,13 @@
 		.voice-btn {
 			color: orange;
 			font-weight: bold;
+			margin: 5px;
+		}
+
+		.voice-btn a {
+			color: orange;
+			font-weight: bold;
 			text-decoration: none;
-			cursor: pointer;
 		}
 
 		.visible {
@@ -43,12 +59,31 @@
 
 		.control-bar {
 			text-align: center;
+			margin-top: 3em;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.slide-in-left {
+			-webkit-animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+					animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 		}
 
 		.slide-in-right {
 			-webkit-animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 					animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 		}
+
+		.slide-out-left {
+			-webkit-animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+							animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+		}
+
+		.slide-out-right {
+			-webkit-animation: slide-out-right 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+							animation: slide-out-right 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+		}
+
 
 		@-webkit-keyframes slide-in-right {
 		  0% {
@@ -66,6 +101,31 @@
 		  0% {
 			-webkit-transform: translateX(1000px);
 					transform: translateX(1000px);
+			opacity: 0;
+		  }
+		  100% {
+			-webkit-transform: translateX(0);
+					transform: translateX(0);
+			opacity: 1;
+		  }
+		}
+
+		@-webkit-keyframes slide-in-left {
+		  0% {
+			-webkit-transform: translateX(-1000px);
+					transform: translateX(-1000px);
+			opacity: 0;
+		  }
+		  100% {
+			-webkit-transform: translateX(0);
+					transform: translateX(0);
+			opacity: 1;
+		  }
+		}
+		@keyframes slide-in-left {
+		  0% {
+			-webkit-transform: translateX(-1000px);
+					transform: translateX(-1000px);
 			opacity: 0;
 		  }
 		  100% {
@@ -100,9 +160,29 @@
   }
 }
 
-.slide-out-left {
-	-webkit-animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
-	        animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+@-webkit-keyframes slide-out-right {
+  0% {
+    -webkit-transform: translateX(0);
+            transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: translateX(1000px);
+            transform: translateX(1000px);
+    opacity: 0;
+  }
+}
+@keyframes slide-out-right {
+  0% {
+    -webkit-transform: translateX(0);
+            transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: translateX(1000px);
+            transform: translateX(1000px);
+    opacity: 0;
+  }
 }
 
 pulsating-btn.small {
@@ -135,33 +215,45 @@ pulsating-btn.small {
 
 	</style>
 	<script>
+		import { storage } from '../common/browser-interface';
 		let pulseStartTime = +this.opts.timing;
 		let animTime = 500;
-		if (pulseStartTime) {
-			setTimeout(() => {
-				let pulsers = document.querySelector('.pulsate');
-				pulsers.classList.add('pulsate-fwd');
-			}, pulseStartTime * 1000);
-		}
+		this.active = false;
+		this.slideNum = +this.opts.ref.replace('slide', '');
+		this.finalSlide = this.slideNum == this.parent.totalSlides;
 
-		this.slideIn = async () => {
+		this.slideIn = async (left = false) => {
 			let rt = this.refs.card;
 			rt.classList.remove('hide');
-			rt.classList.add('slide-in-right');
+			rt.classList.add(`slide-in-${left ? 'left' : 'right'}`);
+			this.active = true;
+
+			if (pulseStartTime && this.refs.pulser) {
+				setTimeout(() => {
+					this.refs.pulser.classList.add('pulsate-fwd');
+				}, pulseStartTime * 1000);
+			}
+
 			return new Promise((resolve, reject) => {
 				setTimeout(() => {
-					rt.classList.remove('slide-in-right');
+					rt.classList.remove(`slide-in-${left ? 'left' : 'right'}`);
 					resolve();
 				}, animTime);
 			});
 		};
 
-		this.slideOut = async () => {
+		this.slideOut = async (left = true) => {
 			let rt = this.refs.card;
-			rt.classList.add('slide-out-left');
+			rt.classList.add(`slide-out-${left ? 'left' : 'right'}`);
+			this.active = false;
+
+			if (pulseStartTime && this.refs.pulser) {
+				this.refs.pulser.classList.remove('pulsate-fwd');
+			}
+
 			return new Promise((resolve, reject) => {
 				setTimeout(() => {
-					rt.classList.remove('slide-out-left');
+					rt.classList.remove(`slide-out-${left ? 'left' : 'right'}`);
 					rt.classList.add('hide');
 					resolve();
 				}, animTime);

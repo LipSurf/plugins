@@ -16,7 +16,7 @@
 				</div>
                 </span>
             </div>
-            <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the Lip Surf icon in your extensions toolbar.</p>
+            <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the LipSurf icon in your extensions toolbar.</p>
         </div>
     </div>
 	<div class="container">
@@ -377,6 +377,7 @@
     }
 
 	this.tutorial = () => {
+        // todo: call the main.ts openTutorial fn
 		window.location.href = "./tutorial.html";
 	}
 

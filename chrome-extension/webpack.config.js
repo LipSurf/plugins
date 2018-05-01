@@ -25,7 +25,7 @@ let featureFlags = {
 	// for manually forcing speech
 	INCLUDE_SPEECH_TEST_HARNESS: JSON.stringify(true),
 	CLEAR_SETTINGS: JSON.stringify(true),
-	AUTO_ON: JSON.stringify(true),
+	AUTO_ON: JSON.stringify(false),
 };
 
 let common = {

@@ -27,7 +27,7 @@ let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
-store.rebuildLocalPluginCache().then(() => {
+let fullyLoadedPromise = store.rebuildLocalPluginCache().then((): Promise<any> => {
     let recg = new Recognizer(store,
         tabs.onUrlUpdate,
         queryActiveTab,
@@ -56,7 +56,7 @@ store.rebuildLocalPluginCache().then(() => {
         }
     });
 
-
+    return new Promise((resolve, reject) => resolve());
 });
 
 
@@ -214,17 +214,20 @@ class Main extends StoreSynced {
 
 
 chrome.browserAction.setIcon({
-    path: this.activated ? ON_ICON : OFF_ICON
+    path: OFF_ICON
 });
 storage.local.save({ activated: false });
+
 // "install", "update", "chrome_update", or "shared_module_update"
 chrome.runtime.onInstalled.addListener((details) => {
     console.log(`Installed reason: ${details.reason}`);
     // if (details.reason === 'install') {
     if (details.reason === 'update') {
-        openTutorial();
+        // don't open the tutorial until the plugin is done loading
+        fullyLoadedPromise.then(() => openTutorial());
     }
 });
+
 
 async function sendMsgToActiveTab(request: IBackgroundParcel) {
     let tab = await queryActiveTab();

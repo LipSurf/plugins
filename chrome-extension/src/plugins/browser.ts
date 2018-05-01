@@ -64,7 +64,8 @@ export class BrowserPlugin extends PluginBase {
         'lip surf': 'lipsurf',
         'lexsurv': 'lipsurf',
         'lexserv': 'lipsurf',
-        'lip service': 'lipsurf'
+        'lip service': 'lipsurf',
+        'quick serve': 'lipsurf',
     };
 
     static visibleOnPage = (docViewTop:number, docViewBottom:number,
@@ -876,16 +877,16 @@ export class BrowserPlugin extends PluginBase {
         description: "Looks for a next button on the page and clicks it.",
         runOnPage: async () => {
             $('a:contains("next")')
+                .filter(':visible')
                 // @ts-ignore
                 .filter((i, ele:HTMLAnchorElement) => {
                     let goodHref = true;
                     if (ele.href) {
                         // check length to ignore #
-                        if (ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
+                        if (!ele.href.startsWith('#') && ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
                             goodHref = false;
                         }
                     } 
-                    "next page"
                     return goodHref && ele.innerText.length <= 11;
                 })
                 .get(0).click();
@@ -897,16 +898,17 @@ export class BrowserPlugin extends PluginBase {
         description: "Looks for a previous button on the page and clicks it.",
         runOnPage: async () => {
             $('a:contains("prev")')
+                .filter(':visible')
                 // @ts-ignore
                 .filter((i, ele:HTMLAnchorElement) => {
                     let goodHref = true;
                     if (ele.href) {
                         // check length to ignore #
-                        if (ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
+                        if (!ele.href.startsWith('#') && ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
                             goodHref = false;
                         }
                     } 
-                    return goodHref && ele.innerText.length < 10;
+                    return goodHref && ele.innerText.length < 11;
                 })
                 .get(0).click();
         }

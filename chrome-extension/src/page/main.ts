@@ -1,9 +1,9 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 /// <reference path="../@types/plugin-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
-import { promisify } from "../common/util";
 import { retrialAndError, PluginBase } from "../common/plugin-lib";
-import { instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript, instanceOfCode } from "../common/util";
+import { promisify, instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript, instanceOfCode } from "../common/util";
+import { storage } from "../common/browser-interface";
 
 declare global {
     interface Window {
@@ -152,12 +152,11 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
     }
 });
 
-// page was switched back to, it was open before the extension
-// was activated -- now it's visible again
-document.addEventListener("webkitvisibilitychange", function (event) {
-    console.log(`hidden: ${document.hidden}`);
-    if (!document.hidden) {
-        checkActivatedStatus();
+// page could have been switched back to, it was open before the extension
+// was activated -- now it's active again.
+storage.local.registerOnChangeCb((changes) => {
+    if (changes && changes.activated && changes.activated.newValue) {
+        toggleActivated(true, true);
     }
 });
 
