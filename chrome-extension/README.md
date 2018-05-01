@@ -16,6 +16,7 @@ v1.0
 - [ ] 2 full days of testing?
 
 v1.1
+- [ ] context menu - on for 10m, on for 20m, options
 * Use this for annotations? https://developer.chrome.com/extensions/automation
 * Standardize extension urls instead of hardcoding them
 * Shadow DOM for annotations

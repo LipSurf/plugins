@@ -6,6 +6,7 @@ import { objectAssignDeep } from "./util";
 export const DEFAULT_PREFERENCES: ISyncData = {
     showLiveText: true,
     noHeadphonesMode: false,
+    tutorialMode: true,
     inactivityAutoOffMins: 20,
     plugins: [
             ['Browser', '1.0.0'],
@@ -31,7 +32,7 @@ export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
         serializedLocalData = {
             pluginData: {},
             activated: false,
-        }
+        };
     }
     // parse serialized regex/fns
     let localData = Object.assign(serializedLocalData, {

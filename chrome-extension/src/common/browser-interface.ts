@@ -6,7 +6,7 @@ import { promisify, Detector } from './util';
 
 type LocalSaveable = ISerializedLocalData | IActivated;
 type LocalLoadable = keyof ISerializedLocalData;
-type SyncSaveable = ISyncData | {plugins: IndexedPlugins} | {inactivityAutoOffMins: number} | {showLiveText: boolean};
+type SyncSaveable = ISyncData | {plugins: IndexedPlugins} | {inactivityAutoOffMins: number} | {showLiveText: boolean} | {tutorialMode: boolean};
 type SyncLoadable = keyof ISyncData;
 
 

@@ -378,7 +378,7 @@
 
 	this.tutorial = () => {
         // todo: call the main.ts openTutorial fn
-		window.location.href = "./tutorial.html";
+		window.open("./tutorial.html");
 	}
 
 	generalSave = (e) => {

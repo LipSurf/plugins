@@ -18,6 +18,11 @@
 			color: #555;
 		}
 
+		.voice-cmd {
+			background-color: #bfffbf8f;
+			text-decoration: none;
+		}
+
 		.notice {
 			padding: 9px 10px;
 			border-radius: 4px;
@@ -84,10 +89,11 @@
 		.warning {
 			color: #f1cb00;
 			vertical-align: sub;
-		}
+		} 
+
 
 	</style>
-	<slide ref="slide1" timing="2">
+	<slide ref="slide1" timing="4">
 		<img class="logo" src="../assets/icon-128.png" />
 		<h1 class="cowabunga">cowabunga.</h1>
 		<div if={ !parent.activated }>
@@ -113,51 +119,53 @@
 		</ul>
 	</slide>
 	<slide ref="slide3" timing="5">
-		<h4>Commands are made via Plugins</h4>
+		<h4>Endless Commands</h4>
 		<ul>
-			<li>Anybody can create a plugin and submit it to the LipSurf officials &nbsp;<i>(*cough* just me *cough*)</i> &nbsp;for review.</li>
-			<li>You can control which plugins, commands, and homophones are enabled in the
-				<a target="_blank" href={parent.optionsUrl}>Options</a>.
+			<li>By default LipSurf has 50-ish commands.</li>
+			<li>Additional commands can be installed with more plugins in the future (not yet available).</li>
+			<li>A <strong>plugin</strong> is a collection of commands for a <strong>certain site</strong> 
+			<ul><li>The commands for a plugin will usually only work for that plugin's site (eg. Reddit plugin commands only work on Reddit.com). Unless...</li>
+			</ul>
 			</li>
-			<li>Plugins are usually for specific site functionality, but can be for all sites.</li> 
-			<li>The philosophy is: power to the plugins.
-				<ul>
-					<li>Even browser control functionality is implemented as a plugin!</li>
-				</ul>
+			<li>Commands marked "global" can be run anywhere!</li>
+			<li>Anybody can create a plugin for a site and submit it to the LipSurf officials &nbsp;<i>(*cough* just me *cough*)</i> &nbsp;for review.</li>
+			<li>You can control and see which plugins, commands, and homophones are enabled in the
+				<a target="_blank" class="voice-cmd" href={parent.optionsUrl}>options</a>.
 			</li>
 		</ul>
 	</slide>
 	<slide ref="slide4" timing="6">
-		<h4>When there isn't a Plugin for Site-Specific Functionality...</h4>
+		<h4>How to Click Anything</h4>
 		<ul>
-			<li>Global commands are still available for all pages.</li>
-			<li>Say "Annotate" to highlight all clickable elements on the page and navigate any page.</li>
-			<li>To click any clickable thing with your voice simply say what's in the yellow annotation on the upper left of the clickable thing!</span>
+			<li>Say <span class="voice-cmd">annotate</span> to highlight all clickable things on the page.</li>
+			<li>To click any clickable thing with your voice, simply say what's in the yellow annotation on the upper left of the clickable thing!</span>
 		</ul>
 		<div class="note">
-			<i class="material-icons warning">warning</i> &nbsp;Annotations stay on every page until you say "annotate off"
+			<i class="material-icons warning">warning</i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>
 		</div>
 	</slide>
 	<slide ref="slide5" timing="4">
-		<h4>When in Doubt, Just Say "HELP"</h4>
+		<h4>When in Doubt, Just Say HELP</h4>
 		<ul>
-			<li>"Help" shows all the available commands for the <i>current page</i> that you are on!</li>
-			<li>Say "Close help" to get rid of the pesky help box.</li>
+			<li><span class="voice-cmd">Help</span> shows all the available commands for the <i>current page</i> that you are on!</li>
+			<li>Say <span class="voice-cmd">close help</span> to get rid of the pesky help box.</li>
 		</ul>
 	</slide>
 	<slide ref="slide6" timing="4">
 		<h2 class="center">Dude, you made it to the end of the tutorial. Enjoy LipSurf!</h2>
 		<h4>Final Notes</h4>
+		<div>Configure on the <a target="_blank" class="voice-cmd" href={parent.optionsUrl}>options</a> page.</div>
 		<ul>
-			<li>LipSurf will automatically deactivate after 25 minutes by default.
+			<li>Automatic Shut-off Time
 				<ul>
-					<li>Default auto. off time can be adjusted in the <a target="_blank" href={parent.optionsUrl}>options</a>.</li>
+					<li>LipSurf will automatically deactivate if you don't give it a legit command for 25 minutes (by default).</li>
 				</ul>
 			</li>
-			<li>If audio is detected on the page and you're not using headphones, LipSurf will have trouble understanding you.
+			<li>No Headphones Mode
 				<ul>
-					<li>Use "No headphones" mode to suppress the live text feedback when audio is detected on the page.</li>
-					<li>"No headphones" mode will only show live text feedback for valid commands, like when you say "pause".</li>
+					<li>If you're playing a video but not using headphones, LipSurf might pick up the speech from the video.</li>
+					<li>Use the "no headphones" mode to suppress the live text feedback in these cases.</li>
+					<li>This mode will only show live text feedback for valid commands, and not all of the speech coming from the video you're playing.</li>
 				</ul>
 			</li>
 		</ul>
@@ -219,6 +227,13 @@
         setInterval(() => {
             this.checkForPermission();
         }, 1500);  
+
+		this.exitTutorial = async () => {
+			await storage.sync.save({tutorialMode: false});
+			window.close();
+		};	
+
+		window.addEventListener('unload', this.exitTutorial);
 
 	</script>
 </tutorial>

@@ -219,12 +219,16 @@ chrome.browserAction.setIcon({
 storage.local.save({ activated: false });
 
 // "install", "update", "chrome_update", or "shared_module_update"
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
     console.log(`Installed reason: ${details.reason}`);
     // if (details.reason === 'install') {
     if (details.reason === 'update') {
         // don't open the tutorial until the plugin is done loading
-        fullyLoadedPromise.then(() => openTutorial());
+        let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
+        if (typeof tutMode.tutorialMode === 'undefined' || tutMode.tutorialMode) {
+            await fullyLoadedPromise;
+            openTutorial();
+        }
     }
 });
 
@@ -235,17 +239,23 @@ async function sendMsgToActiveTab(request: IBackgroundParcel) {
 }
 
 
-function needsPermissionCb() {
-    chrome.runtime.openOptionsPage();
+async function needsPermissionCb() {
+    let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
+    if (tutMode.tutorialMode) {
+        openTutorial();
+    } else {
+        chrome.runtime.openOptionsPage();
+    }
 }
 
 function openTutorial() {
     let foundExisting = false;
+    let tutUrl = chrome.extension.getURL(`views/tutorial.html`);
     chrome.tabs.query({}, (tabs) => {
         for (let tab of tabs) {
-            if (tab.url == chrome.extension.getURL(`views/tutorial.html`)) {
+            if (tab.url.indexOf(tutUrl) == 0) {
                 chrome.windows.update(tab.windowId, {focused: true});
-                chrome.tabs.update(tab.id, {active: true});
+                chrome.tabs.update(tab.id, {active: true, url: `${tutUrl}#slide/1`});
                 foundExisting = true;
             }
         }

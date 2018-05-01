@@ -3,14 +3,14 @@
 	<yield/>
 	<div class="control-bar">
 		<div if={ !this.finalSlide } class="voice-btn">
-			Say <a ref={this.finalSlide ? '' : 'pulser'} class="pulsate" href={`#slide/${this.slideNum + 1}`}>&quot;next&quot;</a> to continue
+			Say <a ref={this.finalSlide ? '' : 'pulser'} class="pulsate voice-cmd" href={`#slide/${this.slideNum + 1}`}>next</a> to continue
 		</div>
 		<div if={ this.slideNum > 1 } class="voice-btn small">
-			Say <a href={`#slide/${this.slideNum - 1}`}>&quot;previous&quot;</a> or "back" to go back
+			Say <a href={`#slide/${this.slideNum - 1}`} class="voice-cmd">previous</a> or <span class="voice-cmd">back</span> to go back
 		</div>
-		<a class="voice-btn {small: !this.finalSlide, first: this.finalSlide}" onclick={ exitTutorial }>
-			Say <span class="pulsate" ref={this.finalSlide ? 'pulser' : ''} >&quot;close tab&quot;</span> to {this.slideNum == 1 ? 'skip' : 'finish'} the tutorial
-		</a>
+		<div class="voice-btn {small: !this.finalSlide, first: this.finalSlide}">
+			Say <a onclick={ parent.exitTutorial } href="#" class="pulsate voice-cmd" ref={this.finalSlide ? 'pulser' : ''} >close tab</a> to {this.slideNum == 1 ? 'skip' : 'finish'} the tutorial
+		</div>
 		<a style="display: none" href={`#slide/${this.slideNum - 1}`}>prev</a>
 	</div>
 	<div class="slide-num small">Page {this.slideNum}/{parent.totalSlides}</div>
@@ -47,10 +47,8 @@
 			margin: 5px;
 		}
 
-		.voice-btn a {
+		.voice-btn a{
 			color: orange;
-			font-weight: bold;
-			text-decoration: none;
 		}
 
 		.visible {
@@ -229,6 +227,7 @@ pulsating-btn.small {
 			this.active = true;
 
 			if (pulseStartTime && this.refs.pulser) {
+				this.refs.pulser.classList.remove('pulsate-fwd');
 				setTimeout(() => {
 					this.refs.pulser.classList.add('pulsate-fwd');
 				}, pulseStartTime * 1000);
@@ -247,10 +246,6 @@ pulsating-btn.small {
 			rt.classList.add(`slide-out-${left ? 'left' : 'right'}`);
 			this.active = false;
 
-			if (pulseStartTime && this.refs.pulser) {
-				this.refs.pulser.classList.remove('pulsate-fwd');
-			}
-
 			return new Promise((resolve, reject) => {
 				setTimeout(() => {
 					rt.classList.remove(`slide-out-${left ? 'left' : 'right'}`);
@@ -259,14 +254,6 @@ pulsating-btn.small {
 				}, animTime);
 			});
 		};
-
-		this.exitTutorial = () => {
-			window.close();
-		};	
-	
-		this.on('route', function(a, b, c) {
-			console.log('hello');
-		});
 
 	</script>
 </slide>

@@ -84,3 +84,7 @@ declare namespace ExtensionUtil {
 declare interface IActivated {
     activated: boolean,
 }
+
+declare interface ITutorialMode {
+    tutorialMode: boolean,
+}

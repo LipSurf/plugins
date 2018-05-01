@@ -44,6 +44,7 @@ declare interface IGeneralOptions {
     showLiveText: boolean,
     noHeadphonesMode: boolean,
     inactivityAutoOffMins: number,
+    tutorialMode: boolean,
 }
 
 declare interface ISyncPluginData extends IDisableable {
@@ -69,6 +70,7 @@ declare interface ILocalData {
 
 declare interface ISerializedLocalData {
     activated: boolean,
+    tutorialMode: boolean,
     pluginData: {
         [id: string]: ISerializedLocalPluginData,
     }
