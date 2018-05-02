@@ -111,9 +111,10 @@
 		<h4>Only One Person at a Time!</h4>
 		<ul>
 			<li>
-				If you want your friend to try saying a command, switch LipSurf off then on again first.
+				Speech recognition will do it's best to listen to the original speaker.
 				<ul>
-					<li>Otherwise your friend will just be considered background noise.</li>
+					<li>Switch LipSurf off then on again to change speakers.</li>
+					<li>Otherwise other people speaking will just be considered background noise.</li>
 				</ul>
 			</li>
 		</ul>
