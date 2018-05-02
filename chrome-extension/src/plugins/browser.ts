@@ -36,6 +36,7 @@ export class BrowserPlugin extends PluginBase {
         'little rock': 'little up',
         'school little rock': 'scroll little up',
         'time of the page': 'top of the page',
+        'that': 'back',
         'backwards': 'back',
         'backward': 'back',
         'nextpage': 'next page',

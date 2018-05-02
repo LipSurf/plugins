@@ -273,13 +273,12 @@ export class Recognizer extends StoreSynced {
                                         if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
                                             break;
                                         } else if (nextIsOrdinal) {
+                                            let ord = this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos));
                                             nextIsOrdinal = false;
-                                            try {
-                                                ords.push(this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos)));
-                                            } catch (e) {
-                                                // not an ordinal
+                                            if (typeof ord === 'undefined')
                                                 break;
-                                            }
+                                            else
+                                                ords.push(ord);
                                         }
                                         inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                     }

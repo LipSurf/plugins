@@ -134,6 +134,12 @@ test('should parse subreddit names without spaces', async (t) => {
     t.is(matchOutput[0], 'nottheonion', `${userInput} -> ${matchOutput}`);
 });
 
+test('should parse ordinals with homophones', async(t) => {
+    let sel = (await t.context.recg.getCmdsForUserInput('expand for', 'https://www.reddit.com'))[0];
+    t.is(sel.cmdName, 'Expand');
+    t.is(sel.matchOutput[0], 4);
+});
+
 test('should parse ordinals (upvote, expand)', async (t) => {
     let ordinalTests = {
         'upvote 1st': ['Upvote', 1],

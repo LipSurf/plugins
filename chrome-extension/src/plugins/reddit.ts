@@ -24,7 +24,11 @@ export class RedditPlugin extends PluginBase {
             $('#siteTable>div.thing').each((i, ele) => {
                 let index = i + 1;
                 $(ele).attr(RedditPlugin.getThingAttr(), index);
-                $(ele).find('.rank').css('display', 'block').css('margin-right', '10px').text('' + index);
+                $(ele).find('.rank').css({
+                    display: 'block',
+                    'margin-right': '10px',
+                    opacity: 1,
+                }).text('' + index);
             });
         });
     }
@@ -38,6 +42,7 @@ export class RedditPlugin extends PluginBase {
         'about': 'upvote',
         'i thought': 'upvote',
         'a phone': 'upvote',
+        'clear boat': 'clear vote',
         'comet': 'comments',
         'comets': 'comments',
         'comment': 'comments',
