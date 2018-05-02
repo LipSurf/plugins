@@ -190,6 +190,10 @@ export class Recognizer extends StoreSynced {
         this.recognition = null;
     }
 
+    private findLongestMatchStr(s: string[]) {
+        return s.reduce((memo, x) => x.length > memo ? x.length : memo, 0);
+    }
+
     /*
      * The plugin store already has filtered out disabled commands
      * Splits up the input text and finds all the commands within the string. 
@@ -200,8 +204,21 @@ export class Recognizer extends StoreSynced {
     async getCmdsForUserInput(input: string, url: string, useHomos: boolean = true): Promise<IMatchCommand[]> {
         let startTime = +new Date();
         let homophoneIterator: IterableIterator<string>;
+        // TODO: flatten matchstr lists so it's really sorted by decreasing length, and not just by max
+        // length of all matchStrs
+        // commands are sorted by decreasing longest match string
         let cmdsByPlugin: { [pluginId: string]: IRecgCommand[] } = this.pluginsRecgStore.reduce((memo, plugin) => {
-            memo[plugin.id] = [...(find(plugin.match, regx => regx.test(url)) ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)];
+            memo[plugin.id] = [...(find(plugin.match, regx => regx.test(url)) ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)].sort((a, b) => {
+                if (a.match && !b.match)
+                    return -1;
+                else if (!a.match && b.match)
+                    return 1;
+                else if (!a.match && !b.match)
+                    return 0
+                else {
+                    return this.findLongestMatchStr(<string[]>a.match) > this.findLongestMatchStr(<string[]>b.match) ? -1 : 1;
+                }
+            });
             return memo;
         }, {});
         let currActiveTabProm = this.queryActiveTab();
@@ -450,11 +467,7 @@ export class Recognizer extends StoreSynced {
 
     // prefix or suffix match
     private ordinalOrNumberToDigit(ordinal) {
-        try {
-            return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
-        } catch (e) {
-            console.debug(`Could not convert to number ${e}`);
-        }
+        return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
     }
 
 

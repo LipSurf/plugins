@@ -82,19 +82,20 @@ async function testOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, us
 }
 
 async function testNoOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, userInput: string) {
-    let cmdName = (await t.context.recg.getCmdsForUserInput(userInput, url))[0].cmdName;
-    t.truthy(cmdName === undefined, `${userInput} -> ${cmdName}`);
+    let matchCmds = await t.context.recg.getCmdsForUserInput(userInput, url);
+    t.is(matchCmds.length, 0, `${userInput} -> ${JSON.stringify(matchCmds)}`);
 }
 
 let redditCmdToPossibleInput = {
     'collapse': ['shrink', 'shrink 1st', 'collapse 25', 'collapse'],
-    'expand': ['expand 1st', 'first expand', 'preview twelfe', 'preview eight', 'expand', 'preview'],
+    'expand': ['expand 1st', 'first expand', 'expand twelfe', 'expand eight', 'expand'],
     'go back': ['back', 'go back', 'navigate back', 'navigate backwards', 'backwards', 'backward', 'go backwards'],
     'go forward': ['forward', 'go forward', 'forwards'],
     'go to subreddit': ['go to our testing', 'are funny',
             'our world news', 'are worldnews'],
     'go to reddit': ['reddit', 'go to reddit', 'reddit dot com', 'reddit.com'],
     'next tab': ['next app', 'next time'],
+    'expand all comments': ['expand all', 'expand all comments'],
     'scroll top': ['top', 'scroll top', 'scrolltop'],
     'scroll bottom': ['bottom', 'scroll bottom'],
     'unfullscreen video': ['unfullscreen', 'un fullscreen', 'unfull screen'],
@@ -109,15 +110,15 @@ for (let expectedCmd in redditCmdToPossibleInput) {
     }
 }
 
-test('should not activate a command', async (t) => {
+test('should not activate a command for non-command input', async (t) => {
     for (let userInput of ['we are testing']) {
         await testNoOutput(t, userInput, 'http://yahoo.com');
     }
 });
 
 test('shouldn\'t parse commands that don\'t match for page', async(t) => {
-    let {cmdName} = (await t.context.recg.getCmdsForUserInput('upvote', 'http://yahoo.com'))[0];
-    t.is(cmdName, undefined);
+    let matchCmds = (await t.context.recg.getCmdsForUserInput('upvote', 'http://yahoo.com'));
+    t.is(matchCmds.length, 0);
 });
 
 test('should execute plugin global commands everywhere', async(t) => {
@@ -128,19 +129,19 @@ test('should execute plugin global commands everywhere', async(t) => {
 
 test('should parse subreddit names without spaces', async (t) => {
     let userInput = 'go to r not the onion';
-    let {cmdName, matchOutput, delay} = await t.context.recg.getCmdsForUserInput(userInput, 'http://www.reddit.com/')[0];
+    let {cmdName, matchOutput, delay} = (await t.context.recg.getCmdsForUserInput(userInput, 'http://www.reddit.com/'))[0];
     console.log(`cmdName: ${cmdName} matchOutput: ${matchOutput}, delay: ${delay}`);
     t.is(matchOutput[0], 'nottheonion', `${userInput} -> ${matchOutput}`);
 });
 
-test('should parse ordinals', async (t) => {
+test('should parse ordinals (upvote, expand)', async (t) => {
     let ordinalTests = {
         'upvote 1st': ['Upvote', 1],
-        'preview 3rd': ['Expand', 3],
+        'expand 3rd': ['Expand', 3],
         '4th expand': ['Expand', 4],
     };
     for (let input in ordinalTests) {
-        let sel = await t.context.recg.getCmdsForUserInput(input, 'https://www.reddit.com')[0];
+        let sel = (await t.context.recg.getCmdsForUserInput(input, 'https://www.reddit.com'))[0];
         t.is(sel.cmdName, ordinalTests[input][0]);
         t.is(sel.matchOutput[0], ordinalTests[input][1]);
     }

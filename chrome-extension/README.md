@@ -4,9 +4,9 @@ v1.0
 - [ ] Fix reddit commands
 - [ ] Polish up slides
 - [ ] Put license on code
-- [ ] Tutorial Page
+- [X] Tutorial Page
 -- auto reload tabs when plugin is first installed
-- [ ] stop goes to top of page
+- [X] stop goes to top of page
 - [ ] Get build pipeline optimized (obfuscate output)
 - [ ] Fix fullscreen
 - [ ] Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page

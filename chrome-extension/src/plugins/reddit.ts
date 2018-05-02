@@ -180,23 +180,22 @@ export class RedditPlugin extends PluginBase {
         description: "Unsets the last vote so it's neither up or down.",
         match: ["clear vote #", "clear vote"],
         runOnPage: async (i) => {
-
+            let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
+            $(`${RedditPlugin.thingAtIndex(index)} .arrow.downmod,${RedditPlugin.thingAtIndex(index)} .arrow.upmod`)[0].click();
         },
     }, {
         name: 'Downvote',
         match: ["downvote #", "downvote"],
         runOnPage: async (i) => {
-            let index = typeof i !== 'undefined' ? Number(i) : 1;
-            index = isNaN(index) ? 1 : index;
-            $(RedditPlugin.thingAtIndex(index) + ' .arrow.down:not(.downmod)')[0].click();
+            let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
+            $(`${RedditPlugin.thingAtIndex(index)} .arrow.down:not(.downmod)`)[0].click();
         },
     }, {
         name: 'Upvote',
         match: ["upvote #", "upvote"],
         runOnPage: async (i) => {
-            let index = typeof i !== 'undefined' ? Number(i) : 1;
-            index = isNaN(index) ? 1 : index;
-            $(RedditPlugin.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
+            let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
+            $(`${RedditPlugin.thingAtIndex(index)} .arrow.up:not(.upmod)`)[0].click();
         },
     }, {
         name: 'Expand All Comments',
