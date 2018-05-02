@@ -39,6 +39,7 @@ export const ORDINALS_TO_DIGITS = {
     "tenth": 10,
     "10th": 10,
     "x": 10,
+    "letter": 11,
     "eleventh": 11,
     "11th": 11,
     "xi": 11,

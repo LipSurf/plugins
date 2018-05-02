@@ -47,6 +47,7 @@ export class RedditPlugin extends PluginBase {
         'quick': 'click',
         'navigate': 'go',
         'contract': 'collapse',
+        'claps': 'collapse',
         'expanse': 'expand',
         'expanded': 'expand',
         'stand': 'expand',
@@ -119,11 +120,11 @@ export class RedditPlugin extends PluginBase {
                 $ele.click();
             } else {
                 // collapse first visible item (can be comment or post)
-                $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea .thing:not(.collapsed):not(.child div) a.expand:first`).each(function(i) {
+                $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`).each(function(i) {
                     var $ele = $(this);
                     if (PluginBase.util.isInView($ele)) {
                         $ele[0].click();
-                        return;
+                        return false;
                     }
                 });
             }
