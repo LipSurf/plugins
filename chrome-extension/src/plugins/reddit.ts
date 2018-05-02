@@ -12,7 +12,6 @@ export class RedditPlugin extends PluginBase {
 
     // "private"
     // TODO: (low priority) how can we make the fact that these need to be functions better
-    static opened = null;
     static getThingAttr = () => `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
     static getCommentsRegX = () => /reddit.com\/r\/[^\/]*\/comments\//;
     static thingAtIndex = (i) => {
@@ -58,13 +57,66 @@ export class RedditPlugin extends PluginBase {
         'shrink': 'collapse',
     };
 
-    static commands = [{
+    static commands = [
+        {
+            name: 'View Comments',
+            description: "View the comments of a reddit post.",
+            match: ["comments #", "view comments #"],
+            runOnPage: async (i) => {
+                $(RedditPlugin.thingAtIndex(i) + ' a.comments')[0].click();
+            },
+        }, {
+            name: 'Visit Post',
+            description: "Equivalent of clicking a reddit post.",
+            match: ['click #', 'click', 'visit'],
+            runOnPage: async (i) => {
+                // if we're on the post
+                if (RedditPlugin.getCommentsRegX().test(window.location.href)) {
+                    $('#siteTable p.title a.title:first')[0].click();
+                } else {
+                    $(RedditPlugin.thingAtIndex(i) + ' a.title')[0].click();
+                }
+            },
+        },
+        {
+            name: 'Expand',
+            description: "Expand a preview of a post, or a comment.",
+            match: ["expand #", "# expand", "expand"], // in comments view
+            delay: 600,
+            runOnPage: async (i) => {
+                let index = (i === null || isNaN(Number(i))) ? null : Number(i);
+                if (index !== null) {
+                    let $ele = $(RedditPlugin.thingAtIndex(index) + ' .expando-button.collapsed');
+                    $ele.click();
+                    PluginBase.util.scrollToAnimated($ele);
+                } else {
+                    // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
+                    let mainItem = $(`#siteTable>.thing .expando-button.collapsed:first`);
+                    let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
+
+                    if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
+                        mainItem[0].click();
+                    } else {
+                        for (let ele of commentItems.reverse()) {
+                            let $ele = $(ele);
+                            if (PluginBase.util.isInView($ele)) {
+                                $ele.find('a.expand:contains([+]):first')[0].click();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }, 
+        {
         name: "Collapse",
         description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
         match: ["collapse #", "close", "collapse"],
-        runOnPage: async (index) => {
-            if (index) {
-                $(`.thing.comment:not(.collapsed):not(.child div):first a.expand:eq(${index - 1})`)[0].click();
+        runOnPage: async (i) => {
+            let index = (i === null || isNaN(Number(i))) ? null : Number(i);
+            if (index !== null) {
+                let $ele = $(RedditPlugin.thingAtIndex(index) + ' .expando-button:not(.collapsed)');
+                $ele.click();
             } else {
                 // collapse first visible item (can be comment or post)
                 $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea .thing:not(.collapsed):not(.child div) a.expand:first`).each(function(i) {
@@ -94,66 +146,6 @@ export class RedditPlugin extends PluginBase {
             await this.driver.wait(async () => {
                 return ~((await commentUnderTest.getAttribute('class')).indexOf(' collapsed')) && !(await tierTwoComment.isDisplayed());
             }, 1000);
-        }
-    }, {
-        name: 'Expand All Comments',
-        description: "Expands all the comments.",
-        match: "expand all",
-        runOnPage: async () => {
-            $('.thing.comment.collapsed a.expand').each(function() {
-                this.click();
-            });
-        },
-        test: async function() {
-            // Only checks to see that more than 5 comments are collapsed.
-            let previousCollapsed;
-            await this.loadPage('https://www.reddit.com/r/OldSchoolCool/comments/2uak5a/arnold_schwarzenegger_flexing_for_two_old_ladies/co6nw85/');
-            // first let's make sure there's some collapsed items
-            this.driver.wait(this.until.elementIsVisible(this.driver.findElement(this.By.css('.thing.comment.collapsed'))), 2000);
-
-            previousCollapsed = (await this.driver.findElements(this.By.css('.thing.comment.collapsed'))).length;
-            await this.say();
-
-            // no collapsed comments remain
-            await this.driver.wait(async () => {
-                // test that at least 5 comments have been expanded
-                return (await this.driver.findElements(this.By.css('.thing.comment.collapsed'))).length < previousCollapsed - 5;
-            }, 1000);
-        }
-    }, {
-        name: 'Expand',
-        description: "Expand a preview of a post, or a comment.",
-        match: ["expand #", "# expand", "expand"], // in comments view
-        delay: 600,
-        runOnPage: async (i) => {
-            let index = typeof i !== 'undefined' ? Number(i) : 1;
-            if (!isNaN(index)) {
-                let $ele = $(RedditPlugin.thingAtIndex(index) + ' .expando-button');
-                try {
-                    // close previously open ones
-                    RedditPlugin.opened.click();
-                } catch (e) {}
-                RedditPlugin.opened = $ele;
-                $ele.click();
-                PluginBase.util.scrollToAnimated($ele);
-            } else {
-                // if expando-button is in frame expand that, otherwise expand last (furthest down) visible comment
-                let mainItem = $(`#siteTable>.thing .expando-button.collapsed:first`);
-                let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
-
-                if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
-                    mainItem[0].click();
-                } else {
-                    for (let ele of commentItems.reverse()) {
-                        let $ele = $(ele);
-                        if (PluginBase.util.isInView($ele)) {
-                            PluginBase.util.scrollToAnimated($ele);
-                            $ele.find('a.expand:first')[0].click();
-                            return;
-                        }
-                    }
-                }
-            }
         }
     }, {
         name: 'Go to Subreddit',
@@ -207,23 +199,29 @@ export class RedditPlugin extends PluginBase {
             $(RedditPlugin.thingAtIndex(i) + ' .arrow.up:not(.upmod)')[0].click();
         },
     }, {
-        name: 'View Comments',
-        description: "View the comments of a reddit post.",
-        match: ["comments #", "view comments #"],
-        runOnPage: async (i) => {
-            $(RedditPlugin.thingAtIndex(i) + ' a.comments')[0].click();
+        name: 'Expand All Comments',
+        description: "Expands all the comments.",
+        match: ["expand all", "expand all comments"],
+        runOnPage: async () => {
+            $('.thing.comment.collapsed a.expand').each(function() {
+                this.click();
+            });
         },
-    }, {
-        name: 'Visit Post',
-        description: "Equivalent of clicking a reddit post.",
-        match: ['click #', 'click', 'visit'],
-        runOnPage: async (i) => {
-            // if we're on the post
-            if (RedditPlugin.getCommentsRegX().test(window.location.href)) {
-                $('#siteTable p.title a.title:first')[0].click();
-            } else {
-                $(RedditPlugin.thingAtIndex(i) + ' a.title')[0].click();
-            }
-        },
+        test: async function() {
+            // Only checks to see that more than 5 comments are collapsed.
+            let previousCollapsed;
+            await this.loadPage('https://www.reddit.com/r/OldSchoolCool/comments/2uak5a/arnold_schwarzenegger_flexing_for_two_old_ladies/co6nw85/');
+            // first let's make sure there's some collapsed items
+            this.driver.wait(this.until.elementIsVisible(this.driver.findElement(this.By.css('.thing.comment.collapsed'))), 2000);
+
+            previousCollapsed = (await this.driver.findElements(this.By.css('.thing.comment.collapsed'))).length;
+            await this.say();
+
+            // no collapsed comments remain
+            await this.driver.wait(async () => {
+                // test that at least 5 comments have been expanded
+                return (await this.driver.findElements(this.By.css('.thing.comment.collapsed'))).length < previousCollapsed - 5;
+            }, 1000);
+        }
     }];
 }

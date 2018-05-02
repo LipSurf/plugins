@@ -17,32 +17,33 @@ v1.0
 
 v1.1
 - [ ] context menu - on for 10m, on for 20m, options
-* Use this for annotations? https://developer.chrome.com/extensions/automation
-* Standardize extension urls instead of hardcoding them
-* Shadow DOM for annotations
-* Faster annotations -- study link heavy reddit
-* Better live text animation?
-* Beep when error building
-* Improve help pop up -- more, details, etc.
-* Per-plugin settings -- auto annotate?
-* Don't just use highest match for recognizer, look at all output from google STT
-* Integrate with other add-ons. Eg. "ad-blocker off" would turn off addblocker. Make docs on how to do this.
-* Not seeing where the click is happening is disorienting -- highlight element just before clicking?
-* Cleanup iframe recursive code
-* try namespaces for IPluginDefHomo... etc
-* Use dict lookup on static match words to make command-transcript matching faster
-* Turn on plugin for set time via context menu
-* Reddit Sorting by best/all etc.
-* undo?
-* mute video
-* Improve speed
+- [ ] scroll based on window height
+- [ ] Use this for annotations? https://developer.chrome.com/extensions/automation
+- [ ] Standardize extension urls instead of hardcoding them
+- [ ] Shadow DOM for annotations
+- [ ] Faster annotations -- study link heavy reddit
+- [ ] Better live text animation?
+- [ ] Beep when error building
+- [ ] Improve help pop up -- more, details, etc.
+- [ ] Per-plugin settings -- auto annotate?
+- [ ] Don't just use highest match for recognizer, look at all output from google STT
+- [ ] Integrate with other add-ons. Eg. "ad-blocker off" would turn off addblocker. Make docs on how to do this.
+- [ ] Not seeing where the click is happening is disorienting -- highlight element just before clicking?
+- [ ] Cleanup iframe recursive code
+- [ ] try namespaces for IPluginDefHomo... etc
+- [ ] Use dict lookup on static match words to make command-transcript matching faster
+- [ ] Turn on plugin for set time via context menu
+- [ ] Reddit Sorting by best/all etc.
+- [ ] undo?
+- [ ] mute video
+- [ ] Improve speed
 
 vNext
-* If mic is accidently blocked by user, link them to chrome://settings/content/microphone (necessary?)
-* Reddit login
-* Text mode allows users to type commands (and they work in the browser)
-* Click live text when there's no match to add a correction
-* Allow sites to embed commands in the markup?
+- [ ] If mic is accidently blocked by user, link them to chrome://settings/content/microphone (necessary?)
+- [ ] Reddit login
+- [ ] Text mode allows users to type commands (and they work in the browser)
+- [ ] Click live text when there's no match to add a correction
+- [ ] Allow sites to embed commands in the markup?
 
 plugins
 ===

@@ -3,6 +3,7 @@ declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
+declare let PRETEND_FIRST_INSTALL: boolean;
 import { pick } from "lodash";
 import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
@@ -221,8 +222,7 @@ storage.local.save({ activated: false });
 // "install", "update", "chrome_update", or "shared_module_update"
 chrome.runtime.onInstalled.addListener(async (details) => {
     console.log(`Installed reason: ${details.reason}`);
-    // if (details.reason === 'install') {
-    if (details.reason === 'update') {
+    if (details.reason === 'install' || PRETEND_FIRST_INSTALL) {
         // don't open the tutorial until the plugin is done loading
         let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
         if (typeof tutMode.tutorialMode === 'undefined' || tutMode.tutorialMode) {

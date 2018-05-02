@@ -20,6 +20,10 @@
 	z-index: 2999999999 !important;
 }
 
+.rnh290318-live-text-overlay {
+	pointer-events: none;
+}
+
 .nhm-full-screen {
 	position: fixed;
 	top: 0;
