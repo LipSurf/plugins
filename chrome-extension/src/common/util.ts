@@ -280,10 +280,6 @@ export function instanceOfText(object: any): object is ILiveTextParcel {
     return typeof object === 'object' && !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object) && ('text' in object);
 }
 
-export function instanceOfToggle(object: any): object is IToggleParcel {
-    return typeof object === 'object' && 'toggleActivated' in object;
-}
-
 export function instanceOfTranscript(object: any): object is ITranscriptParcel {
     return typeof object === 'object' && 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
 }

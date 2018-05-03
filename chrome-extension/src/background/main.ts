@@ -186,11 +186,6 @@ class Main extends StoreSynced {
         chrome.browserAction.setIcon({
             path: this.activated ? ON_ICON : OFF_ICON
         });
-        chrome.tabs.query({}, function (tabs) {
-            for (let tab of tabs) {
-                chrome.tabs.sendMessage(tab.id, {toggleActivated: this.activated});
-            }
-        })
         if (this.activated) {
             // only allow recg to start if at least default
             // commands are loaded

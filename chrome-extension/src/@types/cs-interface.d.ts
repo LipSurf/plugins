@@ -1,4 +1,4 @@
-declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | IToggleParcel | ITranscriptParcel | ICodeParcel;
+declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | ITranscriptParcel | ICodeParcel;
 
 // incoming transcript that we need to check match for
 declare interface ITranscriptParcel {
@@ -26,7 +26,3 @@ declare interface ILiveTextParcel {
 }
 
 declare interface ICmdLiveTextParcel extends ILiveTextParcel, ICmdParcel {}
-
-declare interface IToggleParcel {
-    toggleActivated: boolean,
-}

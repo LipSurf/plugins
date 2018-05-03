@@ -43,6 +43,8 @@ export class RedditPlugin extends PluginBase {
         'i thought': 'upvote',
         'a phone': 'upvote',
         'clear boat': 'clear vote',
+        'clear about': 'clear vote',
+        'clear coat': 'clear vote',
         'comet': 'comments',
         'comets': 'comments',
         'comment': 'comments',
@@ -58,6 +60,7 @@ export class RedditPlugin extends PluginBase {
         'stand': 'expand',
         'xpand': 'expand',
         'spend': 'expand',
+        'span': 'expand',
         'reddit dot com': 'reddit',
         'read it': 'reddit',
         'shrink': 'collapse',
@@ -184,7 +187,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Clear Vote',
         description: "Unsets the last vote so it's neither up or down.",
-        match: ["clear vote #", "clear vote"],
+        match: ["clear vote #", "reset vote #", "clear vote", "reset vote"],
         runOnPage: async (i) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
             $(`${RedditPlugin.thingAtIndex(index)} .arrow.downmod,${RedditPlugin.thingAtIndex(index)} .arrow.upmod`)[0].click();

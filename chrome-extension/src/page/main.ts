@@ -46,7 +46,15 @@ function toggleActivated(_activated = true, quiet = false) {
                 commandsLoaded = true;
             });
         } else {
-            window.allPlugins.forEach(plugin => plugin.init ? plugin.init() : null);
+            window.allPlugins.forEach(plugin => {
+                if (plugin.init) {
+                    try {
+                        plugin.init();
+                    } catch(e) {
+                        console.error(`could not initialize plugin ${plugin} ${e}`);
+                    }
+                }
+            });
         }
         retrialAndError(async function () {
             await promisify($(document).ready)();
@@ -62,11 +70,18 @@ function toggleActivated(_activated = true, quiet = false) {
     } else {
         activated = false;
 
-        window.allPlugins.forEach(plugin => plugin.destroy ? plugin.destroy() : null);
+        window.allPlugins.forEach(plugin => {
+            if (plugin.destroy) {
+                try {
+                    plugin.destroy();
+                } catch(e) {
+                    console.error(`error destroying plugin ${plugin} ${e}`);
+                }
+            }
+        });
 
         // remove all overlays
-        let $eles = $(`*[${ua}]`);
-        $eles.each((i, ele) => {
+        $(`*[${ua}]`).each((i, ele) => {
             try {
                 ele.remove();
             } catch (e) { }
@@ -87,7 +102,7 @@ async function queueUp(fn: () => Promise<any>, prevQ: Promise<any>) {
         try {
             await prevQ;
         } catch (e) {
-            console.error(`Could not await previous in Q`);
+            console.error(`Could not await previous in Q ${e}`);
         }
     }
     return await fn();
@@ -143,8 +158,6 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
         sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.text));
     } else if (instanceOfText(msg)) {
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
-    } else if (instanceOfToggle(msg)) {
-        toggleActivated(msg.toggleActivated);
     } else if (instanceOfCode(msg)) {
         eval(msg.code);
         sendResponse(null);
@@ -155,8 +168,17 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
 // page could have been switched back to, it was open before the extension
 // was activated -- now it's active again.
 storage.local.registerOnChangeCb((changes) => {
-    if (changes && changes.activated && changes.activated.newValue) {
-        toggleActivated(true, true);
+    if (changes && changes.activated) {
+        toggleActivated(changes.activated.newValue, true);
+    }
+});
+
+
+// might need to rerun init for plugins (for example for annotate)
+document.addEventListener("webkitvisibilitychange", function (event) {
+    console.log(`hidden: ${document.hidden}`);
+    if (!document.hidden) {
+        checkActivatedStatus();
     }
 });
 

@@ -64,6 +64,8 @@ export abstract class PluginBase {
 
     static commands: IPluginDefCommand[] = [];
     static homophones: IPluginDefHomophones = {};
+    // called anytime the page is re-shown. Must be safe to re-run
+    // while lipsurf is activated. Or when lipsurf is first activated.
     static init?: () => void;
 
     // called when plugin is deactivated (speech recg paused)

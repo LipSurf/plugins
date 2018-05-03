@@ -2,6 +2,7 @@ TODO
 ===
 v1.0
 - [ ] Fix reddit commands
+--- [ ] sometimes clicking a post number goes wrong
 - [ ] Polish up slides
 - [ ] Put license on code
 - [X] Tutorial Page

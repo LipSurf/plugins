@@ -14,13 +14,16 @@ export class BrowserPlugin extends PluginBase {
     static apiVersion = '1';
     static match = /.*/;
     static homophones = {
+        'and date': 'annotate',
         'auntie': 'annotate',
         'closeout': 'close help',
         'close up': 'close help',
         'close tap': 'close tab',
+        'pick': 'click',
         'app': 'up',
         'downwards': 'down',
         'town': 'down',
+        'don': 'down',
         'downward': 'down',
         'full-screen': 'fullscreen',
         'full screen': 'fullscreen',
@@ -39,6 +42,7 @@ export class BrowserPlugin extends PluginBase {
         'that': 'back',
         'backwards': 'back',
         'backward': 'back',
+        'black': 'back',
         'nextpage': 'next page',
         'next pay': 'next page',
         'next app': 'next tab',
@@ -81,7 +85,7 @@ export class BrowserPlugin extends PluginBase {
     }
 
     // Annotations
-    static LETTERS = 'ACFGHIJKLOQRSTVXYZ'.split('');
+    static LETTERS = 'CFGHIJKLOQRSTVXYZ'.split('');
     static NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 20, 30, 40, 50, 60, 70, 80, 90];
     static popName = () => {
         let name;
@@ -329,6 +333,9 @@ export class BrowserPlugin extends PluginBase {
             BrowserPlugin.getOption('annotate').then(annotate => {
                 if (annotate) {
                     BrowserPlugin.commands['Annotate'].runOnPage();
+                } else {
+                    // destoy the annotations if they've been turned off
+                    BrowserPlugin.commands['Unannotate'].runOnPage();
                 }
             });
         });
@@ -476,7 +483,7 @@ export class BrowserPlugin extends PluginBase {
     {
         name: 'Unannotate',
         description: 'Hide the annotations',
-        match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off', 'no annotations'],
+        match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off', 'no annotations', 'annotation off'],
         runOnPage: async function() {
             BrowserPlugin.annotate = false;
             $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
