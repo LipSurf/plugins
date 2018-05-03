@@ -4,13 +4,13 @@ declare let CLEAR_SETTINGS: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
 declare let PRETEND_FIRST_INSTALL: boolean;
-import { pick } from "lodash";
+import { pick, omit } from "lodash";
 import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
-import { Detector, ResettableTimeout, instanceOfCmdLiveTextParcel } from "../common/util";
+import { Detector, ResettableTimeout, instanceOfCmdLiveTextParcel, instanceOfText } from "../common/util";
 import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
 export interface IWindow extends Window {
@@ -19,6 +19,7 @@ export interface IWindow extends Window {
 
 interface IMainStore {
     inactivityAutoOffMins: number,
+    showLiveText: boolean,
 }
 
 const { webkitSpeechRecognition }: IWindow = <IWindow>window;
@@ -168,7 +169,7 @@ class Main extends StoreSynced {
     }
 
     protected storeUpdated(newOptions: IOptions) {
-        this.mainStore = pick(newOptions, ['inactivityAutoOffMins']);
+        this.mainStore = pick(newOptions, ['inactivityAutoOffMins', 'showLiveText']);
     }
 
     async toggleActivated(_activated = true) {
@@ -203,6 +204,14 @@ class Main extends StoreSynced {
             if (this.inactiveTimer)
                 this.inactiveTimer.reset();
             this.ps.run(cmdPart);
+        }
+        if (!this.mainStore.showLiveText) {
+            if (instanceOfCmdLiveTextParcel(request)) {
+                request = <ICmdParcel>omit(request, ['text', 'isSuccess', 'isFinal', 'hold']);
+            } else if (instanceOfText(request)) {
+                // don't send a instanceOfText
+                return;
+            }
         }
         sendMsgToActiveTab(request);
     }

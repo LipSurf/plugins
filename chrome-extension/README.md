@@ -1,7 +1,7 @@
 TODO
 ===
 v1.0
-- [ ] Fix reddit commands
+- [X] Fix reddit commands
 --- [ ] sometimes clicking a post number goes wrong
 - [ ] Polish up slides
 - [ ] Put license on code
@@ -10,13 +10,13 @@ v1.0
 - [X] stop goes to top of page
 - [ ] Get build pipeline optimized (obfuscate output)
 - [ ] Fix fullscreen
-- [ ] Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 - [ ] Make full screen black out background
 - [ ] `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
 - [ ] Live text not showing when command errors (eg. command not loaded)
 - [ ] 2 full days of testing?
 
 v1.1
+- [ ] Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 - [ ] context menu - on for 10m, on for 20m, options
 - [ ] scroll based on window height
 - [ ] Use this for annotations? https://developer.chrome.com/extensions/automation

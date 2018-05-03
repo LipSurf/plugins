@@ -283,6 +283,11 @@ export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
     return typeof object === 'object' && 'description' in object && 'fn' in object;
 }
 
+// just a cmd without live text (for when showLiveText is off)
+export function instanceOfCmdParcel(object: any): object is ICmdParcel {
+    return typeof object === 'object' && 'cmdArgs' in object && 'cmdName' in object && !('text' in object);
+}
+
 export function instanceOfCmdLiveTextParcel(object: any): object is ICmdLiveTextParcel {
     return typeof object === 'object' && 'cmdArgs' in object && 'cmdName' in object && 'text' in object;
 }
