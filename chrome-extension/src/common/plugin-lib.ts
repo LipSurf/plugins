@@ -6,9 +6,9 @@ import { NO_COLLISION_UNIQUE_ATTR } from "../common/constants";
 import { getOptions } from "./store-lib";
 import { storage } from "./browser-interface";
 import { get } from 'lodash';
+import { isInView } from './util';
 
-let { deepSet, promisify } = require('./util');
-//import { storage } from "./browser-interface";
+let { deepSet } = require('./util');
 // TODO: make these settings
 const SCROLL_TIME = 450;
 const SCROLL_DISTANCE = 450;
@@ -169,14 +169,8 @@ export abstract class PluginBase {
 
         // Only checks if the top of the element is in view
         isInView: function($ele) {
-            var docViewTop = $(window).scrollTop();
-            var docViewBottom = docViewTop + $(window).height();
-
-            var elemTop = $ele.offset().top;
-
-            return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
+            return isInView($ele);
         },
-
 
         // return a promise that resolves with a response
         sendMsgToBeacon: function(msg) {

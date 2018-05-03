@@ -73,6 +73,7 @@ export class BrowserPlugin extends PluginBase {
         'quick serve': 'lipsurf',
     };
 
+    // TODO: replace with isInView in Util?
     static visibleOnPage = (docViewTop:number, docViewBottom:number,
             docViewLeft:number, docViewRight:number, $ele) => {
         let offset = $ele.offset();
@@ -748,12 +749,19 @@ export class BrowserPlugin extends PluginBase {
         name: 'Scroll Bottom',
         match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
         runOnPage: async function () {
-            $('html, body').animate({
-                scrollTop: document.body.scrollHeight
-            });
+            if (document.body.scrollHeight == 0) {
+                $('html, body').animate({
+                    scrollTop: 10000
+                });
+            } else {
+                $('html, body').animate({
+                    scrollTop: document.body.scrollHeight
+                });
+            }
             return await PluginBase.util.sleep(BrowserPlugin.SCROLL_DURATION);
         },
         test: async function () {
+            // TODO: add test for youtube, or another infinite scrolling site
             await this.loadPage('http://motherfuckingwebsite.com/');
             this.assert.true(await this.driver.executeScript('return (window.innerHeight + window.scrollY) >= document.body.scrollHeight') === false);
             await this.say();

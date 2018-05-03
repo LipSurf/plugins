@@ -1,4 +1,5 @@
 /// <reference path="../@types/cs-interface.d.ts" />
+/// <reference path="../@types/plugin-interface.d.ts" />
 const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
 let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 
@@ -265,6 +266,16 @@ export function deepSet(obj: object, path: string, val: any) {
         }
         return memo[x];
     }, obj);
+}
+
+// only checks vertical view for now
+export function isInView($ele: JQuery<HTMLElement>) {
+    var docViewTop = $(window).scrollTop();
+    var docViewBottom = docViewTop + $(window).height();
+
+    var elemTop = $ele.offset().top;
+
+    return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
 }
 
 // TODO: can these just check for exactly a certain set of properties?

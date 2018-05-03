@@ -1,5 +1,6 @@
 // TODO: this doesn't need to be defined for some reason
 import * as CT from  "../common/constants";
+import { isInView } from "../common/util";
 
 interface IIFrameParcel {
     name: string,
@@ -133,9 +134,15 @@ window.addEventListener("message", function(evt) {
                         if (!frames[i].src.startsWith('http://') && !frames[i].src.startsWith('https://')) {
                             continue;
                         }
+                    } catch (e) {
+                        // might not have permission to access src
+                        continue;
+                    }
+
+                    if (isInView($(frames[i]))) {
                         frames[i].contentWindow.postMessage({...msg, frameId}, frames[i].src);
                         tracker.pending.push(frameId);
-                    } catch (e) {}
+                    }
                 }
 
                 if (tracker.pending.length == 0) {

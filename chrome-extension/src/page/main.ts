@@ -2,7 +2,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { retrialAndError, PluginBase } from "../common/plugin-lib";
-import { promisify, instanceOfCmdLiveTextParcel, instanceOfText, instanceOfToggle, instanceOfTranscript, instanceOfCode } from "../common/util";
+import { promisify, instanceOfCmdLiveTextParcel, instanceOfText, instanceOfTranscript, instanceOfCode } from "../common/util";
 import { storage } from "../common/browser-interface";
 
 declare global {
