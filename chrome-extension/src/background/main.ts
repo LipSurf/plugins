@@ -124,33 +124,7 @@ class Main extends StoreSynced {
             if (this.activated) {
                 this.toggleActivated(false);
             } else {
-                navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
-                    console.log("easy on");
-                    this.toggleActivated();
-                }, async () => {
-                    // Aw. No permission (or no microphone available).
-                    needsPermissionCb();
-                    if (!permissionDetector) {
-                        // check a maximum of 15 times (~23s)
-                        permissionDetector = new Detector(
-                            (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
-                            .then((stream) => {
-                                console.log("yep1");
-                                if (typeof (stream) !== 'undefined') {
-                                    console.log("yep2");
-                                    resolve();
-                                } else {
-                                    reject();
-                                }
-                            }, function () {
-                                reject();
-                            }).catch(() => { }),
-                            1500,
-                            15);
-                        await permissionDetector.detected();
-                        this.toggleActivated();
-                    }
-                });
+                this.toggleActivated(true);
             }
 
             // REMOVE THIS
@@ -174,6 +148,36 @@ class Main extends StoreSynced {
 
     async toggleActivated(_activated = true) {
         let inactivityMins = this.mainStore.inactivityAutoOffMins;
+
+        // check permission
+        if (_activated) {
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log("easy on");
+            } catch (e) {
+                // Aw. No permission (or no microphone available).
+                promptForPermission();
+                if (!permissionDetector) {
+                    // check a maximum of 15 times (~23s)
+                    permissionDetector = new Detector(
+                        (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then((stream) => {
+                            console.log("yep1");
+                            if (typeof (stream) !== 'undefined') {
+                                console.log("yep2");
+                                resolve();
+                            } else {
+                                reject();
+                            }
+                        }, function () {
+                            reject();
+                        }).catch(() => { }),
+                        1500);
+                    await permissionDetector.detected();
+                }
+            }
+        }
+
         if (_activated && inactivityMins) {
             this.inactiveTimer = new ResettableTimeout(() => {
                 this.toggleActivated(false);
@@ -247,9 +251,10 @@ async function sendMsgToActiveTab(request: IBackgroundParcel) {
 }
 
 
-async function needsPermissionCb() {
+async function promptForPermission() {
     let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
-    if (tutMode.tutorialMode) {
+    // TODO: load setting defaults here
+    if (typeof tutMode.tutorialMode === "undefined" || tutMode.tutorialMode) {
         openTutorial();
     } else {
         chrome.runtime.openOptionsPage();

@@ -86,7 +86,8 @@ export class Detector {
     // sentinelFn -- returns true when something is detected
     // detectCb -- is run when sentinelFn returns true (once)
     // interval -- how often to run sentinelFn
-    constructor(sentinelFn, interval: number, maxChecks: number) {
+    // maxChecks == null means infinite checks
+    constructor(sentinelFn, interval: number, maxChecks: number = null) {
         this.maxChecks = maxChecks;
         this.sentinelFn = sentinelFn;
         this.detectCb = new Promise((resolve, reject) => {
@@ -113,7 +114,7 @@ export class Detector {
             clearInterval(this.intervalId);
             this.resolveCb(x);
         }, () => {});
-        if (typeof(this.maxChecks) !== 'undefined' && this.checks > this.maxChecks) {
+        if (this.maxChecks !== null && this.checks > this.maxChecks) {
             clearInterval(this.intervalId);
         }
     }

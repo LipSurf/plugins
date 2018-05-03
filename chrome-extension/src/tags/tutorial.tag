@@ -98,7 +98,7 @@
             background-repeat-y: no-repeat;
             background-size: 510%;
             height: 100%;
-            animation: bgIn 5s;
+            animation: bgIn 3.5s;
 			position: absolute;
 			top: 0;
 			bottom: 0;
@@ -192,7 +192,7 @@
 		<ul>
 			<li>Automatic Shut-off Time
 				<ul>
-					<li>LipSurf will automatically deactivate if you don't give it a legit command for 25 minutes (by default).</li>
+					<li>LipSurf will automatically deactivate if you don't give it a legit command for 20 minutes (by default).</li>
 				</ul>
 			</li>
 			<li>No Headphones Mode
