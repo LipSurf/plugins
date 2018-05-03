@@ -91,12 +91,45 @@
 			vertical-align: sub;
 		} 
 
+        #bg {
+            background-image: url(../assets/small_wave_pattern.svg);
+            background-position: bottom;
+            background-repeat-x: repeat;
+            background-repeat-y: no-repeat;
+            background-size: 510%;
+            height: 100%;
+            animation: bgIn 5s;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 100%;
+			width: 100%;
+			opacity: 0.7;
+			z-index: -1;
+        }
+
+        /* Chrome, Safari, Opera */
+        @-webkit-keyframes bgIn {
+            0% {opacity: 0;}
+            50% {opacity: 0;}
+            100% {opacity: 0.7;}
+        }
+
+        /* Standard syntax */
+        @keyframes bgIn {
+            0% {opacity: 0;}
+            50% {opacity: 0;}
+            100% {opacity: 0.7;}
+        }
 
 	</style>
+	<div id="bg"></div>
 	<slide ref="slide1" timing="4">
 		<img class="logo" src="../assets/icon-128.png" />
 		<h1 class="cowabunga">cowabunga.</h1>
-		<div if={ !parent.activated }>
+		<div>
 			<span>Allow LipSurf to access your microphone to begin the tutorial by clicking "allow" in the upper left where chrome prompts you.</span>
 		</div>
 		<div class="perms" ref="perms">
@@ -193,8 +226,15 @@
 				prevRt = this.refs[`slide${curSlide}`];
 				await prevRt.slideOut(curSlide <= id ? true : false);
 			} 
+
 			newRt = this.refs[`slide${id}`];
-			await newRt.slideIn(curSlide <= id ? false : true);
+			if (!curSlide && id == 1) {
+				// very first slide
+				// TODO: make more special
+				await newRt.slideIn(false);
+			} else {
+				await newRt.slideIn(curSlide <= id ? false : true);
+			}
 			curSlide = id;
 		});
 

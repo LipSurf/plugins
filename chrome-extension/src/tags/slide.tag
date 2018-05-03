@@ -19,9 +19,8 @@
 		.card {
 			max-width: 800px;
 			margin: 0 auto;
-			background-color: #fff;
+			background-color: #ffffffd6;
 			padding: 25px;
-			box-shadow: #b3b3b3 2px 8px 8px 2px;
 		}
 
 		.first {

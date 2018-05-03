@@ -25,15 +25,15 @@ export class BrowserPlugin extends PluginBase {
         'town': 'down',
         'don': 'down',
         'downward': 'down',
-        'full-screen': 'fullscreen',
-        'full screen': 'fullscreen',
-        'on fullscreen': 'un-fullscreen',
-        'on full screen': 'un-fullscreen',
-        'unfor screen': 'un-fullscreen',
-        'unfold screen': 'un-fullscreen',
-        'unfull screen': 'un-fullscreen',
-        'unfullscreen': 'un-fullscreen',
-        'un fullscreen': 'un-fullscreen',
+        // 'full-screen': 'fullscreen',
+        // 'full screen': 'fullscreen',
+        // 'on fullscreen': 'un-fullscreen',
+        // 'on full screen': 'un-fullscreen',
+        // 'unfor screen': 'un-fullscreen',
+        // 'unfold screen': 'un-fullscreen',
+        // 'unfull screen': 'un-fullscreen',
+        // 'unfullscreen': 'un-fullscreen',
+        // 'un fullscreen': 'un-fullscreen',
         'on annotate': 'unannotate',
         'middletown': 'little down',
         'little rock': 'little up',
@@ -575,27 +575,27 @@ export class BrowserPlugin extends PluginBase {
             }
         }
     }, {
-        name: 'Fullscreen Video',
-        match: "fullscreen",
-        runOnPage: async function () {
-            PluginBase.util.queryAllFrames('video', ['src', 'style.width', 'style.height', 'duration'])
-                .then((res) => {
-                    // filter out undefined, null
-                    let filtered = res.filter((x) => x && x.length > 0);
-                    filtered.sort((e) => {
-                        return e[0];
-                    });
+    //     name: 'Fullscreen Video',
+    //     match: "fullscreen",
+    //     runOnPage: async function () {
+    //         PluginBase.util.queryAllFrames('video', ['src', 'style.width', 'style.height', 'duration'])
+    //             .then((res) => {
+    //                 // filter out undefined, null
+    //                 let filtered = res.filter((x) => x && x.length > 0);
+    //                 filtered.sort((e) => {
+    //                     return e[0];
+    //                 });
 
-                    PluginBase.util.postToAllFrames(filtered[0][0], ['webkitRequestFullscreen']);
-                });
-        },
-    }, {
-        name: 'Unfullscreen Video',
-        match: ["un-fullscreen", "no full screen"],
-        runOnPage: async function () {
-            document.webkitExitFullscreen();
-        },
-    }, {
+    //                 PluginBase.util.postToAllFrames(filtered[0][0], ['webkitRequestFullscreen']);
+    //             });
+    //     },
+    // }, {
+    //     name: 'Unfullscreen Video',
+    //     match: ["un-fullscreen", "no full screen"],
+    //     runOnPage: async function () {
+    //         document.webkitExitFullscreen();
+    //     },
+    // }, {
 
         name: 'Go Back',
         description: "Equivalent of hitting the back button.",

@@ -3,19 +3,20 @@ TODO
 v1.0
 - [X] Fix reddit commands
 --- [ ] sometimes clicking a post number goes wrong
-- [ ] Polish up slides
-- [ ] Put license on code
+- [X] Polish up slides
+- [X] Put license on code
 - [X] Tutorial Page
 -- auto reload tabs when plugin is first installed
 - [X] stop goes to top of page
 - [ ] Get build pipeline optimized (obfuscate output)
-- [ ] Fix fullscreen
-- [ ] Make full screen black out background
-- [ ] `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
-- [ ] Live text not showing when command errors (eg. command not loaded)
-- [ ] 2 full days of testing?
+- [X] `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
 
 v1.1
+- [ ] Live text not showing when command errors (eg. command not loaded)
+- [ ] Fix fullscreen
+- [ ] Make full screen black out background
+- [ ] slow scroll down
+- [ ] special notification when auto shutoff, no headphone mode, etc.
 - [ ] Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 - [ ] context menu - on for 10m, on for 20m, options
 - [ ] scroll based on window height
@@ -77,6 +78,9 @@ marketing/profit
 Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
 
 Other successfull payed chrome extensions:
+  * https://checkbot.io
+    SEO checking with a pro version
+
   * https://www.streak.com/pricing
   CRM for gmail targets biz users
 
