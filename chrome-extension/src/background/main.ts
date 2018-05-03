@@ -10,7 +10,7 @@ import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
-import { Detector, ResettableTimeout, instanceOfCmdLiveTextParcel, instanceOfText } from "../common/util";
+import { Detector, ResettableTimeout, instanceOfCmdLiveTextParcel, instanceOfTextParcel, promisify } from "../common/util";
 import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
 export interface IWindow extends Window {
@@ -20,11 +20,11 @@ export interface IWindow extends Window {
 interface IMainStore {
     inactivityAutoOffMins: number,
     showLiveText: boolean,
+    noHeadphonesMode: boolean,
 }
 
 const { webkitSpeechRecognition }: IWindow = <IWindow>window;
 
-let audible = false;
 let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
@@ -169,7 +169,7 @@ class Main extends StoreSynced {
     }
 
     protected storeUpdated(newOptions: IOptions) {
-        this.mainStore = pick(newOptions, ['inactivityAutoOffMins', 'showLiveText']);
+        this.mainStore = pick(newOptions, ['inactivityAutoOffMins', 'showLiveText', 'noHeadphonesMode']);
     }
 
     async toggleActivated(_activated = true) {
@@ -191,14 +191,12 @@ class Main extends StoreSynced {
             // only allow recg to start if at least default
             // commands are loaded
             this.recg.start(this.cmdRecognizedCb.bind(this));
-            InterferenceAudioDetector.init();
         } else {
             this.recg.shutdown();
-            InterferenceAudioDetector.destroy();
         }
     }
 
-    cmdRecognizedCb(request: IRecognizedCallback): void {
+    async cmdRecognizedCb(request: IRecognizedCallback): Promise<void> {
         if (instanceOfCmdLiveTextParcel(request)) {
             let cmdPart = pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
             if (this.inactiveTimer)
@@ -208,8 +206,14 @@ class Main extends StoreSynced {
         if (!this.mainStore.showLiveText) {
             if (instanceOfCmdLiveTextParcel(request)) {
                 request = <ICmdParcel>omit(request, ['text', 'isSuccess', 'isFinal', 'hold']);
-            } else if (instanceOfText(request)) {
-                // don't send a instanceOfText
+            } else if (instanceOfTextParcel(request)) {
+                // don't send an instanceOfText
+                return;
+            }
+        }
+        if (this.mainStore.noHeadphonesMode && instanceOfTextParcel(request)) {
+            if ((await promisify<chrome.tabs.Tab[]>(chrome.tabs.query)({ audible: true })).length > 0) {
+                // don't send an instanceOfText
                 return;
             }
         }
@@ -271,50 +275,6 @@ function openTutorial() {
         }
     });
 }
-
-
-// TODO: Refactor to use Detector
-var InterferenceAudioDetector = (function () {
-    let _timerId = null;
-
-    function _destroy() {
-        try {
-            clearTimeout(_timerId);
-        } catch (e) {
-            console.error(`error clearing interference audio detector ${e}`);
-        }
-    }
-
-    return {
-        init: function () {
-            _destroy();
-            _timerId = setInterval(function () {
-                if (audible) {
-                    chrome.tabs.query({
-                        audible: true
-                    }, function (tabs) {
-                        if (!tabs || tabs.length === 0) {
-                            audible = false;
-                            console.warn(`audible ${audible}`);
-                        }
-                    });
-                } else {
-                    chrome.tabs.query({
-                        audible: true
-                    }, function (tabs) {
-                        if (tabs && tabs.length > 0) {
-                            audible = true;
-                            console.warn(`audible ${audible}`);
-                        }
-                    });
-                }
-            }, 3000);
-        },
-        destroy: () => {
-            _destroy();
-        }
-    }
-})();
 
 
 // compile time optional includes

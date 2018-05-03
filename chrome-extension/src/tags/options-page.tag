@@ -27,12 +27,13 @@
 			</label>
 		</div>
 		<div class="option">
-			<label>
-				<input type="checkbox" ref="noHeadphonesMode" onchange={ generalSave } checked={ options.noHeadphonesMode }/> No headphones mode</label>
+			<label title="Check the box if you aren't using headphones and live text will be suppressed while audio is playing on the page (unless a valid command is given)">
+				<input type="checkbox" ref="noHeadphonesMode" onchange={ generalSave } checked={ options.noHeadphonesMode }/> No headphones mode
+            </label>
 		</div>
 		<div class="option">
 		<label>
-			Automatically shut off after &nbsp;&nbsp;<input ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
+			Automatically shut off after &nbsp;&nbsp;<input class="right" ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
 		</label>
 		</div>
         <div class="option" style="height: 1.2rem; margin: 20px">
@@ -263,6 +264,10 @@
     .cmd-group {
         margin: 10px 0;
         clear: both;
+    }
+
+    .right {
+        text-align: right;
     }
 
     .right-controls {

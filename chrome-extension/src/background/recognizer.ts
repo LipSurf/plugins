@@ -44,7 +44,7 @@ export type IRecognizedCallback = ILiveTextParcel | ICmdParcel;
 export class Recognizer extends StoreSynced {
     private recognition;
     private recognizerKilled: boolean = false;
-    private cmdRecognizedCb: (cb: IRecognizedCallback) => void;
+    private cmdRecognizedCb: (cb: IRecognizedCallback) => Promise<void>;
     private matchedCmdsForIndex = [];
     private lastFinalIndex: number;
     // we index by transcript resultIndex in case a delayed cmd is pending and new voice
@@ -92,7 +92,7 @@ export class Recognizer extends StoreSynced {
             });
     }
 
-    async start(cmdRecognizedCb: ((IRecognizedCallback) => void)) {
+    async start(cmdRecognizedCb: ((IRecognizedCallback) => Promise<void>)) {
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.
@@ -363,9 +363,9 @@ export class Recognizer extends StoreSynced {
                             console.log(`cmdName: ${cmdName}. Setting [${resultIndex}][${i}] to ${delay}`);
                             console.dir(recgCmds);
 
-                            this.delayCmds[resultIndex][i] = new ResettableTimeout(() => {
+                            this.delayCmds[resultIndex][i] = new ResettableTimeout(async () => {
                                 console.log(`running command ${cmdName}`);
-                                this.cmdRecognizedCb({
+                                await this.cmdRecognizedCb({
                                     text: niceTranscript,
                                     isSuccess: true,
                                     cmdArgs: matchOutput,
@@ -373,7 +373,7 @@ export class Recognizer extends StoreSynced {
                                     cmdPluginId,
                                 });
                             }, delay);
-                            this.cmdRecognizedCb(<ILiveTextParcel>{
+                            await this.cmdRecognizedCb(<ILiveTextParcel>{
                                 text: niceTranscript,
                                 isSuccess: true,
                                 hold: true,

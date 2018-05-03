@@ -292,14 +292,14 @@ export function instanceOfCmdLiveTextParcel(object: any): object is ICmdLiveText
     return typeof object === 'object' && 'cmdArgs' in object && 'cmdName' in object && 'text' in object;
 }
 
-export function instanceOfText(object: any): object is ILiveTextParcel {
+export function instanceOfTextParcel(object: any): object is ILiveTextParcel {
     return typeof object === 'object' && !('cmdName' in object) && !('toggleActivated' in object) && !('transcript' in object) && ('text' in object);
 }
 
-export function instanceOfTranscript(object: any): object is ITranscriptParcel {
+export function instanceOfTranscriptParcel(object: any): object is ITranscriptParcel {
     return typeof object === 'object' && 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
 }
 
-export function instanceOfCode(object: any): object is ICodeParcel {
+export function instanceOfCodeParcel(object: any): object is ICodeParcel {
     return typeof object === 'object' && 'code' in object;
 }

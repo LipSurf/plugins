@@ -195,6 +195,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Downvote',
         match: ["downvote #", "downvote"],
+        description: "Downvote the current post or a post # (doesn't work for comments yet)",
         runOnPage: async (i) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
             $(`${RedditPlugin.thingAtIndex(index)} .arrow.down:not(.downmod)`)[0].click();
@@ -202,6 +203,7 @@ export class RedditPlugin extends PluginBase {
     }, {
         name: 'Upvote',
         match: ["upvote #", "upvote"],
+        description: "Upvote the current post or a post # (doesn't work for comments yet)",
         runOnPage: async (i) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
             $(`${RedditPlugin.thingAtIndex(index)} .arrow.up:not(.upmod)`)[0].click();

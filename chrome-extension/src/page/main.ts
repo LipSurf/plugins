@@ -2,7 +2,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { retrialAndError, PluginBase } from "../common/plugin-lib";
-import { promisify, instanceOfCmdLiveTextParcel, instanceOfText, instanceOfTranscript, instanceOfCode, instanceOfCmdParcel } from "../common/util";
+import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
 import { storage } from "../common/browser-interface";
 
 declare global {
@@ -154,13 +154,14 @@ async function showLiveText(parcel: ILiveTextParcel) {
 chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
     if (instanceOfCmdLiveTextParcel(msg)) {
         cmdsQ = queueUp(() => window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
+        liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCmdParcel(msg)) {
         cmdsQ = queueUp(() => window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
-    } else if (instanceOfTranscript(msg)) {
+    } else if (instanceOfTranscriptParcel(msg)) {
         sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.text));
-    } else if (instanceOfText(msg)) {
+    } else if (instanceOfTextParcel(msg)) {
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
-    } else if (instanceOfCode(msg)) {
+    } else if (instanceOfCodeParcel(msg)) {
         eval(msg.code);
         sendResponse(null);
         return true;
