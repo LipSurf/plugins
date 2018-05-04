@@ -369,10 +369,7 @@
     this.hasMicPerm = null;
 
     this.save = () => {
-		// allow time to animate
-		setTimeout(() => {
-			options.save();
-		}, 1000);
+        options.save();
     }
 
     this.reset = () => {
@@ -432,7 +429,10 @@
     }
 
     opts.store.on('update', (store) => {
-        this.update(store);
+		// allow time to animate
+		setTimeout(() => {
+            this.update(store);
+		}, 1000);
     });
 
     this.on('mount', function() {

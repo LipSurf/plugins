@@ -141,6 +141,21 @@
 		<span>After you've given access...</span>
 	</slide>
 	<slide ref="slide2" timing="4">
+		<h4>Working Around Chrome Shortcomings</h4>
+		<ul>
+			<li>
+				Change the "Autoplay policy" to "No user gesture is required" <a href="#/slide/2" onclick={ parent.openFlags }>in your flags</a> if you're using Chrome 66 or newer.
+				<ul>
+					<li>Chrome must be restarted for the changes to take effect</li>
+					<li>This will allow you to use video controls with your voice like <span class="voice-cmd">play</span>, <span class="voice-cmd">pause</span>, <span class="voice-cmd">resume</span> etc. </li>
+				</ul>
+			</li>
+			<!--  <li><a href="chrome://flags/#autoplay-policy">Change here</a></li>  -->
+			<!--  <li><a href="chrome://flags/#autoplay-policy">Change here</a></li>  -->
+		</ul>
+		<div class="small"><a href="https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#iframe">More Details</a></div>
+	</slide>
+	<slide ref="slide3" timing="4">
 		<h4>Only One Person at a Time!</h4>
 		<ul>
 			<li>
@@ -152,7 +167,7 @@
 			</li>
 		</ul>
 	</slide>
-	<slide ref="slide3" timing="5">
+	<slide ref="slide4" timing="5">
 		<h4>Endless Commands</h4>
 		<ul>
 			<li>By default LipSurf has 50-ish commands.</li>
@@ -168,7 +183,7 @@
 			</li>
 		</ul>
 	</slide>
-	<slide ref="slide4" timing="6">
+	<slide ref="slide5" timing="6">
 		<h4>How to Click Anything</h4>
 		<ul>
 			<li>Say <span class="voice-cmd">annotate</span> to highlight all clickable things on the page.</li>
@@ -178,14 +193,14 @@
 			<i class="material-icons warning">warning</i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>
 		</div>
 	</slide>
-	<slide ref="slide5" timing="4">
+	<slide ref="slide6" timing="4">
 		<h4>When in Doubt, Just Say HELP</h4>
 		<ul>
 			<li><span class="voice-cmd">Help</span> shows all the available commands for the <i>current page</i> that you are on!</li>
 			<li>Say <span class="voice-cmd">close help</span> to get rid of the pesky help box.</li>
 		</ul>
 	</slide>
-	<slide ref="slide6" timing="4">
+	<slide ref="slide7" timing="4">
 		<h2 class="center">Dude, you made it to the end of the tutorial. Enjoy LipSurf!</h2>
 		<h4>Final Notes</h4>
 		<div>Configure on the <a target="_blank" class="voice-cmd" href={parent.optionsUrl}>options</a> page.</div>
@@ -209,7 +224,7 @@
 		import route from 'riot-route';
 		import { storage } from '../common/browser-interface';
 		let curSlide;
-		this.totalSlides = 6;
+		this.totalSlides = 7;
 		this.hasMicPerm = false;
 		this.activated = false;
 		this.optionsUrl = chrome.extension.getURL("views/options.html");  
@@ -248,6 +263,14 @@
 			}
 		});
 		storage.local.save({activated: true});
+
+		// cannot open flags with regular anchor tag
+		this.openFlags = () => {
+			chrome.tabs.create({
+				active: true,
+				url: 'chrome://flags/#autoplay-policy'
+			});
+		}
 
 		this.checkForPermission = () => {
 			navigator.mediaDevices.getUserMedia({

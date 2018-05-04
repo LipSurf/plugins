@@ -3,7 +3,6 @@
   "name": "LipSurf",
   "description": "Control the browser with your voice. Great for browsing while you eat or your hands are busy.",
   "version": "0.1.0",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg+SanKtJug6OqAAPsf+y+Af1wlI9yYZfGH8hDCb0zzPjKCVLomQ6eKyTr91piKLr37TOWg1Wh4YFY5aKkgfkh5hU3QO7LBJ50AsiRGO22xXNZauaot1EymbaH/B4e5EURZde4kaG//YbO/Vtnso1jqdtX2+Uvx3BIdspY3PXJMhB0supqFFRwnApt6n+QSZWi6ALqIT+x3jgxBav8gjX5oq2WO22lA5Yr3Ck5+Yk0JsJ1Mfa0C+Ig+gcIFKwhYpeKJZTZVUysj+gj6IbfLW+dhxhr03LQOv3du10jmyw6LHphCOP+yZngTzR41ACLW4qpjYt6No/nlXzXBlcs94KMwIDAQAB",
   "background": {
     "scripts": [
       "dist/background.js"

@@ -85,11 +85,6 @@ let pluginsConfig = Object.assign({}, common, {
 		////);
 	//},
  	devtool: false,
-	//optimization: {
-		//usedExports: true,
-		//runtimeChunk: true,
-		//concatenateModules: false,
-	//},
 	entry: {
 		google: './google.ts',
 		browser: './browser.ts',

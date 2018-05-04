@@ -4,13 +4,19 @@ declare let CLEAR_SETTINGS: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
 declare let PRETEND_FIRST_INSTALL: boolean;
-import { pick, omit } from "lodash";
+import { pick, omit, flatten } from "lodash";
 import { ON_ICON, OFF_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
-import { Detector, ResettableTimeout, instanceOfCmdLiveTextParcel, instanceOfTextParcel, promisify } from "../common/util";
+import {
+    Detector,
+    ResettableTimeout,
+    instanceOfCmdLiveTextParcel,
+    instanceOfTextParcel,
+    promisify
+} from "../common/util";
 import { storage, tabs, queryActiveTab } from "../common/browser-interface";
 
 export interface IWindow extends Window {
@@ -19,17 +25,19 @@ export interface IWindow extends Window {
 
 interface IMainStore {
     inactivityAutoOffMins: number,
-    showLiveText: boolean,
-    noHeadphonesMode: boolean,
+        showLiveText: boolean,
+        noHeadphonesMode: boolean,
 }
 
-const { webkitSpeechRecognition }: IWindow = <IWindow>window;
+const {
+    webkitSpeechRecognition
+}: IWindow = < IWindow > window;
 
 let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
-let fullyLoadedPromise = store.rebuildLocalPluginCache().then((): Promise<any> => {
+let fullyLoadedPromise = store.rebuildLocalPluginCache().then((): Promise < any > => {
     let recg = new Recognizer(store,
         tabs.onUrlUpdate,
         queryActiveTab,
@@ -64,7 +72,7 @@ let fullyLoadedPromise = store.rebuildLocalPluginCache().then((): Promise<any> =
 
 class Main extends StoreSynced {
 
-    private inactiveTimer:ResettableTimeout;
+    private inactiveTimer: ResettableTimeout;
     private mainStore: IMainStore;
     public activated = false;
 
@@ -74,7 +82,7 @@ class Main extends StoreSynced {
         if (INCLUDE_SPEECH_TEST_HARNESS) {
             chrome.runtime.onConnect.addListener((port) => {
                 if (port.name == 'test-probe') {
-                    port.onMessage.addListener((msg:any) => {
+                    port.onMessage.addListener((msg: any) => {
                         console.log(`RECEIVED A HXOR MSG`);
                         eval(msg.cmd);
                     });
@@ -152,7 +160,9 @@ class Main extends StoreSynced {
         // check permission
         if (_activated) {
             try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
+                await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
                 console.log("easy on");
             } catch (e) {
                 // Aw. No permission (or no microphone available).
@@ -160,7 +170,9 @@ class Main extends StoreSynced {
                 if (!permissionDetector) {
                     // check a maximum of 15 times (~23s)
                     permissionDetector = new Detector(
-                        (resolve, reject) => navigator.mediaDevices.getUserMedia({ audio: true })
+                        (resolve, reject) => navigator.mediaDevices.getUserMedia({
+                            audio: true
+                        })
                         .then((stream) => {
                             console.log("yep1");
                             if (typeof (stream) !== 'undefined') {
@@ -171,7 +183,7 @@ class Main extends StoreSynced {
                             }
                         }, function () {
                             reject();
-                        }).catch(() => { }),
+                        }).catch(() => {}),
                         1500);
                     await permissionDetector.detected();
                 }
@@ -187,7 +199,9 @@ class Main extends StoreSynced {
             this.inactiveTimer = undefined;
         }
         this.activated = _activated;
-        storage.local.save({ activated: this.activated });
+        storage.local.save({
+            activated: this.activated
+        });
         chrome.browserAction.setIcon({
             path: this.activated ? ON_ICON : OFF_ICON
         });
@@ -200,7 +214,7 @@ class Main extends StoreSynced {
         }
     }
 
-    async cmdRecognizedCb(request: IRecognizedCallback): Promise<void> {
+    async cmdRecognizedCb(request: IRecognizedCallback): Promise < void > {
         if (instanceOfCmdLiveTextParcel(request)) {
             let cmdPart = pick(request, ['cmdName', 'cmdPluginId', 'cmdArgs']);
             if (this.inactiveTimer)
@@ -209,14 +223,16 @@ class Main extends StoreSynced {
         }
         if (!this.mainStore.showLiveText) {
             if (instanceOfCmdLiveTextParcel(request)) {
-                request = <ICmdParcel>omit(request, ['text', 'isSuccess', 'isFinal', 'hold']);
+                request = < ICmdParcel > omit(request, ['text', 'isSuccess', 'isFinal', 'hold']);
             } else if (instanceOfTextParcel(request)) {
                 // don't send an instanceOfText
                 return;
             }
         }
         if (this.mainStore.noHeadphonesMode && instanceOfTextParcel(request)) {
-            if ((await promisify<chrome.tabs.Tab[]>(chrome.tabs.query)({ audible: true })).length > 0) {
+            if ((await promisify < chrome.tabs.Tab[] > (chrome.tabs.query)({
+                    audible: true
+                })).length > 0) {
                 // don't send an instanceOfText
                 return;
             }
@@ -229,17 +245,50 @@ class Main extends StoreSynced {
 chrome.browserAction.setIcon({
     path: OFF_ICON
 });
-storage.local.save({ activated: false });
+storage.local.save({
+    activated: false
+});
 
 // "install", "update", "chrome_update", or "shared_module_update"
 chrome.runtime.onInstalled.addListener(async (details) => {
     console.log(`Installed reason: ${details.reason}`);
     if (details.reason === 'install' || PRETEND_FIRST_INSTALL) {
         // don't open the tutorial until the plugin is done loading
-        let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
+        let tutMode = await storage.sync.load < ITutorialMode > ("tutorialMode");
         if (typeof tutMode.tutorialMode === 'undefined' || tutMode.tutorialMode) {
             await fullyLoadedPromise;
             openTutorial();
+        }
+    }
+
+    // reinject the new CS so user doesn't need to reload tabs
+    // WARNING: This needs to be updated anytime the manifest content scripts change
+    if (details.reason === 'install' || details.reason === 'update') {
+        let tabs = await promisify<chrome.tabs.Tab[]>(chrome.tabs.query)({});
+        let allScripts = [
+            {
+                file: '/dist/frame-beacon.js',
+                all: true,
+            },
+            {
+                file: '/vendor/jquery-3.2.1.min.js',
+                all: true,
+            },
+            {
+                file: '/dist/page.js',
+            }
+        ];
+        for (let tab of tabs) {
+            for (let scriptTup of allScripts) {
+                chrome.tabs.executeScript(tab.id, {
+                    file: scriptTup.file,
+                    allFrames: scriptTup.all,
+                }, _ => {
+                    if (chrome.runtime.lastError) {
+                        console.error(`Could not inject into tab ${tab.url}`);
+                    }
+                });
+            };
         }
     }
 });
@@ -252,7 +301,7 @@ async function sendMsgToActiveTab(request: IBackgroundParcel) {
 
 
 async function promptForPermission() {
-    let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
+    let tutMode = await storage.sync.load < ITutorialMode > ("tutorialMode");
     // TODO: load setting defaults here
     if (typeof tutMode.tutorialMode === "undefined" || tutMode.tutorialMode) {
         openTutorial();
@@ -267,8 +316,13 @@ function openTutorial() {
     chrome.tabs.query({}, (tabs) => {
         for (let tab of tabs) {
             if (tab.url.indexOf(tutUrl) == 0) {
-                chrome.windows.update(tab.windowId, {focused: true});
-                chrome.tabs.update(tab.id, {active: true, url: `${tutUrl}#slide/1`});
+                chrome.windows.update(tab.windowId, {
+                    focused: true
+                });
+                chrome.tabs.update(tab.id, {
+                    active: true,
+                    url: `${tutUrl}#slide/1`
+                });
                 foundExisting = true;
             }
         }

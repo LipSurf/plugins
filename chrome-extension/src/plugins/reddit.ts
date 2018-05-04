@@ -55,6 +55,7 @@ export class RedditPlugin extends PluginBase {
         'navigate': 'go',
         'contract': 'collapse',
         'claps': 'collapse',
+        'expense': 'expand',
         'expanse': 'expand',
         'expanded': 'expand',
         'stand': 'expand',

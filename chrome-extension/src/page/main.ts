@@ -108,7 +108,12 @@ async function queueUp(fn: () => Promise<any>, prevQ: Promise<any>) {
     return await fn();
 }
 
-async function attachLiveTextOverlay() {
+async function attachLiveTextOverlay(): Promise<void> {
+    // remove existing
+    try {
+    document.getElementById(liveTextShadowRootId).remove();
+    } catch(e) { }
+
     let shadowCont = document.createElement('div');
     shadowCont.id = liveTextShadowRootId;
     let shadow = shadowCont.attachShadow({ mode: 'open' });
@@ -124,7 +129,7 @@ async function showLiveText(parcel: ILiveTextParcel) {
     // our element might not get reattached or might get removed from
     //   * bf cache
     //   * dom body overwrites from js
-    if (!document.getElementById(liveTextShadowRootId)) {
+    if (!document.getElementById(liveTextShadowRootId) || !liveTextEle) {
         await attachLiveTextOverlay();
         console.log(`Reattaching live text overlay`);
     }
