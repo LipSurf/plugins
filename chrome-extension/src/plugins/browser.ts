@@ -65,6 +65,8 @@ export class BrowserPlugin extends PluginBase {
         'chop': 'top',
         'paws': 'pause',
         'let\'s surf off': 'lipsurf off',
+        'option': 'options',
+        'setting': 'settings',
         'ripsurf': 'lipsurf',
         'lip surf': 'lipsurf',
         'lexsurv': 'lipsurf',
@@ -390,7 +392,7 @@ export class BrowserPlugin extends PluginBase {
                         try {
                             delete BrowserPlugin.annotationsMap[anno];
                         } catch(e) {}
-                    } 
+                    }
                 });
 
                 // update positioning, in case element "moved" (like with youtube fixed sidebar)
@@ -902,7 +904,7 @@ export class BrowserPlugin extends PluginBase {
                         if (!ele.href.startsWith('#') && ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
                             goodHref = false;
                         }
-                    } 
+                    }
                     return goodHref && ele.innerText.length <= 11;
                 })
                 .get(0).click();
@@ -923,7 +925,7 @@ export class BrowserPlugin extends PluginBase {
                         if (!ele.href.startsWith('#') && ele.href.length > 3 && ele.href.indexOf(document.location.origin) !== 0)  {
                             goodHref = false;
                         }
-                    } 
+                    }
                     return goodHref && ele.innerText.length < 11;
                 })
                 .get(0).click();

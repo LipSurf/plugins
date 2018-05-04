@@ -1,7 +1,7 @@
 {
-  "name": "lipsurf",
-  "version": "1.0.0",
-  "description": "Control the browser with your voice.",
+  "name": "LipSurf",
+  "version": "0.1.0",
+  "description": "Voice control for your browser. ",
   "engines": {
     "node": ">=6.0"
   },
@@ -18,10 +18,10 @@
     "test-plugins-watch": "when-changed -k -1 -s tests/plugins/*.ts src/plugins/* -c npm run test-plugins",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
-    "build": "webpack --mode development --progress",
-    "watch": "webpack --mode development --watch --progress",
-    "build-prod": "webpack --mode production",
-    "watch-prod": "webpack --mode production --watch"
+    "build": "webpack --config webpack.dev.js --progress",
+    "watch": "webpack --config webpack.dev.js --watch --progress",
+    "build-prod": "webpack --verbose --config webpack.prod.js --display verbose",
+    "watch-prod": "webpack --config webpack.prod.js --watch"
   },
   "repository": {
     "type": "git",
@@ -60,7 +60,9 @@
     "ts-loader": "^4.1.0",
     "tslib": "^1.9.0",
     "typescript": "^2.8.1",
-    "webpack": "^4.3.0",
+    "uglify-es": "^3.3.9",
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "webpack": "^4.6.0",
     "webpack-cli": "^2.0.13",
     "webpack-merge": "^4.1.2",
     "webpack-shell-plugin": "^0.5.0"
