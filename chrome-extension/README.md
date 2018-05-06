@@ -1,29 +1,26 @@
 TODO
 ===
-v1.0
-- [X] Fix reddit commands
---- [ ] sometimes clicking a post number goes wrong
-- [X] Polish up slides
-- [X] Put license on code
-- [X] Tutorial Page
--- auto reload tabs when plugin is first installed
-- [X] stop goes to top of page
-- [ ] Get build pipeline optimized (obfuscate output)
-- [X] `silent` -- only valid commands are shown mode when audio is on in the tab, or detected video playing
+v0.2
+- [ ] live text shows, command turns green, but command doesn't execute after restarting browser (injection issue?)
+- [ ] fix vimeo
+- [ ] don't allow next until microphone has been allowed
+- [ ] Faster annotations -- study link heavy reddit
+- [ ] Shadow DOM for annotations
+- [ ] special notification when auto shutoff, no headphone mode, etc.
 
-v1.1
+v0.3
+- [ ] sometimes clicking a post number goes wrong
+- [ ] say "you imbecile" or "you idiot" after a command to correct the command by adding a homophone of what you meant
+- [ ] Fix annotations https://www.reddit.com/r/canada/
 - [ ] Live text not showing when command errors (eg. command not loaded)
 - [ ] Fix fullscreen
 - [ ] Make full screen black out background
 - [ ] slow scroll down
-- [ ] special notification when auto shutoff, no headphone mode, etc.
 - [ ] Return iframe positioning data from queryAllIframes so a choice can be made based on the position of the element in the page -- easy trade-off would be to only query frames that are visible within the page
 - [ ] context menu - on for 10m, on for 20m, options
 - [ ] scroll based on window height
 - [ ] Use this for annotations? https://developer.chrome.com/extensions/automation
 - [ ] Standardize extension urls instead of hardcoding them
-- [ ] Shadow DOM for annotations
-- [ ] Faster annotations -- study link heavy reddit
 - [ ] Better live text animation?
 - [ ] Beep when error building
 - [ ] Improve help pop up -- more, details, etc.
@@ -37,7 +34,6 @@ v1.1
 - [ ] Turn on plugin for set time via context menu
 - [ ] Reddit Sorting by best/all etc.
 - [ ] undo?
-- [ ] mute video
 - [ ] Improve speed
 
 vNext
@@ -75,7 +71,11 @@ from both the background and option pages.
 
 marketing/profit
 ===
-Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
+* Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
+
+* Insta video posts:
+  -- someone eating while controlling the browser
+  -- someone typing a report on one screen then saying commands to another screen with the browser open to control the page without moving their hands to the mouse
 
 Other successfull payed chrome extensions:
   * https://checkbot.io

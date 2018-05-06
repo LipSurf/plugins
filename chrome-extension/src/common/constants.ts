@@ -525,6 +525,7 @@ export const HOMOPHONES = {
     'aladdin': 'eleven',
     "letter": "eleven",
     "to": "two",
+    "0": "o",
     "too": "two",
     "sex": "six",
     '\\.': ' dot ',

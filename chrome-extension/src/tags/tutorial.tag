@@ -89,7 +89,7 @@
 		.warning {
 			color: #f1cb00;
 			vertical-align: sub;
-		} 
+		}
 
         #bg {
             background-image: url(../assets/small_wave_pattern.svg);
@@ -172,7 +172,7 @@
 		<ul>
 			<li>By default LipSurf has 50-ish commands.</li>
 			<li>Additional commands can be installed with more plugins in the future (not yet available).</li>
-			<li>A <strong>plugin</strong> is a collection of commands for a <strong>certain site</strong> 
+			<li>A <strong>plugin</strong> is a collection of commands for a <strong>certain site</strong>
 			<ul><li>The commands for a plugin will usually only work for that plugin's site (eg. Reddit plugin commands only work on Reddit.com). Unless...</li>
 			</ul>
 			</li>
@@ -227,20 +227,20 @@
 		this.totalSlides = 7;
 		this.hasMicPerm = false;
 		this.activated = false;
-		this.optionsUrl = chrome.extension.getURL("views/options.html");  
+		this.optionsUrl = chrome.extension.getURL("views/options.html");
 
 		route(async (collection, id, action) => {
 			let prevRt, newRt;
 			if (!id) {
 				id = 1;
-			} 
+			}
 			id = +id;
 			if (typeof id !== "number" || id > this.totalSlides || id < 1 || isNaN(id))
 				id = 1;
 			if (curSlide) {
 				prevRt = this.refs[`slide${curSlide}`];
 				await prevRt.slideOut(curSlide <= id ? true : false);
-			} 
+			}
 
 			newRt = this.refs[`slide${id}`];
 			if (!curSlide && id == 1) {
@@ -277,12 +277,10 @@
 				audio: true,
 			}).then((stream) => {
 				this.hasMicPerm = true;
-				console.log(`hasMicPerm ${this.hasMicPerm}`);
 				this.update();
 			}, () => {
 				// Aw. No permission (or no microphone available).
 				this.hasMicPerm = false;
-				console.log(`hasMicPerm ${this.hasMicPerm}`);
 				this.update();
 			});
 		}
@@ -290,12 +288,12 @@
 		this.checkForPermission();
         setInterval(() => {
             this.checkForPermission();
-        }, 1500);  
+        }, 1500);
 
 		this.exitTutorial = async () => {
 			await storage.sync.save({tutorialMode: false});
 			window.close();
-		};	
+		};
 
 		window.addEventListener('unload', this.exitTutorial);
 

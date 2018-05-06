@@ -1,4 +1,6 @@
 #!/bin/bash
+# We can control the mouse and click the extension button, test across browser restarts etc with this
+# magic script.
 debug=''
 
 while getopts 'd' flag; do

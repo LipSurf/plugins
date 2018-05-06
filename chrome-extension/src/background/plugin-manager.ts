@@ -135,7 +135,12 @@ export class PluginManager extends StoreSynced {
         // to define dumby PluginUtil shit here
         // takes ~1ms
         let $ = () => { return {ready: () => null}};
-        eval(`${text}; plugin = ${id}Plugin;`);
+        try {
+            eval(`${text}; plugin = ${id}Plugin;`);
+        } catch (e) {
+            console.error(e);
+            console.error(`Error eval'ing ${id}. Skipping.`);
+        }
         // END HACK
         return plugin;
     }

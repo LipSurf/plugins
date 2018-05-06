@@ -1,119 +1,36 @@
 /*
  * Test all the plugin code
- * Use 1920x1076 resolution on the VM
  */
 import anyTest, {TestInterface} from 'ava';
-import {Browser, By, Builder, until, Key, WebDriver } from 'selenium-webdriver';
-import * as chrome from 'selenium-webdriver/chrome';
+import { By, until, Key, WebDriver } from 'selenium-webdriver';
 import * as _ from 'lodash';
-import { readFile } from 'fs';
-import { spawnSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { readFileSync } from 'fs';
 import { PluginManager } from "../../src/background/plugin-manager";
-
-const gtts = require('node-gtts')('en');
-
+import { 
+    chromeBuilder,
+    timeout,
+    IBot,
+    toggleExtension,
+    AudioPlayingBot,
+    MockedRecognizerBot,
+} from "../vm-test";
 
 const test = anyTest as TestInterface<{
     driver: WebDriver,
     bot: IBot,
 }>;
-const readFileSync = file_name => fs.readFileSync(file_name, { encoding: 'utf-8' });
-const timeout = ms => new Promise(res => setTimeout(res, ms));
+const readPluginSync = file_name => readFileSync(file_name, { encoding: 'utf-8' });
 const MAX_TRIES_PER_TEST = 3;
 const BLACKLISTED_PHRASES = [];
 const WHITELISTED_PHRASES = [];
 const REAL_AUDIO = false;
 const DEBUG = false;
 
-var builder = new Builder()
-    .forBrowser('chrome')
-    // @ts-ignore: we know this shit works
-    .setChromeOptions(new chrome.Options()
-        .addArguments("user-data-dir=/home/lubuntu/.config/google-chrome/Default")
-        .addArguments(`--load-extension=/media/sf_no-hands-man/chrome-extension`));
-        // .addExtensions("/media/sf_no-hands-man/no-hands-man.crx"));
 
 var pluginFilePaths = process.env.PLUGINS ? process.env.PLUGINS.split(',') : [];
 
-
-function moveMouse(x:number, y:number) {
-    console.debug(`Moving mouse ${x} ${y}`);
-    spawnSync('xdotool', ['mousemove', '--sync', x.toString(), y.toString()]);
-}
-
-
-function clickMouse(x:number, y:number) {
-    console.debug("Clicking mouse...");
-    spawnSync('xdotool', ['mousemove', '--sync', x.toString(), y.toString(), 'click', '1']);
-}
-
-
-function toggleExtension(active=true) {
-    // extension button
-    clickMouse(904, 66);
-}
-
-
-function pressKeys(keys) {
-    console.debug(`Pressing keys ${keys}`);
-    spawnSync('xdotool', ['key', keys]);
-}
-
-
-function typeKeys(keys) {
-    console.debug(`Typing keys ${keys}`);
-    spawnSync('xdotool', ['type', keys]);
-}
-
-
-interface IBot {
-    say(phrase: string): Promise<void>,
-}
-
-
-class MockedRecognizerBot implements IBot {
-    constructor(private driver) {
-    }
-    async say(phrase) {
-        // can be adjusted to change the speed of the tests
-        await timeout(1000);
-        await this.driver.executeScript(`window.postMessage({test_probe: true, cmd: 'recg.handleTranscript("${phrase}", false, 0.99)'}, '*');`);
-    }
-}
-
-
-class AudioPlayingBot implements IBot {
-    CACHE_FOLDER = process.env.AUDIO_CACHE_FOLDER;
-    EXISTS_CACHE = [];
-
-    constructor() {
-        try {
-            fs.mkdirSync(this.CACHE_FOLDER);
-        } catch (err) {
-            console.warn("Could not create cache folder. Perhaps it already exists.");
-        }
-        for (let filename of fs.readdirSync(this.CACHE_FOLDER)) {
-            console.debug(`Found existing audio ${filename}`);
-            this.EXISTS_CACHE.push(filename.split('.mp3')[0])
-        }
-    }
-
-    async say(phrase) {
-        let audioCachePath = path.join(this.CACHE_FOLDER, `${phrase.toLowerCase()}.mp3`);
-        if (!~this.EXISTS_CACHE.indexOf(phrase.toLowerCase())) {
-            await gtts.save(audioCachePath, phrase);
-            this.EXISTS_CACHE.push(phrase.toLowerCase());
-        }
-        console.debug(`Saying ${phrase}`);
-        spawnSync('play', [audioCachePath]);
-    }
-}
-
-
 test.before(async function(t) {
-    t.context.driver = await builder.build();
+    t.context.driver = await chromeBuilder.build();
     t.context.bot = REAL_AUDIO ? new AudioPlayingBot() : new MockedRecognizerBot(t.context.driver);
 
     // open a page because the startup page cannot have cs
@@ -162,7 +79,7 @@ for (pluginFilePath of pluginFilePaths) {
     let pathArr = pluginFilePath.split('/');
     let pluginId = pathArr[pathArr.length - 1].split('.')[0];
     pluginId = pluginId[0].toUpperCase() + pluginId.substr(1, pluginId.length);
-    let Plugin = PluginManager.evalPluginCode(pluginId, readFileSync(pluginFilePath));
+    let Plugin = PluginManager.evalPluginCode(pluginId, readPluginSync(pluginFilePath));
     for (let cmd of Plugin.commands) {
         if (cmd.test) {
             for (let pluginTest of _.flatten([cmd.test])) {

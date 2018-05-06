@@ -66,6 +66,7 @@ export class BrowserPlugin extends PluginBase {
         'paws': 'pause',
         'let\'s surf off': 'lipsurf off',
         'option': 'options',
+        'auctions': 'options',
         'setting': 'settings',
         'ripsurf': 'lipsurf',
         'lip surf': 'lipsurf',
@@ -483,7 +484,7 @@ export class BrowserPlugin extends PluginBase {
                     setTimeout(annotationsTimer, 100);
                 } else {
                     // clear what we just made in case this came at a delay (race condition)
-                    $(`div[id=${ua}-anno-cont`).empty();
+                    $(`div[id=${ua}-anno-cont]`).empty();
                 }
             };
 
@@ -496,7 +497,7 @@ export class BrowserPlugin extends PluginBase {
         match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off', 'no annotations', 'annotation off'],
         runOnPage: async function() {
             BrowserPlugin.annotate = false;
-            $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont`).empty();
+            $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont]`).empty();
             BrowserPlugin.setOption('annotate', false);
         }
     },
