@@ -94,7 +94,7 @@ export class Store {
     }
 
     async resetPreferences() {
-        await storage.sync.clear();
+        await Promise.all([storage.sync.clear(), storage.local.clear()]);
         this.options = await this.getOptions(true);
         this.publish();
     }

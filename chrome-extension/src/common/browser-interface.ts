@@ -18,6 +18,9 @@ export module storage {
         export async function load(key: LocalLoadable): Promise<ISerializedLocalData> {
             return promisify<ISerializedLocalData>(chrome.storage.local.get)(key);
         }
+        export async function clear(): Promise<void> {
+            return promisify<void>(chrome.storage.local.clear)();
+        }
         export function registerOnChangeCb(cb: (changes) => void) {
             // namespace is either "sync" or "local"
             chrome.storage.onChanged.addListener(function(rawChanges, namespace) {

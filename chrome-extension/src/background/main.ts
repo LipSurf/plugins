@@ -293,10 +293,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
     if (request === 'loadPlugins') {
         let tab = sender.tab;
-        console.log('1');
         fullyLoadedPromise.then((res) => {
             res.pm.getPluginCSCode(tab.url).then((compiledCsCodeStr) => {
-                console.log('2');
                 sendResponse(compiledCsCodeStr);
             });
         });

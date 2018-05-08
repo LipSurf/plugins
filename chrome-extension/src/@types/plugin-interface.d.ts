@@ -1,3 +1,5 @@
+/// <reference path="../@types/store.d.ts"/>
+
 declare abstract class PluginBase {
     static friendlyName: string;
     static description: string;

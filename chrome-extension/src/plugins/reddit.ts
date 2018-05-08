@@ -24,11 +24,12 @@ export class RedditPlugin extends PluginBase {
             $('#siteTable>div.thing').each((i, ele) => {
                 let index = i + 1;
                 $(ele).attr(RedditPlugin.getThingAttr(), index);
-                $(ele).find('.rank').css({
-                    display: 'block',
-                    'margin-right': '10px',
-                    opacity: 1,
-                }).text('' + index);
+                // can't use .style because jquery doesn't understand !important
+                $(ele).find('.rank').attr('style', `
+                    display: block !important;
+                    margin-right: 10px;
+                    opacity: 1 !important';
+                `).text('' + index);
             });
         });
     }

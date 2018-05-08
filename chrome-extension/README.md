@@ -8,7 +8,7 @@ v0.2
 - [ ] Faster annotations -- study link heavy reddit
 - [ ] Shadow DOM for annotations
 - [ ] special notification when auto shutoff, no headphone mode, etc.
-- [ ] Fix annotations https://www.reddit.com/r/canada/
+- [x] Fix ranking https://www.reddit.com/r/canada/
 - [ ] Logo improvement, greyed out icon
 
 v0.3
