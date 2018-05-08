@@ -3,7 +3,7 @@ TODO
 v0.2
 - [x] live text shows, command turns green, but command doesn't execute after restarting browser (injection issue?)
 - [x] auto-on for tutorial not working with delay?
-- [ ] fix vimeo
+- [x] fix twitter videos not playing
 - [ ] don't allow next until microphone has been allowed
 - [ ] Faster annotations -- study link heavy reddit
 - [ ] Shadow DOM for annotations
