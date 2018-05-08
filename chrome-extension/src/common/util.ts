@@ -2,6 +2,7 @@
 /// <reference path="../@types/plugin-interface.d.ts" />
 const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
 let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
+export const timeout = ms => new Promise(res => safeSetTimeout(res, ms));
 
 // TODO: This would be nice to have
 // export class DisableableArray<T extends IDisableable> extends Array<T> {

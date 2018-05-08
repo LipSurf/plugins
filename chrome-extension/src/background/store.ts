@@ -107,12 +107,20 @@ export class Store {
 
 export class StoreSynced {
 
+    // fulfilled when the initial load has happened (useful to make sure stuff
+    // doesn't happen until then)
+    private initialLoadResolver = () => undefined;
+    protected initialLoad: Promise<any> = new Promise((resolve, reject) => {
+        this.initialLoadResolver = resolve;
+    });
+
     constructor(public store: Store) {
         // call once on initial load so plugin data is ready
         this.init();
         this.store.getOptions().then(options => {
             this.storeUpdated(options);
-        })
+            this.initialLoadResolver()
+        });
         this.store.subscribe(newOptions => {
             this.storeUpdated(newOptions);
         });

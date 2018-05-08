@@ -1,17 +1,19 @@
 TODO
 ===
 v0.2
-- [ ] live text shows, command turns green, but command doesn't execute after restarting browser (injection issue?)
+- [x] live text shows, command turns green, but command doesn't execute after restarting browser (injection issue?)
+- [x] auto-on for tutorial not working with delay?
 - [ ] fix vimeo
 - [ ] don't allow next until microphone has been allowed
 - [ ] Faster annotations -- study link heavy reddit
 - [ ] Shadow DOM for annotations
 - [ ] special notification when auto shutoff, no headphone mode, etc.
+- [ ] Fix annotations https://www.reddit.com/r/canada/
+- [ ] Logo improvement, greyed out icon
 
 v0.3
 - [ ] sometimes clicking a post number goes wrong
 - [ ] say "you imbecile" or "you idiot" after a command to correct the command by adding a homophone of what you meant
-- [ ] Fix annotations https://www.reddit.com/r/canada/
 - [ ] Live text not showing when command errors (eg. command not loaded)
 - [ ] Fix fullscreen
 - [ ] Make full screen black out background

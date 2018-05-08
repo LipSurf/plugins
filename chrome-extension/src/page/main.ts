@@ -1,9 +1,12 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 /// <reference path="../@types/plugin-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
-import { retrialAndError, PluginBase } from "../common/plugin-lib";
+import { retrialAndError } from "../common/plugin-lib";
+import * as PluginLib from "../common/plugin-lib";
 import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
 import { storage } from "../common/browser-interface";
+let {PluginBase} = require('../common/plugin-lib');
+
 
 declare global {
     interface Window {
@@ -19,15 +22,12 @@ let ua = PluginBase.util.getNoCollisionUniqueAttr();
 let liveTextShadowRootId = `${ua}-live-text-overlay`;
 let liveTextEle: HTMLDivElement;
 let lblTimeout: number;
-let commandsLoaded = false;
 let commandsLoading = false;
 let cmdsQ: Promise<any>;
 let liveTextQ: Promise<any>;
-
-// used to determine which video to fullscreen
-window.commands = {};
-window.PluginBase = PluginBase;
-window.allPlugins = [];
+let allPlugins: {
+    [id: string]: typeof PluginBase
+} = {};
 
 // f is what needs to be done -- can be function or promise
 // f_check checks whether it was done (optional if the check can't be done in f)
@@ -37,16 +37,16 @@ window.allPlugins = [];
 function toggleActivated(_activated = true, quiet = false) {
     if (_activated) {
         activated = true;
-        if (!commandsLoaded && !commandsLoading) {
+        // should we check if the tab is "document visible" to prevent other tabs from doing a load too
+        if (!commandsLoading) {
             commandsLoading = true;
-            window.allPlugins = [];
-            chrome.runtime.sendMessage('loadPlugins', () => {
-                console.log(`main.ts received loadPage ${window.allPlugins}`);
-                window.allPlugins.forEach(plugin => plugin.init ? plugin.init() : null);
-                commandsLoaded = true;
+            chrome.runtime.sendMessage('loadPlugins', (pluginCSCode) => {
+                eval(pluginCSCode);
+                console.log(`main.ts received loadPage ${Object.keys(allPlugins)}`);
+                Object.values(allPlugins).forEach(plugin => plugin.init ? plugin.init() : null);
             });
         } else {
-            window.allPlugins.forEach(plugin => {
+            Object.values(allPlugins).forEach(plugin => {
                 if (plugin.init) {
                     try {
                         plugin.init();
@@ -70,7 +70,7 @@ function toggleActivated(_activated = true, quiet = false) {
     } else {
         activated = false;
 
-        window.allPlugins.forEach(plugin => {
+        Object.values(allPlugins).forEach(plugin => {
             if (plugin.destroy) {
                 try {
                     plugin.destroy();
@@ -158,12 +158,12 @@ async function showLiveText(parcel: ILiveTextParcel) {
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
     if (instanceOfCmdLiveTextParcel(msg)) {
-        cmdsQ = queueUp(() => window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
+        cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCmdParcel(msg)) {
-        cmdsQ = queueUp(() => window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
+        cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
     } else if (instanceOfTranscriptParcel(msg)) {
-        sendResponse(window[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.text));
+        sendResponse(allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.text));
     } else if (instanceOfTextParcel(msg)) {
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCodeParcel(msg)) {

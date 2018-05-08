@@ -29,7 +29,7 @@ module.exports = [
     merge(unMangledConfig, devCommon, {
 
     }),
-    merge(pluginsConfig, devCommon, {
+    //merge(pluginsConfig, devCommon, {
 
-    }),
+    //}),
 ];

@@ -37,7 +37,7 @@ let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
-let fullyLoadedPromise = store.rebuildLocalPluginCache().then((): Promise < any > => {
+let fullyLoadedPromise = store.rebuildLocalPluginCache().then(() => {
     let recg = new Recognizer(store,
         tabs.onUrlUpdate,
         queryActiveTab,
@@ -60,13 +60,7 @@ let fullyLoadedPromise = store.rebuildLocalPluginCache().then((): Promise < any 
         })
     }
 
-    storage.local.registerOnChangeCb((changes) => {
-        if (changes && changes.activated && mn.activated !== changes.activated.newValue) {
-            mn.toggleActivated(changes.activated.newValue);
-        }
-    });
-
-    return new Promise((resolve, reject) => resolve());
+    return Promise.resolve({recg, ps, pm, mn});
 });
 
 
@@ -90,43 +84,6 @@ class Main extends StoreSynced {
             });
         }
 
-        // this must be sync and return true in order to use sendResponse
-        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-            // if (request.bubbleDown) {
-            //     // let tab = await queryActiveTab();
-            //     if (typeof request.bubbleDown.fullScreen !== 'undefined') {
-            //         console.log(`1. full screen`);
-            //         chrome.windows.update(tab.windowId, {
-            //             state: "fullscreen"
-            //         }, function (windowUpdated) {
-            //             //do whatever with the maximized window
-            //             this.fullscreen = true;
-            //         });
-            //     } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
-            //         console.log(`2. unfull screen`);
-            //         chrome.windows.update(tab.windowId, {
-            //             state: "maximized"
-            //         }, function (windowUpdated) {
-            //             //do whatever with the maximized window
-            //         });
-            //     }
-            //     chrome.tabs.sendMessage(tab.id, request, function (response) {
-            //         // not working (cannot get message in other content script
-            //         sendResponse(response);
-            //     });
-            // } else if (request.bubbleUp) {
-            //     // go back up to all the frames
-            //     // let tab = await queryActiveTab();
-            //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
-            if (request === 'loadPlugins') {
-                let tab = sender.tab;
-                pm.injectCmdCodeIntoPage(tab.id, tab.url).then(() => {
-                    // not sure this is needed
-                    sendResponse(null);
-                });
-            }
-            return true;
-        });
 
         chrome.browserAction.onClicked.addListener(tab => {
             if (this.activated) {
@@ -155,6 +112,7 @@ class Main extends StoreSynced {
     }
 
     async toggleActivated(_activated = true) {
+        await this.initialLoad;
         let inactivityMins = this.mainStore.inactivityAutoOffMins;
 
         // check permission
@@ -245,8 +203,18 @@ class Main extends StoreSynced {
 chrome.browserAction.setIcon({
     path: OFF_ICON
 });
+
 storage.local.save({
     activated: false
+});
+
+// this needs to be top-level because (for example) if the tutorial page was restored in a fresh 
+// chrome session, the activate would be called and this register needs to be ready to roll!
+storage.local.registerOnChangeCb(async (changes) => {
+    let {mn} = await fullyLoadedPromise; 
+    if (changes && changes.activated && mn.activated !== changes.activated.newValue) {
+        mn.toggleActivated(changes.activated.newValue);
+    }
 });
 
 // "install", "update", "chrome_update", or "shared_module_update"
@@ -291,6 +259,49 @@ chrome.runtime.onInstalled.addListener(async (details) => {
             };
         }
     }
+});
+
+// * Make sure this is top-level otherwise when a tab sends a message -- it will 
+// get an immediate undefined response instead of the result of this handler.
+// * This must be sync and return true in order to use sendResponse
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    // if (request.bubbleDown) {
+    //     // let tab = await queryActiveTab();
+    //     if (typeof request.bubbleDown.fullScreen !== 'undefined') {
+    //         console.log(`1. full screen`);
+    //         chrome.windows.update(tab.windowId, {
+    //             state: "fullscreen"
+    //         }, function (windowUpdated) {
+    //             //do whatever with the maximized window
+    //             this.fullscreen = true;
+    //         });
+    //     } else if (typeof request.bubbleDown.unFullScreen !== 'undefined') {
+    //         console.log(`2. unfull screen`);
+    //         chrome.windows.update(tab.windowId, {
+    //             state: "maximized"
+    //         }, function (windowUpdated) {
+    //             //do whatever with the maximized window
+    //         });
+    //     }
+    //     chrome.tabs.sendMessage(tab.id, request, function (response) {
+    //         // not working (cannot get message in other content script
+    //         sendResponse(response);
+    //     });
+    // } else if (request.bubbleUp) {
+    //     // go back up to all the frames
+    //     // let tab = await queryActiveTab();
+    //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
+    if (request === 'loadPlugins') {
+        let tab = sender.tab;
+        console.log('1');
+        fullyLoadedPromise.then((res) => {
+            res.pm.getPluginCSCode(tab.url).then((compiledCsCodeStr) => {
+                console.log('2');
+                sendResponse(compiledCsCodeStr);
+            });
+        });
+    }
+    return true;
 });
 
 
