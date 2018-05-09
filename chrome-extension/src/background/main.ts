@@ -17,7 +17,7 @@ import {
     instanceOfTextParcel,
     promisify
 } from "../common/util";
-import { storage, tabs, queryActiveTab } from "../common/browser-interface";
+import { storage, tabs, queryActiveTab, notifications } from "../common/browser-interface";
 
 export interface IWindow extends Window {
     webkitSpeechRecognition: any;
@@ -164,6 +164,10 @@ class Main extends StoreSynced {
 
         if (_activated && inactivityMins) {
             this.inactiveTimer = new ResettableTimeout(() => {
+                notifications.create(
+                    `LipSurf turned off after ${inactivityMins} minutes of inactivity.`,
+                    `Inactivity threshold can be set in the options.`,
+                    true);
                 this.toggleActivated(false);
             }, inactivityMins * 60 * 1000);
         } else if (this.inactiveTimer) {

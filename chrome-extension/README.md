@@ -7,12 +7,13 @@ v0.2
 - [x] don't allow next until microphone has been allowed
 - [ ] Faster annotations -- study link heavy reddit
 - [ ] Shadow DOM for annotations
-- [ ] special notification when auto shutoff, no headphone mode, etc.
+- [x] special notification when auto shutoff
 - [x] Fix ranking https://www.reddit.com/r/canada/
 - [ ] Logo improvement, greyed out icon
 - [x] Re-open tutorial if user quit on second slide
 
 v0.3
+- [ ] special notification to remind user about no headphones mode?
 - [ ] sometimes clicking a post number goes wrong
 - [ ] say "you imbecile" or "you idiot" after a command to correct the command by adding a homophone of what you meant
 - [ ] Live text not showing when command errors (eg. command not loaded)

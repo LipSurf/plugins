@@ -81,6 +81,30 @@ export module tabs {
     }
 }
 
+export module notifications {
+    export async function create(title: string, message: string, optionsButton: boolean = false): Promise<any> {
+        let id = '1';
+        let opts = {
+            type: 'basic',
+            iconUrl: 'assets/icon-48.png',
+            title, 
+            message,
+        };
+        if (optionsButton) {
+            // @ts-ignore
+            opts.buttons = [{
+                title: 'Options'
+            }];
+        }
+        chrome.notifications.onButtonClicked.addListener((notificationId) => {
+            if (notificationId === id) {
+                chrome.runtime.openOptionsPage();
+            }
+        });
+        chrome.notifications.create(id, opts);
+    }
+}
+
 export namespace ExtensionUtil {
     async function _queryActiveTab(): Promise<chrome.tabs.Tab> {
         let promisifiedChromeTabsQuery = promisify<chrome.tabs.Tab[]>(chrome.tabs.query);
