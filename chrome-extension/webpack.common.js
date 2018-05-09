@@ -91,10 +91,17 @@ let pluginsConfig = Object.assign({}, common, {
 		reddit: './reddit.ts'
 	},
 	output: {
-		filename: "[name].js",
+		filename: "[name].tmp.js",
 		path: path.resolve(__dirname, 'chrome-extension/dist/plugins'),
 		libraryTarget: 'window'
-	}
+	},
+	plugins: [
+		new WebpackShellPlugin({
+			// hack
+			safe: true,
+			onBuildEnd: ['reddit', 'google', 'browser'].map((name) => `sed -e 1,83d chrome-extension/dist/plugins/${name}.tmp.js | tac | sed -e 1,2d | tac > chrome-extension/dist/plugins/${name}.js; rm chrome-extension/dist/plugins/${name}.tmp.js`),
+		})
+	]
 });
 
 
