@@ -17,9 +17,9 @@ declare global {
 }
 
 const LIVE_TEXT_HOLD_TIME = 2000;// * 4000;
+const ua = PluginBase.util.getNoCollisionUniqueAttr();
+const liveTextShadowRootId = `${ua}-live-text-overlay`;
 let activated = false;
-let ua = PluginBase.util.getNoCollisionUniqueAttr();
-let liveTextShadowRootId = `${ua}-live-text-overlay`;
 let liveTextEle: HTMLDivElement;
 let lblTimeout: number;
 let commandsLoading = false;

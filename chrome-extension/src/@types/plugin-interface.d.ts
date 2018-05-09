@@ -88,5 +88,5 @@ declare interface IActivated {
 }
 
 declare interface ITutorialMode {
-    tutorialMode: boolean,
+    tutorialMode: number,
 }

@@ -2,13 +2,13 @@
 	<div ref="card" class="card hide">
 	<yield/>
 	<div class="control-bar">
-		<div if={ !this.finalSlide } class="voice-btn">
+		<div if={ !this.finalSlide } class="voice-btn { disabled: !parent.nextable() }">
 			Say <a ref={this.finalSlide ? '' : 'pulser'} class="pulsate voice-cmd" href={`#slide/${this.slideNum + 1}`}>next</a> to continue
 		</div>
-		<div if={ this.slideNum > 1 } class="voice-btn small">
+		<div if={ this.slideNum > 1 } class="voice-btn small { disabled: !parent.nextable() }">
 			Say <a href={`#slide/${this.slideNum - 1}`} class="voice-cmd">previous</a> or <span class="voice-cmd">back</span> to go back
 		</div>
-		<div class="voice-btn {small: !this.finalSlide, first: this.finalSlide}">
+		<div class="voice-btn {small: !this.finalSlide, first: this.finalSlide, disabled: !parent.nextable()}">
 			Say <a onclick={ parent.exitTutorial } href="#" class="pulsate voice-cmd" ref={this.finalSlide ? 'pulser' : ''} >close tab</a> to {this.slideNum == 1 ? 'skip' : 'finish'} the tutorial
 		</div>
 		<a style="display: none" href={`#slide/${this.slideNum - 1}`}>prev</a>
@@ -21,6 +21,16 @@
 			margin: 0 auto;
 			background-color: #ffffffd6;
 			padding: 25px;
+		}
+
+		.disabled {
+			color: #d0d0d0 !important;
+		}
+		.disabled a {
+			color: #d0d0d0 !important;
+		}
+		.disabled .voice-cmd {
+			background-color: #f5f5f5;
 		}
 
 		.first {
@@ -209,15 +219,22 @@ pulsating-btn.small {
   }
 }
 
-
 	</style>
 	<script>
 		import { storage } from '../common/browser-interface';
 		let pulseStartTime = +this.opts.timing;
 		let animTime = 500;
+		let nextableInterval;
 		this.active = false;
 		this.slideNum = +this.opts.ref.replace('slide', '');
 		this.finalSlide = this.slideNum == this.parent.totalSlides;
+
+		function startPulsing() {
+			this.refs.pulser.classList.remove('pulsate-fwd');
+			setTimeout(() => {
+				this.refs.pulser.classList.add('pulsate-fwd');
+			}, pulseStartTime * 1000);
+		}
 
 		this.slideIn = async (left = false) => {
 			let rt = this.refs.card;
@@ -226,10 +243,17 @@ pulsating-btn.small {
 			this.active = true;
 
 			if (pulseStartTime && this.refs.pulser) {
-				this.refs.pulser.classList.remove('pulsate-fwd');
-				setTimeout(() => {
-					this.refs.pulser.classList.add('pulsate-fwd');
-				}, pulseStartTime * 1000);
+				if (this.parent.nextable()) {
+					startPulsing.apply(this);
+				} else {
+					// wait until it's nextable
+					nextableInterval = setInterval(() => {
+						if (this.parent.nextable()) {
+							clearInterval(nextableInterval);
+							startPulsing.apply(this);
+						}
+					}, 500);
+				}
 			}
 
 			return new Promise((resolve, reject) => {

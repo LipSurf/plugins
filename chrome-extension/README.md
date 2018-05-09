@@ -4,12 +4,13 @@ v0.2
 - [x] live text shows, command turns green, but command doesn't execute after restarting browser (injection issue?)
 - [x] auto-on for tutorial not working with delay?
 - [x] fix twitter videos not playing
-- [ ] don't allow next until microphone has been allowed
+- [x] don't allow next until microphone has been allowed
 - [ ] Faster annotations -- study link heavy reddit
 - [ ] Shadow DOM for annotations
 - [ ] special notification when auto shutoff, no headphone mode, etc.
 - [x] Fix ranking https://www.reddit.com/r/canada/
 - [ ] Logo improvement, greyed out icon
+- [x] Re-open tutorial if user quit on second slide
 
 v0.3
 - [ ] sometimes clicking a post number goes wrong

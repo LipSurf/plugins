@@ -37,7 +37,7 @@ let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
-let fullyLoadedPromise = store.rebuildLocalPluginCache().then(() => {
+let fullyLoadedPromise = store.rebuildLocalPluginCache().then(async() => {
     let recg = new Recognizer(store,
         tabs.onUrlUpdate,
         queryActiveTab,
@@ -60,7 +60,21 @@ let fullyLoadedPromise = store.rebuildLocalPluginCache().then(() => {
         })
     }
 
-    return Promise.resolve({recg, ps, pm, mn});
+    // we re-open the tutorial because the user might not have
+    // restore-tabs on and didn't explicitly close the tutorial before
+    let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
+    let slideNum;
+    if (tutMode.tutorialMode === undefined) {
+        slideNum = 1;
+    } else if (typeof tutMode.tutorialMode === 'number') {
+        slideNum = tutMode.tutorialMode;  
+    }
+
+    console.log(`slideNum ${slideNum}`);
+    if (slideNum > 0) {
+        openTutorial(slideNum);
+    }
+    return {recg, ps, pm, mn};
 });
 
 
@@ -220,14 +234,6 @@ storage.local.registerOnChangeCb(async (changes) => {
 // "install", "update", "chrome_update", or "shared_module_update"
 chrome.runtime.onInstalled.addListener(async (details) => {
     console.log(`Installed reason: ${details.reason}`);
-    if (details.reason === 'install' || PRETEND_FIRST_INSTALL) {
-        // don't open the tutorial until the plugin is done loading
-        let tutMode = await storage.sync.load < ITutorialMode > ("tutorialMode");
-        if (typeof tutMode.tutorialMode === 'undefined' || tutMode.tutorialMode) {
-            await fullyLoadedPromise;
-            openTutorial();
-        }
-    }
 
     // reinject the new CS so user doesn't need to reload tabs
     // WARNING: This needs to be updated anytime the manifest content scripts change
@@ -291,13 +297,25 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     //     // go back up to all the frames
     //     // let tab = await queryActiveTab();
     //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
-    if (request === 'loadPlugins') {
-        let tab = sender.tab;
-        fullyLoadedPromise.then((res) => {
-            res.pm.getPluginCSCode(tab.url).then((compiledCsCodeStr) => {
-                sendResponse(compiledCsCodeStr);
+    switch (request) {
+        case 'loadPlugins':
+            let tab = sender.tab;
+            fullyLoadedPromise.then((res) => {
+                res.pm.getPluginCSCode(tab.url).then((compiledCsCodeStr) => {
+                    sendResponse(compiledCsCodeStr);
+                });
             });
-        });
+            break;
+        case 'closeTutorial':
+            console.log('closing tutorial...');
+            setTimeout(() => {
+                // if this is still pending after the timeout -- then it's likely the browser
+                // is still open and the user didn't explicitly close the tutorial tab
+                // but rather closed all of chrome (for instance for a flag change restart)
+                // in such cases we want to leave the tutorial open
+                storage.sync.save({tutorialMode: -1});
+                console.log('tutorial closed');
+            }, 1500);
     }
     return true;
 });
@@ -313,32 +331,35 @@ async function promptForPermission() {
     let tutMode = await storage.sync.load < ITutorialMode > ("tutorialMode");
     // TODO: load setting defaults here
     if (typeof tutMode.tutorialMode === "undefined" || tutMode.tutorialMode) {
-        openTutorial();
+        // do nothing
     } else {
         chrome.runtime.openOptionsPage();
     }
 }
 
-function openTutorial() {
+function openTutorial(slideNum: number = 1) {
     let foundExisting = false;
-    let tutUrl = chrome.extension.getURL(`views/tutorial.html`);
+    let tutBaseUrl = chrome.extension.getURL(`views/tutorial.html`);
+    let tutUrl = `${tutBaseUrl}#slide/${slideNum}`;
+    console.log(`openTutorial slideNum ${slideNum}`);
     chrome.tabs.query({}, (tabs) => {
         for (let tab of tabs) {
-            if (tab.url.indexOf(tutUrl) == 0) {
+            if (tab.url.indexOf(tutBaseUrl) == 0) {
                 chrome.windows.update(tab.windowId, {
                     focused: true
                 });
                 chrome.tabs.update(tab.id, {
                     active: true,
-                    url: `${tutUrl}#slide/1`
                 });
                 foundExisting = true;
+                console.log(`found existing`);
+                break;
             }
         }
         if (!foundExisting) {
             chrome.tabs.create({
                 active: true,
-                url: chrome.extension.getURL(`views/tutorial.html`)
+                url: tutUrl
             });
         }
     });

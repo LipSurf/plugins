@@ -96,9 +96,9 @@
             background-position: bottom;
             background-repeat-x: repeat;
             background-repeat-y: no-repeat;
-            background-size: 510%;
+			background-position-x: 0px;
+			background-size: 30%;
             height: 100%;
-            animation: bgIn 3.5s;
 			position: absolute;
 			top: 0;
 			bottom: 0;
@@ -111,22 +111,53 @@
         }
 
         /* Chrome, Safari, Opera */
-        @-webkit-keyframes bgIn {
+        @-webkit-keyframes fade-in {
             0% {opacity: 0;}
             50% {opacity: 0;}
             100% {opacity: 0.7;}
         }
 
         /* Standard syntax */
-        @keyframes bgIn {
+        @keyframes fade-in {
             0% {opacity: 0;}
             50% {opacity: 0;}
             100% {opacity: 0.7;}
         }
 
+		.fade-in {
+            animation: fade-in 1s;
+		}
+
+		.waves-move-left {
+			animation: waves-left 1s ease-in-out;
+		}
+
+		.waves-move-right {
+			animation: waves-right 1s ease-in-out;
+		}
+
+		@keyframes waves-right {
+			0% {
+				background-position-x: 0px;
+			}
+			100% {
+				background-position-x: 222px;
+			}
+		}
+
+		@keyframes waves-left {
+			0% {
+				background-position-x: 0px;
+			}
+			100% {
+				background-position-x: -222px;
+			}
+		}
+
+
 	</style>
-	<div id="bg"></div>
-	<slide ref="slide1" timing="4">
+	<div ref="bg" id="bg"></div>
+	<slide ref="slide1" timing="1">
 		<img class="logo" src="../assets/icon-128.png" />
 		<h1 class="cowabunga">cowabunga.</h1>
 		<div>
@@ -229,17 +260,34 @@
 		this.activated = false;
 		this.optionsUrl = chrome.extension.getURL("views/options.html");
 
+		this.on('mount', () => {
+			this.refs.bg.classList.add('fade-in');
+			setTimeout(() => {
+				this.refs.bg.classList.remove('fade-in');
+			}, 1000);
+		});
+
 		route(async (collection, id, action) => {
-			let prevRt, newRt;
+			let prevRt, newRt, left;
 			if (!id) {
 				id = 1;
 			}
 			id = +id;
 			if (typeof id !== "number" || id > this.totalSlides || id < 1 || isNaN(id))
 				id = 1;
+			left = curSlide <= id ? true : false;
+
+			storage.sync.save({tutorialMode: id});
 			if (curSlide) {
+				// don't do the waves movement for the initial slide because
+				// we fade in
+				this.refs.bg.classList.add(`waves-move-${left ? 'left' : 'right'}`);
+				setTimeout(() => {
+					this.refs.bg.classList.remove(`waves-move-${left ? 'left' : 'right'}`);
+				}, 1000);
+
 				prevRt = this.refs[`slide${curSlide}`];
-				await prevRt.slideOut(curSlide <= id ? true : false);
+				await prevRt.slideOut(left);
 			}
 
 			newRt = this.refs[`slide${id}`];
@@ -248,7 +296,7 @@
 				// TODO: make more special
 				await newRt.slideIn(false);
 			} else {
-				await newRt.slideIn(curSlide <= id ? false : true);
+				await newRt.slideIn(!left);
 			}
 			curSlide = id;
 		});
@@ -263,6 +311,10 @@
 			}
 		});
 		storage.local.save({activated: true});
+
+		this.nextable = () => {
+			return this.hasMicPerm;
+		}
 
 		// cannot open flags with regular anchor tag
 		this.openFlags = () => {
@@ -291,11 +343,14 @@
         }, 1500);
 
 		this.exitTutorial = async () => {
-			await storage.sync.save({tutorialMode: false});
+            chrome.runtime.sendMessage('closeTutorial');
 			window.close();
 		};
 
-		window.addEventListener('unload', this.exitTutorial);
+		window.addEventListener('unload', () => {
+			// don't call window.close in this one
+            chrome.runtime.sendMessage('closeTutorial');
+		});
 
 	</script>
 </tutorial>
