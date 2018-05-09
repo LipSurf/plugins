@@ -5,12 +5,11 @@ v0.2
 - [x] auto-on for tutorial not working with delay?
 - [x] fix twitter videos not playing
 - [x] don't allow next until microphone has been allowed
-- [ ] Faster annotations -- study link heavy reddit
-- [ ] Shadow DOM for annotations
 - [x] special notification when auto shutoff
 - [x] Fix ranking https://www.reddit.com/r/canada/
 - [ ] Logo improvement, greyed out icon
 - [x] Re-open tutorial if user quit on second slide
+- [ ] changing options turns off annotations and scrolls up
 
 v0.3
 - [ ] special notification to remind user about no headphones mode?
@@ -46,6 +45,7 @@ vNext
 - [ ] Text mode allows users to type commands (and they work in the browser)
 - [ ] Click live text when there's no match to add a correction
 - [ ] Allow sites to embed commands in the markup?
+- [ ] Faster annotations -- study link heavy reddit
 
 plugins
 ===
@@ -81,7 +81,7 @@ marketing/profit
   -- someone eating while controlling the browser
   -- someone typing a report on one screen then saying commands to another screen with the browser open to control the page without moving their hands to the mouse
   -- a grafana dashboard on a tv screen in a meeting room -- people can talk to it to show metrics
-  
+
 Other successfull payed chrome extensions:
   * https://checkbot.io
     SEO checking with a pro version
@@ -125,19 +125,10 @@ stretch goals
 support undo/redo
 discourse forum
 
-API
+Paid Version
 ===
-cs --{ bubbleDown: msg }-->  background.js
-cs --loadPlugins--> background.js
-cs <--{cmdName: cmd name}-- backgronud.js
-cs <--{liveText: live text}-- backgronud.js
-cs <--{toggleActivated: boolean}-- background.js
-
-
-Known Issues:
-[1] Infinite loading when extension is activated. Some workarounds implemented in tests so that
-    we don't wait for selenium indefinitely to consider a page "loaded".
-[2] Clicking the extension and immediately turning it off leaves behind "ready" and help text
+* Wake word (lipsurf on)
+ https://www.reddit.com/r/speechrecognition/comments/8699hk/porcupine_a_selfservice_highlyaccurate_and/
 
 
 Competitors?

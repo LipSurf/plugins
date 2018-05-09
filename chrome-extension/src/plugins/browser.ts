@@ -94,6 +94,7 @@ export class BrowserPlugin extends PluginBase {
         return (eleTop + 5 <= docViewBottom && eleTop >= docViewTop && eleLeft >= docViewLeft && eleLeft - 5 < docViewRight);
     }
 
+
     // Annotations
     static LETTERS = 'CFGHIJKLOQRSTVXYZ'.split('');
     static NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 20, 30, 40, 50, 60, 70, 80, 90];
@@ -123,6 +124,7 @@ export class BrowserPlugin extends PluginBase {
 
     static annotate = false;
     static annotationsMap: { [name: string]: HTMLElement } = {};
+    static annotationsTimer: number;
     // End annotations
 
     static templateCache = {};
@@ -374,6 +376,12 @@ export class BrowserPlugin extends PluginBase {
             let prevCount = null;
             let ua = PluginBase.util.getNoCollisionUniqueAttr();
             BrowserPlugin.setOption('annotate', true);
+
+            // clear old annotations
+            BrowserPlugin.annotate = false;
+            // there's still a potential race condition here if the annotationsTimer cb is already running and is async?
+            clearTimeout(BrowserPlugin.annotationsTimer);
+            $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont]`).empty();
             BrowserPlugin.annotationsMap = {};
             BrowserPlugin.annotate = true;
 
@@ -405,6 +413,7 @@ export class BrowserPlugin extends PluginBase {
                         } catch(e) {}
                     }
                 });
+                // let deleteEndTime = performance.now();
 
                 // update positioning, in case element "moved" (like with youtube fixed sidebar)
                 $(`#${ua}-anno-cont > div[anno]`).css({
@@ -423,6 +432,7 @@ export class BrowserPlugin extends PluginBase {
                         }
                     },
                 });
+                // let adjustEndTime = performance.now();
 
                 let cont = BrowserPlugin.getAnnoCont();
                 // create the master copy
@@ -455,22 +465,33 @@ export class BrowserPlugin extends PluginBase {
                         let $ele = $(ele);
                         if (BrowserPlugin.visibleOnPage(windowTop, windowBottom, windowLeft, windowRight, $ele)
                                 && allAnnotated.indexOf(ele) === -1) {
+                            let maxZIndex = 0;
+                            let offset = $ele.offset();
+                            let parent = ele.parentElement;
+                            let child = ele;
                             count += 1;
+
+                            // do the check for hidden here
+                            while (parent !== null) {
+                                let $parent = $(parent);
+                                if ((parent.offsetHeight == 0 || (child.offsetHeight > 0 && child.offsetTop > (parent.offsetTop + parent.offsetHeight))) && $parent.css('overflow') === 'hidden') {
+                                    return;
+                                }
+                                let zIndex = parseInt($parent.css('z-index'))
+                                if (!isNaN(zIndex))
+                                    maxZIndex = Math.max(maxZIndex, zIndex);
+                                child = parent;
+                                parent = parent.parentElement;
+                            }
+
                             let name = BrowserPlugin.popName();
                             if (name) {
                                 let clone = <HTMLDivElement>masterAnno.cloneNode();
-                                let offset = $ele.offset();
                                 clone.textContent = name;
                                 clone.style.top = `${Math.max(0, offset.top - 5)}px`;
                                 clone.style.left = `${Math.max(0, offset.left - 5)}px`;
                                 // clone.style.zIndex = `${2000000000 + i}`;
                                 // get max z-index
-                                let maxZIndex = 0;
-                                $ele.parents().each((i, ele) => {
-                                    let zIndex = parseInt($(ele).css('z-index'))
-                                    if (!isNaN(zIndex))
-                                        maxZIndex = Math.max(maxZIndex, zIndex);
-                                });
                                 clone.style.zIndex = maxZIndex === 0 ? 'auto' : `${maxZIndex}`;
                                 clone.setAttribute('anno', name);
                                 BrowserPlugin.annotationsMap[name] = ele;
@@ -481,10 +502,10 @@ export class BrowserPlugin extends PluginBase {
                 )
                 if (prevCount != count) {
                     prevCount = count;
-                    console.log(`Elapsed: ${performance.now() - startTime}. Removed ${removedCount}, annotated ${count} elements`);
+                    console.log(`Total elapsed: ${performance.now() - startTime}. Removed ${removedCount}. Annotated ${count}.`);
                 }
                 if (BrowserPlugin.annotate) {
-                    setTimeout(annotationsTimer, 100);
+                    BrowserPlugin.annotationsTimer = window.setTimeout(annotationsTimer, 100);
                 } else {
                     // clear what we just made in case this came at a delay (race condition)
                     $(`div[id=${ua}-anno-cont]`).empty();
@@ -499,6 +520,8 @@ export class BrowserPlugin extends PluginBase {
         description: 'Hide the annotations',
         match: ['unannotate', 'close annotations', 'hide annotations', 'annotations off', 'turn off annotations', 'annotate off', 'no annotations', 'annotation off'],
         runOnPage: async function() {
+            // unsure if timeout is actually needed
+            clearTimeout(BrowserPlugin.annotationsTimer);
             BrowserPlugin.annotate = false;
             $(`div[id=${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont]`).empty();
             BrowserPlugin.setOption('annotate', false);

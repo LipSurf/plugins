@@ -68,7 +68,7 @@ export abstract class PluginBase {
     // while lipsurf is activated. Or when lipsurf is first activated.
     static init?: () => void;
 
-    // called when plugin is deactivated (speech recg paused)
+    // called when plugin is deactivated (speech recg. paused)
     // in page context
     static destroy?: () => void;
 

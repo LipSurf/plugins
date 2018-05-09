@@ -47,11 +47,11 @@
         <h2>Plugins</h2>
         <div each={ options.cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
-                <div class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
+                <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
                     <div class="label">{ friendlyName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
                         <div class="desc">{ description }</div>
                     </div>
-                </div>
+                </a>
                 <div class="collapsable">
                     <div class="collapsable-inner">
                         <div class="homophones" if={ homophones.length > 0 }>
