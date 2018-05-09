@@ -80,7 +80,8 @@ marketing/profit
 * Insta video posts:
   -- someone eating while controlling the browser
   -- someone typing a report on one screen then saying commands to another screen with the browser open to control the page without moving their hands to the mouse
-
+  -- a grafana dashboard on a tv screen in a meeting room -- people can talk to it to show metrics
+  
 Other successfull payed chrome extensions:
   * https://checkbot.io
     SEO checking with a pro version

@@ -96,10 +96,10 @@ let pluginsConfig = Object.assign({}, common, {
 		libraryTarget: 'window'
 	},
 	plugins: [
+		// hack
 		new WebpackShellPlugin({
-			// hack
 			safe: true,
-			onBuildEnd: ['reddit', 'google', 'browser'].map((name) => `sed -e 1,83d chrome-extension/dist/plugins/${name}.tmp.js | tac | sed -e 1,2d | tac > chrome-extension/dist/plugins/${name}.js; rm chrome-extension/dist/plugins/${name}.tmp.js`),
+			onBuildExit: ['reddit', 'google', 'browser'].map((name) => `sed -e 1,83d chrome-extension/dist/plugins/${name}.tmp.js | tac | sed -e 1,2d | tac > chrome-extension/dist/plugins/${name}.js`),
 		})
 	]
 });

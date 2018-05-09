@@ -1,6 +1,7 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
+declare let SKIP_TUTORIAL: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
 declare let PRETEND_FIRST_INSTALL: boolean;
@@ -71,7 +72,7 @@ let fullyLoadedPromise = store.rebuildLocalPluginCache().then(async() => {
     }
 
     console.log(`slideNum ${slideNum}`);
-    if (slideNum > 0) {
+    if (slideNum > 0 && !SKIP_TUTORIAL) {
         openTutorial(slideNum);
     }
     return {recg, ps, pm, mn};
@@ -230,7 +231,7 @@ storage.local.save({
 // chrome session, the activate would be called and this register needs to be ready to roll!
 storage.local.registerOnChangeCb(async (changes) => {
     let {mn} = await fullyLoadedPromise; 
-    if (changes && changes.activated && mn.activated !== changes.activated.newValue) {
+    if (changes && changes.activated && changes.activates.newValue !== undefined && mn.activated !== changes.activated.newValue) {
         mn.toggleActivated(changes.activated.newValue);
     }
 });

@@ -303,6 +303,8 @@ export class BrowserPlugin extends PluginBase {
         let cont = document.getElementById(id);
         if (!cont) {
             cont = document.createElement('div');
+            // doesn't make a measureable difference in the limiting testing that was done
+            cont.setAttribute('style', 'contain: style layout size;');
             cont.setAttribute(ua, '');
             cont.id = id;
             document.body.appendChild(cont);
@@ -385,6 +387,7 @@ export class BrowserPlugin extends PluginBase {
                 let count = 0;
                 let removedCount = 0;
                 let annoMapKeys = Object.keys(BrowserPlugin.annotationsMap);
+
                 // remove invisible annotations and mark their names as available again
                 annoMapKeys.forEach((anno) => {
                     let $ele = $(BrowserPlugin.annotationsMap[anno]);
@@ -454,8 +457,8 @@ export class BrowserPlugin extends PluginBase {
                                 && allAnnotated.indexOf(ele) === -1) {
                             count += 1;
                             let name = BrowserPlugin.popName();
-                            let clone = <HTMLDivElement>masterAnno.cloneNode();
                             if (name) {
+                                let clone = <HTMLDivElement>masterAnno.cloneNode();
                                 let offset = $ele.offset();
                                 clone.textContent = name;
                                 clone.style.top = `${Math.max(0, offset.top - 5)}px`;
@@ -877,6 +880,22 @@ export class BrowserPlugin extends PluginBase {
             await this.driver.wait(async () => {
                 return (await this.driver.executeScript('return window.pageYOffset')) < oldYPos;
             }, 3000);
+        }
+    }, {
+        name: 'Auto Scroll',
+        match: ["auto scroll", "automatic scroll"],
+        description: 'Continuosly scroll down the page slowly, at a reading pace.',
+        runOnPage: async function () {
+            let prevPos = null;
+            let scrollSpeed = 20;
+            let scrollInterval = setInterval(() => {
+                window.scrollBy(0, 20); 
+                // if there was outside movement, or if we hit the bottom
+                if (prevPos && (window.scrollY - prevPos <= 0 || window.scrollY - prevPos > scrollSpeed * 1.5)) {
+                    clearInterval(scrollInterval);
+                }
+                prevPos = window.scrollY;
+            }, 50);
         }
     }, {
         name: 'Stop',
