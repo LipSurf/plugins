@@ -1,8 +1,8 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../@types/plugin-interface.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { omit, mapValues, pick } from "lodash";
-import { promisify, instanceOfDynamicMatch } from "../common/util";
+import { omit, mapValues, pick, reduce } from "lodash";
+import { promisify, instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
 import { getStoredOrDefault, getOptions } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
@@ -82,9 +82,30 @@ export class Store {
     }
 
     // save user preference changes
-    async save(data: ISyncData) {
-        await promisify(storage.sync.save)(data);
-        this.options = await this.getOptions(true);
+    // don't need to include DEFAULT_PREFERENCES because those are used on loads only
+    async save(partialOptions: Partial<IOptions>) {
+        // first merge plugin arrays manually -- otherwise the arrays just get overwritten naively by the latest merge obj
+        if (partialOptions.plugins) {
+            partialOptions.plugins = partialOptions.plugins.map(plugin => {
+                let merger = this.options.plugins.find(x => x.id === plugin.id);
+                if (merger) 
+                    return objectAssignDeep({}, merger, plugin);
+                return plugin;
+            });
+        }
+        let newOptions:IOptions = objectAssignDeep({}, this.options, partialOptions);
+        // extract just the sync part from options
+        await promisify(storage.sync.save)({
+            ... omit(newOptions, 'plugins'),
+            plugins: newOptions.plugins.reduce((memo, plugin) => {
+                memo[plugin.id] = {
+                    disabledCommands: plugin.commands.filter(x => !x.enabled).map(x => x.name),
+                    disabledHomophones: plugin.homophones.filter(x => !x.enabled).map(x => x.source),
+                    ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
+                };
+                return memo;
+            }, {}),
+        });
         this.publish();
     }
 

@@ -231,7 +231,7 @@ storage.local.save({
 // chrome session, the activate would be called and this register needs to be ready to roll!
 storage.local.registerOnChangeCb(async (changes) => {
     let {mn} = await fullyLoadedPromise; 
-    if (changes && changes.activated && changes.activates.newValue !== undefined && mn.activated !== changes.activated.newValue) {
+    if (changes && changes.activated && changes.activated.newValue !== undefined && mn.activated !== changes.activated.newValue) {
         mn.toggleActivated(changes.activated.newValue);
     }
 });

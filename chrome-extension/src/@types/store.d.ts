@@ -14,6 +14,8 @@ interface IPluginConfig extends IDisableable, IToggleableHomophones {
     cs: string,
     commands: IPluginConfigCommand[],
     description?: string,
+    // custom settings that the plugin can set within it's commands (eg. browser annotate)
+    settings: object,
 }
 
 interface IPluginConfigCommand extends ICommonCommand, IDisableable {
@@ -44,7 +46,7 @@ declare interface IGeneralOptions {
     showLiveText: boolean,
     noHeadphonesMode: boolean,
     inactivityAutoOffMins: number,
-    tutorialMode: boolean,
+    tutorialMode: number,
 }
 
 declare interface ISyncPluginData extends IDisableable {

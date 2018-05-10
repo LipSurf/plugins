@@ -57,6 +57,7 @@ class OptionsPage extends StoreSynced {
                         match: instanceOfDynamicMatch(cmd.match) ? cmd.match.description : cmd.match,
                         ... pick(cmd, 'enabled', 'name', 'description'),
                     })),
+                   // TODO: fix this ugly thing
                     ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'friendlyName', 'id', 'description', 'homophones'),
             })),
         });
@@ -67,15 +68,7 @@ class OptionsPage extends StoreSynced {
     save() {
         // @ts-ignore: omit takes out cmdGroups
         this.store.save({
-            ... omit(this.options, 'cmdGroups'),
-            plugins: this.options.cmdGroups.reduce((memo, cmdGroup) => {
-                memo[cmdGroup.id] = {
-                    disabledCommands: cmdGroup.commands.filter(x => !x.enabled).map(cmd => cmd.name),
-                    disabledHomophones: cmdGroup.homophones.filter(x => !x.enabled).map(homo => homo.source),
-                    ... pick(cmdGroup, 'version', 'expanded', 'enabled', 'showMore'),
-                };
-                return memo;
-            }, {}),
+            plugins: this.options.cmdGroups,
         });
     }
 

@@ -252,7 +252,7 @@ function executeDeepMerge (target, _objects = []) {
 }
 
 export function objectAssignDeep(target, ...objects) {
-	return executeDeepMerge(target, objects);
+    return executeDeepMerge(target, objects);
 }
 
 export function deepSet(obj: object, path: string, val: any) {

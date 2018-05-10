@@ -77,6 +77,7 @@ let unMangledConfig = Object.assign({}, common, {
 
 let pluginsConfig = Object.assign({}, common, {
 	context: path.resolve(__dirname, 'src/plugins/'),
+	// TODO: make mode none?
 	mode: "development",
 	//target: (compiler) => {
 		////compiler.apply(

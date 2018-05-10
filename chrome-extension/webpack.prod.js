@@ -13,6 +13,7 @@ let featureFlags = {
 	CLEAR_SETTINGS: JSON.stringify(false),
 	AUTO_ON: JSON.stringify(false),
 	PRETEND_FIRST_INSTALL: JSON.stringify(false),
+	SKIP_TUTORIAL: JSON.stringify(false),
 };
 
 let prodCommon = {
@@ -51,8 +52,6 @@ module.exports = [
      merge(unMangledConfig, prodCommon, {
 
      }),
-     merge(pluginsConfig, prodCommon, {
-         mode: "none",
-     }),
+     pluginsConfig,
 ];
 

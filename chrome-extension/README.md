@@ -7,11 +7,12 @@ v0.2
 - [x] don't allow next until microphone has been allowed
 - [x] special notification when auto shutoff
 - [x] Fix ranking https://www.reddit.com/r/canada/
-- [ ] Logo improvement, greyed out icon
+- [x] Logo improvement, greyed out icon
 - [x] Re-open tutorial if user quit on second slide
-- [ ] changing options turns off annotations and scrolls up
+- [x] changing options turns off annotations and scrolls up
 
 v0.3
+- [ ] annotations change when initially turned on after first highlight
 - [ ] special notification to remind user about no headphones mode?
 - [ ] sometimes clicking a post number goes wrong
 - [ ] say "you imbecile" or "you idiot" after a command to correct the command by adding a homophone of what you meant

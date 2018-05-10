@@ -6,7 +6,7 @@ import { objectAssignDeep } from "./util";
 export const DEFAULT_PREFERENCES: ISyncData = {
     showLiveText: true,
     noHeadphonesMode: false,
-    tutorialMode: true,
+    tutorialMode: 1,
     inactivityAutoOffMins: 20,
     plugins: [
             ['Browser', '1.0.0'],
@@ -70,11 +70,10 @@ function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginD
                 })
             ),
             ... pick(_localPluginData, 'friendlyName', 'match', 'cs', 'description', ),
-            ... pick(_syncPluginData, 'expanded', 'version', 'enabled', 'showMore'),
+            ... pick(_syncPluginData, 'expanded', 'version', 'enabled', 'showMore', 'settings'),
         }
     });
 }
-
 
 export async function getOptions(): Promise<IOptions> {
     let [syncData, localData] = await getStoredOrDefault();

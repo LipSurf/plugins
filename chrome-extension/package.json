@@ -22,7 +22,8 @@
     "build": "webpack --config webpack.dev.js --progress",
     "watch": "webpack --config webpack.dev.js --watch --progress",
     "build-prod": "webpack --verbose --config webpack.prod.js --display verbose",
-    "watch-prod": "webpack --config webpack.prod.js --watch"
+    "watch-prod": "webpack --config webpack.prod.js --watch",
+    "release": "npm run build-prod && rm chrome-extension/dist/plugins/*.tmp.js && zip -r lipsurf.zip chrome-extension/"
   },
   "repository": {
     "type": "git",

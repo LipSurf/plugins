@@ -393,7 +393,7 @@
 	}
 
     this.toggleGroupEnabled = (e) => {
-        e.stopPropagation()
+        e.stopPropagation();
         e.item.enabled = !e.item.enabled;
         this.save();
     }
@@ -402,6 +402,7 @@
         // hack to get around propagation not being stopped in riot
         if (e.target.nodeName.toLowerCase() != 'input' &&
             e.target.nodeName.toLowerCase() != 'label') {
+            e.preventDefault();
             let item = e.item;
             item.expanded = !item.expanded;
             this.save();
@@ -409,7 +410,7 @@
     }
 
 	this.toggleShowMore = (e) => {
-		e.stopPropagation()
+		e.stopPropagation();
 		e.preventDefault();
 		e.item.showMore = !e.item.showMore;
 		this.save();
