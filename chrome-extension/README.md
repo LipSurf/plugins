@@ -1,6 +1,7 @@
 TODO
 ===
 v0.3
+- [ ] blink annotation when clicked
 - [ ] Portal/documentation for plugins
 - [ ] Make sure all annotations work nicely
 - [ ] "Voice Control for Google Chrome" landing page
@@ -9,7 +10,7 @@ v0.3
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default? Have a disclaimer slide after the 1 person at a time slide
        that talks about how you must use headphones if you're playing videos with lipsurf
-- [ ] BUG no headphones mode live text starts showing after watching vid for a while
+- [x] BUG no headphones mode live text starts showing after watching vid for a while
 
 v0.4
 - [ ] annotations change when initially turned on after first highlight

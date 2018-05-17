@@ -366,7 +366,7 @@
 	require('./cmd.tag');
 	require('./homophone.tag');
     this.options = opts.store;
-    this.hasMicPerm = null;
+    this.hasMicPerm = true;
 
     this.save = () => {
         options.save();

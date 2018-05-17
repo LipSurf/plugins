@@ -198,7 +198,21 @@
 			</li>
 		</ul>
 	</slide>
-	<slide ref="slide4" timing="5">
+	<slide ref="slide4" timing="4">
+		<h4>Use Headphones when Playing Videos/Music!</h4>
+		<ul>
+			<li>
+				The sound from videos will make it hard for LipSurf to discern your voice, unless you use headphones.
+			</li>
+				<li>"No Headphones Mode" can be found in the <a target="_blank" class="voice-cmd" href={parent.optionsUrl}>options</a>.</li>
+					<ul>
+						<li>Does not help LipSurf recognize commands with background noise.</li>
+						<li>Suppresses gibberish live text; will only show live text feedback for valid commands, not live text for all of the speech coming from the video you're playing.</li>
+					</ul>
+				</li>
+		</ul>
+	</slide>
+	<slide ref="slide5" timing="5">
 		<h4>Endless Commands</h4>
 		<ul>
 			<li>By default LipSurf has 50-ish commands.</li>
@@ -214,38 +228,31 @@
 			</li>
 		</ul>
 	</slide>
-	<slide ref="slide5" timing="6">
+	<slide ref="slide6" timing="6">
 		<h4>How to Click Anything</h4>
 		<ul>
 			<li>Say <span class="voice-cmd">annotate</span> to highlight all clickable things on the page.</li>
 			<li>To click any clickable thing with your voice, simply say what's in the yellow annotation on the upper left of the clickable thing!</span>
 		</ul>
 		<div class="note">
-			<i class="material-icons warning">warning</i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>
+			<i class="material-icons warning">warning</i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>.
 		</div>
 	</slide>
-	<slide ref="slide6" timing="4">
+	<slide ref="slide7" timing="4">
 		<h4>When in Doubt, Just Say HELP</h4>
 		<ul>
-			<li><span class="voice-cmd">Help</span> shows all the available commands for the <i>current page</i> that you are on!</li>
+			<li><span class="voice-cmd">Help</span> shows all the available commands for the <i>current page</i> that you're on!</li>
 			<li>Say <span class="voice-cmd">close help</span> to get rid of the pesky help box.</li>
 		</ul>
 	</slide>
-	<slide ref="slide7" timing="4">
+	<slide ref="slide8" timing="4">
 		<h2 class="center">Dude, you made it to the end of the tutorial. Enjoy LipSurf!</h2>
 		<h4>Final Notes</h4>
-		<div>Configure on the <a target="_blank" class="voice-cmd" href={parent.optionsUrl}>options</a> page.</div>
+		<div>Configure on the <a target="_blank" class="voice-cmd" href={parent.optionsUrl}>options</a> page:</div>
 		<ul>
 			<li>Automatic Shut-off Time
 				<ul>
 					<li>LipSurf will automatically deactivate if you don't give it a legit command for 20 minutes (by default).</li>
-				</ul>
-			</li>
-			<li>No Headphones Mode
-				<ul>
-					<li>If you're playing a video but not using headphones, LipSurf might pick up the speech from the video.</li>
-					<li>Use the "no headphones" mode to suppress the live text feedback in these cases.</li>
-					<li>This mode will only show live text feedback for valid commands, and not all of the speech coming from the video you're playing.</li>
 				</ul>
 			</li>
 		</ul>
@@ -255,7 +262,7 @@
 		import route from 'riot-route';
 		import { storage } from '../common/browser-interface';
 		let curSlide;
-		this.totalSlides = 7;
+		this.totalSlides = 8;
 		this.hasMicPerm = false;
 		this.activated = false;
 		this.optionsUrl = chrome.extension.getURL("views/options.html");

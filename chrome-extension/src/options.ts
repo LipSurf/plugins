@@ -68,6 +68,7 @@ class OptionsPage extends StoreSynced {
     save() {
         // @ts-ignore: omit takes out cmdGroups
         this.store.save({
+            ... omit(this.options, 'cmdGroups'),
             plugins: this.options.cmdGroups,
         });
     }
