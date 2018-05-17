@@ -318,19 +318,22 @@ export class BrowserPlugin extends PluginBase {
 
     static init() {
         // inject the CSS
+        // don't use em/rem because these vary based on the webpage so annotations are too
+        // small for eg. youtube
         // WARNING: opacity changes stacking context!
         let STYLE = `
             .${PluginBase.util.getNoCollisionUniqueAttr()}-anno {
                 border: 1px solid red;
                 display: inline-block;
                 background-color: yellow;
-                font-weight: normal;
                 color: #111;
                 border-style: dotted;
-                padding: 2px;
+                padding: 0 1px;
+                font-family: Arial, sans-serif;
                 border-radius: 6px;
-                font-size: 0.7rem;
+                font-size: 8pt;
                 font-weight: bold;
+                line-height: 10pt;
                 position: absolute;
                 box-shadow: #00000081 2px 2px 1px;
             }

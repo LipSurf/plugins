@@ -5,7 +5,7 @@ v0.3
 - [ ] Make sure all annotations work nicely
 - [ ] "Voice Control for Google Chrome" landing page
 - [x] Remove console.log from plugins?
-- [ ] Fix livetext padding/margin (looks f'd on lobste.rs)
+- [x] Fix livetext padding/margin (looks f'd on lobste.rs)
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default? Have a disclaimer slide after the 1 person at a time slide
        that talks about how you must use headphones if you're playing videos with lipsurf

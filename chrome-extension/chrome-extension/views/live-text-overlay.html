@@ -17,6 +17,8 @@
     }
 
     #live-text-cont {
+        /* resets any parent styling like line-height etc. */
+        all: initial;
         position: fixed;
         text-align: center;
         top: 0;
@@ -32,6 +34,7 @@
         opacity: 1;
     }
 
+    /* dont' use REM as that's page dependent */
     #live-text span {
         font-family: "Barlow";
         font-weight: 200;
@@ -40,7 +43,7 @@
         background-color: rgba(0, 0, 0, 0.7);
         margin: 0 auto;
         color: #8c8c8c;
-        font-size: 2.5rem;
+        font-size: 30pt;
     }
 
     #live-text span.final {

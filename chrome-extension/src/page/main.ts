@@ -16,7 +16,7 @@ declare global {
     }
 }
 
-const LIVE_TEXT_HOLD_TIME = 2000;// * 4000;
+const LIVE_TEXT_HOLD_TIME = 2000; //* 4000;
 const ua = PluginBase.util.getNoCollisionUniqueAttr();
 const liveTextShadowRootId = `${ua}-live-text-overlay`;
 let activated = false;
@@ -140,16 +140,16 @@ async function showLiveText(parcel: ILiveTextParcel) {
         liveTextEle.removeChild(liveTextEle.firstChild);
     }
     let spanned = document.createElement('span');
-    if (parcel.isFinal) 
+    if (parcel.isFinal)
         spanned.classList.add('final');
-    if (parcel.isSuccess)  
+    if (parcel.isSuccess)
         spanned.classList.add('success');
     spanned.innerText = parcel.text;
     liveTextEle.appendChild(spanned);
 
     if (lblTimeout) {
         clearTimeout(lblTimeout);
-    } 
+    }
     lblTimeout = window.setTimeout(() => {
         liveTextEle.classList.add('leave');
     }, parcel.hold ? LIVE_TEXT_HOLD_TIME * 3 : LIVE_TEXT_HOLD_TIME);
