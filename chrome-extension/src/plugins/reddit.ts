@@ -118,7 +118,7 @@ export class RedditPlugin extends PluginBase {
                     }
                 }
             }
-        }, 
+        },
         {
         name: "Collapse",
         description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",

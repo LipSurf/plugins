@@ -1,7 +1,7 @@
 const merge = require('webpack-merge');
 const webpack = require('webpack');
 const {
-    bgConfig, unMangledConfig, pluginsConfig,
+    bgConfig, unMangledConfig,
 } = require('./webpack.common.js');
 
 
@@ -30,5 +30,4 @@ module.exports = [
     merge(unMangledConfig, devCommon, {
 
     }),
-    pluginsConfig,
 ];

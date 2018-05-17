@@ -1,9 +1,8 @@
 const webpack = require('webpack');
 const merge = require('webpack-merge');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const WebpackClearConsole = require("webpack-clear-console").WebpackClearConsole;
 const {
-    bgConfig, unMangledConfig, pluginsConfig,
+    bgConfig, unMangledConfig,
 } = require('./webpack.common.js');
 
 
@@ -20,14 +19,14 @@ let featureFlags = {
 let prodCommon = {
     mode: "production",
     plugins: [
-		new webpack.DefinePlugin(featureFlags),
-		//new WebpackShellPlugin({onBuildEnd:['tests/plugins/test-plugins.sh']}),
+        new webpack.DefinePlugin(featureFlags),
+        //new WebpackShellPlugin({onBuildEnd:['tests/plugins/test-plugins.sh']}),
     ]
 };
 
 
 module.exports = [
-    Object.assign({}, bgConfig, prodCommon, {
+    merge(bgConfig, prodCommon, {
         optimization: {
             minimizer: [
                 new UglifyJsPlugin({
@@ -51,13 +50,18 @@ module.exports = [
         }
     }),
      merge(unMangledConfig, prodCommon, {
-
-     }),
-    // uglify js can clear console but it throws an error "cannot read property line of undefined currently"
-     merge(pluginsConfig, {
-         plugins: [
-            new WebpackClearConsole(),
-        ],
+        optimization: {
+            minimizer: [
+                new UglifyJsPlugin({
+                    uglifyOptions: {
+                        mangle: false,
+                        compress: {
+                            pure_funcs: ['console.log'],
+                        },
+                    },
+                }),
+            ],
+        }
      }),
 ];
 

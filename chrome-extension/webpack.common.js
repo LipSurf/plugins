@@ -49,6 +49,12 @@ let bgConfig = Object.assign({}, common, {
 		options: './options.ts',
 		tutorial: './tutorial.js',
 	},
+	plugins: [
+		// kinda hacky (plugins will be compiled separately in the future)
+		new WebpackShellPlugin({
+			onBuildExit: './bin/compile-plugins.sh',
+		})
+	]
 });
 
 let unMangledConfig = Object.assign({}, common, {
@@ -62,7 +68,7 @@ let unMangledConfig = Object.assign({}, common, {
 			new UglifyJsPlugin({
 				uglifyOptions: {
 					mangle: false,
-					compress: false
+					compress: false,
 					//compress: {
 						//keep_classnames: true,
 						//dead_code: false,
@@ -75,37 +81,6 @@ let unMangledConfig = Object.assign({}, common, {
 });
 
 
-let pluginsConfig = Object.assign({}, common, {
-	context: path.resolve(__dirname, 'src/plugins/'),
-	// TODO: make mode none?
-	mode: "development",
-	//target: (compiler) => {
-		////compiler.apply(
-		  ////new webpack.JsonpTemplatePlugin(options.output),
-		  ////new webpack.LoaderTargetPlugin("web")
-		////);
-	//},
- 	devtool: false,
-	entry: {
-		google: './google.ts',
-		browser: './browser.ts',
-		reddit: './reddit.ts',
-	},
-	output: {
-		filename: "[name].tmp.js",
-		path: path.resolve(__dirname, 'chrome-extension/dist/plugins'),
-		libraryTarget: 'window'
-	},
-	plugins: [
-		// hack
-		new WebpackShellPlugin({
-			safe: true,
-			onBuildExit: ['reddit', 'google', 'browser'].map((name) => `sed -e 1,83d chrome-extension/dist/plugins/${name}.tmp.js | tac | sed -e 1,2d | tac > chrome-extension/dist/plugins/${name}.js`),
-		})
-	]
-});
-
-
 module.exports = {
-	bgConfig, unMangledConfig, pluginsConfig,
+	bgConfig, unMangledConfig,
 };
