@@ -571,7 +571,7 @@ export class BrowserPlugin extends PluginBase {
     }, {
         name: 'Open Help',
         description: "Open the help box.",
-        match: ["help", "open help", "help open", "commands", "help on", "i am confused"],
+        match: ["help", "open help", "help open", "commands", "help on", "what can i say", "i am confused"],
         runOnPage: async function () {
             let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-browser-helpbox`;
             if ($(`#${id}`).length === 0) {
@@ -912,7 +912,7 @@ export class BrowserPlugin extends PluginBase {
             let prevPos = null;
             let scrollSpeed = 20;
             let scrollInterval = setInterval(() => {
-                window.scrollBy(0, 20); 
+                window.scrollBy(0, 20);
                 // if there was outside movement, or if we hit the bottom
                 if (prevPos && (window.scrollY - prevPos <= 0 || window.scrollY - prevPos > scrollSpeed * 1.5)) {
                     clearInterval(scrollInterval);

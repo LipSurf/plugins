@@ -1,17 +1,17 @@
 TODO
 ===
-v0.2
-- [x] live text shows, command turns green, but command doesn't execute after restarting browser (injection issue?)
-- [x] auto-on for tutorial not working with delay?
-- [x] fix twitter videos not playing
-- [x] don't allow next until microphone has been allowed
-- [x] special notification when auto shutoff
-- [x] Fix ranking https://www.reddit.com/r/canada/
-- [x] Logo improvement, greyed out icon
-- [x] Re-open tutorial if user quit on second slide
-- [x] changing options turns off annotations and scrolls up
-
 v0.3
+- [ ] Portal/documentation for plugins
+- [ ] Make sure all annotations work nicely
+- [ ] "Voice Control for Google Chrome" landing page
+- [x] Remove console.log from plugins?
+- [ ] Fix livetext padding/margin (looks f'd on lobste.rs)
+- [ ] Languages
+- [ ] Change "no headphone mode" to "headphones mode" and have it on by default? Have a disclaimer slide after the 1 person at a time slide
+       that talks about how you must use headphones if you're playing videos with lipsurf
+- [ ] BUG no headphones mode live text starts showing after watching vid for a while
+
+v0.4
 - [ ] annotations change when initially turned on after first highlight
 - [ ] special notification to remind user about no headphones mode?
 - [ ] sometimes clicking a post number goes wrong

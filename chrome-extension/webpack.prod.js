@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const merge = require('webpack-merge');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const WebpackClearConsole = require("webpack-clear-console").WebpackClearConsole;
 const {
     bgConfig, unMangledConfig, pluginsConfig,
 } = require('./webpack.common.js');
@@ -52,6 +53,11 @@ module.exports = [
      merge(unMangledConfig, prodCommon, {
 
      }),
-     pluginsConfig,
+    // uglify js can clear console but it throws an error "cannot read property line of undefined currently"
+     merge(pluginsConfig, {
+         plugins: [
+            new WebpackClearConsole(),
+        ],
+     }),
 ];
 

@@ -89,7 +89,7 @@ let pluginsConfig = Object.assign({}, common, {
 	entry: {
 		google: './google.ts',
 		browser: './browser.ts',
-		reddit: './reddit.ts'
+		reddit: './reddit.ts',
 	},
 	output: {
 		filename: "[name].tmp.js",

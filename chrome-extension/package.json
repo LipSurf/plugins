@@ -64,9 +64,11 @@
     "typescript": "^2.8.1",
     "uglify-es": "^3.3.9",
     "uglifyjs-webpack-plugin": "^1.2.5",
-    "webpack": "^4.6.0",
+    "webpack": "^4.8.3",
+    "webpack-clear-console": "^1.0.3",
     "webpack-cli": "^2.0.13",
     "webpack-merge": "^4.1.2",
     "webpack-shell-plugin": "^0.5.0"
-  }
+  },
+  "dependencies": {}
 }
