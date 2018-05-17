@@ -15,5 +15,8 @@
       "lodash": ["node_modules/lodash-es"]
     },
     "target": "ES2017"
-  }
+  },
+  "exclude": [
+    "src/plugins/"
+  ]
 }

@@ -3,7 +3,7 @@
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
 
-export class RedditPlugin extends PluginBase {
+class RedditPlugin extends PluginBase {
     static friendlyName = 'Reddit';
     static description = 'Commands for Reddit.com';
     static version = '1.0.0';

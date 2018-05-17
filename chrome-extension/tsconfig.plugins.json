@@ -1,10 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "build/"
+    "outDir": "build/",
+    "module": "none"
   },
   "include": [
     "src/plugins/*"
   ],
-  "target": "es5"
+  "target": "es7",
+  "exclude": []
 }

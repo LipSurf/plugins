@@ -7,7 +7,7 @@
 
 type HelpPerPlugin = { name: string, commands: {global?: boolean, name: string, match: string[], description: string }[]};
 
-export class BrowserPlugin extends PluginBase {
+class BrowserPlugin extends PluginBase {
     static friendlyName = 'Browser';
     static description = 'Controls browser-level actions like creating new tabs, page navigation (back, forward, scroll down), showing help etc.';
     static version = '1.0.0';

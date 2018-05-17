@@ -116,6 +116,8 @@ async function attachLiveTextOverlay(): Promise<void> {
 
     let shadowCont = document.createElement('div');
     shadowCont.id = liveTextShadowRootId;
+    // tag for removal when LS is deactivated
+    shadowCont.setAttribute(ua, '');
     let shadow = shadowCont.attachShadow({ mode: 'open' });
     shadow.innerHTML = await getFrameHtml('live-text-overlay');
     liveTextEle = shadow.querySelector('#live-text');

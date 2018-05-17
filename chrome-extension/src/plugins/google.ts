@@ -3,7 +3,7 @@
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
 
-export class GooglePlugin extends PluginBase {
+class GooglePlugin extends PluginBase {
     static friendlyName = 'Google';
     static description = 'The google search engine.';
     static version = '1.0.0';
