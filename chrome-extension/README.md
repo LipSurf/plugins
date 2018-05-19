@@ -1,12 +1,15 @@
 TODO
 ===
 v0.3
-- [ ] blink annotation when clicked
-- [ ] Make sure all annotations work nicely
+- [x] blink annotation when clicked
+- [x] Make sure all annotations work nicely
 - [ ] "Voice Control for Google Chrome" landing page
 - [ ] Portal/documentation for plugins
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
+- [ ] Plugins aren't updating for existing users
+- [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
+- [ ] make plugins compile in dev watch
 
 v0.4
 - [ ] annotations change when initially turned on after first highlight

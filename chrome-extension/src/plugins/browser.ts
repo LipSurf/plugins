@@ -15,9 +15,13 @@ class BrowserPlugin extends PluginBase {
     static match = /.*/;
     static homophones = {
         'and date': 'annotate',
+        'antique': 'annotate',
+        'attitude': 'annotate',
         'auntie': 'annotate',
         'closeout': 'close help',
         'close up': 'close help',
+        'close hell': 'close help',
+        'close out': 'close help',
         'close tap': 'close tab',
         'pick': 'click',
         'app': 'up',
@@ -96,8 +100,6 @@ class BrowserPlugin extends PluginBase {
 
 
     // Annotations
-    static LETTERS = 'CFGHIJKLOQRSTVXYZ'.split('');
-    static NUMBERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 20, 30, 40, 50, 60, 70, 80, 90];
     static popName = () => {
         let name;
         for (let key of BrowserPlugin.availAnnotations) {
@@ -114,13 +116,10 @@ class BrowserPlugin extends PluginBase {
 
     static annotated = new Set();
 
-    static availAnnotations = (function() {
-        let ret = new Set();
-        for (let i = 0; i < BrowserPlugin.LETTERS.length * BrowserPlugin.NUMBERS.length; i++) {
-            ret.add(BrowserPlugin.LETTERS[Math.floor(i/BrowserPlugin.NUMBERS.length)] + BrowserPlugin.NUMBERS[i % BrowserPlugin.NUMBERS.length]);
-        }
-        return ret;
-    })();
+    // hand selected based on what is not easily confused
+    static availAnnotations = new Set([
+'AC', 'AF', 'AJ', 'AK', 'AM', 'AP', 'AR', 'AS', 'AW', 'AX', 'AY', 'AZ', 'BC', 'BK', 'BM', 'BN', 'BQ', 'BS', 'BX', 'B5', 'B6', 'B7', 'CA', 'CB', 'CC', 'CD', 'CF', 'CG', 'CH', 'CJ', 'CK', 'CL', 'CO', 'CP', 'CR', 'CT', 'CX', 'CY', 'CZ', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'DB', 'DD', 'DF', 'DH', 'DJ', 'DK', 'DL', 'DM', 'DN', 'DP', 'DQ', 'DR', 'DS', 'DT', 'DX', 'D1', 'D2', 'D3', 'D5', 'D6', 'D7', 'D8', 'D9', 'FA', 'FB', 'FG', 'FH', 'FJ', 'FK', 'FM', 'FN', 'FO', 'FQ', 'FR', 'FS', 'FT', 'FW', 'FX', 'FY', 'F1', 'F2', 'F3', 'F4', 'F8', 'GA', 'GB', 'GC', 'GF', 'GH', 'GI', 'GK', 'GL', 'GM', 'GN', 'GP', 'GS', 'GX', 'GY', 'G1', 'G5', 'G6', 'G7', 'G8', 'G9', 'HA', 'HC', 'HD', 'HE', 'HF', 'HG', 'HE', 'HF', 'HG', 'HI', 'HJ', 'HK', 'HM', 'HN', 'HO', 'HP', 'HQ', 'HR', 'HS', 'HU', 'HY', 'H2', 'H8', 'H9', 'ID', 'IF', 'IG', 'IK', 'IL', 'IN', 'IP', 'IX', 'I3', 'I5', 'I7', 'I9', 'JB', 'JC', 'JD', 'JF', 'JG', 'JH', 'JM', 'JN', 'JO', 'JP', 'JQ', 'JR', 'JS', 'JT', 'JU', 'JV', 'JX', 'JY', 'J1', 'J5', 'J6', 'J7', 'J8', 'J9', 'KA', 'KB', 'KD', 'KF', 'KG', 'KL', 'KM', 'KP', 'KR', 'KW', 'KX', 'KY', 'K1', 'K2', 'K3', 'K7', 'LA', 'LC', 'LD', 'LF', 'LG', 'LH', 'LJ', 'LP', 'LR', 'LT', 'LY', 'L0', 'L1', 'L2', 'L3', 'L7', 'L8', 'MA', 'MC', 'MD', 'MF', 'MG', 'MH', 'PA', 'PC', 'PD', 'PE', 'PH', 'PI', 'PS', 'PT', 'PX', 'PY', 'P0', 'P1', 'P2', 'P3', 'P5', 'P9', 'QA', 'QC', 'QH', 'QK', 'QL', 'QM', 'QO', 'QQ', 'QR', 'QX', 'Q1', 'Q3', 'Q4', 'Q5', 'Q6', 'SB', 'SC', 'SD', 'SF', 'SG', 'SH', 'SI', 'SM', 'SN', 'SO', 'SP', 'SQ', 'ST', 'SU', 'SV', 'SY', 'S3', 'S4', 'S5', 'S6', 'S7', 'S9', 'TA', 'TC', 'TD', 'TF', 'TG', 'TH', 'TI', 'TM', 'TN', 'TU', 'TV', 'TX', 'TY', 'T1', 'T2', 'T3', 'T4', 'T6', 'T8', 'VA', 'VC', 'VF', 'VM', 'VR', 'VT', 'VW', 'VX', 'VY', 'VZ', 'V0', 'V1', 'V6', 'WA', 'WC', 'WD', 'WE', 'WF', 'WG', 'WH', 'WI', 'WJ', 'WK', 'WL', 'WM', 'WN', 'WO', 'WP', 'WR', 'WS', 'WT', 'WV', 'WX', 'WY', 'WZ', 'W0', 'W4', 'W5', 'W6', 'W7', 'W9', 'XC', 'XD', 'XG', 'XH', 'XM', 'XP', 'XR', 'XV', 'XX', 'XY', 'X0', 'X1', 'X2', 'X3', 'X4', 'X6', 'X8', 'X9', 'ZA', 'ZF', 'ZI', 'ZJ', 'ZK', 'ZL', 'ZM', 'ZO', 'ZP', 'ZS', 'ZU', 'ZX', 'ZY', 'ZZ', 'Z1', 'Z2', 'Z3', 'Z4', 'Z5'
+    ]);
 
     static annotate = false;
     static annotationsMap: { [name: string]: HTMLElement } = {};
@@ -341,6 +340,20 @@ class BrowserPlugin extends PluginBase {
             #${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont {
                 pointer-events: none;
             }
+
+            #${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont .flash {
+                animation: blink 0.4s 8 forwards;
+            }
+
+            @keyframes blink {
+                0%,49% {
+                    opacity: 0;
+                }
+                50%, 100% {
+                    opacity: 1;
+                }
+            }
+
         `;
 
         // async doesn't work here for some reason
@@ -543,7 +556,7 @@ class BrowserPlugin extends PluginBase {
         },
         runOnPage: async (annotationName:string) => {
             // do we need to query parent? Because we're placing this inside the anchor
-            let ele = BrowserPlugin.annotationsMap[annotationName]
+            let ele = BrowserPlugin.annotationsMap[annotationName];
             let clickTypes = ["button", "submit", "reset", "checkbox", "color", "file", "hidden", "image", "radio"];
             if ((ele.nodeName.toLowerCase() === "input" && clickTypes.indexOf((<HTMLInputElement>ele).type) === -1)
                 || ele.nodeName.toLowerCase() === "textarea" || ele.isContentEditable) {
@@ -556,6 +569,11 @@ class BrowserPlugin extends PluginBase {
                 // jquery $().click() does not work for some reason
                 ele.click();
             }
+            let annoEle = document.querySelector(`#${PluginBase.util.getNoCollisionUniqueAttr()}-anno-cont > div[anno=${annotationName}]`);
+            annoEle.classList.add('flash');
+            setTimeout(() => {
+                annoEle.classList.remove('flash');
+            }, 3000);
         }
     },
     {
