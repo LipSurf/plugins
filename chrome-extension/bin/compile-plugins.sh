@@ -10,4 +10,4 @@ else
   ./node_modules/.bin/uglifyjs -c pure_funcs='console.log' ./build/google.js > chrome-extension/dist/plugins/google.js
 fi
 
-rm -r build || true
+[ -d build ] && rm -r build

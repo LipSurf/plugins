@@ -64,7 +64,7 @@ declare interface IPluginUtil {
     // meta
     getOptions: () => Promise<IOptions>;
 
-    addOverlay: (contents, extraCss?: {}, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLIFrameElement;
+    addOverlay: (contents, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLDivElement;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;
     postToAllFrames: (id, fnNames: string | string[], selector?) =>  void;
     // TODO: deprecate in favor of generic postToAllFrames?

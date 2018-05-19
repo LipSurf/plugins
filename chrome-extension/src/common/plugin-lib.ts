@@ -92,20 +92,16 @@ export abstract class PluginBase {
 
     static util: IPluginUtil = {
         // automatically remove these overlays when add-on is deactivated
-        // if hold == true, rerender the overlay even when page changes
-        addOverlay: (contents, extraCss=null, id=null, domLoc=document.body, hold=false): HTMLIFrameElement => {
-            let iframe = document.createElement('iframe');
-            iframe.setAttribute(NO_COLLISION_UNIQUE_ATTR, '');
-            iframe.className = `${NO_COLLISION_UNIQUE_ATTR}-iframe`;
-            if (extraCss)
-                $(iframe).css(extraCss);
+        // if hold == true, rerender the overlay even when page changes (not yet working)
+        addOverlay: (contents, id=null, domLoc=document.body, hold=false): HTMLDivElement => {
+            let shadowCont = document.createElement('div');
+            let shadow = shadowCont.attachShadow({ mode: 'open' });
+            shadowCont.setAttribute(NO_COLLISION_UNIQUE_ATTR, '');
+            shadow.innerHTML = contents;
             if (id)
-                iframe.id = id;
-            domLoc.appendChild(iframe);
-            iframe.contentWindow.document.open();
-            iframe.contentWindow.document.write(contents);
-            iframe.contentWindow.document.close();
-            return iframe;
+                shadowCont.id = id;
+            domLoc.appendChild(shadowCont);
+            return shadowCont;
         },
 
         // meta: get's all the installed plugins

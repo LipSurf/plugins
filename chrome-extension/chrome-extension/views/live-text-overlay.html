@@ -2,13 +2,15 @@
     #live-text-cont {
         /* resets any parent styling like line-height etc. */
         all: initial;
+        pointer-events: none;
         position: fixed;
         text-align: center;
         top: 0;
         left: 0;
         width: 100%;
         /* # youtube has 1999999999 */
-        z-index: 2999999999 !important;
+        /* # helpbox has 2000000010 */
+        z-index: 2000000020 !important;
     }
 
     #live-text {

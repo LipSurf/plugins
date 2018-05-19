@@ -2,6 +2,7 @@ const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
 const WebpackShellPlugin = require('webpack-shell-plugin');
+const ExtraWatchWebpackPlugin = require('extra-watch-webpack-plugin');
 
 
 let common = {
@@ -50,6 +51,9 @@ let bgConfig = Object.assign({}, common, {
 		tutorial: './tutorial.js',
 	},
 	plugins: [
+		new ExtraWatchWebpackPlugin({
+			dirs: [ 'src/plugins/' ],
+		}),
 		// kinda hacky (plugins will be compiled separately in the future)
 		new WebpackShellPlugin({
 			onBuildExit: './bin/compile-plugins.sh',

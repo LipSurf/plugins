@@ -9,7 +9,7 @@ v0.3
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Plugins aren't updating for existing users
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
-- [ ] make plugins compile in dev watch
+- [x] make plugins compile in dev watch
 
 v0.4
 - [ ] annotations change when initially turned on after first highlight
@@ -76,6 +76,7 @@ from both the background and option pages.
 
 marketing/profit
 ===
+* Appear small. If the extension has something that feels like a small community people will embrace it more, support it more as opposed to one that seems to come from a cold, big soulless enterprise.
 * Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
 
 * Insta video posts:

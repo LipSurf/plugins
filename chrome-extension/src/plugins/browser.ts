@@ -98,6 +98,7 @@ class BrowserPlugin extends PluginBase {
         return (eleTop + 5 <= docViewBottom && eleTop >= docViewTop && eleLeft >= docViewLeft && eleLeft - 5 < docViewRight);
     }
 
+    static helpOverlay: HTMLDivElement;
 
     // Annotations
     static popName = () => {
@@ -155,34 +156,44 @@ class BrowserPlugin extends PluginBase {
         return func(data);
     };
 
-    // local('Barlow Regular'), local('Barlow-Regular'),
     // Help box
     static helpBoxTmpl = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
             <style>
-            /* latin-ext */
-            @font-face {
-              font-family: 'Barlow';
-              font-style: normal;
-              font-weight: 400;
-              src: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/assets/barlow-latin-ex.woff2) format('woff2');
-              unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-            }
-            /* latin */
-            @font-face {
-              font-family: 'Barlow';
-              font-style: normal;
-              font-weight: 400;
-              src: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/assets/barlow-latin.woff2) format('woff2');
-              unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-            }
-
-                body {
+                :host {
+                    all: initial;
                     font-family: "Barlow";
                     font-size: 12pt;
+                    animation: fadein 0.3s both;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    position: fixed !important;
+                    /* # youtube has 1999999999 */
+                    z-index: 2000000010 !important;
+                    top: 10%;
+                    left: 10%;
+                    right: 10%;
+                    bottom: 10%;
+                    width: 80%;
+                    height: 430px;
+                    position: fixed;
+                }
+
+                :host(.fade-out) {
+                    animation: fadeout 0.3s both;
+                }
+
+                @keyframes fadein {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+
+                /* could not get this to work with reverse animation */
+                @keyframes fadeout {
+                    from { opacity: 1; }
+                    to   { opacity: 0; }
+                }
+
+                .center-box {
                     background-color: rgba(30, 30, 30, 0.8);
                     color: white;
                     padding: 10px;
@@ -265,16 +276,8 @@ class BrowserPlugin extends PluginBase {
                     font-size: 2em;
                     cursor: pointer;
                 }
-            </style>
-            <script>
-                // TODO: Close button
-        //        parent.closeIFrame();
-            </script>
-        </head>
-        <body>
-            <!--<div class="top-bar">-->
-                <!--<span class="close-btn">×</span>-->
-            <!--</div>-->
+        </style>
+        <div class="center-box">
             <% for (let plugin of plugins) { %>
             <section>
                 <h4><%= plugin.name %></h4>
@@ -288,14 +291,11 @@ class BrowserPlugin extends PluginBase {
                     <% for (let match of cmd.match) { %>
                 <li class="cmd-match"><a class="match-link"><span class="light"><%= match %></span></a></span>
                     <% } %>
-                    </div>
                 </div>
                 <% } %>
             </section>
             <% } %>
         </div>
-        </body>
-        </html>
     `;
 
     static getAnnoCont = () => {
@@ -377,6 +377,7 @@ class BrowserPlugin extends PluginBase {
     static destroy() {
         BrowserPlugin.annotate = false;
         BrowserPlugin.setOption('annotate', false);
+        BrowserPlugin.helpOverlay = null;
     }
 
     static commands = [{
@@ -575,27 +576,12 @@ class BrowserPlugin extends PluginBase {
                 annoEle.classList.remove('flash');
             }, 3000);
         }
-    },
-    {
-        name: 'Close Help',
-        description: "Close the help box.",
-        match: ["close help", "hide help", "help off"],
-        runOnPage: async function () {
-            let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-browser-helpbox`;
-            let $ele = $(`#${id}`);
-
-            if ($ele) {
-                $ele.css('opacity', 0);
-                setTimeout(() => $ele.remove(), 600);
-            }
-        }
     }, {
         name: 'Open Help',
         description: "Open the help box.",
         match: ["help", "open help", "help open", "commands", "help on", "what can i say", "i am confused"],
         runOnPage: async function () {
-            let id = `${PluginBase.util.getNoCollisionUniqueAttr()}-browser-helpbox`;
-            if ($(`#${id}`).length === 0) {
+            if (!BrowserPlugin.helpOverlay) {
                 let options = await PluginBase.util.getOptions();
                 let enabledPlugins = options.plugins.filter(plugin => plugin.enabled);
                 let url = window.location.href;
@@ -618,17 +604,20 @@ class BrowserPlugin extends PluginBase {
                     .sort((a, b) => score[a.name] - score[b.name]);
                 console.log(`help per plugin ${JSON.stringify(helpPerPlugin)}`);
                 let renderedHelp:string = BrowserPlugin.parseTemplate(BrowserPlugin.helpBoxTmpl, {plugins: helpPerPlugin});
-                let overlay = PluginBase.util.addOverlay(renderedHelp, {
-                    top: '10%',
-                    left: '10%',
-                    right: '10%',
-                    bottom: '10%',
-                    width: '80%',
-                    height: '430px',
-                    opacity: '0',
-                    transition: 'opacity 0.3s ease-in',
-                }, id);
-                setTimeout(() => $(overlay).css('opacity', '1'), 0);
+                BrowserPlugin.helpOverlay = PluginBase.util.addOverlay(renderedHelp);
+            }
+        }
+    }, {
+        name: 'Close Help',
+        description: "Close the help box.",
+        match: ["close help", "hide help", "help off"],
+        runOnPage: async function () {
+            if (BrowserPlugin.helpOverlay) {
+                BrowserPlugin.helpOverlay.classList.add('fade-out');
+                setTimeout(() => {
+                    BrowserPlugin.helpOverlay.remove();
+                    BrowserPlugin.helpOverlay = null;
+                }, 600);
             }
         }
     }, {
