@@ -9,8 +9,8 @@ class GooglePlugin extends PluginBase {
     static version = '1.0.0';
     static apiVersion = '1';
     static match = /.*google.com/;
-    static homophones = {
-    };
+    static homophones = { };
+    static authors = "Miko";
 
     static commands = [{
         name: 'Search',

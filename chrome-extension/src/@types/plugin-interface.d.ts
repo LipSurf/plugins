@@ -6,6 +6,7 @@ declare abstract class PluginBase {
     static version: string;
     static apiVersion: string;
     static match: RegExp | RegExp[];
+    static authors: string;
 
     static commands: IPluginDefCommand[];
     static homophones: IPluginDefHomophones;
@@ -52,7 +53,7 @@ declare interface IPluginDefCommand {
     // let command match on any page (not restricted by plugin level match regex)
     global?: boolean,
     run?: (() => any) | ((tabIndex: number) => any),
-    runOnPage?: (() => Promise<any>) | ((number) => Promise<any>),
+    runOnPage?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>),
     // returns the complete liveText that should be shown.
     // raw input would be eg. "go to are meal time video"
     // matchOutput is the array returned form the match function (if there's a match fn)

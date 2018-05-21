@@ -9,6 +9,7 @@ class RedditPlugin extends PluginBase {
     static version = '1.0.0';
     static apiVersion = '1';
     static match = /^https?:\/\/www.reddit.com/;
+    static authors = "Miko";
 
     // "private"
     // TODO: (low priority) how can we make the fact that these need to be functions better

@@ -1,15 +1,43 @@
 TODO
 ===
 v0.3
-- [x] blink annotation when clicked
-- [x] Make sure all annotations work nicely
-- [ ] "Voice Control for Google Chrome" landing page
-- [ ] Portal/documentation for plugins
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Plugins aren't updating for existing users
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
-- [x] make plugins compile in dev watch
+- [ ] annotations in the corner of options page, and changing
+- [ ] Plugins fetch
+
+
+Before Lobsters Post
+- [ ] "Voice Control for Google Chrome" landing page
+- [ ] Portal/documentation for plugins
+- [ ] More exciting video
+- [ ] All banners on google chrome store
+- [ ] Landing page
+   -- Hands free browser operation while you (eat, do yoga, cook)
+   -- Forum (Discourse), Blog (Ghost)
+
+
+Paid Version
+===
+* You are on the free trial of LipSurf Pro. LipSurf Pro is free while in beta. The free trial will end 1 month after the first non-beta release.
+
+More Info [link to news page]
+Early Bird Supporter -- early bird supporters will be credited 2x the value of their donation when 1.0 is released.
+Donate Now
+
+* Wake word (lipsurf on)
+ https://www.reddit.com/r/speechrecognition/comments/8699hk/porcupine_a_selfservice_highlyaccurate_and/
+* payed pro version that allows composing comments and custom commands?
+
+Possible Biz plans
+ A. Premium Version allows for > 100 commands
+ B. Premium Version has android and iOS apps (echo, alexa?)
+ C. Premium Version allows for Premium Plugins (non community plugins) -- recipe sites, youtube... etc.?
+   Make WK plugin a premium one
+ D. X commands per month
+
 
 v0.4
 - [ ] annotations change when initially turned on after first highlight
@@ -104,7 +132,6 @@ Stats: 231k users
 
   * Get people recommending it in the comments
   * Put "dragon" tags and keywords so it shows up in search results next to dragon
-  * r/speechrecognition
   * A distinguishing point of advantage over dragon would be crowd-sourced plugins -- dragon will never be able to handle hugely productive edge-cases like "forward 10s" for a video on say -- vimeo
     * + Works cross-OS
 
@@ -115,8 +142,6 @@ TobiiDynavox is made for disabled users:
 ---
 *send to the guy who couldn't use his hands and posted the video of the spoon on the magnet that he could feed himself with
 *Alexa, Google Home, Apple ?
-*payed apps
-*payed pro version that allows composing comments and custom commands?
 
 dev reqs
 ===
@@ -126,11 +151,6 @@ stretch goals
 ===
 support undo/redo
 discourse forum
-
-Paid Version
-===
-* Wake word (lipsurf on)
- https://www.reddit.com/r/speechrecognition/comments/8699hk/porcupine_a_selfservice_highlyaccurate_and/
 
 
 Competitors?

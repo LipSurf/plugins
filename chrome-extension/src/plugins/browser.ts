@@ -13,6 +13,7 @@ class BrowserPlugin extends PluginBase {
     static version = '1.0.0';
     static apiVersion = '1';
     static match = /.*/;
+    static authors = "Miko";
     static homophones = {
         'and date': 'annotate',
         'antique': 'annotate',
