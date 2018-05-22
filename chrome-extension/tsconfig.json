@@ -17,6 +17,7 @@
     "target": "ES2017"
   },
   "exclude": [
-    "src/plugins/"
+    "plugins",
+    "node_modules"
   ]
 }

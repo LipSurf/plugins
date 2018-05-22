@@ -20,7 +20,7 @@
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
     "build": "webpack --config webpack.dev.js --progress",
-    "watch": "webpack --config webpack.dev.js --watch --progress",
+    "watch": "webpack --config webpack.dev.js --watch --progress | npm explore lipsurf-plugins -- gulp watch",
     "build-prod": "webpack --verbose --config webpack.prod.js --display verbose",
     "watch-prod": "webpack --config webpack.prod.js --watch",
     "release": "npm run build-prod && zip -r lipsurf.zip chrome-extension/"
@@ -64,10 +64,9 @@
     "typescript": "^2.8.1",
     "webpack": "^4.8.3",
     "webpack-cli": "^2.0.13",
-    "webpack-merge": "^4.1.2",
-    "webpack-shell-plugin": "^0.5.0"
+    "webpack-merge": "^4.1.2"
   },
   "dependencies": {
-    "extra-watch-webpack-plugin": "^1.0.3"
+    "lipsurf-plugins": "file:plugins"
   }
 }

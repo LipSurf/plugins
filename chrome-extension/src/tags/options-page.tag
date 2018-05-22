@@ -22,6 +22,22 @@
 	<div class="container">
 		<h2>General</h2>
 		<div class="option">
+			<label title="The languages shown here are the ones supported by the plugins you have installed.">
+                <i class="icon language"></i>
+				Language:
+                <select>
+                	<option code="en-AU">English (Australia)</option>
+                	<option code="en-IN">English (India)</option>
+                	<option code="en-NZ">English (New Zealand)</option>
+                	<option code="en-ZA">English (South Africa)</option>
+                	<option code="en-GB">English (UK)</option>
+                	<option code="en-US">English (US)</option>
+                    <option code="ja">日本語</option>
+                    <option>+ Add a Language</option>
+                </select>
+			</label>
+		</div>
+		<div class="option">
 			<label>
 				<input type="checkbox" ref="showLiveText" onchange={ generalSave } checked={ options.showLiveText }/> Show live text
 			</label>
@@ -101,6 +117,19 @@
 	.title-bar img {
 		vertical-align: text-bottom;
 	}
+
+    .icon {
+        display: inline-block;
+        width: 1.4em;
+        height: 1.4em;
+        vertical-align: text-bottom;
+        background-repeat: no-repeat;
+        background-size: contain;
+    }
+
+    .icon.language {
+        background-image: url(data:image/png;base64,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);
+    }
 
 	.title-bar * {
 		display: inline-block;
@@ -198,7 +227,7 @@
     }
 
 	.option {
-		margin: 10px 0;
+		margin: 1.5em 0;
 	}
 
     .homophones {

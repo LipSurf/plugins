@@ -4,6 +4,7 @@ import { objectAssignDeep } from "./util";
 
 
 export const DEFAULT_PREFERENCES: ISyncData = {
+    language: "en-us",
     showLiveText: true,
     noHeadphonesMode: false,
     tutorialMode: 1,

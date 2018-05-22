@@ -3,10 +3,13 @@ TODO
 v0.3
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
+- [ ] Top Sites Plugin
 - [ ] Plugins aren't updating for existing users
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
 - [ ] annotations in the corner of options page, and changing
 - [ ] Plugins fetch
+- [ ] Force to old reddit
+- [ ] BUG newly installed close tutorial, open coursera, options page get's opened
 
 
 Before Lobsters Post
@@ -15,7 +18,7 @@ Before Lobsters Post
 - [ ] More exciting video
 - [ ] All banners on google chrome store
 - [ ] Landing page
-   -- Hands free browser operation while you (eat, do yoga, cook)
+   -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
    -- Forum (Discourse), Blog (Ghost)
 
 
