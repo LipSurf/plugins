@@ -1,6 +1,7 @@
 TODO
 ===
 v0.3
+- [ ] Gulp strip comments, remove unused deps
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin
@@ -10,6 +11,7 @@ v0.3
 - [ ] Plugins fetch
 - [ ] Force to old reddit
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
+- [ ] Remove material icons (take 300kb)
 
 
 Before Lobsters Post
@@ -158,8 +160,16 @@ discourse forum
 
 Competitors?
 ===
+*Alexa BrowserHelp
+--http://browserhelp.me/
+--Hasn't been updated since June, 2017
+--Apparently company took over the product 4 months ago
+
+* https://dhanush123.github.io/browsercontrol/
+
 *Annyang is for developers to add voice commands to their own sites, not for controlling the whole browser
 https://ourcodeworld.com/articles/read/163/top-7-best-voice-commands-and-speech-recognition-related-javascript-libraries
+
 
 References
 ===

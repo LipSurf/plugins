@@ -25,14 +25,8 @@
 			<label title="The languages shown here are the ones supported by the plugins you have installed.">
                 <i class="icon language"></i>
 				Language:
-                <select>
-                	<option code="en-AU">English (Australia)</option>
-                	<option code="en-IN">English (India)</option>
-                	<option code="en-NZ">English (New Zealand)</option>
-                	<option code="en-ZA">English (South Africa)</option>
-                	<option code="en-GB">English (UK)</option>
-                	<option code="en-US">English (US)</option>
-                    <option code="ja">日本語</option>
+                <select onchange={ langSave } ref="lang">
+                    <option each={lang in possibleLanguages} value={lang.code} selected={options.language==lang.code}>{lang.nice}</option>
                     <option>+ Add a Language</option>
                 </select>
 			</label>
@@ -64,7 +58,7 @@
         <div each={ options.cmdGroups } class="cmd-group">
             <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
                 <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
-                    <div class="label">{ friendlyName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
+                    <div class="label">{ niceName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
                         <div class="desc">{ description }</div>
                     </div>
                 </a>
@@ -396,6 +390,15 @@
 	require('./homophone.tag');
     this.options = opts.store;
     this.hasMicPerm = true;
+    this.possibleLanguages = [
+		{code: "en-AU", nice: "English (Australia)"},
+		{code: "en-IN", nice: "English (India)"},
+		{code: "en-NZ", nice: "English (New Zealand)"},
+		{code: "en-ZA", nice: "English (South Africa)"},
+		{code: "en-GB", nice: "English (UK)"},
+		{code: "en-US", nice: "English (US)"},
+		{code: "ja", nice: "日本語"},
+	];
 
     this.save = () => {
         options.save();
@@ -420,6 +423,13 @@
 		});
 		this.save()
 	}
+
+    langSave = (e) => {
+        Object.assign(options.options, {
+            language: this.refs.lang.value
+        });
+        this.save();
+    }
 
     this.toggleGroupEnabled = (e) => {
         e.stopPropagation();

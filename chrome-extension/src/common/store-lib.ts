@@ -4,7 +4,7 @@ import { objectAssignDeep } from "./util";
 
 
 export const DEFAULT_PREFERENCES: ISyncData = {
-    language: "en-us",
+    language: "en-US",
     showLiveText: true,
     noHeadphonesMode: false,
     tutorialMode: 1,
@@ -70,7 +70,7 @@ function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginD
                     destination: _localPluginData.homophones[homo],
                 })
             ),
-            ... pick(_localPluginData, 'friendlyName', 'match', 'cs', 'description', ),
+            ... pick(_localPluginData, 'niceName', 'match', 'cs', 'description', ),
             ... pick(_syncPluginData, 'expanded', 'version', 'enabled', 'showMore', 'settings'),
         }
     });

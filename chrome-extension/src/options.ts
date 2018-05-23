@@ -1,3 +1,4 @@
+/// <reference path="./@types/store.d.ts" />
 /// <reference path="./background/store.ts" />
 /*
  * Included in the options.html script
@@ -18,7 +19,7 @@ interface IPluginPref {
     enabled: boolean,
     showMore: boolean,
     id: string,
-    friendlyName: string,
+    niceName: string,
     version: string,
     commands: ICommandPref[]
     description?: string,
@@ -58,7 +59,7 @@ class OptionsPage extends StoreSynced {
                         ... pick(cmd, 'enabled', 'name', 'description'),
                     })),
                    // TODO: fix this ugly thing
-                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'friendlyName', 'id', 'description', 'homophones'),
+                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'niceName', 'id', 'description', 'homophones'),
             })),
         });
         // trigger exists once we call riot.observable

@@ -1,5 +1,4 @@
 /// <reference path="../@types/store.d.ts" />
-/// <reference path="../@types/plugin-interface.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
 import { omit, mapValues, pick, reduce } from "lodash";
 import { promisify, instanceOfDynamicMatch, objectAssignDeep} from "../common/util";

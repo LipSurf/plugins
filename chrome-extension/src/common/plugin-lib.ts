@@ -56,7 +56,7 @@ export function retrialAndError(f, f_check, delay, times) {
 // we define all the members so that typeof PluginBase[member] works
 // and we can distinguish what the private methods are of the plugin are
 export abstract class PluginBase {
-    static friendlyName: string = '';
+    static niceName: string = '';
     static description: string = '';
     static apiVersion: string = '';
     static version: string = '';

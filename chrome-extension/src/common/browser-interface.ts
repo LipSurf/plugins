@@ -1,5 +1,4 @@
 /// <reference path="../@types/store.d.ts" />
-/// <reference path="../@types/plugin-interface.d.ts" />
 declare let DEBUG:boolean;
 import { promisify, Detector } from './util';
 

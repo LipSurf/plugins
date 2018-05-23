@@ -60,7 +60,7 @@ declare interface _ILocalPluginDataCommon extends ICommonHomophones {
     // sync storage can be updated on a different machine, and all
     // machines would need to update their local plugin versions
     version: string,
-    friendlyName: string,
+    niceName: string,
     // combined init, cmds run
     cs: string,
     description?: string,

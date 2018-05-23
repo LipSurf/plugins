@@ -3,6 +3,7 @@ declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | ITranscriptParce
 // incoming transcript that we need to check match for
 declare interface ITranscriptParcel {
     text: string,
+    lang: LanguageCode,
     cmdName: string,
     cmdPluginId: string,
 }

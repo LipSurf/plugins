@@ -1,5 +1,5 @@
 declare abstract class PluginBase {
-    static friendlyName: string;
+    static niceName: string;
     static description: string;
     static version: string;
     static apiVersion: string;
@@ -24,18 +24,19 @@ declare abstract class PluginBase {
     static util: IPluginUtil;
 }
 
-declare abstract class PluginTranslation {
-    static friendlyName: string;
+declare abstract class PluginTranslationBase {
+    static niceName: string;
     static description: string;
     static homophones: IPluginDefHomophones;
-    static commands: ITranslatedCommand[];
+    static commands: {[name_key: string]: ITranslatedCommand};
 }
 
 declare interface IDisableable {
     enabled: boolean,
 }
 
-declare type LanguageCode = 'af'|'sq'|'am'|'ar'|'ar-dz'|'ar-bh'|'ar-eg'|'ar-iq'|'ar-jo'|'ar-kw'|'ar-lb'|'ar-ly'|'ar-ma'|'ar-om'|'ar-qa'|'ar-sa'|'ar-sy'|'ar-tn'|'ar-ae'|'ar-ye'|'hy'|'as'|'az'|'eu'|'be'|'bn'|'bs'|'bg'|'my'|'ca'|'zh-cn'|'zh-hk'|'zh-mo'|'zh-sg'|'zh-tw'|'hr'|'cs'|'da'|'nl-be'|'nl-nl'|'en'|'en-au'|'en-bz'|'en-ca'|'en-cb'|'en-gb'|'en-in'|'en-ie'|'en-jm'|'en-nz'|'en-ph'|'en-za'|'en-tt'|'en-us'|'et'|'mk'|'fo'|'fa'|'fi'|'fr-be'|'fr-ca'|'fr-fr'|'fr-lu'|'fr-ch'|'gd-ie'|'gd'|'de-at'|'de-de'|'de-li'|'de-lu'|'de-ch'|'el'|'gn'|'gu'|'he'|'hi'|'hu'|'is'|'id'|'it-it'|'it-ch'|'ja'|'kn'|'ks'|'kk'|'km'|'ko'|'lo'|'la'|'lv'|'lt'|'ms-bn'|'ms-my'|'ml'|'mt'|'mi'|'mr'|'mn'|'ne'|'no-no'|'or'|'pl'|'pt-br'|'pt-pt'|'pa'|'rm'|'ro-mo'|'ro'|'ru'|'ru-mo'|'sa'|'sr-sp'|'tn'|'sd'|'si'|'sk'|'sl'|'so'|'sb'|'es-ar'|'es-bo'|'es-cl'|'es-co'|'es-cr'|'es-do'|'es-ec'|'es-sv'|'es-gt'|'es-hn'|'es-mx'|'es-ni'|'es-pa'|'es-py'|'es-pe'|'es-pr'|'es-es'|'es-uy'|'es-ve'|'sw'|'sv-fi'|'sv-se'|'tg'|'ta'|'tt'|'te'|'th'|'bo'|'ts'|'tr'|'tk'|'uk'|'ur'|'uz-uz'|'vi'|'cy'|'xh'|'yi'|'zu';
+// BCP-47
+declare type LanguageCode = 'af'|'sq'|'am'|'ar'|'ar-DZ'|'ar-BH'|'ar-EG'|'ar-IQ'|'ar-JO'|'ar-KW'|'ar-LB'|'ar-LY'|'ar-MA'|'ar-OM'|'ar-QA'|'ar-SA'|'ar-SY'|'ar-TN'|'ar-AE'|'ar-YE'|'hy'|'as'|'az'|'eu'|'be'|'bn'|'bs'|'bg'|'my'|'ca'|'zh-CN'|'zh-HK'|'zh-MO'|'zh-SG'|'zh-TW'|'hr'|'cs'|'da'|'nl-BE'|'nl-NL'|'en'|'en-AU'|'en-BZ'|'en-CA'|'en-CB'|'en-GB'|'en-IN'|'en-IE'|'en-JM'|'en-NZ'|'en-PH'|'en-ZA'|'en-TT'|'en-US'|'et'|'mk'|'fo'|'fa'|'fi'|'fr-BE'|'fr-CA'|'fr-FR'|'fr-LU'|'fr-CH'|'gd-IE'|'gd'|'de-AT'|'de-DE'|'de-LI'|'de-LU'|'de-CH'|'el'|'gn'|'gu'|'he'|'hi'|'hu'|'is'|'id'|'it-IT'|'it-CH'|'ja'|'kn'|'ks'|'kk'|'km'|'ko'|'lo'|'la'|'lv'|'lt'|'ms-BN'|'ms-MY'|'ml'|'mt'|'mi'|'mr'|'mn'|'ne'|'no-NO'|'or'|'pl'|'pt-BR'|'pt-PT'|'pa'|'rm'|'ro-MO'|'ro'|'ru'|'ru-MO'|'sa'|'sr-SP'|'tn'|'sd'|'si'|'sk'|'sl'|'so'|'sb'|'es-AR'|'es-BO'|'es-CL'|'es-CO'|'es-CR'|'es-DO'|'es-EC'|'es-SV'|'es-GT'|'es-HN'|'es-MX'|'es-NI'|'es-PA'|'es-PY'|'es-PE'|'es-PR'|'es-ES'|'es-UY'|'es-VE'|'sw'|'sv-FI'|'sv-SE'|'tg'|'ta'|'tt'|'te'|'th'|'bo'|'ts'|'tr'|'tk'|'uk'|'ur'|'uz-UZ'|'vi'|'cy'|'xh'|'yi'|'zu';
 
 // for 3rd party plugins definitions
 declare interface IPluginDefHomophones {
@@ -69,7 +70,6 @@ declare interface IPluginDefCommand {
 
 declare interface ITranslatedCommand {
     // the original name to match this command against
-    name_key: string,
     name: string,
     description?: string,
     match: string | string[] | IDynamicMatch,
@@ -125,7 +125,7 @@ declare interface IGeneralOptions {
 // easily digestable by the consumers: options page, PM, Recg
 interface IPluginConfig extends IDisableable, IToggleableHomophones {
     id: string,
-    friendlyName: string,
+    niceName: string,
     expanded: boolean,
 	showMore: boolean,
     version: string,

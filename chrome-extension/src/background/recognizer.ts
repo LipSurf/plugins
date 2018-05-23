@@ -55,6 +55,7 @@ export class Recognizer extends StoreSynced {
     // for global homonyms
     private synKeys: RegExp[];
     private synVals: string[];
+    private lang: LanguageCode;
 
     constructor(store: Store,
         onUrlUpdate: ((cb: ((url: string) => void)) => void),
@@ -90,6 +91,14 @@ export class Recognizer extends StoreSynced {
                     ...pick(plugin, ['id', 'match'])
                 }
             });
+        if (this.lang && this.lang != newOptions.language) {
+            // new language
+            this.lang = newOptions.language;
+            this.shutdown();
+            this.start(this.cmdRecognizedCb);
+        } else {
+            this.lang = newOptions.language;
+        }
     }
 
     async start(cmdRecognizedCb: ((IRecognizedCallback) => Promise<void>)) {
@@ -100,8 +109,8 @@ export class Recognizer extends StoreSynced {
         this.recognition = new this.speechRecognizer();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
-        //this.recognition.lang = 'ja';
-        this.recognition.lang = 'en-US';
+        console.log(`starting recognizer with ${this.lang}`);
+        this.recognition.lang = this.lang;
         this.recognition.maxAlternatives = 1;
 
         // grammar not supported yet in chrome (as of v64)
@@ -250,7 +259,7 @@ export class Recognizer extends StoreSynced {
                         if (typeof curCmd.match === 'undefined') {
                             // TODO: not a big fan of how this works
                             let tab = await currActiveTabProm;
-                            runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput });
+                            runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
                         } else {
                             if (typeof curCmd.match === 'string') {
                                 matchPatterns = [curCmd.match];

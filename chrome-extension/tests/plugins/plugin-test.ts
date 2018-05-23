@@ -6,7 +6,7 @@ import { By, until, Key, WebDriver } from 'selenium-webdriver';
 import * as _ from 'lodash';
 import { readFileSync } from 'fs';
 import { PluginManager } from "../../src/background/plugin-manager";
-import { 
+import {
     chromeBuilder,
     timeout,
     IBot,
@@ -90,7 +90,7 @@ for (pluginFilePath of pluginFilePaths) {
                         continue
                     if (WHITELISTED_PHRASES.length > 0 && !~WHITELISTED_PHRASES.indexOf(phrase))
                         continue
-                    test.serial(`${Plugin.friendlyName} -- ${cmd.name} -- #${phrase}`, async (t) => {
+                    test.serial(`${Plugin.niceName} -- ${cmd.name} -- #${phrase}`, async (t) => {
                         try {
                             let res = await pluginTest.apply({
                                 driver: t.context.driver,
@@ -112,7 +112,7 @@ for (pluginFilePath of pluginFilePaths) {
                             });
                         } catch(e) {
                             if (DEBUG) {
-                                console.log(`DEBUG mode activated, caught error: ${Plugin.friendlyName} -- ${cmd.name} -- ${phrase}\n${e}`);
+                                console.log(`DEBUG mode activated, caught error: ${Plugin.niceName} -- ${cmd.name} -- ${phrase}\n${e}`);
                                 await timeout(20 * 60 * 1000);
                             } else {
                                 throw e;

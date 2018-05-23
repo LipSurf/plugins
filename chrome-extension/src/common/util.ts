@@ -299,7 +299,7 @@ export function instanceOfTextParcel(object: any): object is ILiveTextParcel {
 }
 
 export function instanceOfTranscriptParcel(object: any): object is ITranscriptParcel {
-    return typeof object === 'object' && 'text' in object && 'cmdName' in object && 'cmdPluginId' in object;
+    return typeof object === 'object' && 'text' in object && 'cmdName' in object && 'cmdPluginId' in object && 'lang' in object;
 }
 
 export function instanceOfCodeParcel(object: any): object is ICodeParcel {

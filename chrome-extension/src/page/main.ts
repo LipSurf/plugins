@@ -33,7 +33,7 @@ let allPlugins: {
 // f_check checks whether it was done (optional if the check can't be done in f)
 // delay is the gap between tries
 
-// Needs to be safe to call multipe times
+// Needs to be safe to call multiple times
 function toggleActivated(_activated = true, quiet = false) {
     if (_activated) {
         activated = true;
@@ -165,7 +165,13 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
     } else if (instanceOfCmdParcel(msg)) {
         cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
     } else if (instanceOfTranscriptParcel(msg)) {
-        sendResponse(allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match(msg.text));
+        let matcherObj = allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match;
+        if (matcherObj[msg.lang]) {
+            sendResponse(matcherObj[msg.lang](msg.text));
+        } else {
+            // fallback to non-dialect
+            sendResponse(matcherObj[msg.lang.substr(0, 2)](msg.text));
+        }
     } else if (instanceOfTextParcel(msg)) {
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCodeParcel(msg)) {
