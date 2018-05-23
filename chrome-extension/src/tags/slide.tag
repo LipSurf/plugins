@@ -221,7 +221,6 @@ pulsating-btn.small {
 
 	</style>
 	<script>
-		import { storage } from '../common/browser-interface';
 		let pulseStartTime = +this.opts.timing;
 		let animTime = 500;
 		let nextableInterval;

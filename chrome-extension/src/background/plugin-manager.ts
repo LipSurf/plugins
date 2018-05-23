@@ -114,6 +114,7 @@ export class PluginManager extends StoreSynced {
                     ... pick(cmd, 'run', 'name', 'description', 'nice', 'global',),
                 };
             }),
+            languages: ["en", ...<LanguageCode[]>Object.keys(pluginModule.languages)],
             match: flatten([plugin.match]),
             cs,
             version,
@@ -140,6 +141,7 @@ export class PluginManager extends StoreSynced {
             console.error(`Error eval'ing ${id}. Skipping.`);
         }
         // END HACK
+        pluginModule.languages = pluginModule.languages || {};
 
         return pluginModule;
     }

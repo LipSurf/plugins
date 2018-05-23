@@ -7,6 +7,7 @@ import riot from 'riot';
 import { pick, omit }  from "lodash";
 import { instanceOfDynamicMatch } from "./common/util";
 import { Store, StoreSynced, } from "./background/store";
+import { LANG_CODE_TO_NICE } from "./common/constants";
 require('./tags/options-page.tag');
 
 // what's shown on the options page
@@ -18,11 +19,12 @@ interface IPluginPref {
     expanded: boolean,
     enabled: boolean,
     showMore: boolean,
-    id: string,
-    niceName: string,
-    version: string,
+    readonly id: string,
+    readonly niceName: string,
+    readonly version: string,
+    readonly description?: string,
+    readonly languages: LanguageCode[],
     commands: ICommandPref[]
-    description?: string,
     homophones?: IHomophonePref[]
 }
 
@@ -46,7 +48,7 @@ class OptionsPage extends StoreSynced {
     constructor(store: Store, private options: IPluginOptionsPageStore = <IPluginOptionsPageStore>{}) {
         super(store);
         riot.observable(this.options);
-        riot.mount('options-page', {store: this.options});
+        riot.mount('options-page', {store: this.options, LANG_CODE_TO_NICE});
     }
 
     storeUpdated(newOptions: IOptions) {
@@ -59,7 +61,7 @@ class OptionsPage extends StoreSynced {
                         ... pick(cmd, 'enabled', 'name', 'description'),
                     })),
                    // TODO: fix this ugly thing
-                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'niceName', 'id', 'description', 'homophones'),
+                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'niceName', 'id', 'description', 'homophones', 'languages'),
             })),
         });
         // trigger exists once we call riot.observable

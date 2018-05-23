@@ -5,6 +5,33 @@ export const OFF_ICON: string = "assets/icon-off-128.png";
 export const ORDINAL_CMD_DELAY = 500;
 
 export const CONFIDENCE_THRESHOLD = 0.0;
+export const LANG_CODE_TO_NICE: {[L in LanguageCode]?: string} = {
+    "en": "English",
+    "ja": "日本語 (Japanese)",
+    "en-AU": "English (Australia)",
+    "en-IN": "English (India)",
+    "en-NZ": "English (New Zealand)",
+    "en-ZA": "English (South Africa)",
+    "en-GB": "English (UK)",
+    "en-US": "English (US)",
+};
+// less common -> common
+// global homophones that all plugins share
+// mis-hearings kept in homophones so they can be easily tracked for removal
+// as voice recognition improves
+export const HOMOPHONES = {
+    "for": "four",
+    'stirred': 'third',
+    'aladdin': 'eleven',
+    "letter": "eleven",
+    "to": "two",
+    "0": "o",
+    "too": "two",
+    "sex": "six",
+    '\\.': ' dot ',
+    ',': ' comma ',
+    'i\'m': 'i am',
+};
 export const ORDINALS_TO_DIGITS = {
     "first": 1,
     "1st": 1,
@@ -513,22 +540,4 @@ export const NUMBERS_TO_DIGITS = {
     "one-hundred": 100,
     "hundred": 100,
     "one hundred": 100,
-};
-
-// less common -> common
-// global homophones that all plugins share
-// mis-hearings kept in homophones so they can be easily tracked for removal
-// as voice recognition improves
-export const HOMOPHONES = {
-    "for": "four",
-    'stirred': 'third',
-    'aladdin': 'eleven',
-    "letter": "eleven",
-    "to": "two",
-    "0": "o",
-    "too": "two",
-    "sex": "six",
-    '\\.': ' dot ',
-    ',': ' comma ',
-    'i\'m': 'i am',
 };

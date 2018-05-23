@@ -64,6 +64,7 @@ declare interface _ILocalPluginDataCommon extends ICommonHomophones {
     // combined init, cmds run
     cs: string,
     description?: string,
+    languages: LanguageCode[],
 }
 
 declare interface ISerializedCommand extends _ICommonCommand {

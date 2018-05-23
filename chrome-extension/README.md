@@ -1,6 +1,7 @@
 TODO
 ===
 v0.3
+- [ ] make sure all of constants is not being including in riot options-page
 - [ ] Gulp strip comments, remove unused deps
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
@@ -9,7 +10,7 @@ v0.3
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
 - [ ] annotations in the corner of options page, and changing
 - [ ] Plugins fetch
-- [ ] Force to old reddit
+- [x] Force to old reddit
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
 - [ ] Remove material icons (take 300kb)
 

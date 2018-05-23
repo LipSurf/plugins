@@ -64,6 +64,14 @@
                 </a>
                 <div class="collapsable">
                     <div class="collapsable-inner">
+                        <div class="languages">
+                            <div class="label">
+                                <strong>Supported Languages: </strong> 
+                            </div>
+                            <ul class="language-list">
+                                <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
+                            </ul>
+                        </div>
                         <div class="homophones" if={ homophones.length > 0 }>
                             <div class="label">
                                 <strong>Homophones/synonyms: </strong>
@@ -107,6 +115,15 @@
 		font-family: "Special Elite";
 		text-align: center;
 	}
+
+    .language-list {
+        list-style: none;
+    }
+
+    .language-list li {
+        display: inline-block;
+        margin: 0 0.5em;
+    }
 
 	.title-bar img {
 		vertical-align: text-bottom;
@@ -236,7 +253,7 @@
         width: 70%;
         text-align: left;
 		border-bottom: 1px solid #dddddd;
-		max-height: 500px;
+		max-height: 600px;
 		transition: max-height .5s ease;
 		padding-bottom: 10px;
     }
@@ -388,8 +405,10 @@
 	require('./cmd-group.tag');
 	require('./cmd.tag');
 	require('./homophone.tag');
+    this.LANG_CODE_TO_NICE = opts.LANG_CODE_TO_NICE;
     this.options = opts.store;
     this.hasMicPerm = true;
+    this.initialLoad = true;
     this.possibleLanguages = [
 		{code: "en-AU", nice: "English (Australia)"},
 		{code: "en-IN", nice: "English (India)"},
@@ -415,7 +434,7 @@
 		window.open("./tutorial.html");
 	}
 
-	generalSave = (e) => {
+	this.generalSave = (e) => {
 		Object.assign(options.options, {
 			noHeadphonesMode: this.refs.noHeadphonesMode.checked,
 			showLiveText: this.refs.showLiveText.checked,
@@ -424,7 +443,7 @@
 		this.save()
 	}
 
-    langSave = (e) => {
+    this.langSave = (e) => {
         Object.assign(options.options, {
             language: this.refs.lang.value
         });
@@ -459,20 +478,29 @@
         navigator.mediaDevices.getUserMedia({
             audio: true,
         }).then((stream) => {
-            this.hasMicPerm = true;
-            this.update();
+            if (!this.hasMicPerm) {
+                this.hasMicPerm = true;
+                this.update();
+            }
         }, () => {
             // Aw. No permission (or no microphone available).
-            this.hasMicPerm = false;
-            this.update();
+            if (this.hasMicPerm) {
+                this.hasMicPerm = false;
+                this.update();
+            }
         });
     }
 
     opts.store.on('update', (store) => {
-		// allow time to animate
-		setTimeout(() => {
+        if (this.initialLoad) {
             this.update(store);
-		}, 1000);
+            this.initialLoad = false;
+        } else {
+            // allow time to animate
+            setTimeout(() => {
+                this.update(store);
+            }, 1000);
+        }
     });
 
     this.on('mount', function() {

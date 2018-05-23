@@ -70,11 +70,11 @@ declare interface IPluginDefCommand {
 
 declare interface ITranslatedCommand {
     // the original name to match this command against
-    name: string,
-    description?: string,
-    match: string | string[] | IDynamicMatch,
-    nice?: (rawInput: string, matchOutput: any[]) => string,
-    delay?: number | number[],
+    readonly name: string,
+    readonly description?: string,
+    readonly match: string | string[] | IDynamicMatch,
+    readonly nice?: (rawInput: string, matchOutput: any[]) => string,
+    readonly delay?: number | number[],
 }
 
 declare interface IPluginUtil {
@@ -124,15 +124,17 @@ declare interface IGeneralOptions {
 // combined local and sync settings in a form that's
 // easily digestable by the consumers: options page, PM, Recg
 interface IPluginConfig extends IDisableable, IToggleableHomophones {
-    id: string,
-    niceName: string,
+    readonly id: string,
+    readonly niceName: string,
+    readonly version: string,
     expanded: boolean,
 	showMore: boolean,
-    version: string,
-    match: RegExp[],
+    // the languages the plugin supports
+    readonly languages: LanguageCode[],
+    readonly match: RegExp[],
     cs: string,
     commands: IPluginConfigCommand[],
-    description?: string,
+    readonly description?: string,
     // custom settings that the plugin can set within it's commands (eg. browser annotate)
     settings: object,
 }
@@ -140,8 +142,8 @@ interface IPluginConfig extends IDisableable, IToggleableHomophones {
 declare interface IToggleableHomophones {
     homophones?: {
         enabled: boolean,
-        source: string,
-        destination: string,
+        readonly source: string,
+        readonly destination: string,
     }[],
 }
 
