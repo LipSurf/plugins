@@ -26,8 +26,8 @@
                 <i class="icon language"></i>
 				Language:
                 <select onchange={ langSave } ref="lang">
-                    <option each={lang in possibleLanguages} value={lang.code} selected={options.language==lang.code}>{lang.nice}</option>
-                    <option>+ Add a Language</option>
+                    <option each={niceLang, possLang in possibleLanguages} value={possLang} selected={options.language==possLang}>{niceLang}</option>
+                    <option value="add">+ Add a Language</option>
                 </select>
 			</label>
 		</div>
@@ -64,26 +64,28 @@
                 </a>
                 <div class="collapsable">
                     <div class="collapsable-inner">
-                        <div class="languages">
-                            <div class="label">
-                                <strong>Supported Languages: </strong> 
+                        <div style="display: table; border-spacing: 0 0.6em;">
+                            <div class="languages" style="display: table-row">
+                                <div class="label" style="display: table-cell">
+                                    <strong>Supported Languages: </strong> 
+                                </div>
+                                <ul class="language-list" style="display: table-cell">
+                                    <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
+                                </ul>
                             </div>
-                            <ul class="language-list">
-                                <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
-                            </ul>
-                        </div>
-                        <div class="homophones" if={ homophones.length > 0 }>
-                            <div class="label">
-                                <strong>Homophones/synonyms: </strong>
+                            <div class="homophones" if={ homophones.length > 0 } style="display:table-row">
+                                <div class="label" style="display: table-cell">
+                                    <strong>Homophones/synonyms: </strong>
+                                </div>
+                                <div class="tag-list-cont" style="display: table-cell">
+                                    <a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
+                                    <div class="tag-list {shrunk: !showMore}">
+                                        <homophone each={homophones}></homophone>
+                                    </div>
+                                    <div class="fade {invisible: showMore}">
+                                    </div>
+                                </div>
                             </div>
-							<div class="tag-list-cont">
-								<a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
-								<div class="tag-list {shrunk: !showMore}">
-									<homophone each={homophones}></homophone>
-								</div>
-								<div class="fade {invisible: showMore}">
-								</div>
-							</div>
                         </div>
                         <table>
                             <thead>
@@ -118,11 +120,8 @@
 
     .language-list {
         list-style: none;
-    }
-
-    .language-list li {
-        display: inline-block;
-        margin: 0 0.5em;
+        margin: 0;
+        padding: 0;
     }
 
 	.title-bar img {
@@ -159,6 +158,7 @@
 		text-decoration: none;
 		color: #7e7e7e;
 		position: absolute;
+        transform: translateX(-50%);
 		left: 50%;
 		z-index: 10;
 		bottom: -10px;
@@ -233,7 +233,6 @@
     }
 
     .homophones .label {
-        float: left;
         width: 20%;
     }
 
@@ -244,13 +243,11 @@
     .homophones {
         margin-bottom: 30px;
         display: block;
-        float: left;
     }
 
     .homophones .tag-list {
 		position: relative;
 		overflow: hidden;
-        width: 70%;
         text-align: left;
 		border-bottom: 1px solid #dddddd;
 		max-height: 600px;
@@ -410,14 +407,14 @@
     this.hasMicPerm = true;
     this.initialLoad = true;
     this.possibleLanguages = [
-		{code: "en-AU", nice: "English (Australia)"},
-		{code: "en-IN", nice: "English (India)"},
-		{code: "en-NZ", nice: "English (New Zealand)"},
-		{code: "en-ZA", nice: "English (South Africa)"},
-		{code: "en-GB", nice: "English (UK)"},
-		{code: "en-US", nice: "English (US)"},
-		{code: "ja", nice: "日本語"},
-	];
+		"en-AU", 
+		"en-IN",
+		"en-NZ",
+		"en-ZA",
+		"en-GB",
+		"en-US",
+		"ja",
+	].reduce((memo, lang) => {memo[lang] = this.LANG_CODE_TO_NICE[lang]; return memo;}, {});
 
     this.save = () => {
         options.save();
@@ -444,10 +441,16 @@
 	}
 
     this.langSave = (e) => {
-        Object.assign(options.options, {
-            language: this.refs.lang.value
-        });
-        this.save();
+        if (this.refs.lang.value == "add") {
+            // add a language
+            window.open("https://github.com/mikob/LipSurf#adding-support-for-more-languages-i18n", "_blank");
+            this.refs.lang.value = options.options.language;
+        } else {
+            Object.assign(options.options, {
+                language: this.refs.lang.value
+            });
+            this.save();
+        }
     }
 
     this.toggleGroupEnabled = (e) => {
