@@ -91,6 +91,15 @@ export abstract class PluginBase {
     };
 
     static util: IPluginUtil = {
+        // meta: get's all the installed plugins
+        getOptions: async function(): Promise<IOptions> {
+            return getOptions();
+        },
+
+        setLanguage: function(lang: LanguageCode) {
+            storage.sync.save({language: lang});
+        },
+
         // automatically remove these overlays when add-on is deactivated
         // if hold == true, rerender the overlay even when page changes (not yet working)
         addOverlay: (contents, id=null, domLoc=document.body, hold=false): HTMLDivElement => {
@@ -102,11 +111,6 @@ export abstract class PluginBase {
                 shadowCont.id = id;
             domLoc.appendChild(shadowCont);
             return shadowCont;
-        },
-
-        // meta: get's all the installed plugins
-        getOptions: async function(): Promise<IOptions> {
-            return getOptions();
         },
 
         scrollToAnimated: ($ele) => {

@@ -1,34 +1,33 @@
-declare abstract class PluginBase {
-    static niceName: string;
-    static description: string;
-    static version: string;
-    static apiVersion: string;
-    static match: RegExp | RegExp[];
-    static authors: string;
+declare interface IPlugin extends IPluginBase {
+    niceName: string;
+    description?: string;
+    version: string;
+    apiVersion: string;
+    match: RegExp | RegExp[];
+    authors?: string;
 
-    static commands: IPluginDefCommand[];
-    static homophones: IPluginDefHomophones;
-    static init?: () => void;
-    static destroy?: () => void;
-
-    // should not be overridden by plugins
-    static getOption: (name: string) => Promise<any>;
-    static setOption: (name: string, val: any) => Promise<void>;
-
-    // don't allow non-static properties
-    [propName: string]: never;
-    // limit the static members to be functions (doesn't work yet)
-    // https://github.com/Microsoft/TypeScript/issues/6480
-    // static [propName: string]: null | () => any;
-
-    static util: IPluginUtil;
+    commands: IPluginDefCommand[];
+    homophones?: IPluginDefHomophones;
+    init?: () => void;
+    destroy?: () => void;
+    languages?: {[L in LanguageCode]?: IPluginTranslation};
 }
 
-declare abstract class PluginTranslationBase {
-    static niceName: string;
-    static description: string;
-    static homophones: IPluginDefHomophones;
-    static commands: {[name_key: string]: ITranslatedCommand};
+declare interface IPluginTranslation {
+    niceName: string;
+    authors?: string;
+    description?: string;
+    homophones?: IPluginDefHomophones;
+    commands: {[key: string]: ITranslatedCommand};
+}
+
+
+declare interface IPluginBase {
+    // should not be overridden by plugins
+    getOption: (name: string) => Promise<any>;
+    setOption: (name: string, val: any) => Promise<void>;
+
+    util: IPluginUtil;
 }
 
 declare interface IDisableable {
@@ -40,46 +39,47 @@ declare type LanguageCode = 'af'|'sq'|'am'|'ar'|'ar-DZ'|'ar-BH'|'ar-EG'|'ar-IQ'|
 
 // for 3rd party plugins definitions
 declare interface IPluginDefHomophones {
-    [s: string]: string
+    [s: string]: string;
 }
 
 declare interface IDynamicMatch {
-    fn: ((transcript: string) => any[]),
-    description: string,
+    fn: (transcript: string) => any[];
+    description: string;
 }
 
 declare interface IPluginDefCommand {
-    name: string,
+    name: string;
     // returns processsed transcript result -- an array of args to
     // pass to runOnPage
     // strings should not have any punctuation in them as puncutation
     // is converted into it's spelled out form eg. "." -> "dot"
-    match: string | string[] | IDynamicMatch,
-    description?: string,
-    test?: () => any,
+    match: string | string[] | IDynamicMatch;
+    description?: string;
+    test?: () => any;
     // let command match on any page (not restricted by plugin level match regex)
-    global?: boolean,
-    run?: (() => any) | ((tabIndex: number) => any),
-    runOnPage?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>),
+    global?: boolean;
+    run?: (() => any) | ((tabIndex: number) => any);
+    runOnPage?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>);
     // returns the complete liveText that should be shown.
     // raw input would be eg. "go to are meal time video"
-    // matchOutput is the array returned form the match function (if there's a match fn)
-    nice?: (rawInput: string, matchOutput: any[]) => string,
-    delay?: number | number[],
+    // matchOutput is the array returned from the match function (if there's a match fn)
+    nice?: (rawInput: string, matchOutput: any[]) => string;
+    delay?: number | number[];
 }
 
 declare interface ITranslatedCommand {
     // the original name to match this command against
-    readonly name: string,
-    readonly description?: string,
-    readonly match: string | string[] | IDynamicMatch,
-    readonly nice?: (rawInput: string, matchOutput: any[]) => string,
-    readonly delay?: number | number[],
+    readonly name: string;
+    readonly description?: string;
+    readonly match: string | string[] | IDynamicMatch;
+    readonly nice?: (rawInput: string, matchOutput: any[]) => string;
+    readonly delay?: number | number[];
 }
 
 declare interface IPluginUtil {
     // meta
     getOptions: () => Promise<IOptions>;
+    setLanguage: (LanguageCode) => void;
 
     addOverlay: (contents, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLDivElement;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;
@@ -152,9 +152,9 @@ interface IPluginConfigCommand extends ICommonCommand, IDisableable {
 }
 
 declare interface ICommonCommand extends _ICommonCommand {
-    match: string[] | IDynamicMatch,
-    nice?: (match: string) => string,
-    run?: (() => any) | ((tabIndex: number) => any),
+    match: string[] | IDynamicMatch;
+    nice?: (rawInput: string, matchOutput: any[]) => string;
+    run?: (() => any) | ((tabIndex: number) => any);
 }
 
 declare interface _ICommonCommand {
@@ -163,4 +163,3 @@ declare interface _ICommonCommand {
     delay?: number[],
     description?: string,
 }
-

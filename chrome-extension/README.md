@@ -1,7 +1,9 @@
 TODO
 ===
 v0.3
+- [ ] don't init all plugins on all pages
 - [ ] make sure all of constants is not being including in riot options-page
+- [ ] make run, runOnPage, and matchFn more consistently named
 - [ ] Gulp strip comments, remove unused deps
 - [ ] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
@@ -46,6 +48,7 @@ Possible Biz plans
 
 
 v0.4
+- [ ] remove jQuery from all frames
 - [ ] annotations change when initially turned on after first highlight
 - [ ] special notification to remind user about no headphones mode?
 - [ ] sometimes clicking a post number goes wrong

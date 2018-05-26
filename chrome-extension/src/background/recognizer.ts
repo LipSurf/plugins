@@ -171,7 +171,7 @@ export class Recognizer extends StoreSynced {
             this.matchedCmdsForIndex = [];
             this.delayCmds = {};
             if (!this.recognizerKilled) {
-                console.log("ended. Restarting: ");
+                console.log("Ended. Restarting.");
                 this.recognition.start();
             }
         };

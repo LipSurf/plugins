@@ -29,9 +29,18 @@ let allPlugins: {
     [id: string]: typeof PluginBase
 } = {};
 
-// f is what needs to be done -- can be function or promise
-// f_check checks whether it was done (optional if the check can't be done in f)
-// delay is the gap between tries
+
+function initPlugins() {
+    Object.values(allPlugins).forEach(plugin => {
+        if (plugin.init) {
+            try {
+                plugin.init();
+            } catch(e) {
+                console.error(`Could not initialize ${plugin}: ${e}`);
+            }
+        }
+    });
+}
 
 // Needs to be safe to call multiple times
 function toggleActivated(_activated = true, quiet = false) {
@@ -43,18 +52,10 @@ function toggleActivated(_activated = true, quiet = false) {
             chrome.runtime.sendMessage('loadPlugins', (pluginCSCode) => {
                 eval(pluginCSCode);
                 console.log(`main.ts received loadPage ${Object.keys(allPlugins)}`);
-                Object.values(allPlugins).forEach(plugin => plugin.init ? plugin.init() : null);
+                initPlugins();
             });
         } else {
-            Object.values(allPlugins).forEach(plugin => {
-                if (plugin.init) {
-                    try {
-                        plugin.init();
-                    } catch(e) {
-                        console.error(`could not initialize plugin ${plugin} ${e}`);
-                    }
-                }
-            });
+            initPlugins();
         }
         retrialAndError(async function () {
             await promisify($(document).ready)();

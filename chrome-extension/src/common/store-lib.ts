@@ -13,6 +13,7 @@ export const DEFAULT_PREFERENCES: ISyncData = {
             ['Browser', '1.0.0'],
             ['Google', '1.0.0'],
             ['Reddit', '1.0.0'],
+            ['Wanikani', '1.0.0'],
         ].reduce((memo, [id, version]) => Object.assign(memo, {
             [id]: {
                 version,
