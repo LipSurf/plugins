@@ -29,7 +29,7 @@ export const DEFAULT_PREFERENCES: ISyncData = {
 export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
     let syncData = await storage.sync.load<ISyncData>();
     syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, syncData);
-    let serializedLocalData: Partial<ISerializedLocalData> = (await (storage.local.load)('pluginData'));
+    let serializedLocalData = (await (storage.local.load)('pluginData'));
     if (!serializedLocalData || !serializedLocalData.pluginData) {
         serializedLocalData = {
             pluginData: {},
@@ -38,40 +38,55 @@ export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
     }
     // parse serialized regex/fns
     let localData = Object.assign(serializedLocalData, {
-        pluginData: mapValues(serializedLocalData.pluginData, (val: any, id, pluginData) => {
-            val.match = val.match.map(matchItem => RegExp(matchItem));
-            val.commands = val.commands.map(cmd => {
-                if (cmd.nice)
-                    eval(`cmd.nice = ${cmd.nice}`);
-                if (typeof cmd.match === 'string')
-                    cmd.match = eval(cmd.match);
-                return cmd;
-            });
-            return val;
+        pluginData: mapValues(serializedLocalData.pluginData, (val, id, pluginData) => {
+            return {
+                ... val,
+                commands: mapValues(val.commands, cmd => 
+                    Object.assign(cmd, {run: () => null})
+                ),
+                match: val.match.map(matchItem => RegExp(matchItem)),
+                localized: mapValues(val.localized, local => {
+                    return {
+                        ...local,
+                        matchers: mapValues(local.matchers, matcher => {
+                            if (matcher.nice)
+                                eval(`matcher.nice = ${matcher.nice}`);
+                            if (typeof matcher.match === 'string')
+                                matcher.match = eval(matcher.match);
+                            return matcher;
+                        }),
+                    };
+                }),
+            };
         }),
     });
-    return [syncData, <ILocalData>localData];
+    return [syncData, localData];
 }
 
-function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginData }, syncPluginData: { [id: string]: ISyncPluginData }) {
+function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginData }, syncPluginData: { [id: string]: ISyncPluginData }): IPluginConfig[] {
     return Object.keys(localPluginData).map((id: string) => {
         let _localPluginData = localPluginData[id];
         let _syncPluginData = syncPluginData[id];
         return {
             id,
-            commands: _localPluginData.commands.map(cmd =>
+            commands: mapValues(_localPluginData.commands, (cmd, cmdName) =>
                 Object.assign({
-                    enabled: !_syncPluginData.disabledCommands.includes(cmd.name),
+                    enabled: !_syncPluginData.disabledCommands.includes(cmdName),
                 }, cmd)
             ),
-            homophones: Object.keys(_localPluginData.homophones).map(homo =>
-                Object.assign({
-                    enabled: !_syncPluginData.disabledHomophones.includes(homo),
-                    source: homo,
-                    destination: _localPluginData.homophones[homo],
+            localized: mapValues(_localPluginData.localized, (langData, lang) => 
+                Object.assign(langData, {
+                    homophones: Object.keys(langData.homophones).map(homoSource =>
+                        ({
+                            enabled: !_syncPluginData.disabledHomophones.includes(homoSource),
+                            source: homoSource,
+                            destination: langData.homophones[homoSource],
+                        })
+                    ),
                 })
             ),
-            ... pick(_localPluginData, 'niceName', 'match', 'cs', 'description', 'languages', ),
+            match: _localPluginData.match.map(matchStr => new RegExp(matchStr)),
+            ... pick(_localPluginData, 'cs', ),
             ... pick(_syncPluginData, 'expanded', 'version', 'enabled', 'showMore', 'settings'),
         }
     });

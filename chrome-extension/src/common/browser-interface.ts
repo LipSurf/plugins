@@ -3,8 +3,8 @@ declare let DEBUG:boolean;
 import { promisify, Detector } from './util';
 
 
-type LocalSaveable = ISerializedLocalData | IActivated;
-type LocalLoadable = keyof ISerializedLocalData;
+type LocalSaveable = StoreSerialized<ILocalData> | IActivated;
+type LocalLoadable = keyof ILocalData;
 type SyncSaveable = ISyncData | {plugins: IndexedPlugins} | {inactivityAutoOffMins: number} | {showLiveText: boolean} | {tutorialMode: number} | {language: string};
 type SyncLoadable = keyof ISyncData;
 
@@ -14,8 +14,8 @@ export module storage {
         export async function save(data: LocalSaveable): Promise<void> {
             return promisify<void>(chrome.storage.local.set)(data);
         }
-        export async function load(key: LocalLoadable): Promise<ISerializedLocalData> {
-            return promisify<ISerializedLocalData>(chrome.storage.local.get)(key);
+        export async function load(key: LocalLoadable): Promise<StoreSerialized<ILocalData>> {
+            return promisify<any>(chrome.storage.local.get)(key);
         }
         export async function clear(): Promise<void> {
             return promisify<void>(chrome.storage.local.clear)();

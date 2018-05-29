@@ -53,47 +53,47 @@ export function retrialAndError(f, f_check, delay, times) {
     });
 }
 
-// we define all the members so that typeof PluginBase[member] works
-// and we can distinguish what the private methods are of the plugin are
-export abstract class PluginBase {
-    static niceName: string = '';
-    static description: string = '';
-    static apiVersion: string = '';
-    static version: string = '';
-    static match: RegExp | RegExp[] = [];
+// TODO: get rid of the dep. on this and remove it
+export class PluginBasePublic {
+    // WARNING: these dumby properties are needed!
+    // we define all the members so that typeof PluginBase[member] works
+    // and we can distinguish what the private methods are of the plugin are
+    static niceName = '';
+    static version = '';
+    static apiVersion = '';
+    static match = new RegExp(/abc/);
+    static commands = [];
 
-    static commands: IPluginDefCommand[] = [];
-    static homophones: IPluginDefHomophones = {};
-    // called anytime the page is re-shown. Must be safe to re-run
-    // while lipsurf is activated. Or when lipsurf is first activated.
-    static init?: () => void;
+    static getOption = async (name: string): Promise<any> => null;
+    static setOption = async (name: string, val: any): Promise<void> => null;
 
-    // called when plugin is deactivated (speech recg. paused)
-    // in page context
-    static destroy?: () => void;
+    static util = <IPluginUtil>{};
+}
 
-    // don't allow non-static properties
-    [propName: string]: never;
-    // limit the static members to be functions (doesn't work yet)
-    // https://github.com/Microsoft/TypeScript/issues/6480
-    // static [propName: string]: null | () => any;
+export namespace PluginBase {
 
     // should not be overwritten
-    static getOption = async (pluginId: string, name: string): Promise<any> => {
+    export async function getPluginOption(pluginId: string, name: string): Promise<any> {
         let curPlugins = await storage.sync.load('plugins');
         return get(curPlugins, `plugins.${pluginId}.settings.${name}`);
-    };
+    }
 
-    static setOption = async (pluginId: string, name: string, val: any): Promise<void> => {
+    export async function setPluginOption(pluginId: string, name: string, val: any): Promise<void> {
         let curPlugins = await storage.sync.load<{plugins: IndexedPlugins}>('plugins');
         deepSet(curPlugins, `plugins.${pluginId}.settings.${name}`, val);
         await storage.sync.save(curPlugins);
-    };
+    }
 
-    static util: IPluginUtil = {
+    export let util: IPluginUtil = {
         // meta: get's all the installed plugins
         getOptions: async function(): Promise<IOptions> {
             return getOptions();
+        },
+
+        getLanguage: async function(): Promise<LanguageCode> {
+            // handles getting the default
+            let options = await getOptions();
+            return options.language;
         },
 
         setLanguage: function(lang: LanguageCode) {

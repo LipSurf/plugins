@@ -11,31 +11,32 @@ interface IRecgCommand {
     // computed property that describes if match strings have ordinal
     // placeholders and we should wait a bit of extra time to let
     // them get captured before executing
-    name: string,
-    match: string[] | ((transcript: string) => any[]),
-    ordinalMatch: boolean,
-    global?: boolean,
-    nice?: (rawInput: string, matchOutput: any[]) => string,
-    delay?: number[],
+    name: string;
+    // undefined for dynamic match because those are injected into page
+    match: string[] | undefined;
+    ordinalMatch: boolean;
+    global?: boolean;
+    nice?: (rawInput: string, matchOutput: any[]) => string;
+    delay?: number[];
 }
 
 // transformations of the plugin store go here
-interface IPluginRecgStore extends IToggleableHomophones {
-    id: string,
-    commands: IRecgCommand[],
-    match: RegExp[],
-    synKeys: RegExp[],
-    synVals: string[],
+interface IPluginRecgStore {
+    id: string;
+    commands: IRecgCommand[];
+    match: RegExp[];
+    synKeys: RegExp[];
+    synVals: string[];
 }
 
 interface IMatchCommand {
-    cmdName: string,
-    cmdPluginId: string,
+    cmdName: string;
+    cmdPluginId: string;
     // what the match function returns -- if anything
-    matchOutput: any[],
+    matchOutput: any[];
     // the actual delay being used (after matching, so not an array)
-    delay: number,
-    niceTranscript: string,
+    delay: number;
+    niceTranscript: string;
 }
 
 export type IRecognizedCallback = ILiveTextParcel | ICmdParcel;
@@ -76,17 +77,21 @@ export class Recognizer extends StoreSynced {
         this.pluginsRecgStore = newOptions.plugins
             .filter(plugin => plugin.enabled)
             .map(plugin => {
-                let enabledHomophones = plugin.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
+                let localized = plugin.localized[newOptions.language] || plugin.localized[newOptions.language.substr(0, 2)];
+                let enabledHomophones: IToggleableHomophone[] = localized.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
+                let matchers = localized.matchers;
                 return {
                     synKeys: enabledHomophones.map((homo) => new RegExp(`\\b${homo.source}\\b`)),
                     synVals: enabledHomophones.map((homo) => homo.destination),
-                    commands: plugin.commands
-                        .filter(cmd => cmd.enabled)
-                        .map((cmd) => ({
-                            ordinalMatch: !instanceOfDynamicMatch(cmd.match) ? !!find(flatten(cmd.match), (matchStr) => ~matchStr.indexOf('#')) : false,
+                    commands: Object.keys(plugin.commands)
+                        .filter(cmdName => plugin.commands[cmdName].enabled)
+                        .map(cmdName => ({
+                            name: cmdName,
+                            global: plugin.commands[cmdName].global,
+                            ordinalMatch: instanceOfDynamicMatch(matchers[cmdName].match) ? false : !!find(matchers[cmdName].match, (matchStr: string) => !!~matchStr.indexOf('#')),
                             // if it's a dynamic match, the fn is defined in the context of the CS
-                            match: instanceOfDynamicMatch(cmd.match) ? undefined : cmd.match,
-                            ...pick(cmd, ['name', 'delay', 'global', 'nice',])
+                            match: instanceOfDynamicMatch(matchers[cmdName].match) ? undefined : <string[]>matchers[cmdName].match,
+                            ...pick(matchers[cmdName], ['delay', 'nice',]),
                         })),
                     ...pick(plugin, ['id', 'match'])
                 }

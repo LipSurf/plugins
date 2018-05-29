@@ -1,6 +1,8 @@
 TODO
 ===
 v0.3
+Should we eval "run" code in store along with the other code that's eval'd? 
+
 - [ ] don't init all plugins on all pages
 - [ ] make sure all of constants is not being including in riot options-page
 - [ ] make run, runOnPage, and matchFn more consistently named
@@ -48,6 +50,8 @@ Possible Biz plans
 
 
 v0.4
+- [ ] make getting/setting options more efficient (make it load defaults but not have to load all plugins -- such as with getLanguage)
+- [ ] simplify store serializing/deserializing use this lib: https://github.com/yahoo/serialize-javascript 
 - [ ] remove jQuery from all frames
 - [ ] annotations change when initially turned on after first highlight
 - [ ] special notification to remind user about no headphones mode?
@@ -113,6 +117,7 @@ from both the background and option pages.
 
 marketing/profit
 ===
+* Tech. blog post about the Serialized<T> fanciness in typescript
 * Appear small. If the extension has something that feels like a small community people will embrace it more, support it more as opposed to one that seems to come from a cold, big soulless enterprise.
 * Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
 

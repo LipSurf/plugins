@@ -19,10 +19,10 @@ export class PluginSandbox extends StoreSynced {
     protected storeUpdated(newOptions: IOptions) {
         newOptions.plugins.forEach((plugin) => {
             // overwrites existing commands for plugin
-            this.privilegedCode[plugin.id] = plugin.commands.reduce((memo, cmd) => {
-                if (cmd.run)
+            this.privilegedCode[plugin.id] = Object.keys(plugin.commands).reduce((memo, cmdName) => {
+                if (plugin.commands[cmdName].run)
                     // eval in the sandbox -- to make sure ExtensionUtil is defined
-                    eval(`memo[cmd.name] = ${cmd.run}`);
+                    eval(`memo[cmdName] = ${plugin.commands[cmdName].run}`);
                 return memo;
             }, {});
         })

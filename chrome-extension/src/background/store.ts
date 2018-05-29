@@ -1,9 +1,10 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { omit, mapValues, pick, reduce } from "lodash";
+import { omit, mapValues, pick, reduce, flatten, assignIn, zip, fromPairs } from "lodash";
 import { promisify, instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
 import { getStoredOrDefault, getOptions } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
+
 
 /*
  *  User preferences as well as parsed plugins
@@ -39,38 +40,61 @@ export class Store {
         // local settings already
         // in case versions have changed (for example remotely)
         let neededPluginIds = Object.keys(syncData.plugins);
+        let serializedLocalData: any = {};
 
         let toInstallPluginIds = neededPluginIds.filter(id =>
             typeof localData.pluginData[id] === 'undefined'
             || localData.pluginData[id].version !== syncData.plugins[id].version
         );
 
-        Object.assign(localData.pluginData, (await Promise.all(toInstallPluginIds.map(async (id: string) =>
-            ({ id, ...(await this.fetchPlugin(id, syncData.plugins[id].version)) })
-        ))).reduce((memo, x) => { memo[x.id] = omit(x, 'id'); return memo }, {}));
+        let newlyInstalledLocalPluginData = await Promise.all(
+            toInstallPluginIds.map(
+                async (id: string) => await this.fetchPlugin(id, syncData.plugins[id].version)
+            )
+        );
+
+        let idToNewPlugins = fromPairs(zip(toInstallPluginIds, newlyInstalledLocalPluginData));
 
         // TODO: purge sync data for plugins that are uninstalled?
 
-        // convert to JSON safe values
-        let serializedLocalData = Object.assign(localData, {
-            pluginData: mapValues(localData.pluginData, (val:any, id, obj) => {
-                val.match = val.match.map(x => x.toString().substr(1, val.match.toString().length - 2))
-                val.commands.map((cmd) => {
-                    if (cmd.nice)
-                        cmd.nice = cmd.nice.toString();
-                    if (cmd.run)
-                        cmd.run = cmd.run.toString();
-                    // make function matchers not in an array so we can distinguish them during deserialization
-                    // distinguish them
-                    cmd.match = instanceOfDynamicMatch(cmd.match) ? {  ...cmd.match, fn: cmd.match.fn.toString() }  : cmd.match.map(match => match.toString());
-                    return cmd;
+        // extend the existing plugins with the new ones
+        assignIn(localData.pluginData, idToNewPlugins);
+
+        // serialize data
+        serializedLocalData = {
+            ... pick(localData),
+            pluginData: mapValues(localData.pluginData, localPluginData => {
+                return Object.assign(localPluginData, {
+                    // regex need to get rid of / at head and tail
+                    match: localPluginData.match.map(x => x.toString().substr(1, localPluginData.match.toString().length - 2)),
+                    commands: mapValues(localPluginData.commands, cmd => {
+                        let obj:any = Object.assign({}, cmd);
+                        if (cmd.run)
+                            obj.run = cmd.run.toString();
+                        return obj;
+                    }),
+                    localized: mapValues(localPluginData.localized, local => {
+                        return {
+                            ...local,
+                            matchers: mapValues(local.matchers, (matcher:IMatcher) => {
+                                let obj = {
+                                    ... matcher,
+                                    match: instanceOfDynamicMatch(matcher.match) ? { ...matcher.match, fn: matcher.match.fn.toString()} : matcher.match,
+                                };
+                                if (matcher.nice) {
+                                    // @ts-ignore
+                                    obj.nice = matcher.nice.toString();
+                                }
+                                return obj;
+                            }),
+                        }
+                    }),
                 });
-                return val
-            })
-        });
+            }),
+        };
 
         // now save the newly rebuilt cache
-        await (storage.local.save)(localData);
+        await (storage.local.save)(serializedLocalData);
     }
 
     async getOptions(forceRefresh = false): Promise<IOptions> {
@@ -83,6 +107,7 @@ export class Store {
     // save user preference changes
     // don't need to include DEFAULT_PREFERENCES because those are used on loads only
     async save(partialOptions: Partial<IOptions>) {
+        console.log(`saving options ${JSON.stringify(partialOptions)}`);
         // first merge plugin arrays manually -- otherwise the arrays just get overwritten naively by the latest merge obj
         if (partialOptions.plugins) {
             partialOptions.plugins = partialOptions.plugins.map(plugin => {
@@ -98,8 +123,8 @@ export class Store {
             ... omit(newOptions, 'plugins'),
             plugins: newOptions.plugins.reduce((memo, plugin) => {
                 memo[plugin.id] = {
-                    disabledCommands: plugin.commands.filter(x => !x.enabled).map(x => x.name),
-                    disabledHomophones: plugin.homophones.filter(x => !x.enabled).map(x => x.source),
+                    disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
+                    disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
                     ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
                 };
                 return memo;

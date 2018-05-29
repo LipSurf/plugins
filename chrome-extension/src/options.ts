@@ -54,15 +54,25 @@ class OptionsPage extends StoreSynced {
     storeUpdated(newOptions: IOptions) {
         Object.assign(this.options,  {
             ... omit(newOptions, 'plugins'),
-            cmdGroups: newOptions.plugins.map(plugin => ({
-                    commands: plugin.commands.map(cmd => ({
-                        dynamicMatch: instanceOfDynamicMatch(cmd.match),
-                        match: instanceOfDynamicMatch(cmd.match) ? cmd.match.description : cmd.match,
-                        ... pick(cmd, 'enabled', 'name', 'description'),
-                    })),
-                   // TODO: fix this ugly thing
-                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'niceName', 'id', 'description', 'homophones', 'languages'),
-            })),
+            cmdGroups: newOptions.plugins.map(plugin => {
+                // default to en if the plugin doesn't support a language
+                let localized:ILocalizedPluginData = plugin.localized[newOptions.language] || plugin.localized[newOptions.language.substr(0, 2)]
+                    || plugin.localized['en'];
+                return {
+                    commands: Object.keys(plugin.commands).map(cmdName => {
+                        let matcher = localized.matchers[cmdName];
+                        return {
+                            dynamicMatch: instanceOfDynamicMatch(matcher.match),
+                            match: instanceOfDynamicMatch(matcher.match) ? matcher.match.description : matcher.match,
+                            enabled: plugin.commands[cmdName].enabled,
+                            ... pick(matcher, 'name', 'description'),
+                        }
+                    }),
+                    languages: Object.keys(plugin.localized),
+                    ... pick(localized, 'niceName', 'description', 'homophones', ),
+                    ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'id', ),
+                };
+            }),
         });
         // trigger exists once we call riot.observable
         (this.options as any).trigger('update', this.options);

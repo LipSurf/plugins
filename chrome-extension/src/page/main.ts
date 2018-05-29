@@ -5,14 +5,14 @@ import { retrialAndError } from "../common/plugin-lib";
 import * as PluginLib from "../common/plugin-lib";
 import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
 import { storage } from "../common/browser-interface";
-let {PluginBase} = require('../common/plugin-lib');
+const { PluginBase } = require("../common/plugin-lib");
 
 
 declare global {
     interface Window {
         commands: any;
         PluginBase: typeof PluginBase;
-        allPlugins: (typeof PluginBase)[]
+        allPlugins: IPlugin[]
     }
 }
 
@@ -26,7 +26,7 @@ let commandsLoading = false;
 let cmdsQ: Promise<any>;
 let liveTextQ: Promise<any>;
 let allPlugins: {
-    [id: string]: typeof PluginBase
+    [id: string]: IPlugin 
 } = {};
 
 
