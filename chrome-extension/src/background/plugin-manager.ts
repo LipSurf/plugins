@@ -4,7 +4,7 @@
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
-import { flatten, pick, find } from "lodash";
+import { flatten, pick, find, assignIn, mapValues, omit } from "lodash";
 import { StoreSynced, } from "./store";
 import { promisify, instanceOfDynamicMatch } from "../common/util";
 import { PluginBasePublic } from "../common/plugin-lib";
@@ -100,31 +100,42 @@ export class PluginManager extends StoreSynced {
                 ${initAndDestrStr}; return ${id}Plugin.Plugin;})()`;
         return {
             commands: plugin.commands.reduce((memo, cmd) => {
-                memo[cmd.name] = pick(cmd, 'run', 'global'); 
+                memo[cmd.name] = pick(cmd, 'run', 'global');
                 return memo;
             }, {}),
-            localized: {
+            localized: assignIn({
                 "en": {
-                    matchers: plugin.commands.reduce((memo, cmd) => {
-                        memo[cmd.name] = {
-                            // Make all the functions strings (because we can't store them directly)
-                            match: instanceOfDynamicMatch(cmd.match) ? cmd.match : flatten([cmd.match]),
-                            ... pick(cmd, 'name', 'description', 'nice', ),
-                        };
-                        if (cmd.delay) {
-                            let delay = flatten([cmd.delay]);
-                            memo[cmd.name].delay = delay;
-                        }
-                        return memo;
-                    }, {}),
+                    matchers: PluginManager.makeMatcher(plugin.commands.reduce((memo, cmd) => 
+                        Object.assign(memo, {[cmd.name]: cmd})
+                    , {})),
                     homophones: plugin.homophones,
                     ... pick(plugin, 'niceName', 'description', ),
                 },
-            },
+                }, mapValues(plugin.languages, localizedPlugin => {
+                    return {
+                        matchers: PluginManager.makeMatcher(localizedPlugin.commands),
+                        ...omit(localizedPlugin, 'commands', 'authors', ),
+                    };
+                })
+            ),
             match: flatten([plugin.match]),
             cs,
             version,
         };
+    }
+
+    static makeMatcher(commands:{[cmdName: string]: ILocalizedCommand}): {[cmdName: string]: IMatcher } {
+        return mapValues(commands, cmd => {
+            let ret: any = {
+                // Make all the functions strings (because we can't store them directly)
+                match: instanceOfDynamicMatch(cmd.match) ? cmd.match : flatten([cmd.match]),
+                ... pick(cmd, 'name', 'description', 'nice', ),
+            };
+            if (ret.delay) {
+                ret.delay = flatten([cmd.delay]);
+            }
+            return ret;
+        });
     }
 
     static evalPluginCode(id: string, text: string): IPlugin {

@@ -3,7 +3,7 @@ import {
     CONFIDENCE_THRESHOLD, HOMOPHONES
 } from "../common/constants";
 import { Store, StoreSynced, } from "./store";
-import { find, flatten, pick, map } from "lodash";
+import { find, flatten, pick, map, get } from "lodash";
 import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
 
 
@@ -77,25 +77,28 @@ export class Recognizer extends StoreSynced {
         this.pluginsRecgStore = newOptions.plugins
             .filter(plugin => plugin.enabled)
             .map(plugin => {
-                let localized = plugin.localized[newOptions.language] || plugin.localized[newOptions.language.substr(0, 2)];
-                let enabledHomophones: IToggleableHomophone[] = localized.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
-                let matchers = localized.matchers;
-                return {
-                    synKeys: enabledHomophones.map((homo) => new RegExp(`\\b${homo.source}\\b`)),
-                    synVals: enabledHomophones.map((homo) => homo.destination),
-                    commands: Object.keys(plugin.commands)
-                        .filter(cmdName => plugin.commands[cmdName].enabled)
-                        .map(cmdName => ({
-                            name: cmdName,
-                            global: plugin.commands[cmdName].global,
-                            ordinalMatch: instanceOfDynamicMatch(matchers[cmdName].match) ? false : !!find(matchers[cmdName].match, (matchStr: string) => !!~matchStr.indexOf('#')),
-                            // if it's a dynamic match, the fn is defined in the context of the CS
-                            match: instanceOfDynamicMatch(matchers[cmdName].match) ? undefined : <string[]>matchers[cmdName].match,
-                            ...pick(matchers[cmdName], ['delay', 'nice',]),
-                        })),
-                    ...pick(plugin, ['id', 'match'])
+                let localized = plugin.localized[newOptions.language] || plugin.localized[<LanguageCode>newOptions.language.substr(0, 2)];
+                if (localized) {
+                    let enabledHomophones = localized.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
+                    let matchers = localized.matchers;
+                    return {
+                        synKeys: enabledHomophones.map((homo) => new RegExp(`\\b${homo.source}\\b`)),
+                        synVals: enabledHomophones.map((homo) => homo.destination),
+                        commands: Object.keys(plugin.commands)
+                            .filter(cmdName => plugin.commands[cmdName].enabled)
+                            .map(cmdName => ({
+                                name: cmdName,
+                                global: plugin.commands[cmdName].global,
+                                ordinalMatch: instanceOfDynamicMatch(matchers[cmdName].match) ? false : !!find(matchers[cmdName].match, (matchStr: string) => !!~matchStr.indexOf('#')),
+                                // if it's a dynamic match, the fn is defined in the context of the CS
+                                match: instanceOfDynamicMatch(matchers[cmdName].match) ? undefined : <string[]>matchers[cmdName].match,
+                                ...pick(matchers[cmdName], ['delay', 'nice',]),
+                            })),
+                        ...pick(plugin, ['id', 'match'])
+                    }
                 }
-            });
+            })
+            .filter(plugin => plugin !== undefined);
         if (this.lang && this.lang != newOptions.language) {
             // new language
             this.lang = newOptions.language;

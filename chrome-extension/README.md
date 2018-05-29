@@ -1,8 +1,6 @@
 TODO
 ===
 v0.3
-Should we eval "run" code in store along with the other code that's eval'd? 
-
 - [ ] don't init all plugins on all pages
 - [ ] make sure all of constants is not being including in riot options-page
 - [ ] make run, runOnPage, and matchFn more consistently named
@@ -51,7 +49,7 @@ Possible Biz plans
 
 v0.4
 - [ ] make getting/setting options more efficient (make it load defaults but not have to load all plugins -- such as with getLanguage)
-- [ ] simplify store serializing/deserializing use this lib: https://github.com/yahoo/serialize-javascript 
+- [ ] simplify store serializing/deserializing use this lib: https://github.com/yahoo/serialize-javascript
 - [ ] remove jQuery from all frames
 - [ ] annotations change when initially turned on after first highlight
 - [ ] special notification to remind user about no headphones mode?
