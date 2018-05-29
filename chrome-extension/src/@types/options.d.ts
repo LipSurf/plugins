@@ -31,7 +31,8 @@ interface IPluginConfig extends IDisableable {
     version: string;
 }
 
-declare interface IPluginConfigCommand extends IDisableable, IRunCommand, IGlobalCommand {}
+// Run is serialized because it is only eval'd in PluginSandbox
+declare interface IPluginConfigCommand extends IDisableable, StoreSerialized<IRunCommand>, IGlobalCommand {}
 
 declare interface IToggleableHomophone extends IDisableable {
     source: string;

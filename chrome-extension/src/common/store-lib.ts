@@ -41,9 +41,6 @@ export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
         pluginData: mapValues(serializedLocalData.pluginData, (val, id, pluginData) => {
             return {
                 ... val,
-                commands: mapValues(val.commands, cmd => 
-                    Object.assign(cmd, {run: () => null})
-                ),
                 match: val.match.map(matchItem => RegExp(matchItem)),
                 localized: mapValues(val.localized, local => {
                     return {

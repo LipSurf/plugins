@@ -60,4 +60,4 @@ declare interface ILocalPluginData  {
     version: string;
 }
 
-declare interface ILocalPluginCommand extends IRunCommand, IGlobalCommand { }
+declare interface ILocalPluginCommand extends StoreSerialized<IRunCommand>, IGlobalCommand { }
