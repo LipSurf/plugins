@@ -68,7 +68,7 @@ let fullyLoadedPromise = store.rebuildLocalPluginCache().then(async() => {
     if (tutMode.tutorialMode === undefined) {
         slideNum = 1;
     } else if (typeof tutMode.tutorialMode === 'number') {
-        slideNum = tutMode.tutorialMode;  
+        slideNum = tutMode.tutorialMode;
     }
 
     console.log(`slideNum ${slideNum}`);
@@ -227,10 +227,10 @@ storage.local.save({
     activated: false
 });
 
-// this needs to be top-level because (for example) if the tutorial page was restored in a fresh 
+// this needs to be top-level because (for example) if the tutorial page was restored in a fresh
 // chrome session, the activate would be called and this register needs to be ready to roll!
 storage.local.registerOnChangeCb(async (changes) => {
-    let {mn} = await fullyLoadedPromise; 
+    let {mn} = await fullyLoadedPromise;
     if (changes && changes.activated && changes.activated.newValue !== undefined && mn.activated !== changes.activated.newValue) {
         mn.toggleActivated(changes.activated.newValue);
     }
@@ -243,6 +243,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     // reinject the new CS so user doesn't need to reload tabs
     // WARNING: This needs to be updated anytime the manifest content scripts change
     if (details.reason === 'install' || details.reason === 'update') {
+        // clear local settings to force new plugin data/new local options shape
+        await storage.local.clear();
         let tabs = await promisify<chrome.tabs.Tab[]>(chrome.tabs.query)({});
         let allScripts = [
             {
@@ -272,7 +274,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
-// * Make sure this is top-level otherwise when a tab sends a message -- it will 
+// * Make sure this is top-level otherwise when a tab sends a message -- it will
 // get an immediate undefined response instead of the result of this handler.
 // * This must be sync and return true in order to use sendResponse
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {

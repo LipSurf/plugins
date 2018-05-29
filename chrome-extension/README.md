@@ -3,7 +3,7 @@ TODO
 v0.3
 - [x] make sure all of constants is not being including in riot options-page
 - [ ] make run, runOnPage, and matchFn more consistently named
-- [ ] Gulp strip comments, remove unused deps
+- [x] Gulp strip comments, remove unused deps
 - [x] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin
