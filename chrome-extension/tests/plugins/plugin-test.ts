@@ -14,6 +14,7 @@ import {
     AudioPlayingBot,
     MockedRecognizerBot,
 } from "../vm-test";
+import { instanceOfDynamicMatch } from 'src/common/util';
 
 const test = anyTest as TestInterface<{
     driver: WebDriver,
@@ -83,7 +84,7 @@ for (pluginFilePath of pluginFilePaths) {
     for (let cmd of Plugin.commands) {
         if (cmd.test) {
             for (let pluginTest of _.flatten([cmd.test])) {
-                var phrases = typeof cmd.match !== 'function' ? _.flatten([cmd.match]) : [];
+                var phrases = instanceOfDynamicMatch(cmd.match) ? [] : _.flatten([cmd.match]);
                 let phrase: string;
                 for (phrase of phrases) {
                     if (~BLACKLISTED_PHRASES.indexOf(phrase))

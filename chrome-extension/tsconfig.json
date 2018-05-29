@@ -8,7 +8,6 @@
     "noUnusedLocals": false,
     "noImplicitAny": false,
     "moduleResolution": "node",
-    "removeComments": true,
     "sourceMap": false,
     "baseUrl": ".",
     "paths": {

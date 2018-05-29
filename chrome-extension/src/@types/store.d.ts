@@ -29,15 +29,6 @@ declare interface ISyncPluginData extends IDisableable {
     settings: {};
 }
 
-type StoreSerialized<T> = {
-    [K in keyof T]: T[K] extends RegExp ? string : 
-                    T[K] extends RegExp[] ? string[] :
-                    T[K] extends Function ? string :
-                    T[K] extends IDynamicMatch ? string :
-                    T[K] extends Object ? StoreSerialized<T[K]> :
-                    T[K];
-}
-
 declare interface ILocalData {
     // is the plugin "on"
     activated: boolean;
@@ -53,7 +44,7 @@ declare interface ILocalPluginData  {
     localized: {
         [L in LanguageCode]?: ILocalizedPluginData & {homophones?: ISimpleHomophones}
     };
-    match: RegExp[];   
+    match: RegExp[];
     // the version is stored in both local and sync storage because
     // sync storage can be updated on a different machine, and all
     // machines would need to update their local plugin versions
