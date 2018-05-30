@@ -66,7 +66,7 @@ declare interface IPluginDefCommand extends ILocalizedCommand, IGlobalCommand, I
     runOnPage?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>);
 }
 
-declare interface ILocalizedCommand {
+declare interface ILocalizedCommand extends INiceCommand {
     // the original name to match this command against
     name: string;
     description?: string;
@@ -75,7 +75,6 @@ declare interface ILocalizedCommand {
     // strings should not have any punctuation in them as puncutation
     // is converted into it's spelled out form eg. "." -> "dot"
     match: string | string[] | IDynamicMatch;
-    nice?: (rawInput: string, matchOutput: any[]) => string;
     // returns the complete liveText that should be shown.
     // raw input would be eg. "go to are meal time video"
     // matchOutput is the array returned from the match function (if there's a match fn)
@@ -122,4 +121,8 @@ declare interface IGlobalCommand {
 
 declare interface IRunCommand {
     run?: (() => any) | ((tabIndex: number) => any);
+}
+
+declare interface INiceCommand {
+    nice?: (rawInput: string, matchOutput: any[]) => string;
 }

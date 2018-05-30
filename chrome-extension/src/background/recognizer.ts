@@ -3,11 +3,11 @@ import {
     CONFIDENCE_THRESHOLD, HOMOPHONES
 } from "../common/constants";
 import { Store, StoreSynced, } from "./store";
-import { find, flatten, pick, map, get } from "lodash";
+import { find, flatten, pick, map, get, } from "lodash";
 import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
 
 
-interface IRecgCommand {
+interface IRecgCommand extends IGlobalCommand, INiceCommand {
     // computed property that describes if match strings have ordinal
     // placeholders and we should wait a bit of extra time to let
     // them get captured before executing
@@ -15,8 +15,6 @@ interface IRecgCommand {
     // undefined for dynamic match because those are injected into page
     match: string[] | undefined;
     ordinalMatch: boolean;
-    global?: boolean;
-    nice?: (rawInput: string, matchOutput: any[]) => string;
     delay?: number[];
 }
 
@@ -213,9 +211,9 @@ export class Recognizer extends StoreSynced {
 
     /*
      * The plugin store already has filtered out disabled commands
-     * Splits up the input text and finds all the commands within the string. 
+     * Splits up the input text and finds all the commands within the string.
      * Accounts for greedy matching commands, multiple commands, repeated commands.
-     * 
+     *
      * Returns an array in order of the cmds found in the input.
      */
     async getCmdsForUserInput(input: string, url: string, useHomos: boolean = true): Promise<IMatchCommand[]> {
@@ -224,8 +222,11 @@ export class Recognizer extends StoreSynced {
         // TODO: flatten matchstr lists so it's really sorted by decreasing length, and not just by max
         // length of all matchStrs
         // commands are sorted by decreasing longest match string
-        let cmdsByPlugin: { [pluginId: string]: IRecgCommand[] } = this.pluginsRecgStore.reduce((memo, plugin) => {
-            memo[plugin.id] = [...(find(plugin.match, regx => regx.test(url)) ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)].sort((a, b) => {
+        // plugins are sorted first by matching plugins, then plugins with globals, then browser plugin
+        // [sortedIndex, pluginId, IRecgCommand[]]
+        let sortedCmds: [number, string, IRecgCommand[]][] = this.pluginsRecgStore.map(plugin => {
+            let urlMatchesForPlugin = !!find(plugin.match, regx => regx.test(url));
+            return <[number, string, IRecgCommand[]]>[plugin.id.toLowerCase() === 'browser' ? 0 : urlMatchesForPlugin ? 2 : 1, plugin.id, [...(urlMatchesForPlugin ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)].sort((a, b) => {
                 if (a.match && !b.match)
                     return -1;
                 else if (!a.match && b.match)
@@ -235,9 +236,13 @@ export class Recognizer extends StoreSynced {
                 else {
                     return this.findLongestMatchStr(<string[]>a.match) > this.findLongestMatchStr(<string[]>b.match) ? -1 : 1;
                 }
-            });
-            return memo;
-        }, {});
+            })];
+        })
+        .sort((a, b) => {
+            if (a[1] < b[1]) return 1;
+            if (a[1] > b[1]) return -1;
+            return 0;
+        });
         let currActiveTabProm = this.queryActiveTab();
         let inputParts = input.split(' ');
         let inputPartStart = 0;
@@ -248,17 +253,18 @@ export class Recognizer extends StoreSynced {
         while (inputPartStart < inputPartEnd) {
             let inputPart = inputParts.slice(inputPartStart, inputPartEnd).join(' ');
 
+            if (useHomos) {
+                homophoneIterator = this.generateHomophones(inputPart, url);
+            } else {
+                homophoneIterator = [inputPart][Symbol.iterator]();
+            }
+
             cmdsByPluginLoop:
-            for (let pluginId in cmdsByPlugin) {
-                let cmdsToTest = cmdsByPlugin[pluginId];
+            for (let homonizedInput = homophoneIterator.next().value; homonizedInput; homonizedInput = homophoneIterator.next().value) {
+                for (let pluginTup of sortedCmds) {
+                    let pluginId = pluginTup[1];
+                    let cmdsToTest = pluginTup[2];
 
-                if (useHomos) {
-                    homophoneIterator = this.generateHomophones(inputPart, url);
-                } else {
-                    homophoneIterator = [inputPart][Symbol.iterator]();
-                }
-
-                for (let homonizedInput = homophoneIterator.next().value; homonizedInput; homonizedInput = homophoneIterator.next().value) {
                     for (let f = 0; f < cmdsToTest.length; f++) {
                         let curCmd = cmdsToTest[f];
                         let runOnPageArgs: string[];
@@ -354,7 +360,7 @@ export class Recognizer extends StoreSynced {
                 for (let i = 0; i < recgCmds.length; i++) {
                     let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
                     console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
-                    if (this.matchedCmdsForIndex.length > i && cmdName !== this.matchedCmdsForIndex[i] 
+                    if (this.matchedCmdsForIndex.length > i && cmdName !== this.matchedCmdsForIndex[i]
                             && this.delayCmds[resultIndex] && this.delayCmds[resultIndex][i] && this.delayCmds[resultIndex][i].hasRan) {
                         // cancel/undo the old command?
                         console.error(`We're changing our mind about a command that already ran!
@@ -448,7 +454,7 @@ export class Recognizer extends StoreSynced {
 
     /*
      * Assumes synKeys are sorted by length.
-     * 
+     *
      * TODO: to truly generate each permutation, need to
      * do n * m here (since this only generates in one order after
      * going through the homophones linearly currently)

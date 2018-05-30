@@ -1,0 +1,66 @@
+@font-face {
+    font-family: 'MyFlutterApp';
+    font-style: normal;
+    src: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/vendor/icons.ttf) format('truetype');
+}
+
+/* latin */
+@font-face {
+    font-family: 'Special Elite';
+    font-style: normal;
+    font-weight: 400;
+    src: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/assets/special-elite-latin.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+21
+93, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.icon {
+    font-family: 'MyFlutterApp';
+    display: inline-block;
+    vertical-align: text-bottom;
+    background-repeat: no-repeat;
+    background-size: contain;
+    font-weight: normal;
+    font-style: normal;
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+}
+
+.icon.warning-empty:before {
+    content: '\e800';
+}
+
+.icon.error:before {
+    content: '\e801';
+}
+
+.icon.check-circle:before {
+    content: '\e802';
+}
+
+.icon.headphones:before {
+    content: '\e803';
+}
+
+.icon.text:before {
+    content: '\e804';
+}
+
+.icon.timer-off:before {
+    content: '\e805';
+}
+
+.icon.language:before {
+    content: '\f1ab';
+}
+
+.icon.bird:before {
+    content: '\f303';
+}
+
