@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" version="1.1" width="48px" height="48px">
+<g id="surface1">
+<path style=" fill:#9FA8DA;" d="M 11 24 L 25 2 L 39 24 L 25 32 Z "/>
+<path style=" fill:#7986CB;" d="M 25 2 L 39 24 L 25 32 Z "/>
+<path style=" fill:#9FA8DA;" d="M 11 27 L 25 35 L 39 27 L 25 46 Z "/>
+<path style=" fill:#7986CB;" d="M 25 35 L 39 27 L 25 46 Z "/>
+<path style=" fill:#7986CB;" d="M 11 24 L 25 18 L 39 24 L 25 32 Z "/>
+<path style=" fill:#5C6BC0;" d="M 25 18 L 39 24 L 25 32 Z "/>
+</g>
+</svg>

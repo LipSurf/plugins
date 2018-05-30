@@ -165,7 +165,7 @@
 		</div>
 		<div class="perms" ref="perms">
 			<div rel="mic-perm" style="display: inline-block;" class="notice {success: parent.hasMicPerm, failure: parent.hasMicPerm === false}">
-				<i class="material-icons">{parent.hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ parent.hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</span>
+				<i class="icon {check-circle: parent.hasMicPerm, error: !parent.hasMicPerm}"></i>&nbsp; <span>{ parent.hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</span>
 			</div>
 			<p class="mute left">Privacy: the speech recognizer is only on for the active tab when you click the LipSurf icon in the extensions toolbar.</p>
 		</div>
@@ -199,7 +199,7 @@
 		</ul>
 	</slide>
 	<slide ref="slide4" timing="4">
-		<h4>Use Headphones when Playing Videos/Music!</h4>
+		<h4><i class="icon headphones"></i> Use Headphones when Playing Videos/Music!</h4>
 		<ul>
 			<li>
 				The sound from videos will make it hard for LipSurf to discern your voice, unless you use headphones.
@@ -235,7 +235,7 @@
 			<li>To click any clickable thing with your voice, simply say what's in the yellow annotation on the upper left of the clickable thing!</span>
 		</ul>
 		<div class="note">
-			<i class="material-icons warning">warning</i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>.
+			<i class="icon warning-empty"></i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>.
 		</div>
 	</slide>
 	<slide ref="slide7" timing="4">

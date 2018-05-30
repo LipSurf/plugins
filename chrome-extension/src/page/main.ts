@@ -26,7 +26,7 @@ let commandsLoading = false;
 let cmdsQ: Promise<any>;
 let liveTextQ: Promise<any>;
 let allPlugins: {
-    [id: string]: IPlugin 
+    [id: string]: IPlugin
 } = {};
 
 

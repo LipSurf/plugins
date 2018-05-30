@@ -5,11 +5,13 @@
 				<img class="logo". src="../assets/icon-48.png"/>
 				<h1>LipSurf Options</h1>
 			</div>
+        </div>
+		<section>
             <h2>Permissions</h2>
             <p>We need permission to use the microphone. Please click "allow" when your browser prompts you for microphone permission. </p>
             <div class="perms" ref="perms">
                 <div rel="mic-perm" style="display: inline-block;" class="notice {success: hasMicPerm, failure: hasMicPerm === false}">
-                <i class="material-icons">{hasMicPerm ? 'check_circle' : 'error'}</i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</div>
+                <i class="icon {check-circle: hasMicPerm, error: !hasMicPerm}"></i>&nbsp; <span>{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }</div>
 				<div if={ !hasMicPerm } class="blocked-mic-instructions">
 					<img align="middle" src="/assets/mic-no-perm.png" style="max-width: 80px"/>
 					Click the blocked media icon in the address bar and click always allow.
@@ -17,91 +19,111 @@
                 </span>
             </div>
             <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the LipSurf icon in your extensions toolbar.</p>
-        </div>
-    </div>
-	<div class="container">
-		<h2>General</h2>
-		<div class="option">
-			<label title="The languages shown here are the ones supported by the plugins you have installed.">
-                <i class="icon language"></i>
-				Language:
-                <select onchange={ langSave } ref="lang">
-                    <option each={niceLang, possLang in possibleLanguages} value={possLang} selected={options.language==possLang}>{niceLang}</option>
-                    <option value="add">+ Add a Language</option>
-                </select>
-			</label>
-		</div>
-		<div class="option">
-			<label>
-				<input type="checkbox" ref="showLiveText" onchange={ generalSave } checked={ options.showLiveText }/> Show live text
-			</label>
-		</div>
-		<div class="option">
-			<label title="Check the box if you aren't using headphones and live text will be suppressed while audio is playing on the page (unless a valid command is given)">
-				<input type="checkbox" ref="noHeadphonesMode" onchange={ generalSave } checked={ options.noHeadphonesMode }/> No headphones mode
-            </label>
-		</div>
-		<div class="option">
-		<label>
-			Automatically shut off after &nbsp;&nbsp;<input class="right" ref="inactivityAutoOffMins" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
-		</label>
-		</div>
-        <div class="option" style="height: 1.2rem; margin: 20px">
-            <div class="btn-bar">
-                <button onclick="{ tutorial }">Open Tutorial</button>
-                <button onclick="{ reset }">Reset to Factory Defaults</button>
+    	</section>
+        <section>
+            <h2>Support the Project</h2>
+            <div class="notice warning">
+                <i class="icon warning-empty"></i> &nbsp;&nbsp;LipSurf will always have a free version.
+				</div>
+			<p>You are on the free trial of <strong>LipSurf Pro</strong>. LipSurf Pro is free while in beta. The free trial will end 1 month after the 1.0 release.</p>
+            <div style="text-align: center">
+                <button id="donate-btn">Donate as an Early Bird Supporter
+					<div>
+					<i class="img-icon btc"></i>
+					<i class="img-icon eth"></i>
+					<i class="img-icon pp"></i>
+					<i class="img-icon cc"></i>
+					</div>
+				</button>
+                <p class="mute">Early supporters will be credited 2x the value of their donation when 1.0 is released.</p>
             </div>
-        </div>
-	</div>
-    <div class="container">
-        <h2>Plugins</h2>
-        <div each={ options.cmdGroups } class="cmd-group">
-            <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
-                <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
-                    <div class="label">{ niceName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
-                        <div class="desc">{ description }</div>
-                    </div>
-                </a>
-                <div class="collapsable">
-                    <div class="collapsable-inner">
-                        <div style="display: table; border-spacing: 0 0.6em;">
-                            <div class="languages" style="display: table-row">
-                                <div class="label" style="display: table-cell">
-                                    <strong>Supported Languages: </strong> 
-                                </div>
-                                <ul class="language-list" style="display: table-cell">
-                                    <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
-                                </ul>
-                            </div>
-                            <div class="homophones" if={ homophones.length > 0 } style="display:table-row">
-                                <div class="label" style="display: table-cell">
-                                    <strong>Homophones/synonyms: </strong>
-                                </div>
-                                <div class="tag-list-cont" style="display: table-cell">
-                                    <a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
-                                    <div class="tag-list {shrunk: !showMore}">
-                                        <homophone each={homophones}></homophone>
-                                    </div>
-                                    <div class="fade {invisible: showMore}">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <table>
-                            <thead>
-                                <th>Enabled</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Command Words</th>
-                            </thead>
-                            <tbody>
-                                <tr data-is="cmd" each={commands}></tr>
-                            </tbody>
-                        </table>
-                    </div>
+        </section>
+        <section>
+            <h2>General</h2>
+            <div class="option">
+                <label title="The languages shown here are the ones supported by the plugins you have installed.">
+                    <i class="icon language"></i>
+                    Language:
+                    <select onchange={ langSave } ref="lang">
+                        <option each={niceLang, possLang in possibleLanguages} value={possLang} selected={options.language==possLang}>{niceLang}</option>
+                        <option value="add">+ Add a Language</option>
+                    </select>
+                </label>
+            </div>
+            <div class="option">
+                <label>
+                    <i class="icon text"></i>
+                    <input type="checkbox" ref="showLiveText" onchange={ generalSave } checked={ options.showLiveText }/> Show live text
+                </label>
+            </div>
+            <div class="option">
+                <label title="Check the box if you aren't using headphones and live text will be suppressed while audio is playing on the page (unless a valid command is given)">
+                    <i class="icon headphones"></i>
+                    <input type="checkbox" ref="noHeadphonesMode" onchange={ generalSave } checked={ options.noHeadphonesMode }/> No headphones mode
+                </label>
+            </div>
+            <div class="option">
+            <label>
+                <i class="icon timer-off"></i>
+                Automatically shut off after &nbsp;&nbsp;<input class="right" ref="inactivityAutoOffMins" style="width: 3.5em" onchange={ generalSave } type="number" min="0" max="525600" value={ options.inactivityAutoOffMins } /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
+            </label>
+            </div>
+            <div class="option" style="height: 1.2rem; margin: 20px">
+                <div class="btn-bar">
+                    <button onclick="{ tutorial }">Open Tutorial</button>
+                    <button onclick="{ reset }">Reset to Factory Defaults</button>
                 </div>
             </div>
-        </div>
+        </section>
+        <section>
+            <h2>Plugins</h2>
+            <div each={ options.cmdGroups } class="cmd-group">
+                <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
+                    <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
+                        <div class="label">{ niceName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
+                            <div class="desc">{ description }</div>
+                        </div>
+                    </a>
+                    <div class="collapsable">
+                        <div class="collapsable-inner">
+                            <div style="display: table; border-spacing: 0 0.6em;">
+                                <div class="languages" style="display: table-row">
+                                    <div class="label" style="display: table-cell">
+                                        <strong>Supported Languages: </strong>
+                                    </div>
+                                    <ul class="language-list" style="display: table-cell">
+                                        <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
+                                    </ul>
+                                </div>
+                                <div class="homophones" if={ homophones.length > 0 } style="display:table-row">
+                                    <div class="label" style="display: table-cell">
+                                        <strong>Homophones/synonyms: </strong>
+                                    </div>
+                                    <div class="tag-list-cont" style="display: table-cell">
+                                        <a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
+                                        <div class="tag-list {shrunk: !showMore}">
+                                            <homophone each={homophones}></homophone>
+                                        </div>
+                                        <div class="fade {invisible: showMore}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <table>
+                                <thead>
+                                    <th>Enabled</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Command Words</th>
+                                </thead>
+                                <tbody>
+                                    <tr data-is="cmd" each={commands}></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+        </section>
     </div>
     <style>
 	:scope {
@@ -128,18 +150,49 @@
 		vertical-align: text-bottom;
 	}
 
-    .icon {
-        display: inline-block;
-        width: 1.4em;
-        height: 1.4em;
-        vertical-align: text-bottom;
-        background-repeat: no-repeat;
-        background-size: contain;
-    }
+	.img-icon {
+		width: 1.2em;
+		height: 1.2em;
+		display: inline-block;
+		background-size: contain;
+	}
 
-    .icon.language {
-        background-image: url(data:image/png;base64,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);
-    }
+	.img-icon.eth {
+		background-image: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/vendor/eth.svg);
+	}
+
+	.img-icon.btc {
+		background-image: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/vendor/btc.svg);
+	}
+
+	.img-icon.pp {
+		background-image: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/vendor/pp.svg);
+	}
+
+	.img-icon.cc {
+		background-image: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/vendor/cc.svg);
+	}
+
+	#donate-btn {
+		color: white;
+		padding: 10px;
+		font-family: "Barlow";
+		font-weight: bold;
+		border-radius: 10px;
+		border: 1px solid;
+		background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+		background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+		background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+		background-image: -o-linear-gradient(top, #3498db, #2980b9);
+		background-image: linear-gradient(to bottom, #3498db, #2980b9);
+		box-shadow: 1px 1px #828282;
+	}
+
+	#donate-btn div {
+		filter: drop-shadow( 1px 1px 5px #ffffffcc );
+		margin-top: 10px;
+		font-size: 1.2em;
+	}
 
 	.title-bar * {
 		display: inline-block;
@@ -188,7 +241,7 @@
         transition: opacity 1s ease-out;
     }
 
-    .notice i {
+    .notice.success i {
         color: #13bd13;
         vertical-align: middle;
         font-size: 1.5em;
@@ -205,6 +258,13 @@
         background-color: #ffe3e0;
         border-color: #e69e9e;
         color: #8c3838;
+        opacity: 1.0;
+    }
+
+    .notice.warning {
+        background-color: #fffad7;
+        border-color: #e5dda1;
+        color: #615f3b;
         opacity: 1.0;
     }
 
@@ -237,7 +297,12 @@
     }
 
 	.option {
-		margin: 1.5em 0;
+		margin: 1.5em;
+		font-size: 1.2em;
+	}
+
+	.option i {
+		margin-right: 15px;
 	}
 
     .homophones {
@@ -389,11 +454,15 @@
 
     .container {
         max-width: 900px;
-        margin: 50px auto;
+        margin: 0px auto;
         text-align: left;
     }
 
-	.container:first-child {
+    section {
+        margin: 50px auto;
+    }
+
+	section:nth-of-type(1) {
 		margin: 20px auto;
 	}
 
@@ -407,7 +476,7 @@
     this.hasMicPerm = true;
     this.initialLoad = true;
     this.possibleLanguages = [
-		"en-AU", 
+		"en-AU",
 		"en-IN",
 		"en-NZ",
 		"en-ZA",

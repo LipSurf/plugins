@@ -7,13 +7,14 @@ v0.3
 - [x] Languages
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin
-- [ ] Plugins aren't updating for existing users
+- [x] Plugins aren't updating for existing users
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
 - [ ] annotations in the corner of options page, and changing
 - [ ] Plugins fetch
 - [x] Force to old reddit
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
-- [ ] Remove material icons (take 300kb)
+- [x] Remove material icons (take 300kb)
+- [ ] Donation page
 
 
 Before Lobsters Post
@@ -28,12 +29,6 @@ Before Lobsters Post
 
 Paid Version
 ===
-* You are on the free trial of LipSurf Pro. LipSurf Pro is free while in beta. The free trial will end 1 month after the first non-beta release.
-
-More Info [link to news page]
-Early Bird Supporter -- early bird supporters will be credited 2x the value of their donation when 1.0 is released.
-Donate Now
-
 * Wake word (lipsurf on)
  https://www.reddit.com/r/speechrecognition/comments/8699hk/porcupine_a_selfservice_highlyaccurate_and/
 * payed pro version that allows composing comments and custom commands?
@@ -181,6 +176,13 @@ References
 ===
 typehint generation:
 https://github.com/philc/vimium/blob/master/content_scripts/link_hints.coffee
+
+font-icon:
+http://fluttericon.com/
+
+color icons:
+https://icons8.com/icon/set/credit-card/color
+
 
 Letter to W3C:
 ===
