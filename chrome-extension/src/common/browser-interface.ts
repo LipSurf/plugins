@@ -14,7 +14,7 @@ export module storage {
         export async function save(data: LocalSaveable): Promise<void> {
             return promisify<void>(chrome.storage.local.set)(data);
         }
-        export async function load(key: LocalLoadable): Promise<StoreSerialized<ILocalData>> {
+        export async function load(key: LocalLoadable = null): Promise<StoreSerialized<ILocalData>> {
             return promisify<any>(chrome.storage.local.get)(key);
         }
         export async function clear(): Promise<void> {

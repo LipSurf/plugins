@@ -2,7 +2,7 @@
 /// <reference path="../common/browser-interface.ts" />
 import { omit, mapValues, pick, reduce, flatten, assignIn, zip, fromPairs } from "lodash";
 import { promisify, instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
-import { getStoredOrDefault, getOptions } from "../common/store-lib";
+import { getOptions, getStoredOrDefault, } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
 

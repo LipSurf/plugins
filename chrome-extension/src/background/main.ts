@@ -38,45 +38,50 @@ let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
-let fullyLoadedPromise = store.rebuildLocalPluginCache().then(async() => {
-    let recg = new Recognizer(store,
-        tabs.onUrlUpdate,
-        queryActiveTab,
-        tabs.sendMsgToTab,
-        webkitSpeechRecognition
-    );
-    let ps = new PluginSandbox(store);
-    let pm = new PluginManager(store);
-    let mn = new Main(store, pm, ps, recg);
+let fullyLoadedPromise = 
+    // HACK
+    //  clearing the local data so plugin data is updated between versions -- had issues doing this onInstall because it was called late
+    storage.local.clear().then(async() => 
+        store.rebuildLocalPluginCache().then(async() => {
+            let recg = new Recognizer(store,
+                tabs.onUrlUpdate,
+                queryActiveTab,
+                tabs.sendMsgToTab,
+                webkitSpeechRecognition
+            );
+            let ps = new PluginSandbox(store);
+            let pm = new PluginManager(store);
+            let mn = new Main(store, pm, ps, recg);
 
-    if (AUTO_ON) {
-        // HACK
-        setTimeout(mn.toggleActivated.bind(mn), 100);
-        // refresh all tabs
-        chrome.tabs.query({}, function (tabs) {
-            for (let tab of tabs) {
-                if (tab.url.indexOf('chrome://') === -1)
-                    chrome.tabs.reload(tab.id);
+            if (AUTO_ON) {
+                // HACK
+                setTimeout(mn.toggleActivated.bind(mn), 100);
+                // refresh all tabs
+                chrome.tabs.query({}, function (tabs) {
+                    for (let tab of tabs) {
+                        if (tab.url.indexOf('chrome://') === -1)
+                            chrome.tabs.reload(tab.id);
+                    }
+                })
             }
+
+            // we re-open the tutorial because the user might not have
+            // restore-tabs on and didn't explicitly close the tutorial before
+            let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
+            let slideNum;
+            if (tutMode.tutorialMode === undefined) {
+                slideNum = 1;
+            } else if (typeof tutMode.tutorialMode === 'number') {
+                slideNum = tutMode.tutorialMode;
+            }
+
+            console.log(`slideNum ${slideNum}`);
+            if (slideNum > 0 && !SKIP_TUTORIAL) {
+                openTutorial(slideNum);
+            }
+            return {recg, ps, pm, mn};
         })
-    }
-
-    // we re-open the tutorial because the user might not have
-    // restore-tabs on and didn't explicitly close the tutorial before
-    let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
-    let slideNum;
-    if (tutMode.tutorialMode === undefined) {
-        slideNum = 1;
-    } else if (typeof tutMode.tutorialMode === 'number') {
-        slideNum = tutMode.tutorialMode;
-    }
-
-    console.log(`slideNum ${slideNum}`);
-    if (slideNum > 0 && !SKIP_TUTORIAL) {
-        openTutorial(slideNum);
-    }
-    return {recg, ps, pm, mn};
-});
+);
 
 
 class Main extends StoreSynced {
@@ -243,8 +248,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     // reinject the new CS so user doesn't need to reload tabs
     // WARNING: This needs to be updated anytime the manifest content scripts change
     if (details.reason === 'install' || details.reason === 'update') {
-        // clear local settings to force new plugin data/new local options shape
-        await storage.local.clear();
         let tabs = await promisify<chrome.tabs.Tab[]>(chrome.tabs.query)({});
         let allScripts = [
             {

@@ -2,8 +2,7 @@ import { storage } from "./browser-interface";
 import { omit, mapValues, pick } from "lodash";
 import { objectAssignDeep } from "./util";
 
-
-export const DEFAULT_PREFERENCES: ISyncData = {
+const DEFAULT_PREFERENCES: ISyncData = {
     language: "en-US",
     showLiveText: true,
     noHeadphonesMode: false,
@@ -24,41 +23,6 @@ export const DEFAULT_PREFERENCES: ISyncData = {
                 disabledCommands: []
             }}), {})
 };
-
-
-export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
-    let syncData = await storage.sync.load<ISyncData>();
-    syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, syncData);
-    let serializedLocalData = (await (storage.local.load)('pluginData'));
-    if (!serializedLocalData || !serializedLocalData.pluginData) {
-        serializedLocalData = {
-            pluginData: {},
-            activated: false,
-        };
-    }
-    // parse serialized regex/fns
-    let localData = Object.assign(serializedLocalData, {
-        pluginData: mapValues(serializedLocalData.pluginData, (val, id, pluginData) => {
-            return {
-                ... val,
-                match: val.match.map(matchItem => RegExp(matchItem)),
-                localized: mapValues(val.localized, local => {
-                    return {
-                        ...local,
-                        matchers: mapValues(local.matchers, matcher => {
-                            if (matcher.nice)
-                                eval(`matcher.nice = ${matcher.nice}`);
-                            if (typeof matcher.match === 'string')
-                                matcher.match = eval(matcher.match);
-                            return matcher;
-                        }),
-                    };
-                }),
-            };
-        }),
-    });
-    return [syncData, localData];
-}
 
 function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginData }, syncPluginData: { [id: string]: ISyncPluginData }): IPluginConfig[] {
     return Object.keys(localPluginData).map((id: string) => {
@@ -89,6 +53,45 @@ function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginD
     });
 }
 
+export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
+    let [syncData, serializedLocalData] = await Promise.all([storage.sync.load<ISyncData>(), storage.local.load()]);
+    let localData = deserialize(serializedLocalData);
+    syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, syncData);
+    if (!localData || !localData.pluginData) {
+        localData = {
+            pluginData: {},
+            activated: false,
+        };
+    }
+    return [syncData, localData];
+}
+
+
+export function deserialize(serializedLocalData: StoreSerialized<ILocalData>): ILocalData {
+    // parse serialized regex/fns
+    return Object.assign(serializedLocalData, {
+        pluginData: mapValues(serializedLocalData.pluginData, (val, id, pluginData) => {
+            return {
+                ... val,
+                match: val.match.map(matchItem => RegExp(matchItem)),
+                localized: mapValues(val.localized, local => {
+                    return {
+                        ...local,
+                        matchers: mapValues(local.matchers, matcher => {
+                            if (matcher.nice)
+                                eval(`matcher.nice = ${matcher.nice}`);
+                            if (typeof matcher.match === 'string')
+                                matcher.match = eval(matcher.match);
+                            return matcher;
+                        }),
+                    };
+                }),
+            };
+        }),
+    });
+}
+
+// cannot handle rebuilding local plugin cache, that's for store.ts to do
 export async function getOptions(): Promise<IOptions> {
     let [syncData, localData] = await getStoredOrDefault();
     return {

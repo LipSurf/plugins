@@ -9,7 +9,6 @@ import { PluginManager } from "../src/background/plugin-manager";
 import { Store } from "../src/background/store";
 import { PluginSandbox } from '../src/background/plugin-sandbox';
 import { storage } from "../src/common/browser-interface";
-import { DEFAULT_PREFERENCES } from "../src/common/store-lib";
 var {PluginBase} = require("../src/common/plugin-lib");
 
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
@@ -41,7 +40,7 @@ test.before(async(t) => {
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
     let evalPluginsStub = sinon.stub(PluginManager, "evalPluginCode");
     sinon.stub(storage.local, "save").callsFake((saveData:ILocalData) => Object.assign(testSaveData, saveData));
-    biSyncStorageLoad.resolves(DEFAULT_PREFERENCES);
+    biSyncStorageLoad.resolves({});
     biLocalStorageLoad.resolves(testSaveData);
     fetchPluginStub.callsFake(async (pluginId:string) => getPlugin(pluginId));
     evalPluginsStub.callsFake((function (id:string, text:string) {

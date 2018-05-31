@@ -235,7 +235,7 @@
 			<li>To click any clickable thing with your voice, simply say what's in the yellow annotation on the upper left of the clickable thing!</span>
 		</ul>
 		<div class="note">
-			<i class="icon warning-empty"></i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">annotate off</span>.
+			<i class="icon warning-empty"></i> &nbsp;Annotations stay on every page until you say <span class="voice-cmd">turn off annotations</span>.
 		</div>
 	</slide>
 	<slide ref="slide7" timing="4">

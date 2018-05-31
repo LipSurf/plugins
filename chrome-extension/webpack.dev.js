@@ -9,9 +9,9 @@ let featureFlags = {
     DEBUG: JSON.stringify(true),
     // for manually forcing speech
     INCLUDE_SPEECH_TEST_HARNESS: JSON.stringify(true),
-    CLEAR_SETTINGS: JSON.stringify(true),
-    SKIP_TUTORIAL: JSON.stringify(true),
-    AUTO_ON: JSON.stringify(true),
+    CLEAR_SETTINGS: JSON.stringify(false),
+    SKIP_TUTORIAL: JSON.stringify(false),
+    AUTO_ON: JSON.stringify(false),
     PRETEND_FIRST_INSTALL: JSON.stringify(false),
 };
 

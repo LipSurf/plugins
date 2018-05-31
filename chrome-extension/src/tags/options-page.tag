@@ -183,6 +183,7 @@
 		font-weight: bold;
 		border-radius: 10px;
 		border: 1px solid;
+		cursor: pointer;
 		background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
 		background-image: -moz-linear-gradient(top, #3498db, #2980b9);
 		background-image: -ms-linear-gradient(top, #3498db, #2980b9);
@@ -499,9 +500,10 @@
     }
 
 	this.getMorePlugins = () => {
-		if (confirm("This feature is not yet available. Click \"OK\" if you're a programmer and want to write a plugin.")) {
-			window.open('https://github.com/mikob/lipsurf', '_blank');
-		}
+		alert("This feature is not available yet.");
+		/*if (confirm("This feature is not yet available. Click \"OK\" if you're a programmer and want to write a plugin.")) {*/
+			/*window.open('https://github.com/mikob/lipsurf', '_blank');*/
+		/*}*/
 	}
 
 	this.donate = () => {

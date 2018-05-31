@@ -131,7 +131,7 @@ export class PluginManager extends StoreSynced {
                 match: instanceOfDynamicMatch(cmd.match) ? cmd.match : flatten([cmd.match]),
                 ... pick(cmd, 'name', 'description', 'nice', ),
             };
-            if (ret.delay) {
+            if (cmd.delay) {
                 ret.delay = flatten([cmd.delay]);
             }
             return ret;
