@@ -97,7 +97,7 @@
             background-repeat-x: repeat;
             background-repeat-y: no-repeat;
 			background-position-x: 0px;
-			background-size: 30%;
+			background-size: 438.5px;
             height: 100%;
 			position: absolute;
 			top: 0;

@@ -45,6 +45,8 @@ interface IHomophonePref {
 
 
 class OptionsPage extends StoreSynced {
+    private pluginSelectedLanguage: LanguageCode;
+
     constructor(store: Store, private options: IPluginOptionsPageStore = <IPluginOptionsPageStore>{}) {
         super(store);
         riot.observable(this.options);
@@ -56,8 +58,14 @@ class OptionsPage extends StoreSynced {
             ... omit(newOptions, 'plugins'),
             cmdGroups: newOptions.plugins.map(plugin => {
                 // default to en if the plugin doesn't support a language
-                let localized:ILocalizedPluginData = plugin.localized[newOptions.language] || plugin.localized[newOptions.language.substr(0, 2)]
-                    || plugin.localized['en'];
+                let localized: ILocalizedPluginData & { homophones?: IToggleableHomophone[]; };
+                for (let lang of [newOptions.language, <LanguageCode>newOptions.language.substr(0, 2), <LanguageCode>"en"]) {
+                    localized = plugin.localized[lang];
+                    if (localized) {
+                        this.pluginSelectedLanguage = lang;
+                        break;
+                    }
+                }
                 return {
                     commands: Object.keys(plugin.commands).map(cmdName => {
                         let matcher = localized.matchers[cmdName];
@@ -79,10 +87,18 @@ class OptionsPage extends StoreSynced {
     }
 
     save() {
-        // @ts-ignore: omit takes out cmdGroups
+        // whitelist properties to send up
+        // TODO: don't understand why exactly ts-ignore is needed here
+        // @ts-ignore
         this.store.save({
-            ... omit(this.options, 'cmdGroups'),
-            plugins: this.options.cmdGroups,
+            ...omit(this.options, 'cmdGroups'),
+            plugins: this.options.cmdGroups.map(cmdGroup => ({
+                ...pick(cmdGroup, 'id', 'expanded', 'enabled', 'showMore'),
+                localized: {[this.pluginSelectedLanguage]: {homophones: cmdGroup.homophones}},
+                commands: cmdGroup.commands.reduce((memo, cmd) => 
+                    Object.assign(memo, {[cmd.name]: pick(cmd, 'enabled')})
+                , {}),
+            }))
         });
     }
 

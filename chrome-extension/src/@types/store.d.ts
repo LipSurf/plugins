@@ -3,6 +3,10 @@
  */
 /// <reference path="../../plugins/src/@types/plugin-interface.d.ts"/>
 
+declare type NestedPartial<T> = {
+    [K in keyof T]?: T[K] extends Array<infer R> ? Array<NestedPartial<R>> : NestedPartial<T[K]>
+};
+
 // this is what's saved in chrome.syncdata
 // all the user preferences for a plugin
 // (we don't store the entire plugin code as there's a limit to the chrome syncdata space)

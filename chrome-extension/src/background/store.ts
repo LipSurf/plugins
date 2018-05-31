@@ -106,7 +106,7 @@ export class Store {
 
     // save user preference changes
     // don't need to include DEFAULT_PREFERENCES because those are used on loads only
-    async save(partialOptions: Partial<IOptions>) {
+    async save(partialOptions: NestedPartial<IOptions>) {
         console.log(`saving options ${JSON.stringify(partialOptions)}`);
         // first merge plugin arrays manually -- otherwise the arrays just get overwritten naively by the latest merge obj
         if (partialOptions.plugins) {
