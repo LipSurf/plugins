@@ -38,10 +38,10 @@ let permissionDetector;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
-let fullyLoadedPromise = 
+let fullyLoadedPromise =
     // HACK
     //  clearing the local data so plugin data is updated between versions -- had issues doing this onInstall because it was called late
-    storage.local.clear().then(async() => 
+    storage.local.clear().then(async() =>
         store.rebuildLocalPluginCache().then(async() => {
             let recg = new Recognizer(store,
                 tabs.onUrlUpdate,
@@ -274,6 +274,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
                 });
             };
         }
+
+        if (details.reason === 'update')
+            chrome.tabs.create({ active: true, url: chrome.extension.getURL(`views/updates.html`) });
     }
 });
 

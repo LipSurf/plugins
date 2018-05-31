@@ -23,7 +23,7 @@
     "watch": "npm explore lipsurf-plugins -- gulp watch | webpack --config webpack.dev.js --watch --progress",
     "build-prod": "webpack --verbose --config webpack.prod.js --display verbose && npm explore lipsurf-plugins -- gulp prod",
     "watch-prod": "npm explore lipsurf-plugins -- gulp watch-prod | webpack --config webpack.prod.js --watch",
-    "release": "npm run build-prod && zip -r lipsurf.zip chrome-extension/"
+    "release": "npm run build-prod && rm lipsurf.zip; zip -r lipsurf.zip chrome-extension/"
   },
   "repository": {
     "type": "git",
