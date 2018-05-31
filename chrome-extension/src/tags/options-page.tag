@@ -27,7 +27,7 @@
 				</div>
 			<p>You are on the free trial of <strong>LipSurf Pro</strong>. LipSurf Pro is free while in beta. The free trial will end 1 month after the 1.0 release.</p>
             <div style="text-align: center">
-                <button id="donate-btn">Donate as an Early Bird Supporter
+                <button onclick={ donate } id="donateBtn">Donate as an Early Bird Supporter
 					<div>
 					<i class="img-icon btc"></i>
 					<i class="img-icon eth"></i>
@@ -77,6 +77,9 @@
         </section>
         <section>
             <h2>Plugins</h2>
+			<div style="text-align: right">
+				<button onclick={ getMorePlugins } id="getMorePlugins"><i class="icon lib-add"></i> Get More Plugins</button>
+			</div>
             <div each={ options.cmdGroups } class="cmd-group">
                 <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
                     <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
@@ -173,7 +176,7 @@
 		background-image: url(chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/vendor/cc.svg);
 	}
 
-	#donate-btn {
+	#donateBtn {
 		color: white;
 		padding: 10px;
 		font-family: "Barlow";
@@ -188,7 +191,7 @@
 		box-shadow: 1px 1px #828282;
 	}
 
-	#donate-btn div {
+	#donateBtn div {
 		filter: drop-shadow( 1px 1px 5px #ffffffcc );
 		margin-top: 10px;
 		font-size: 1.2em;
@@ -494,6 +497,16 @@
             options.reset()
         }
     }
+
+	this.getMorePlugins = () => {
+		if (confirm("This feature is not yet available. Click \"OK\" if you're a programmer and want to write a plugin.")) {
+			window.open('https://github.com/mikob/lipsurf', '_blank');
+		}
+	}
+
+	this.donate = () => {
+		window.open('https://www.lipsurf.com/donate/', '_blank');
+	}
 
 	this.tutorial = () => {
         // todo: call the main.ts openTutorial fn

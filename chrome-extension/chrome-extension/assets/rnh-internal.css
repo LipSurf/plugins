@@ -64,3 +64,6 @@
     content: '\f303';
 }
 
+.icon.lib-add:before {
+    content: '\e806';
+}

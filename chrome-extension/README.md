@@ -10,11 +10,11 @@ v0.3
 - [x] Plugins aren't updating for existing users
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
 - [ ] annotations in the corner of options page, and changing
-- [ ] Plugins fetch
+- [x] Plugins fetch fake btn
 - [x] Force to old reddit
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
 - [x] Remove material icons (take 300kb)
-- [ ] Donation page
+- [x] Donation page
 
 
 Before Lobsters Post
@@ -27,21 +27,8 @@ Before Lobsters Post
    -- Forum (Discourse), Blog (Ghost)
 
 
-Paid Version
-===
-* Wake word (lipsurf on)
- https://www.reddit.com/r/speechrecognition/comments/8699hk/porcupine_a_selfservice_highlyaccurate_and/
-* payed pro version that allows composing comments and custom commands?
-
-Possible Biz plans
- A. Premium Version allows for > 100 commands
- B. Premium Version has android and iOS apps (echo, alexa?)
- C. Premium Version allows for Premium Plugins (non community plugins) -- recipe sites, youtube... etc.?
-   Make WK plugin a premium one
- D. X commands per month
-
-
 v0.4
+- [ ] make livetext hold the command that's being run
 - [ ] make getting/setting options more efficient (make it load defaults but not have to load all plugins -- such as with getLanguage)
 - [ ] simplify store serializing/deserializing use this lib: https://github.com/yahoo/serialize-javascript
 - [ ] remove jQuery from all frames
@@ -80,6 +67,20 @@ vNext
 - [ ] Click live text when there's no match to add a correction
 - [ ] Allow sites to embed commands in the markup?
 - [ ] Faster annotations -- study link heavy reddit
+
+Paid Version
+===
+* Wake word (lipsurf on)
+ https://www.reddit.com/r/speechrecognition/comments/8699hk/porcupine_a_selfservice_highlyaccurate_and/
+* payed pro version that allows composing comments and custom commands?
+
+Possible Biz plans
+  A. Premium Version allows for > 100 commands
+  B. Premium Version has android and iOS apps (echo, alexa?)
+X C. Premium Version allows for Premium Plugins (non community plugins) -- recipe sites, youtube... etc.?
+   Make WK plugin a premium one
+  D. X commands per month
+
 
 plugins
 ===
