@@ -1,33 +1,25 @@
 TODO
 ===
-v0.3
-- [x] make sure all of constants is not being including in riot options-page
-- [ ] make run, runOnPage, and matchFn more consistently named
-- [x] Gulp strip comments, remove unused deps
-- [x] Languages
-- [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
-- [ ] Top Sites Plugin
-- [x] Plugins aren't updating for existing users
-- [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
-- [ ] annotations in the corner of options page, and changing
-- [x] Plugins fetch fake btn
-- [x] Force to old reddit
-- [ ] BUG newly installed close tutorial, open coursera, options page get's opened
-- [x] Remove material icons (take 300kb)
-- [x] Donation page
-
-
-Before Lobsters Post
-- [ ] "Voice Control for Google Chrome" landing page
-- [ ] Portal/documentation for plugins
-- [ ] More exciting video
-- [ ] All banners on google chrome store
-- [ ] Landing page
+v0.4
+- [ ] Landing page:
    -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
    -- Forum (Discourse), Blog (Ghost)
+	<a href="https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl" class="btn download-button" onclick="if(window.chrome&amp;&amp;window.chrome.webstore&amp;&amp;window.chrome.webstore.install)return chrome.webstore.install(&quot;https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl&quot;,console.log,console.warn),!1" target="_blank"> <img alt="" src="https://d33wubrfki0l68.cloudfront.net/b1bb3a572ed46f4a5069d61dd2cde8dc83b57876/2600e/images/chrome.svg"> <span> Install now for Chrome </span> </a>
+- [ ] make run, runOnPage, and matchFn more consistently named
+- [ ] update plugin documentation
+- [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
+- [ ] Top Sites Plugin
+- [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
+- [ ] annotations in the corner of options page, and changing
+- [ ] BUG newly installed close tutorial, open coursera, options page get's opened
+- [ ] "Voice Control for Google Chrome" landing page
+- [ ] More exciting video
+- [ ] All banners on google chrome store
+- [ ] post on lobsters
+- [x] Post on r/disabilities
 
 
-v0.4
+v0.5
 - [ ] make livetext hold the command that's being run
 - [ ] make getting/setting options more efficient (make it load defaults but not have to load all plugins -- such as with getLanguage)
 - [ ] simplify store serializing/deserializing use this lib: https://github.com/yahoo/serialize-javascript
@@ -81,19 +73,8 @@ X C. Premium Version allows for Premium Plugins (non community plugins) -- recip
    Make WK plugin a premium one
   D. X commands per month
 
-
-plugins
-===
-`matches`: array of match patterns.
-	Should be in order of what should match first (likely want matches with optional parameters first)
- Why not always regx? User-friendly presentation to in options is important.
-`delay`: can be single value or array if different matches should have different delays (indexes correspond to matches)
-`test`: async function. The tests have every match phrase tested against.
-
 Design rationale:
-* Typescript classes converted into js
-    * Biggest current downside is the static members, and the fact
-    that the static members need to be functions...
+* Typescript namespaces converted into js
     * We don't convert into a special parseable JSON as that adds an extra step -- without being justified by extra convenience.
 
 testing
@@ -111,6 +92,7 @@ from both the background and option pages.
 marketing/profit
 ===
 * Tech. blog post about the Serialized<T> fanciness in typescript
+* https://www.lifewithoutlimbs.org/
 * Appear small. If the extension has something that feels like a small community people will embrace it more, support it more as opposed to one that seems to come from a cold, big soulless enterprise.
 * Make a game where you use your voice to play. Eg. make a funny noise to move a pong paddle left -- another funny noise to move it right.
 

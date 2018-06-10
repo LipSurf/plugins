@@ -84,6 +84,8 @@ export class Recognizer extends StoreSynced {
                         synVals: enabledHomophones.map((homo) => homo.destination),
                         commands: Object.keys(plugin.commands)
                             .filter(cmdName => plugin.commands[cmdName].enabled)
+                            // only those which we have a localized version of
+                            .filter(cmdName => matchers[cmdName] !== undefined)
                             .map(cmdName => ({
                                 name: cmdName,
                                 global: plugin.commands[cmdName].global,

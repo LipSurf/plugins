@@ -112,7 +112,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <table>
+                            <table style="width: 100%">
                                 <thead>
                                     <th>Enabled</th>
                                     <th>Name</th>
@@ -434,7 +434,6 @@
     }
 
     table {
-        display: block;
         margin-top: 15px;
     }
 

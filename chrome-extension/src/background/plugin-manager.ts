@@ -4,7 +4,7 @@
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
-import { flatten, pick, find, assignIn, mapValues, omit } from "lodash";
+import { flatten, pick, find, assignIn, mapValues, omit, get } from "lodash";
 import { StoreSynced, } from "./store";
 import { promisify, instanceOfDynamicMatch } from "../common/util";
 import { PluginBasePublic } from "../common/plugin-lib";
@@ -61,7 +61,8 @@ export class PluginManager extends StoreSynced {
                         let dynMatchFns = [`en: ${cmd.match.fn.toString()}`];
                         // add other languages
                         for (let ln in plugin.languages) {
-                            dynMatchFns.push(`${ln}: ${plugin.languages[ln].commands[cmd.name].match.fn.toString()}`);
+                            let matchFn = get(plugin.languages[ln], ['commands', cmd.name, 'match', 'fn'], (input) => undefined);
+                            dynMatchFns.push(`${ln}: ${matchFn.toString()}`);
                         }
                         cmdVal.match = `{${dynMatchFns.join(',')}}`
                     }

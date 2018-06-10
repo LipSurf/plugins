@@ -37,7 +37,7 @@ function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginD
             ),
             localized: mapValues(_localPluginData.localized, (langData, lang) => 
                 Object.assign(langData, {
-                    homophones: Object.keys(langData.homophones).map(homoSource =>
+                    homophones: Object.keys(langData.homophones || {}).map(homoSource =>
                         ({
                             enabled: !_syncPluginData.disabledHomophones.includes(homoSource),
                             source: homoSource,
