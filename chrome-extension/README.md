@@ -1,5 +1,6 @@
 TODO
 ===
+Something is seriously wrong with the options page... switch to vue?
 v0.4
 - [ ] Landing page:
    -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
@@ -12,11 +13,11 @@ v0.4
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
 - [ ] annotations in the corner of options page, and changing
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
+- [ ] BUG saying annotate multiple times seems to hide annotations
 - [ ] "Voice Control for Google Chrome" landing page
 - [ ] More exciting video
 - [ ] All banners on google chrome store
 - [ ] post on lobsters
-- [x] Post on r/disabilities
 
 
 v0.5
@@ -153,6 +154,8 @@ Competitors?
 
 *Annyang is for developers to add voice commands to their own sites, not for controlling the whole browser
 https://ourcodeworld.com/articles/read/163/top-7-best-voice-commands-and-speech-recognition-related-javascript-libraries
+
+* Programming with voice, eye-tracking for mouse clicks: https://talonvoice.com/
 
 
 References

@@ -32,6 +32,7 @@ interface IPluginPref {
 interface ICommandPref {
     enabled: boolean;
     name: string;
+    global?: boolean;
     match: string | string[];
     // special description for dynamic match functions
     dynamicMatch: boolean;
@@ -51,6 +52,7 @@ class OptionsPage extends StoreSynced {
     constructor(store: Store, private options: IPluginOptionsPageStore = <IPluginOptionsPageStore>{}) {
         super(store);
         riot.observable(this.options);
+        // @ts-ignore
         riot.mount('options-page', {store: this.options, LANG_CODE_TO_NICE});
     }
 
@@ -74,7 +76,8 @@ class OptionsPage extends StoreSynced {
                             return {
                                 dynamicMatch: instanceOfDynamicMatch(matcher.match),
                                 match: instanceOfDynamicMatch(matcher.match) ? matcher.match.description : matcher.match,
-                                enabled: plugin.commands[cmdName].enabled,
+                                global_: plugin.commands[cmdName].global,
+                                ... pick(plugin.commands[cmdName], 'enabled'),
                                 ... pick(matcher, 'name', 'description'),
                             }
                         }

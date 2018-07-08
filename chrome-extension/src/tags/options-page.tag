@@ -80,59 +80,19 @@
 			<div style="text-align: right">
 				<button onclick={ getMorePlugins } id="getMorePlugins"><i class="icon lib-add"></i> Get More Plugins</button>
 			</div>
-            <div each={ options.cmdGroups } class="cmd-group">
-                <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
-                    <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
-                        <div class="label">{ niceName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
-                            <div class="desc">{ description }</div>
-                        </div>
-                    </a>
-                    <div class="collapsable">
-                        <div class="collapsable-inner">
-                            <div style="display: table; border-spacing: 0 0.6em;">
-                                <div class="languages" style="display: table-row">
-                                    <div class="label" style="display: table-cell">
-                                        <strong>Supported Languages: </strong>
-                                    </div>
-                                    <ul class="language-list" style="display: table-cell">
-                                        <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
-                                    </ul>
-                                </div>
-                                <div class="homophones" if={ homophones.length > 0 } style="display:table-row">
-                                    <div class="label" style="display: table-cell">
-                                        <strong>Homophones/synonyms: </strong>
-                                    </div>
-                                    <div class="tag-list-cont" style="display: table-cell">
-                                        <a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
-                                        <div class="tag-list {shrunk: !showMore}">
-                                            <homophone each={homophones}></homophone>
-                                        </div>
-                                        <div class="fade {invisible: showMore}">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <table style="width: 100%">
-                                <thead>
-                                    <th>Enabled</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Command Words</th>
-                                </thead>
-                                <tbody>
-                                    <tr data-is="cmd" each={commands}></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+            <div each={ options.cmdGroups } class="cmd-group" data-is="cmd-group" LANG_CODE_TO_NICE={ LANG_CODE_TO_NICE } >
+            </div>
         </section>
     </div>
     <style>
 	:scope {
   		--bg-color: 245, 245, 245;
-		--max-homo-list-height: 80px;
   	}
+
+    .cmd-group {
+        margin: 10px 0;
+        clear: both;
+    }
 
 	.btn-bar * {
 		margin: 0 5px;
@@ -143,15 +103,19 @@
 		text-align: center;
 	}
 
+	.title-bar * {
+		display: inline-block;
+	}
+
+	.title-bar img {
+		vertical-align: text-bottom;
+	}
+
     .language-list {
         list-style: none;
         margin: 0;
         padding: 0;
     }
-
-	.title-bar img {
-		vertical-align: text-bottom;
-	}
 
 	.img-icon {
 		width: 1.2em;
@@ -198,29 +162,8 @@
 		font-size: 1.2em;
 	}
 
-	.title-bar * {
-		display: inline-block;
-	}
-
 	.invisible {
 		opacity: 0 !important;
-	}
-
-	.tag-list-cont {
-		position: relative;
-	}
-
-	.show-more {
-		text-shadow: white 1px 1px;
-		text-decoration: none;
-		color: #7e7e7e;
-		position: absolute;
-        transform: translateX(-50%);
-		left: 50%;
-		z-index: 10;
-		bottom: -10px;
-		background-color: rgb(var(--bg-color));
-	    padding: 0 10px;
 	}
 
 	.fade {
@@ -296,10 +239,6 @@
         bottom: 1px;
     }
 
-    .homophones .label {
-        width: 20%;
-    }
-
 	.option {
 		margin: 1.5em;
 		font-size: 1.2em;
@@ -309,150 +248,8 @@
 		margin-right: 15px;
 	}
 
-    .homophones {
-        margin-bottom: 30px;
-        display: block;
-    }
-
-    .homophones .tag-list {
-		position: relative;
-		overflow: hidden;
-        text-align: left;
-		border-bottom: 1px solid #dddddd;
-		max-height: 600px;
-		transition: max-height .5s ease;
-		padding-bottom: 10px;
-    }
-
-	.homophones .tag-list.shrunk {
-		max-height: var(--max-homo-list-height);
-	}
-
     input[type=radio] {
         bottom: 2px;
-    }
-
-    td.enable {
-        text-align: center;
-    }
-
-    .collapser .label {
-        margin-left: 15px;
-    }
-
-    .desc {
-        font-style: italic;
-        color: #a4a4a4;
-        text-align: left;
-    }
-
-    .cmd .desc {
-        font-style: normal;
-    }
-
-    .version {
-        margin-left: 10px;
-        color: #a4a4a4;
-    }
-
-    .enabled .collapser {
-        color: #222;
-    }
-
-    .enabled .desc {
-        color: #868686;
-    }
-
-    .enabled .version {
-        color: #868686;
-    }
-
-    .cmd-group {
-        margin: 10px 0;
-        clear: both;
-    }
-
-    .right {
-        text-align: right;
-    }
-
-    .right-controls {
-        float: right;
-        margin-right: 20px;
-    }
-
-    .collapser {
-        /*font-size: 1.05rem;*/
-        cursor: pointer;
-        width: 100%;
-        line-height: 1.2rem;
-        text-align: left;
-        background-color: #eee;
-        color: #888;
-        border-left: 1px solid #888;
-        padding: 3px 5px;
-        text-decoration: none;
-        display: block;
-    }
-
-    .collapser:before {
-        content: '-';
-        position: absolute;
-    }
-
-    .collapsed .collapser:before {
-        content: '+';
-    }
-
-    .collapser-shell {}
-
-    .collapsable {
-        transition: max-height 0.35s ease-out;
-        display: block;
-        background-color: rgb(var(--bg-color));
-        overflow: hidden;
-		/* TODO: set dynamically */
-		max-height: 3000px;
-    }
-
-    .collapsable-inner {
-        padding: 10px 20px;
-    }
-
-    .collapsed .collapsable {
-        max-height: 0 !important;
-    }
-
-    .tag {
-        background-color: #e6e6e6;
-        border-radius: 3px;
-        line-height: 1.5em;
-        margin: 2px;
-        display: inline-block;
-        padding: 3px 6px;
-        white-space: nowrap;
-    }
-
-    table {
-        margin-top: 15px;
-    }
-
-    tr {
-        vertical-align: top;
-    }
-
-    tbody,
-    thead {
-        text-align: left;
-    }
-
-    td {
-        border-top: 1px solid #ddd;
-        padding: .7rem;
-    }
-
-    th {
-        padding: 0 .7rem;
     }
 
     .container {
@@ -472,8 +269,7 @@
     </style>
     <script>
 	require('./cmd-group.tag');
-	require('./cmd.tag');
-	require('./homophone.tag');
+    riot.mount('cmd-group');
     this.LANG_CODE_TO_NICE = opts.LANG_CODE_TO_NICE;
     this.options = opts.store;
     this.hasMicPerm = true;
@@ -536,30 +332,6 @@
         }
     }
 
-    this.toggleGroupEnabled = (e) => {
-        e.stopPropagation();
-        e.item.enabled = !e.item.enabled;
-        this.save();
-    }
-
-    this.toggleExpanded = (e) => {
-        // hack to get around propagation not being stopped in riot
-        if (e.target.nodeName.toLowerCase() != 'input' &&
-            e.target.nodeName.toLowerCase() != 'label') {
-            e.preventDefault();
-            let item = e.item;
-            item.expanded = !item.expanded;
-            this.save();
-        }
-    }
-
-	this.toggleShowMore = (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-		e.item.showMore = !e.item.showMore;
-		this.save();
-	}
-
     function checkForPermission() {
         navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -583,9 +355,9 @@
             this.initialLoad = false;
         } else {
             // allow time to animate
-            setTimeout(() => {
+            // setTimeout(() => {
                 this.update(store);
-            }, 1000);
+            //}, 1000);
         }
     });
 

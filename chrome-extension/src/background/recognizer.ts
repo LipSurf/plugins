@@ -3,7 +3,7 @@ import {
     CONFIDENCE_THRESHOLD, HOMOPHONES
 } from "../common/constants";
 import { Store, StoreSynced, } from "./store";
-import { find, flatten, pick, map, get, } from "lodash";
+import { find, flatten, pick, map, get, identity } from "lodash";
 import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
 
 
@@ -98,7 +98,7 @@ export class Recognizer extends StoreSynced {
                     }
                 }
             })
-            .filter(plugin => plugin !== undefined);
+            .filter(identity);
         if (this.lang && this.lang != newOptions.language) {
             // new language
             this.lang = newOptions.language;

@@ -32,7 +32,7 @@ module.exports = [
                 new UglifyJsPlugin({
                     uglifyOptions: {
                         mangle: {
-                            reserved: ['PluginBase', 'document', 'window', 'riot'],
+                            reserved: ['document', 'window', 'riot'],
                             toplevel: false,
                             // properties: {
                             //     debug: "",
@@ -41,7 +41,7 @@ module.exports = [
                         },
                         compress: {
                             //keep_classnames: false,
-                            top_retain: ['PluginBase', 'riot'],
+                            top_retain: ['riot'],
                             drop_console: true,
                         },
                     },
