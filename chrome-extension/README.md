@@ -92,6 +92,7 @@ from both the background and option pages.
 
 marketing/profit
 ===
+* Infographic for choosing a home voice speaker
 * Tech. blog post about the Serialized<T> fanciness in typescript
 * https://www.lifewithoutlimbs.org/
 * Appear small. If the extension has something that feels like a small community people will embrace it more, support it more as opposed to one that seems to come from a cold, big soulless enterprise.

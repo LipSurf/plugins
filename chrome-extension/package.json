@@ -9,7 +9,7 @@
     "./src/page/main.ts"
   ],
   "scripts": {
-    "pretest": "echo 'make sure to compile plugins!' && tsc tests/*.ts tests/plugins/*.ts --allowSyntheticDefaultImports --module umd --allowJs --esModuleInterop --noEmitOnError -t ES2017 --moduleResolution node --outdir tests/build",
+    "pretest": "npm explore plugins -- gulp | webpack --config webpack.dev.js",
     "test": "ava tests/build/tests/*-test.js --verbose",
     "test-init": "echo npm run pretest && tests/test-in-vm.sh tests/build/tests/initial-load-test.js",
     "test-debug": "node debug node_modules/ava/profile.js tests/build/tests/*-test.js",
@@ -17,6 +17,7 @@
     "test-plugins": "echo npm run pretest && tests/test-in-vm.sh tests/build/tests/plugins/plugin-test.js",
     "test-plugins-debug": "echo not yet working npm run pretest && tests/plugins/test-in-vm.sh -d tests/build/tests/plugins/plugin-test.js",
     "test-plugins-watch": "when-changed -k -1 -s tests/plugins/*.ts src/plugins/* -c npm run test-plugins",
+    "test-lang-watch": "ava --verbose tests/lang-test",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
     "build": "webpack --config webpack.dev.js --progress && npm explore plugins -- gulp",
@@ -35,6 +36,15 @@
     "url": "https://github.com/mikob/reddit-no-hands/issues"
   },
   "homepage": "https://github.com/mikob/reddit-no-hands#readme",
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
   "devDependencies": {
     "@types/chrome": "0.0.59",
     "@types/esprima": "^4.0.1",
@@ -43,7 +53,7 @@
     "@types/lodash-es": "^4.17.0",
     "@types/selenium-webdriver": "^3.0.8",
     "@types/sinon": "^4.3.0",
-    "ava": "^1.0.0-beta.3",
+    "ava": "^1.0.0-beta.6",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.4",
     "babel-preset-es2015-riot": "^1.1.0",
@@ -60,6 +70,7 @@
     "selenium-webdriver": "^3.6.0",
     "sinon": "^4.4.4",
     "ts-loader": "^4.1.0",
+    "ts-node": "^6.2.0",
     "tslib": "^1.9.0",
     "typescript": "^2.8.3",
     "webpack": "^4.8.3",
