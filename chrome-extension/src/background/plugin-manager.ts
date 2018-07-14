@@ -6,7 +6,7 @@
  */
 import { flatten, pick, find, assignIn, mapValues, omit, get } from "lodash";
 import { StoreSynced, } from "./store";
-import { promisify, instanceOfDynamicMatch } from "../common/util";
+import { promisify, instanceOfDynamicMatch, httpReq } from "../common/util";
 import { PluginBasePublic } from "../common/plugin-lib";
 
 // Plugin content-script store for easily loading front-end
@@ -170,24 +170,6 @@ export class PluginManager extends StoreSynced {
     // load options
     // Needs to be public to keep this testable
     static fetchPluginCode(id: string): Promise<string>  {
-        return new Promise((resolve, reject) => {
-            let request = new XMLHttpRequest();
-            request.open('GET', chrome.runtime.getURL(`dist/plugins/${id.toLowerCase()}.js`), true);
-
-            request.onload = () => {
-                if (request.status >= 200 && request.status < 400) {
-                    resolve(request.responseText);
-                } else {
-                    // We reached our target server, but it returned an error
-                    reject();
-                }
-            };
-
-            request.onerror = function() {
-                // There was a connection error of some sort
-            };
-
-            request.send();
-        });
+        return httpReq(`dist/plugins/${id.toLowerCase()}.js`);
     }
 }

@@ -3,7 +3,7 @@
     "declaration": false,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "module": "es6",
+    "module": "commonjs",
     "noEmitOnError": true,
     "noUnusedLocals": false,
     "noImplicitAny": false,

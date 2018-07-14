@@ -5,7 +5,7 @@ import anyTest, {TestInterface} from 'ava';
 import { By, until, Key, WebDriver } from 'selenium-webdriver';
 import * as _ from 'lodash';
 import { readFileSync } from 'fs';
-import { PluginManager } from "../../src/background/plugin-manager";
+import { PluginManager } from "../src/background/plugin-manager";
 import {
     chromeBuilder,
     timeout,
@@ -13,7 +13,7 @@ import {
     toggleExtension,
     AudioPlayingBot,
     MockedRecognizerBot,
-} from "../vm-test";
+} from "./vm-test";
 import { instanceOfDynamicMatch } from 'src/common/util';
 
 const test = anyTest as TestInterface<{

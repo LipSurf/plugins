@@ -1,10 +1,11 @@
 import {
-    ORDINAL_CMD_DELAY, ORDINALS_TO_DIGITS, NUMBERS_TO_DIGITS,
-    CONFIDENCE_THRESHOLD, HOMOPHONES
-} from "../common/constants";
-import { Store, StoreSynced, } from "./store";
-import { find, flatten, pick, map, get, identity } from "lodash";
-import { promisify, ResettableTimeout, instanceOfDynamicMatch } from "../common/util";
+    ORDINAL_CMD_DELAY, CONFIDENCE_THRESHOLD,
+} from "../../common/constants";
+import { Store, StoreSynced, } from "../store";
+import { find, pick, identity } from "lodash";
+import { ResettableTimeout, instanceOfDynamicMatch, MissingLangPackError } from "../../common/util";
+
+import * as LANGS from './langs';
 
 
 interface IRecgCommand extends IGlobalCommand, INiceCommand {
@@ -55,6 +56,7 @@ export class Recognizer extends StoreSynced {
     private synKeys: RegExp[];
     private synVals: string[];
     private lang: LanguageCode;
+    private langRecg: ILanguageRecg;
 
     constructor(store: Store,
         onUrlUpdate: ((cb: ((url: string) => void)) => void),
@@ -63,15 +65,31 @@ export class Recognizer extends StoreSynced {
         private speechRecognizer,
     ) {
         super(store);
-        let homoKeys = Object.keys(HOMOPHONES).sort((a, b) => a.length > b.length ? -1 : 1);
-        this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
-        this.synVals = homoKeys.map((key) => HOMOPHONES[key]);
         onUrlUpdate((url) => {
             this.curActiveTabUrl = url;
         });
     }
 
-    protected storeUpdated(newOptions: IOptions) {
+    protected async storeUpdated(newOptions: IOptions) {
+        // language-specific recognizer functionality
+        this.langRecg = new LANGS[newOptions.language.substr(0, 2)]();
+        try {
+            await this.langRecg.init();
+        } catch(e) {
+            if (e instanceof MissingLangPackError) {
+                if (!newOptions.missingLangPack) {
+                    this.store.save({missingLangPack: true});
+                } else if (newOptions.confirmLangPack && !newOptions.busyDownloading) {
+                    this.store.save({busyDownloading: true});
+                    await this.langRecg.getExtraData();
+                    this.store.save({busyDownloading: false, confirmLangPack: false, missingLangPack: false});
+                } 
+            }
+        }
+        let homoKeys = Object.keys(this.langRecg.homophones).sort((a, b) => a.length > b.length ? -1 : 1);
+        this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
+        this.synVals = homoKeys.map((key) => this.langRecg.homophones[key]);
+
         this.pluginsRecgStore = newOptions.plugins
             .filter(plugin => plugin.enabled)
             .map(plugin => {
@@ -216,7 +234,7 @@ export class Recognizer extends StoreSynced {
      * Splits up the input text and finds all the commands within the string.
      * Accounts for greedy matching commands, multiple commands, repeated commands.
      *
-     * Returns an array in order of the cmds found in the input.
+     * Returns an array in order of the cmds found in the input (for chaining).
      */
     async getCmdsForUserInput(input: string, url: string, useHomos: boolean = true): Promise<IMatchCommand[]> {
         let startTime = +new Date();
@@ -246,15 +264,16 @@ export class Recognizer extends StoreSynced {
             return 0;
         });
         let currActiveTabProm = this.queryActiveTab();
-        let inputParts = input.split(' ');
+        let inputParts = await this.langRecg.wordSplitter(input);
         let inputPartStart = 0;
         let inputPartEnd = inputParts.length;
         let origInputPartEnd = inputPartEnd;
         let retCmds: IMatchCommand[] = [];
 
         while (inputPartStart < inputPartEnd) {
-            let inputPart = inputParts.slice(inputPartStart, inputPartEnd).join(' ');
+            let inputPart = this.langRecg.wordJoiner(inputParts.slice(inputPartStart, inputPartEnd));
 
+            // do pre-process here
             if (useHomos) {
                 homophoneIterator = this.generateHomophones(inputPart, url);
             } else {
@@ -298,7 +317,7 @@ export class Recognizer extends StoreSynced {
                                         if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
                                             break;
                                         } else if (nextIsOrdinal) {
-                                            let ord = this.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos));
+                                            let ord = this.langRecg.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos));
                                             nextIsOrdinal = false;
                                             if (typeof ord === 'undefined')
                                                 break;
@@ -488,11 +507,6 @@ export class Recognizer extends StoreSynced {
         }
     }
 
-
-    // prefix or suffix match
-    private ordinalOrNumberToDigit(ordinal) {
-        return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
-    }
 
 
 }

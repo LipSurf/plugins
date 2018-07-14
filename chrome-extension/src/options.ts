@@ -5,14 +5,16 @@
  */
 import riot from 'riot';
 import { pick, omit }  from "lodash";
-import { instanceOfDynamicMatch } from "./common/util";
+import { instanceOfDynamicMatch, } from "./common/util";
 import { Store, StoreSynced, } from "./background/store";
 import { LANG_CODE_TO_NICE } from "./common/constants";
 import { identity } from 'lodash-es';
+import * as LANGS from "./background/recognizer/langs";
 require('./tags/options-page.tag');
 
 // what's shown on the options page
 interface IPluginOptionsPageStore extends IGeneralOptions {
+    busyDownloading: boolean;
     cmdGroups: IPluginPref[];
 }
 
@@ -48,6 +50,7 @@ interface IHomophonePref {
 
 class OptionsPage extends StoreSynced {
     private pluginSelectedLanguage: LanguageCode;
+    private isConfirmed: boolean;
 
     constructor(store: Store, private options: IPluginOptionsPageStore = <IPluginOptionsPageStore>{}) {
         super(store);
@@ -56,7 +59,14 @@ class OptionsPage extends StoreSynced {
         riot.mount('options-page', {store: this.options, LANG_CODE_TO_NICE});
     }
 
-    storeUpdated(newOptions: IOptions) {
+    async storeUpdated(newOptions: IOptions) {
+        // check if we need to download a language pack (checking in storeUpdated ensures that this will still work if the language setting
+        // is changed on another instance and synced over)
+        if (newOptions.missingLangPack && !newOptions.confirmLangPack) {
+            let isConfirmed = confirm(`You need to download a ~5mb language pack for ${LANG_CODE_TO_NICE[newOptions.language]}. Would you like to continue?`);
+            this.store.save({confirmLangPack: isConfirmed});
+        }
+
         Object.assign(this.options,  {
             ... omit(newOptions, 'plugins'),
             cmdGroups: newOptions.plugins.map(plugin => {
@@ -94,8 +104,6 @@ class OptionsPage extends StoreSynced {
 
     save() {
         // whitelist properties to send up
-        // TODO: don't understand why exactly ts-ignore is needed here
-        // @ts-ignore
         this.store.save({
             ...omit(this.options, 'cmdGroups'),
             plugins: this.options.cmdGroups.map(cmdGroup => ({

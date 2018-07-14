@@ -6,6 +6,9 @@ v0.4
    -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
    -- Forum (Discourse), Blog (Ghost)
 	<a href="https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl" class="btn download-button" onclick="if(window.chrome&amp;&amp;window.chrome.webstore&amp;&amp;window.chrome.webstore.install)return chrome.webstore.install(&quot;https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl&quot;,console.log,console.warn),!1" target="_blank"> <img alt="" src="https://d33wubrfki0l68.cloudfront.net/b1bb3a572ed46f4a5069d61dd2cde8dc83b57876/2600e/images/chrome.svg"> <span> Install now for Chrome </span> </a>
+- [ ] error icon when no mic perms, or missing lang pack
+- [ ] WK plugin add click "info"
+- [ ] split/chaining in Japanese
 - [ ] make run, runOnPage, and matchFn more consistently named
 - [ ] update plugin documentation
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?

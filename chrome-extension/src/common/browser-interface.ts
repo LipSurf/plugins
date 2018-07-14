@@ -11,7 +11,7 @@ type SyncLoadable = keyof ISyncData;
 
 export module storage {
     export module local {
-        export async function save(data: LocalSaveable): Promise<void> {
+        export async function save(data: Partial<LocalSaveable>): Promise<void> {
             return promisify<void>(chrome.storage.local.set)(data);
         }
         export async function load(key: LocalLoadable = null): Promise<StoreSerialized<ILocalData>> {
@@ -86,7 +86,7 @@ export module notifications {
         let opts = {
             type: 'basic',
             iconUrl: 'assets/icon-48.png',
-            title, 
+            title,
             message,
         };
         if (optionsButton) {
@@ -101,6 +101,25 @@ export module notifications {
             }
         });
         chrome.notifications.create(id, opts);
+    }
+}
+
+export module permissions {
+    // request permissions on-the-fly
+    // (not used yet)
+    export async function request(permissions: string[]):Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            chrome.permissions.request({
+              permissions: permissions,
+            }, function(granted) {
+              // The callback argument will be true if the user granted the permissions.
+              if (granted) {
+                  resolve()
+              } else {
+                  reject()
+              }
+            });
+        });
     }
 }
 

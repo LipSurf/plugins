@@ -7,6 +7,9 @@ const DEFAULT_PREFERENCES: ISyncData = {
     showLiveText: true,
     noHeadphonesMode: false,
     tutorialMode: 1,
+    busyDownloading: false,
+    missingLangPack: false,
+    confirmLangPack: false,
     inactivityAutoOffMins: 20,
     plugins: [
             ['Browser', '1.0.0'],
@@ -60,6 +63,7 @@ export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
     if (!localData || !localData.pluginData) {
         localData = {
             pluginData: {},
+            langData: null,
             activated: false,
         };
     }

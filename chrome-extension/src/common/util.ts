@@ -1,5 +1,6 @@
 /// <reference path="../@types/cs-interface.d.ts" />
 /// <reference path="../@types/plugin-interface.d.ts" />
+
 const customArgumentsToken = Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__");
 let safeSetTimeout = typeof window === 'undefined' ? setTimeout : window.setTimeout;
 export const timeout = ms => new Promise(res => safeSetTimeout(res, ms));
@@ -121,6 +122,7 @@ export class Detector {
     }
 }
 
+
 // starts the timer from 0
 export class ResettableTimeout {
     private timeoutRef: number;
@@ -150,6 +152,32 @@ export class ResettableTimeout {
         clearTimeout(this.timeoutRef);
     }
 }
+
+
+export function httpReq(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        let request = new XMLHttpRequest();
+        let procUrl = url.startsWith('http') ? url : chrome.runtime.getURL(url);
+        request.open('GET', procUrl, true);
+
+        request.onload = () => {
+            if (request.status >= 200 && request.status < 400) {
+                resolve(request.responseText);
+            } else {
+                // We reached our target server, but it returned an error
+                reject();
+            }
+        };
+
+        request.onerror = function() {
+            // There was a connection error of some sort
+            reject();
+        };
+
+        request.send();
+    });
+}
+
 
 function getTypeOf (input) {
 
@@ -304,4 +332,11 @@ export function instanceOfTranscriptParcel(object: any): object is ITranscriptPa
 
 export function instanceOfCodeParcel(object: any): object is ICodeParcel {
     return typeof object === 'object' && 'code' in object;
+}
+
+export class MissingLangPackError extends Error {
+    constructor(m: string = '') {
+        super(m);
+        Object.setPrototypeOf(this, MissingLangPackError.prototype);
+    }
 }

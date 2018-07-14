@@ -38,13 +38,18 @@
                 <p class="mute">Early supporters will be credited 2x the value of their donation when 1.0 is released.</p>
             </div>
         </section>
+        <fieldset disabled={busyDownloading}>
         <section>
             <h2>General</h2>
+            <div if={busyDownloading}>
+                <p>Downloading language pack... </p>
+                <div class="loading-bar"></div>
+            </div>
             <div class="option">
                 <label title="The languages shown here are the ones supported by the plugins you have installed.">
                     <i class="icon language"></i>
                     Language:
-                    <select onchange={ langSave } ref="lang">
+                    <select style="height: 1.5em" onchange={ langSave } ref="lang">
                         <option each={niceLang, possLang in possibleLanguages} value={possLang} selected={options.language==possLang}>{niceLang}</option>
                         <option value="add">+ Add a Language</option>
                     </select>
@@ -83,11 +88,42 @@
             <div each={ options.cmdGroups } class="cmd-group" data-is="cmd-group" LANG_CODE_TO_NICE={ LANG_CODE_TO_NICE } >
             </div>
         </section>
+        </fieldset>
     </div>
     <style>
 	:scope {
   		--bg-color: 245, 245, 245;
   	}
+
+    fieldset {
+        border: none;
+    }
+
+    .loading-bar {
+  width: 100%;
+  height: 20px;
+  border: 1px solid #2980b9;
+  border-radius: 3px;
+  background-image: 
+    repeating-linear-gradient(
+      -45deg,
+      #2980b9,
+      #2980b9 11px,
+      #eee 10px,
+      #eee 20px /* determines size */
+    );
+  background-size: 28px 28px;
+  animation: load .5s linear infinite;
+}
+
+@keyframes load {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 28px 0;
+  }
+}
 
     .cmd-group {
         margin: 10px 0;
