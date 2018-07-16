@@ -47,8 +47,6 @@ export function* convertToHiragana(input:string, dictionary={}): IterableIterato
             kananized.push(input[windowStart]);
     }
 
-    console.log(`kananized: ${kananized}`);
-
     // only let through hiragana and katakana -- don't even allow punctuation
     for (let c of kananized) {
         if (isCharInRange(c, KATAKANA_CHARS[0], KATAKANA_CHARS[1])) {
@@ -57,6 +55,8 @@ export function* convertToHiragana(input:string, dictionary={}): IterableIterato
             ret.push(c);
         }
     }
+    console.log(`kananized: ${ret}`);
+
     yield ret.join('');
 }
 

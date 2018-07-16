@@ -2,12 +2,13 @@ TODO
 ===
 Something is seriously wrong with the options page... switch to vue?
 v0.4
+- [ ] timing: https://jsfiddle.net/xpvt214o/420526/
 - [ ] Landing page:
    -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
    -- Forum (Discourse), Blog (Ghost)
 	<a href="https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl" class="btn download-button" onclick="if(window.chrome&amp;&amp;window.chrome.webstore&amp;&amp;window.chrome.webstore.install)return chrome.webstore.install(&quot;https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl&quot;,console.log,console.warn),!1" target="_blank"> <img alt="" src="https://d33wubrfki0l68.cloudfront.net/b1bb3a572ed46f4a5069d61dd2cde8dc83b57876/2600e/images/chrome.svg"> <span> Install now for Chrome </span> </a>
-- [ ] error icon when no mic perms, or missing lang pack
 - [ ] WK plugin add click "info"
+- [ ] homophones should not check url? Because we have global homophones
 - [ ] split/chaining in Japanese
 - [ ] make run, runOnPage, and matchFn more consistently named
 - [ ] update plugin documentation
@@ -83,6 +84,10 @@ Design rationale:
 
 testing
 ===
+* Send manual command:
+```
+  var i = 0;window.postMessage({test_probe: true, cmd: `recg.handleTranscript("down", 0.99, true, ${i + 1})`}, '*')
+```
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream
     replay requests: ./mitmproxy --server-replay /home/mikob/workspace/no-hands-man/tests.stream --server-replay-nopop --server-replay-kill-extra
@@ -95,6 +100,7 @@ from both the background and option pages.
 
 marketing/profit
 ===
+* "Free, browser-based alternative to Alexa, Google Home etc."
 * Infographic for choosing a home voice speaker
 * Tech. blog post about the Serialized<T> fanciness in typescript
 * https://www.lifewithoutlimbs.org/

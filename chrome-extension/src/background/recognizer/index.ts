@@ -78,11 +78,11 @@ export class Recognizer extends StoreSynced {
         } catch(e) {
             if (e instanceof MissingLangPackError) {
                 if (!newOptions.missingLangPack) {
-                    this.store.save({missingLangPack: true});
+                    this.store.save({missingLangPack: true, problem: true});
                 } else if (newOptions.confirmLangPack && !newOptions.busyDownloading) {
                     this.store.save({busyDownloading: true});
                     await this.langRecg.getExtraData();
-                    this.store.save({busyDownloading: false, confirmLangPack: false, missingLangPack: false});
+                    this.store.save({busyDownloading: false, confirmLangPack: null, missingLangPack: false, problem: false});
                 } 
             }
         }
@@ -120,14 +120,23 @@ export class Recognizer extends StoreSynced {
         if (this.lang && this.lang != newOptions.language) {
             // new language
             this.lang = newOptions.language;
-            this.shutdown();
-            this.start(this.cmdRecognizedCb);
+
+            if (newOptions.activated) {
+                // restart the recognizer with the new language
+                this.shutdown();
+                this.start(this.cmdRecognizedCb);
+            }
         } else {
             this.lang = newOptions.language;
         }
     }
 
     async start(cmdRecognizedCb: ((IRecognizedCallback) => Promise<void>)) {
+        // kill it to prevent dupes
+        try {
+            this.recognition.stop();
+        } catch (e) { }
+
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.

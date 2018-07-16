@@ -41,6 +41,12 @@
         <fieldset disabled={busyDownloading}>
         <section>
             <h2>General</h2>
+            <div class="notice failure spread" if={missingLangPack && !confirmLangPack && !busyDownloading}>
+                <span>
+                <i class="icon error"></i> &nbsp;&nbsp;You must download the language pack for this language or change the language option.
+                </span>
+                <button onclick={downloadLangPack}>Download Now</button>
+            </div>
             <div if={busyDownloading}>
                 <p>Downloading language pack... </p>
                 <div class="loading-bar"></div>
@@ -124,6 +130,11 @@
     background-position: 28px 0;
   }
 }
+
+    .spread {
+        display: flex;
+        justify-content: space-between; 
+    }
 
     .cmd-group {
         margin: 10px 0;
@@ -336,6 +347,11 @@
 			/*window.open('https://github.com/mikob/lipsurf', '_blank');*/
 		/*}*/
 	}
+
+    this.downloadLangPack = () => {
+        options.options.confirmLangPack = true;
+        this.save();
+    }
 
 	this.donate = () => {
 		window.open('https://www.lipsurf.com/donate/', '_blank');

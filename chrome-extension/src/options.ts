@@ -50,7 +50,6 @@ interface IHomophonePref {
 
 class OptionsPage extends StoreSynced {
     private pluginSelectedLanguage: LanguageCode;
-    private isConfirmed: boolean;
 
     constructor(store: Store, private options: IPluginOptionsPageStore = <IPluginOptionsPageStore>{}) {
         super(store);
@@ -62,7 +61,7 @@ class OptionsPage extends StoreSynced {
     async storeUpdated(newOptions: IOptions) {
         // check if we need to download a language pack (checking in storeUpdated ensures that this will still work if the language setting
         // is changed on another instance and synced over)
-        if (newOptions.missingLangPack && !newOptions.confirmLangPack) {
+        if (newOptions.missingLangPack && (newOptions.confirmLangPack === null || newOptions.confirmLangPack === undefined)) {
             let isConfirmed = confirm(`You need to download a ~5mb language pack for ${LANG_CODE_TO_NICE[newOptions.language]}. Would you like to continue?`);
             this.store.save({confirmLangPack: isConfirmed});
         }

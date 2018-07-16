@@ -20,10 +20,10 @@
     "test-lang-watch": "ava --verbose --watch tests/lang-test.ts",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
-    "build": "webpack --config webpack.dev.js --progress && npm explore plugins -- gulp",
-    "watch": "npm explore plugins -- gulp watch | webpack --config webpack.dev.js --watch --progress",
-    "build-prod": "webpack --verbose --config webpack.prod.js --display verbose && npm explore plugins -- gulp prod",
-    "watch-prod": "npm explore plugins -- gulp watch-prod | webpack --config webpack.prod.js --watch",
+    "build": "webpack --config webpack.dev.js --progress && npm explore lipsurf-plugins -- npm run build",
+    "watch": "npm explore lipsurf-plugins -- npm run watch | webpack --config webpack.dev.js --watch --progress",
+    "build-prod": "webpack --verbose --config webpack.prod.js --display verbose && npm explore lipsurf-plugins -- npm run build-prod",
+    "watch-prod": "npm explore lipsurf-plugins -- npm run watch-prod | webpack --config webpack.prod.js --watch",
     "release": "npm run build-prod && rm lipsurf.zip; zip -r lipsurf.zip chrome-extension/"
   },
   "repository": {

@@ -3,6 +3,16 @@
  */
 declare interface IOptions extends IGeneralOptions {
     plugins: IPluginConfig[];
+    // ------ calculated-ish vars ---------
+    // we need to download a lang pack for the selected language
+    missingLangPack: boolean;
+    // user has given permission to download the lang pack
+    confirmLangPack: boolean;
+    // busy downloading a new lang pack
+    busyDownloading: boolean;
+    // if there is some kind of error that needs attention in the options
+    problem: boolean;   
+    activated: boolean;
 }
 
 declare interface IGeneralOptions {

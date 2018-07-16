@@ -36,6 +36,10 @@ declare interface ISyncPluginData extends IDisableable {
 declare interface ILocalData {
     // is the plugin "on"
     activated: boolean;
+    missingLangPack: boolean;
+    confirmLangPack: boolean;
+    busyDownloading: boolean;
+    problem: boolean;
     langData: {};
     pluginData: {
         [id: string]: ILocalPluginData;

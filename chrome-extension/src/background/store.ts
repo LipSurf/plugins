@@ -1,7 +1,7 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { omit, mapValues, pick, reduce, flatten, assignIn, zip, fromPairs } from "lodash";
-import { promisify, instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
+import { mapValues, pick, flatten, assignIn, zip, fromPairs } from "lodash";
+import { instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
 import { getOptions, getStoredOrDefault, } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
@@ -29,6 +29,10 @@ export class Store {
             } else {
                 this.getOptions(true).then(() => this.publish());
             }
+        });
+        storage.local.registerOnChangeCb((changes) => {
+            // handles changes such as missingLang, confirmLang, problem etc.
+            this.getOptions(true).then(() => this.publish());
         });
     }
 
@@ -117,11 +121,17 @@ export class Store {
                 return plugin;
             });
         }
-        let newOptions:IOptions = objectAssignDeep({}, this.options, partialOptions);
+        objectAssignDeep(this.options, partialOptions);
+
+        let localSave = storage.local.save({
+            ...pick(partialOptions, 'activated', 'missingLangPack', 'confirmLangPack', 'busyDownloading', 'problem')
+        });
+
         // extract just the sync part from options
-        await promisify(storage.sync.save)({
-            ... omit(newOptions, 'plugins'),
-            plugins: newOptions.plugins.reduce((memo, plugin) => {
+        // not sure why this has a ts error
+        // @ts-ignore
+        let syncSave = storage.sync.save({
+            plugins: this.options.plugins.reduce((memo, plugin) => {
                 memo[plugin.id] = {
                     disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
                     disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
@@ -129,7 +139,10 @@ export class Store {
                 };
                 return memo;
             }, {}),
+            ... pick(this.options, 'language', 'showLiveText', 'noHeadphonesModes', 'inactivityAutoOffMins', 'tutorialMode'),
         });
+
+        await Promise.all([syncSave, localSave]);
         this.publish();
     }
 

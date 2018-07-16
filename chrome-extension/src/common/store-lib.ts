@@ -7,9 +7,6 @@ const DEFAULT_PREFERENCES: ISyncData = {
     showLiveText: true,
     noHeadphonesMode: false,
     tutorialMode: 1,
-    busyDownloading: false,
-    missingLangPack: false,
-    confirmLangPack: false,
     inactivityAutoOffMins: 20,
     plugins: [
             ['Browser', '1.0.0'],
@@ -26,6 +23,17 @@ const DEFAULT_PREFERENCES: ISyncData = {
                 disabledCommands: []
             }}), {})
 };
+
+// data to be persisted in the extension that is not user prefs (those are synced) 
+const DEFAULT_LOCAL_DATA: ILocalData = {
+    pluginData: {},
+    langData: null,
+    activated: false,
+    missingLangPack: false,
+    confirmLangPack: false,
+    busyDownloading: false,
+    problem: false,
+}
 
 function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginData }, syncPluginData: { [id: string]: ISyncPluginData }): IPluginConfig[] {
     return Object.keys(localPluginData).map((id: string) => {
@@ -61,11 +69,7 @@ export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
     let localData = deserialize(serializedLocalData);
     syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, syncData);
     if (!localData || !localData.pluginData) {
-        localData = {
-            pluginData: {},
-            langData: null,
-            activated: false,
-        };
+        localData = DEFAULT_LOCAL_DATA;
     }
     return [syncData, localData];
 }
@@ -101,5 +105,6 @@ export async function getOptions(): Promise<IOptions> {
     return {
         ... syncData,
         plugins: transformToPluginsConfig(localData.pluginData, syncData.plugins),
+        ... omit(localData, 'pluginData', 'langData')
     }
 }

@@ -4,9 +4,8 @@ declare let CLEAR_SETTINGS: boolean;
 declare let SKIP_TUTORIAL: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
-declare let PRETEND_FIRST_INSTALL: boolean;
-import { pick, omit, flatten } from "lodash";
-import { ON_ICON, OFF_ICON } from "../common/constants";
+import { pick, omit, } from "lodash";
+import { ON_ICON, OFF_ICON, PROBLEM_ICON } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
@@ -25,9 +24,11 @@ export interface IWindow extends Window {
 }
 
 interface IMainStore {
-    inactivityAutoOffMins: number,
-        showLiveText: boolean,
-        noHeadphonesMode: boolean,
+    inactivityAutoOffMins: number;
+    showLiveText: boolean;
+    noHeadphonesMode: boolean;
+    problem: boolean;
+    activated: boolean;
 }
 
 const {
@@ -88,7 +89,6 @@ class Main extends StoreSynced {
 
     private inactiveTimer: ResettableTimeout;
     private mainStore: IMainStore;
-    public activated = false;
 
     constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox, private recg: Recognizer) {
         super(store)
@@ -104,39 +104,40 @@ class Main extends StoreSynced {
             });
         }
 
-
         chrome.browserAction.onClicked.addListener(tab => {
-            if (this.activated) {
-                this.toggleActivated(false);
-            } else {
-                this.toggleActivated(true);
-            }
-
-            // REMOVE THIS
-            // send test msg
-            // let cmds = ['play first', 'fullscreen'];
-            // for (let i = 0; i < cmds.length; i++) {
-            //     setTimeout(function() {
-            //         handleTranscript({
-            //             'isFinal': true,
-            //             'confidence': 1.0,
-            //             'transcript': cmds[i].trim().toLowerCase(),
-            //         });
-            //     }, 3500 * (i + 1));
-            // }
+            this.toggleActivated(!this.mainStore.activated);
         });
     }
 
-    protected storeUpdated(newOptions: IOptions) {
-        this.mainStore = pick(newOptions, ['inactivityAutoOffMins', 'showLiveText', 'noHeadphonesMode']);
+    protected async storeUpdated(newOptions: IOptions) {
+        // TODO: interface reflection here?
+        this.mainStore = pick(newOptions, ['inactivityAutoOffMins', 'showLiveText', 'noHeadphonesMode', 'problem', 'activated']);
+        console.log(`newOptions.activated ${newOptions.activated}`);
+        if (this.mainStore.problem && newOptions.activated) {
+            // shut it down if there's a problem
+            await this.toggleActivated(false);
+        }
+        chrome.browserAction.setIcon({
+            path: newOptions.problem ? PROBLEM_ICON : newOptions.activated ? ON_ICON : OFF_ICON
+        });
     }
 
     async toggleActivated(_activated = true) {
         await this.initialLoad;
-        let inactivityMins = this.mainStore.inactivityAutoOffMins;
 
-        // check permission
+        if (this.inactiveTimer) {
+            this.inactiveTimer.clear();
+            this.inactiveTimer = undefined;
+        }
+
         if (_activated) {
+            if (this.mainStore.problem) {
+                // open the options
+                chrome.runtime.openOptionsPage();
+                return;
+            } 
+
+            // wait until there is permission
             try {
                 await navigator.mediaDevices.getUserMedia({
                     audio: true
@@ -166,34 +167,27 @@ class Main extends StoreSynced {
                     await permissionDetector.detected();
                 }
             }
-        }
 
-        if (_activated && inactivityMins) {
-            this.inactiveTimer = new ResettableTimeout(() => {
-                notifications.create(
-                    `LipSurf turned off after ${inactivityMins} minutes of inactivity.`,
-                    `Inactivity threshold can be set in the options.`,
-                    true);
-                this.toggleActivated(false);
-            }, inactivityMins * 60 * 1000);
-        } else if (this.inactiveTimer) {
-            this.inactiveTimer.clear();
-            this.inactiveTimer = undefined;
-        }
-        this.activated = _activated;
-        storage.local.save({
-            activated: this.activated
-        });
-        chrome.browserAction.setIcon({
-            path: this.activated ? ON_ICON : OFF_ICON
-        });
-        if (this.activated) {
+            let inactivityMins = this.mainStore.inactivityAutoOffMins;
+            if (inactivityMins) {
+                this.inactiveTimer = new ResettableTimeout(() => {
+                    notifications.create(
+                        `LipSurf turned off after ${inactivityMins} minutes of inactivity.`,
+                        `Inactivity threshold can be set in the options.`,
+                        true);
+                    this.toggleActivated(false);
+                }, inactivityMins * 60 * 1000);
+            } 
             // only allow recg to start if at least default
             // commands are loaded
             this.recg.start(this.cmdRecognizedCb.bind(this));
         } else {
             this.recg.shutdown();
         }
+
+        this.store.save({
+            activated: _activated 
+        });
     }
 
     async cmdRecognizedCb(request: IRecognizedCallback): Promise < void > {
@@ -232,11 +226,12 @@ storage.local.save({
     activated: false
 });
 
+// TODO: do we still need this now that activated is stored as an option and brought in that way
 // this needs to be top-level because (for example) if the tutorial page was restored in a fresh
 // chrome session, the activate would be called and this register needs to be ready to roll!
 storage.local.registerOnChangeCb(async (changes) => {
     let {mn} = await fullyLoadedPromise;
-    if (changes && changes.activated && changes.activated.newValue !== undefined && mn.activated !== changes.activated.newValue) {
+    if (changes && changes.activated && changes.activated.newValue !== undefined) {
         mn.toggleActivated(changes.activated.newValue);
     }
 });
