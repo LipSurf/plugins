@@ -9,6 +9,7 @@ import { PluginManager } from "../src/background/plugin-manager";
 import { Store } from "../src/background/store";
 import { PluginSandbox } from '../src/background/plugin-sandbox';
 import { storage } from "../src/common/browser-interface";
+import { ILocalData, } from "../src/common/store-lib";
 var {PluginBase} = require("../src/common/plugin-lib");
 
 const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;

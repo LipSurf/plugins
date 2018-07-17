@@ -1,6 +1,7 @@
 /// <reference path="../@types/cs-interface.d.ts"/>
 // @ts-ignore: ExtensionUtil is used by things that are eval'd
-import { Store, StoreSynced, IOptions } from "./store";
+import { Store, StoreSynced, } from "./store";
+import { IOptions, } from "../common/store-lib";
 let { ExtensionUtil } = require('../common/browser-interface');
 
 interface IPrivilegedCode {

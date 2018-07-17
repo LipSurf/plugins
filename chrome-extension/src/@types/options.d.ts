@@ -1,27 +1,3 @@
-/*
- *  Houses the shape of the options -- that is used internally and can be retrieved via plugin meta api
- */
-declare interface IOptions extends IGeneralOptions {
-    plugins: IPluginConfig[];
-    // ------ calculated-ish vars ---------
-    // we need to download a lang pack for the selected language
-    missingLangPack: boolean;
-    // user has given permission to download the lang pack
-    confirmLangPack: boolean;
-    // busy downloading a new lang pack
-    busyDownloading: boolean;
-    // if there is some kind of error that needs attention in the options
-    problem: boolean;   
-    activated: boolean;
-}
-
-declare interface IGeneralOptions {
-    language: LanguageCode;
-    showLiveText: boolean;
-    noHeadphonesMode: boolean;
-    inactivityAutoOffMins: number;
-    tutorialMode: number;
-}
 
 // combined local and sync settings in a form that's
 // easily digestable by the consumers: options page, PM, Recg

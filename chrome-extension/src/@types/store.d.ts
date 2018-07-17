@@ -7,14 +7,6 @@ declare type NestedPartial<T> = {
     [K in keyof T]?: T[K] extends Array<infer R> ? Array<NestedPartial<R>> : NestedPartial<T[K]>
 };
 
-// this is what's saved in chrome.syncdata
-// all the user preferences for a plugin
-// (we don't store the entire plugin code as there's a limit to the chrome syncdata space)
-declare interface ISyncData extends IGeneralOptions {
-    // installed plugins
-    plugins: IndexedPlugins;
-}
-
 declare type IndexedPlugins = {
     // generally the name of the plugin that's installed, no spaces or hyphens( class RedditPlugin -> id: Reddit)
     [id: string]: ISyncPluginData;
@@ -31,19 +23,6 @@ declare interface ISyncPluginData extends IDisableable {
     disabledHomophones: string[];
     // private plugin settings for now eg. annotate on setting
     settings: {};
-}
-
-declare interface ILocalData {
-    // is the plugin "on"
-    activated: boolean;
-    missingLangPack: boolean;
-    confirmLangPack: boolean;
-    busyDownloading: boolean;
-    problem: boolean;
-    langData: {};
-    pluginData: {
-        [id: string]: ILocalPluginData;
-    }
 }
 
 // See IPluginConfig for details about the properties

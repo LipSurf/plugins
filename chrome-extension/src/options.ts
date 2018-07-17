@@ -7,16 +7,20 @@ import riot from 'riot';
 import { pick, omit }  from "lodash";
 import { instanceOfDynamicMatch, } from "./common/util";
 import { Store, StoreSynced, } from "./background/store";
+import { IOptions, IGeneralPreferences, GENERAL_PREFERENCES, } from "./common/store-lib";
 import { LANG_CODE_TO_NICE } from "./common/constants";
 import { identity } from 'lodash-es';
 import * as LANGS from "./background/recognizer/langs";
 require('./tags/options-page.tag');
 
-// what's shown on the options page
-interface IPluginOptionsPageStore extends IGeneralOptions {
-    busyDownloading: boolean;
-    cmdGroups: IPluginPref[];
+const pluginOptionsPageStoreProps = {
+    ... GENERAL_PREFERENCES,
+    busyDownloading: false,
+    cmdGroups: <IPluginPref[]>[],
 }
+
+// what's shown on the options page
+type IPluginOptionsPageStore = typeof pluginOptionsPageStoreProps;
 
 interface IPluginPref {
     expanded: boolean;
@@ -67,7 +71,7 @@ class OptionsPage extends StoreSynced {
         }
 
         Object.assign(this.options,  {
-            ... omit(newOptions, 'plugins'),
+            ... pick(newOptions, Object.keys(pluginOptionsPageStoreProps)),
             cmdGroups: newOptions.plugins.map(plugin => {
                 // default to en if the plugin doesn't support a language
                 let localized: ILocalizedPluginData & { homophones?: IToggleableHomophone[]; };
@@ -103,7 +107,7 @@ class OptionsPage extends StoreSynced {
 
     save() {
         // whitelist properties to send up
-        this.store.save({
+        this.store.save(<NestedPartial<IOptions>>{
             ...omit(this.options, 'cmdGroups'),
             plugins: this.options.cmdGroups.map(cmdGroup => ({
                 ...pick(cmdGroup, 'id', 'expanded', 'enabled', 'showMore'),

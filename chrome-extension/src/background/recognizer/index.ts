@@ -2,6 +2,7 @@ import {
     ORDINAL_CMD_DELAY, CONFIDENCE_THRESHOLD,
 } from "../../common/constants";
 import { Store, StoreSynced, } from "../store";
+import { IOptions, } from "../../common/store-lib";
 import { find, pick, identity } from "lodash";
 import { ResettableTimeout, instanceOfDynamicMatch, MissingLangPackError } from "../../common/util";
 

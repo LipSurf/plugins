@@ -1,6 +1,7 @@
 /// <reference path="../@types/store.d.ts" />
 declare let DEBUG:boolean;
 import { promisify, Detector } from './util';
+import { ILocalData, ISyncData } from './store-lib';
 
 
 type LocalSaveable = StoreSerialized<ILocalData> | IActivated;

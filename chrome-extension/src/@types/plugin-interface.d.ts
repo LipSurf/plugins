@@ -81,6 +81,15 @@ declare interface ILocalizedCommand extends INiceCommand {
     delay?: number | number[];
 }
 
+declare interface IOptions {
+    plugins: IPluginConfig[];
+    language: LanguageCode;
+    showLiveText: boolean;
+    noHeadphonesMode: boolean;
+    tutorialMode: number;
+    inactivityAutoOffMins: number;
+}
+
 declare interface IPluginUtil {
     // meta
     getOptions: () => Promise<IOptions>;

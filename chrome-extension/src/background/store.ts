@@ -2,7 +2,7 @@
 /// <reference path="../common/browser-interface.ts" />
 import { mapValues, pick, flatten, assignIn, zip, fromPairs } from "lodash";
 import { instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
-import { getOptions, getStoredOrDefault, } from "../common/store-lib";
+import { getOptions, getStoredOrDefault, IOptions, } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
 
@@ -31,7 +31,7 @@ export class Store {
             }
         });
         storage.local.registerOnChangeCb((changes) => {
-            // handles changes such as missingLang, confirmLang, problem etc.
+            // handles changes such as missingLangPack, confirmLangPack, problem etc.
             this.getOptions(true).then(() => this.publish());
         });
     }

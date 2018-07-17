@@ -10,6 +10,7 @@ import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
+import { IOptions } from "../common/store-lib";
 import {
     Detector,
     ResettableTimeout,
@@ -23,13 +24,15 @@ export interface IWindow extends Window {
     webkitSpeechRecognition: any;
 }
 
-interface IMainStore {
-    inactivityAutoOffMins: number;
-    showLiveText: boolean;
-    noHeadphonesMode: boolean;
-    problem: boolean;
-    activated: boolean;
+const mainStoreProps = {
+    inactivityAutoOffMins: 0,
+    showLiveText: true,
+    noHeadphonesMode: false,
+    problem: false,
+    activated: false,
 }
+
+type IMainStore = Partial<typeof mainStoreProps>;
 
 const {
     webkitSpeechRecognition
@@ -111,7 +114,7 @@ class Main extends StoreSynced {
 
     protected async storeUpdated(newOptions: IOptions) {
         // TODO: interface reflection here?
-        this.mainStore = pick(newOptions, ['inactivityAutoOffMins', 'showLiveText', 'noHeadphonesMode', 'problem', 'activated']);
+        this.mainStore = pick(newOptions, Object.keys(mainStoreProps));
         console.log(`newOptions.activated ${newOptions.activated}`);
         if (this.mainStore.problem && newOptions.activated) {
             // shut it down if there's a problem

@@ -7,6 +7,7 @@
 import { flatten, pick, find, assignIn, mapValues, omit, get } from "lodash";
 import { StoreSynced, } from "./store";
 import { promisify, instanceOfDynamicMatch, httpReq } from "../common/util";
+import { IOptions } from "../common/store-lib";
 import { PluginBasePublic } from "../common/plugin-lib";
 
 // Plugin content-script store for easily loading front-end
