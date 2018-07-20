@@ -1,21 +1,22 @@
-<slide>
+<template>
 	<div ref="card" class="card hide">
-	<yield/>
+	<slot/>
 	<div class="control-bar">
-		<div if={ !this.finalSlide } class="voice-btn { disabled: !parent.nextable() }">
-			Say <a ref={this.finalSlide ? '' : 'pulser'} class="pulsate voice-cmd" href={`#slide/${this.slideNum + 1}`}>next</a> to continue
+		<div v-if="!this.finalSlide" class="voice-btn" :class="{ disabled: !parent.nextable() }">
+			Say <a :ref="this.finalSlide ? '' : 'pulser'" class="pulsate voice-cmd" :href="`#slide/${this.slideNum + 1}`">next</a> to continue
 		</div>
-		<div if={ this.slideNum > 1 } class="voice-btn small { disabled: !parent.nextable() }">
-			Say <a href={`#slide/${this.slideNum - 1}`} class="voice-cmd">previous</a> or <span class="voice-cmd">back</span> to go back
+		<div v-if="this.slideNum > 1" class="voice-btn small" :class="{ disabled: !parent.nextable() }">
+			Say <a :href="`#slide/${this.slideNum - 1}`" class="voice-cmd">previous</a> or <span class="voice-cmd">back</span> to go back
 		</div>
-		<div class="voice-btn {small: !this.finalSlide, first: this.finalSlide, disabled: !parent.nextable()}">
-			Say <a onclick={ parent.exitTutorial } href="#" class="pulsate voice-cmd" ref={this.finalSlide ? 'pulser' : ''} >close tab</a> to {this.slideNum == 1 ? 'skip' : 'finish'} the tutorial
+		<div class="voice-btn" :class="{small: !this.finalSlide, first: this.finalSlide, disabled: !parent.nextable()}">
+			Say <a @click="parent.exitTutorial" href="#" class="pulsate voice-cmd" :ref="this.finalSlide ? 'pulser' : ''">close tab</a> to {{ this.slideNum == 1 ? 'skip' : 'finish' }} the tutorial
 		</div>
-		<a style="display: none" href={`#slide/${this.slideNum - 1}`}>prev</a>
+		<a style="display: none" :href="`#slide/${this.slideNum - 1}`">prev</a>
 	</div>
-	<div class="slide-num small">Page {this.slideNum}/{parent.totalSlides}</div>
+	<div class="slide-num small">Page {{ this.slideNum }}/{{ parent.totalSlides }}</div>
 	</div>
-	<style>
+</template>
+<style scoped>
 		.card {
 			max-width: 800px;
 			margin: 0 auto;
@@ -219,63 +220,76 @@ pulsating-btn.small {
   }
 }
 
-	</style>
-	<script>
-		let pulseStartTime = +this.opts.timing;
-		let animTime = 500;
-		let nextableInterval;
-		this.active = false;
-		this.slideNum = +this.opts.ref.replace('slide', '');
-		this.finalSlide = this.slideNum == this.parent.totalSlides;
+</style>
+<script lang="ts">
+import { Component, Vue, Prop, } from "vue-property-decorator";
+const ANIM_TIME = 500;
 
-		function startPulsing() {
-			this.refs.pulser.classList.remove('pulsate-fwd');
-			setTimeout(() => {
-				this.refs.pulser.classList.add('pulsate-fwd');
-			}, pulseStartTime * 1000);
-		}
+@Component
+export default class Slide extends Vue {
 
-		this.slideIn = async (left = false) => {
-			let rt = this.refs.card;
-			rt.classList.remove('hide');
-			rt.classList.add(`slide-in-${left ? 'left' : 'right'}`);
-			this.active = true;
+	@Prop()
+	timing!: number;
 
-			if (pulseStartTime && this.refs.pulser) {
-				if (this.parent.nextable()) {
-					startPulsing.apply(this);
-				} else {
-					// wait until it's nextable
-					nextableInterval = setInterval(() => {
-						if (this.parent.nextable()) {
-							clearInterval(nextableInterval);
-							startPulsing.apply(this);
-						}
-					}, 500);
-				}
-			}
+	@Prop()
+	finalSlide!: boolean;
 
-			return new Promise((resolve, reject) => {
-				setTimeout(() => {
-					rt.classList.remove(`slide-in-${left ? 'left' : 'right'}`);
-					resolve();
-				}, animTime);
-			});
-		};
+	nextableInterval;
+	active = false;
 
-		this.slideOut = async (left = true) => {
-			let rt = this.refs.card;
-			rt.classList.add(`slide-out-${left ? 'left' : 'right'}`);
-			this.active = false;
+	slideNum = null;
 
-			return new Promise((resolve, reject) => {
-				setTimeout(() => {
-					rt.classList.remove(`slide-out-${left ? 'left' : 'right'}`);
-					rt.classList.add('hide');
-					resolve();
-				}, animTime);
-			});
-		};
+	mounted() {
+		// this.slideNum = +this.opts.ref.replace('slide', '');
+	}
 
-	</script>
-</slide>
+	startPulsing() {
+		// this.$refs.pulser.classList.remove('pulsate-fwd');
+		// setTimeout(() => {
+		// 	this.$refs.pulser.classList.add('pulsate-fwd');
+		// }, this.timing * 1000);
+	}
+
+	// async slideIn(left = false) {
+	// 	let rt = this.$refs.card;
+	// 	rt.classList.remove('hide');
+	// 	rt.classList.add(`slide-in-${left ? 'left' : 'right'}`);
+	// 	this.active = true;
+
+	// 	if (this.timing && this.refs.pulser) {
+	// 		if (this.parent.nextable()) {
+	// 			startPulsing.apply(this);
+	// 		} else {
+	// 			// wait until it's nextable
+	// 			nextableInterval = setInterval(() => {
+	// 				if (this.parent.nextable()) {
+	// 					clearInterval(nextableInterval);
+	// 					startPulsing.apply(this);
+	// 				}
+	// 			}, 500);
+	// 		}
+	// 	}
+
+	// 	return new Promise((resolve, reject) => {
+	// 		setTimeout(() => {
+	// 			rt.classList.remove(`slide-in-${left ? 'left' : 'right'}`);
+	// 			resolve();
+	// 		}, ANIM_TIME);
+	// 	});
+	// }
+
+	// async slideOut(left = true) {
+	// 	let rt = this.refs.card;
+	// 	rt.classList.add(`slide-out-${left ? 'left' : 'right'}`);
+	// 	this.active = false;
+
+	// 	return new Promise((resolve, reject) => {
+	// 		setTimeout(() => {
+	// 			rt.classList.remove(`slide-out-${left ? 'left' : 'right'}`);
+	// 			rt.classList.add('hide');
+	// 			resolve();
+	// 		}, ANIM_TIME);
+	// 	});
+	// }
+}
+</script>

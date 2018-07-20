@@ -3,6 +3,7 @@
     "declaration": false,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
     "module": "commonjs",
     "noEmitOnError": true,
     "noUnusedLocals": false,
@@ -15,6 +16,13 @@
     },
     "target": "ES2017"
   },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
   "exclude": [
     "plugins",
     "node_modules"

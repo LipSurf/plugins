@@ -9,8 +9,10 @@ v0.4
 	<a href="https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl" class="btn download-button" onclick="if(window.chrome&amp;&amp;window.chrome.webstore&amp;&amp;window.chrome.webstore.install)return chrome.webstore.install(&quot;https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl&quot;,console.log,console.warn),!1" target="_blank"> <img alt="" src="https://d33wubrfki0l68.cloudfront.net/b1bb3a572ed46f4a5069d61dd2cde8dc83b57876/2600e/images/chrome.svg"> <span> Install now for Chrome </span> </a>
 - [ ] WK plugin add click "info"
 - [x] make interfaces constants and simplify picking properties for store/options
+- [ ] the preliminary/bad speech recg. results are showing up after the success one
 - [ ] homophones should not check url? Because we have global homophones
-- [ ] split/chaining in Japanese
+- [ ] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
+- [ ] switching from Eng/Japanese is too slow
 - [ ] make run, runOnPage, and matchFn more consistently named
 - [ ] update plugin documentation
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
@@ -23,6 +25,15 @@ v0.4
 - [ ] More exciting video
 - [ ] All banners on google chrome store
 - [ ] post on lobsters
+- [ ] email back WK about the addon
+
+WK improvements
+- [ ] put even the wrong answer in the typeahead box so that the user can see when the voice recognizer is recognizing properly but
+      the answer is wrong
+- [ ] furigana?
+- [ ] show/misete -- shows answer and let's user say right/wrong to decide if it was a speech recg. error
+- [ ] let user say kunyomi or onyomi -- put the answer in either way (so they can see the shake too)
+- [ ] do a Levenshtein distance check
 
 
 v0.5

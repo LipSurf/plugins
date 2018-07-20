@@ -1,8 +1,8 @@
-<cmd-group>
-    <div class="collapser-shell { collapsed: !expanded, enabled: enabled }">
-        <a class="collapser" title="Click to { expanded ? 'expand' : 'collapse' }" onclick={ toggleExpanded } href="#">
-            <div class="label">{ niceName } <span class="version">v{ version }</span> <span class="right-controls"><label><input type="checkbox" onchange={ toggleGroupEnabled } checked={ enabled } > Enabled</label></span>
-                <div class="desc">{ description }</div>
+<template>
+    <div class="collapser-shell" :class="{ collapsed: !expanded, enabled: enabled }">
+        <a class="collapser" :title="`Click to ${expanded ? 'expand' : 'collapse'}`" @click="toggleExpanded">
+            <div class="label">{{ niceName }} <span class="version">v{{ version }}</span> <span class="right-controls"><label @click.capture.stop.prevent="null"><input type="checkbox" v-model="enabled"> Enabled</label></span>
+                <div class="desc">{{ description }}</div>
             </div>
         </a>
         <div class="collapsable">
@@ -13,19 +13,19 @@
                             <strong>Supported Languages: </strong>
                         </div>
                         <ul class="language-list" style="display: table-cell">
-                            <li class="tag" each={ suppLang in languages }>{ LANG_CODE_TO_NICE[suppLang] }</li>
+                            <li class="tag" v-for="suppLang in languages" :key="suppLang">{{ LANG_CODE_TO_NICE[suppLang] }}</li>
                         </ul>
                     </div>
-                    <div class="homophones" if={ homophones.length > 0 } style="display:table-row">
+                    <div class="homophones" v-if="homophones.length > 0" style="display:table-row">
                         <div class="label" style="display: table-cell">
                             <strong>Homophones/synonyms: </strong>
                         </div>
                         <div class="tag-list-cont" style="display: table-cell">
-                            <a class="show-more" onclick={ toggleShowMore } href="#">{ showMore ? 'Show Less' : 'Show More'}</a>
-                            <div class="tag-list {shrunk: !showMore}">
-                                <homophone each={homophones}></homophone>
+                            <a class="show-more" @click="toggleShowMore">{{ showMore ? 'Show Less' : 'Show More'}}</a>
+                            <div class="tag-list" :class="{shrunk: !showMore}">
+                                <Homophone v-for="homo in homophones" :key="homo.source" :source="homo.source" :destination="homo.destination" :enabled="homo.enabled" />
                             </div>
-                            <div class="fade {invisible: showMore}">
+                            <div class="fade" :class="{invisible: showMore}">
                             </div>
                         </div>
                     </div>
@@ -38,16 +38,14 @@
                         <th>Command Words</th>
                     </thead>
                     <tbody>
-                        <tr data-is="cmd" each={commands}></tr>
+                        <Cmd v-for="command in commands" :key="command.name" :dynamic-match="command.dynamicMatch" :global="command.global" :enabled="command.enabled" :name="command.name" :match="command.match" :description="command.description"  />
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <style>
-    :scope {
-        --max-homo-list-height: 80px;
-    }
+</template>
+<style>
     table {
         margin-top: 15px;
     }
@@ -95,7 +93,11 @@
 
 	.tag-list-cont {
 		position: relative;
-	}
+    }
+    
+    .language-list {
+        padding: 0;
+    }
 
 	.show-more {
 		text-shadow: white 1px 1px;
@@ -108,6 +110,7 @@
 		bottom: -10px;
 		background-color: rgb(var(--bg-color));
 	    padding: 0 10px;
+        cursor: pointer;
 	}
 
     .version {
@@ -204,42 +207,67 @@
         padding: 3px 6px;
         white-space: nowrap;
     }
+</style>
+<script lang="ts">
+    import { Vue, Component, Prop } from "vue-property-decorator";
+    import { LANG_CODE_TO_NICE } from "../common/constants";
+    import Cmd from "./cmd.vue";
+    import Homophone from "./homophone.vue";
 
-
-    </style>
-    <script>
-	require('./cmd.tag');
-	require('./homophone.tag');
-    // need to mount when there are styles involved
-    riot.mount('cmd');
-    // attr is lowercased
-    this.LANG_CODE_TO_NICE = opts.lang_code_to_nice;
-
-    this.save = this.parent.save;
-
-    this.toggleGroupEnabled = (e) => {
-        e.stopPropagation();
-        e.item.enabled = !e.item.enabled;
-        this.save();
-    }
-
-    this.toggleExpanded = (e) => {
-        // hack to get around propagation not being stopped in riot
-        if (e.target.nodeName.toLowerCase() != 'input' &&
-            e.target.nodeName.toLowerCase() != 'label') {
-            e.preventDefault();
-            let item = e.item;
-            item.expanded = !item.expanded;
-            this.save();
+    @Component({
+        components: {
+            Cmd,
+            Homophone,
         }
-    }
+    })
+	export default class CmdGroup extends Vue {
+        LANG_CODE_TO_NICE = LANG_CODE_TO_NICE;
 
-	this.toggleShowMore = (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-		e.item.showMore = !e.item.showMore;
-		parent.save();
+		@Prop()
+		commands!: any;
+
+		@Prop()
+		expanded!: boolean;
+
+		@Prop()
+		enabled!: boolean;
+
+		@Prop()
+		niceName!: string;
+
+		@Prop()
+		version!: string;
+
+		@Prop()
+        description!: string;
+
+        @Prop()
+        showMore!: boolean;
+
+        // the languages that this plugin supports
+        @Prop()
+        languages!: LanguageCode[];
+        
+        @Prop()
+        homophones!: IToggleableHomophone[];
+
+		save() {
+			this.$emit('save');
+		}
+
+		toggleGroupEnabled(e) {
+			e.item.enabled = !e.item.enabled;
+			this.save();
+		}
+
+		toggleExpanded(e) {
+            this.expanded = !this.expanded;
+            this.save();
+		}
+
+		toggleShowMore(e) {
+            this.showMore = !this.showMore;
+			this.save();
+		}
 	}
-
-    </script>
-</cmd-group>
+</script>
