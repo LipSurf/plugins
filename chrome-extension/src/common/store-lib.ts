@@ -30,7 +30,7 @@ const DEFAULT_PREFERENCES = {
 
 // aren't exposed in the getOptions meta API call for plugins
 // but exposed in the internal getOptions
-const SHARED_LOCAL_DATA = {
+export const SHARED_LOCAL_DATA = {
     // is the plugin "on"
     activated: false,
     // we need to download a lang pack for the selected language

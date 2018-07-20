@@ -1,7 +1,7 @@
 <template>
 	<tr class="cmd">
 		<td class="enable">
-			<input type="checkbox" ref="input" @change="save" :checked="enabled">
+			<input type="checkbox" @change="$emit('update:enabled', $event.target.checked)" :checked="enabled">
 		</td>
 		<td class="name">{{ name }} <span title="Global commands work on any page." class="global-tag" v-if="global">global</span></td>
 		<td class="desc">{{ description }}</td>
@@ -48,12 +48,6 @@ export default class Cmd extends Vue {
 
 	@Prop()
 	dynamicMatch: boolean;
-
-	save(e) {
-		// binding
-		e.item.enabled = !e.item.enabled;
-		this.$emit('save');
-	}
 }
 
 </script>

@@ -64,19 +64,19 @@
             <div class="option">
                 <label>
                     <i class="icon text"></i>
-                    <input type="checkbox" ref="showLiveText" @change="generalSave" :checked="optionsPageStore.showLiveText"/> Show live text
+                    <input type="checkbox" v-model="optionsPageStore.showLiveText" /> Show live text
                 </label>
             </div>
             <div class="option">
                 <label title="Check the box if you aren't using headphones and live text will be suppressed while audio is playing on the page (unless a valid command is given)">
                     <i class="icon headphones"></i>
-                    <input type="checkbox" ref="noHeadphonesMode" @change="generalSave" :checked="optionsPageStore.noHeadphonesMode"/> No headphones mode
+                    <input type="checkbox" v-model="optionsPageStore.noHeadphonesMode"/> No headphones mode
                 </label>
             </div>
             <div class="option">
             <label>
                 <i class="icon timer-off"></i>
-                Automatically shut off after &nbsp;&nbsp;<input class="right" ref="inactivityAutoOffMins" style="width: 3.5em" @change="generalSave" type="number" min="0" max="525600" :value="optionsPageStore.inactivityAutoOffMins" /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
+                Automatically shut off after &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
             </label>
             </div>
             <div class="option" style="height: 1.2rem; margin: 20px">
@@ -91,12 +91,19 @@
 			<div style="text-align: right">
 				<button @click="getMorePlugins" id="getMorePlugins"><i class="icon lib-add"></i> Get More Plugins</button>
 			</div>
-            <CmdGroup v-for="cmdGroup in optionsPageStore.cmdGroups" class="cmd-group" :key="cmdGroup.niceName" :languages="cmdGroup.languages" :show-more="cmdGroup.showMore" :homophones="cmdGroup.homophones" :description="cmdGroup.description" :commands="cmdGroup.commands" :nice-name="cmdGroup.niceName" :version="cmdGroup.version" :name="cmdGroup.name" :enabled="cmdGroup.enabled" />
+            <CmdGroup v-for="cmdGroup in optionsPageStore.cmdGroups" class="cmd-group" :key="cmdGroup.name" :languages="cmdGroup.languages" :expanded.sync="cmdGroup.expanded" 
+                    :homophones="cmdGroup.homophones" :description="cmdGroup.description" :commands="cmdGroup.commands" :nice-name="cmdGroup.niceName" :version="cmdGroup.version" 
+                    :name="cmdGroup.name" :enabled.sync="cmdGroup.enabled" :show-more.sync="cmdGroup.showMore" />
         </section>
         </fieldset>
     </div>
 </template>
-<style scoped>
+<style>
+    :root {
+        --max-homo-list-height: 80px;
+        --bg-color: 245, 245, 245;
+    }
+
     fieldset {
         border: none;
     }
@@ -154,12 +161,6 @@
 		vertical-align: text-bottom;
 	}
 
-    .language-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
 	.img-icon {
 		width: 1.2em;
 		height: 1.2em;
@@ -203,20 +204,6 @@
 		filter: drop-shadow( 1px 1px 5px #ffffffcc );
 		margin-top: 10px;
 		font-size: 1.2em;
-	}
-
-	.invisible {
-		opacity: 0 !important;
-	}
-
-	.fade {
-		pointer-events: none;
-		background: linear-gradient(to bottom, rgba(var(--bg-color),0) 20%,rgba(var(--bg-color),1) 90%);
-		height: var(--max-homo-list-height);
-	    position: relative;
-		transition: opacity .5s ease;
-		opacity: 1;
-		margin-top: calc(-1 * var(--max-homo-list-height) - 1px);
 	}
 
     .mute {
@@ -313,16 +300,16 @@
 <script lang="ts">
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import CmdGroup from "./cmd-group.vue";
-import { pick, omit, identity }  from "lodash";
+import { pick, omit, identity, reduce, isEqual }  from "lodash";
 import { instanceOfDynamicMatch, } from "../common/util";
 import { Store, StoreSynced, } from "../background/store";
-import { IOptions, IGeneralPreferences, GENERAL_PREFERENCES, } from "../common/store-lib";
+import { IOptions, IGeneralPreferences, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, } from "../common/store-lib";
 import { LANG_CODE_TO_NICE } from "../common/constants";
 import * as LANGS from "../background/recognizer/langs";
 
 const pluginOptionsPageStoreProps = {
     ... GENERAL_PREFERENCES,
-    busyDownloading: false,
+    ... SHARED_LOCAL_DATA,
     cmdGroups: <IPluginPref[]>[],
 }
 
@@ -444,8 +431,10 @@ export default class OptionsPage extends Vue {
         });
     }
 
-    save(updatedProps: Partial<IOptions>) {
-        // whitelist properties to send up
+    // old and new will always be the same with objects/arrays when watching
+    @Watch('optionsPageStore', {deep: true})
+    save(updatedProps: Partial<IOptions>, oldProps: Partial<IOptions>) {
+        console.log('watch changes');
         this.store.save(<NestedPartial<IOptions>>{
             ...omit(this.optionsPageStore, 'cmdGroups'),
             plugins: this.optionsPageStore.cmdGroups.map(cmdGroup => ({
@@ -454,7 +443,7 @@ export default class OptionsPage extends Vue {
                 commands: cmdGroup.commands.reduce((memo, cmd) =>
                     Object.assign(memo, {[cmd.name]: pick(cmd, 'enabled')})
                 , {}),
-            }))
+            })),
         });
     }
 
@@ -472,9 +461,7 @@ export default class OptionsPage extends Vue {
     }
 
     downloadLangPack() {
-        this.save({
-            confirmLangPack: true
-        });
+        this.optionsPageStore.confirmLangPack = true;
     }
 
     donate() {
@@ -486,23 +473,13 @@ export default class OptionsPage extends Vue {
         window.open("./tutorial.html");
     }
 
-    generalSave(e) {
-        this.save({
-            noHeadphonesMode: (<HTMLInputElement>this.$refs.noHeadphonesMode).checked,
-            showLiveText: (<HTMLInputElement>this.$refs.showLiveText).checked,
-            inactivityAutoOffMins: +(<HTMLInputElement>this.$refs.inactivityAutoOffMins).value,
-        });
-    }
-
     langSave(e) {
         if ((<HTMLInputElement>this.$refs.lang).value == "add") {
             // add a language
             window.open("https://github.com/mikob/LipSurf#adding-support-for-more-languages-i18n", "_blank");
             (<HTMLInputElement>this.$refs.lang).value = this.optionsPageStore.language;
         } else {
-            this.save({
-                language: <LanguageCode>(<HTMLInputElement>this.$refs.lang).value
-            });
+            this.optionsPageStore.language = <LanguageCode>(<HTMLInputElement>this.$refs.lang).value;
         }
     }
 

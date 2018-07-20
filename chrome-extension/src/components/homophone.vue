@@ -1,5 +1,5 @@
 <template>
-    <label class="tag"><input type="checkbox" ref="input" :checked="enabled" @change="save"> {{ source }} ➪ {{ destination }}</label>
+    <label class="tag"><input type="checkbox" :checked="enabled" @change="$emit('update:enabled', $event.target.checked)"> {{ source }} ➪ {{ destination }}</label>
 </template>
 <script lang="ts">
 	import { Vue, Component, Prop } from "vue-property-decorator";
@@ -14,10 +14,5 @@
 
 		@Prop()
 		destination!: string;
-
-		save(e) {
-			e.item.enabled = (<HTMLInputElement>this.$refs.input).checked;
-			this.$emit('save');
-		}
 	}
 </script>

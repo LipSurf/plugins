@@ -1,8 +1,8 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { mapValues, pick, flatten, assignIn, zip, fromPairs } from "lodash";
+import { mapValues, pick, flatten, assignIn, zip, fromPairs, isEqual } from "lodash";
 import { instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
-import { getOptions, getStoredOrDefault, IOptions, } from "../common/store-lib";
+import { getOptions, getStoredOrDefault, IOptions, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, ILocalData, ISyncData } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
 
@@ -17,8 +17,9 @@ export class Store {
     // that is responsible for updating the local cache (such as just the background
     // page, instead of both the background page and the options page, etc.)
     constructor(private fetchPlugin: (id: string, version: string) => Promise<ILocalPluginData> = null) {
+        // TODO: don't publish to authors of change (use subNum)
         storage.sync.registerOnChangeCb((changes) => {
-            // changes is not used currently, may be later
+            // changes is not used currently, maybe later
 
             if (this.fetchPlugin) {
                 // might need to fetch new plugins
@@ -110,7 +111,7 @@ export class Store {
 
     // save user preference changes
     // don't need to include DEFAULT_PREFERENCES because those are used on loads only
-    async save(partialOptions: NestedPartial<IOptions>) {
+    async save(partialOptions: NestedPartial<IOptions>, subNum:number = null) {
         console.log(`saving options ${JSON.stringify(partialOptions)}`);
         // first merge plugin arrays manually -- otherwise the arrays just get overwritten naively by the latest merge obj
         if (partialOptions.plugins) {
@@ -121,34 +122,40 @@ export class Store {
                 return plugin;
             });
         }
+        let origOptions = Object.assign({}, this.options);
         objectAssignDeep(this.options, partialOptions);
 
-        let localSave = storage.local.save({
-            ...pick(partialOptions, 'activated', 'missingLangPack', 'confirmLangPack', 'busyDownloading', 'problem')
-        });
+        if (!isEqual(origOptions, this.options)) {
+            let localSave = storage.local.save(<Partial<StoreSerialized<ILocalData>>>{
+                ...pick(partialOptions, Object.keys(SHARED_LOCAL_DATA))
+            });
 
-        // extract just the sync part from options
-        // not sure why this has a ts error
-        // @ts-ignore
-        let syncSave = storage.sync.save({
-            plugins: this.options.plugins.reduce((memo, plugin) => {
-                memo[plugin.id] = {
-                    disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
-                    disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
-                    ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
-                };
-                return memo;
-            }, {}),
-            ... pick(this.options, 'language', 'showLiveText', 'noHeadphonesModes', 'inactivityAutoOffMins', 'tutorialMode'),
-        });
+            // extract just the sync part from options
+            // not sure why this has a ts error
+            let syncSave = storage.sync.save(<Partial<ISyncData>>{
+                plugins: this.options.plugins.reduce((memo, plugin) => {
+                    memo[plugin.id] = {
+                        disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
+                        disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
+                        ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
+                    };
+                    return memo;
+                }, {}),
+                ... pick(this.options, Object.keys(GENERAL_PREFERENCES)),
+            });
 
-        await Promise.all([syncSave, localSave]);
-        this.publish();
+            await Promise.all([syncSave, localSave]);
+        } else {
+            console.log("store -- no change detected, not publishing options changes");
+        }
     }
 
-    // publish changes
-    publish() {
-        this.listeners.forEach((fn) => fn(this.options));
+    // publish changes (exclude a subNum, the author of the changes)
+    publish(exclude:number = null) {
+        let listeners = [...this.listeners];
+        if (exclude !== null && exclude !== undefined)
+            listeners.splice(exclude, 1);
+        listeners.forEach((fn) => fn(this.options));
     }
 
     async resetPreferences() {
@@ -157,9 +164,11 @@ export class Store {
         this.publish();
     }
 
+    // returns the subNum
     // call fn when pluginconfig changes
-    subscribe(fn: (plugins: IOptions) => void) {
+    subscribe(fn: (plugins: IOptions) => void): number {
         this.listeners.push(fn);
+        return this.listeners.length - 1;
     }
 }
 

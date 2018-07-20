@@ -1,7 +1,7 @@
 <template>
     <div class="collapser-shell" :class="{ collapsed: !expanded, enabled: enabled }">
-        <a class="collapser" :title="`Click to ${expanded ? 'expand' : 'collapse'}`" @click="toggleExpanded">
-            <div class="label">{{ niceName }} <span class="version">v{{ version }}</span> <span class="right-controls"><label @click.capture.stop.prevent="null"><input type="checkbox" v-model="enabled"> Enabled</label></span>
+        <a class="collapser" :title="`Click to ${expanded ? 'expand' : 'collapse'}`" @click="$emit('update:expanded', !expanded)">
+            <div class="label">{{ niceName }} <span class="version">v{{ version }}</span> <span class="right-controls"><label @click.stop="'void'"><input type="checkbox" :checked="enabled" @change="$emit('update:enabled', $event.target.checked)"> Enabled</label></span>
                 <div class="desc">{{ description }}</div>
             </div>
         </a>
@@ -21,9 +21,9 @@
                             <strong>Homophones/synonyms: </strong>
                         </div>
                         <div class="tag-list-cont" style="display: table-cell">
-                            <a class="show-more" @click="toggleShowMore">{{ showMore ? 'Show Less' : 'Show More'}}</a>
+                            <a class="show-more" @click="$emit('update:showMore', !showMore)">{{ showMore ? 'Show Less' : 'Show More'}}</a>
                             <div class="tag-list" :class="{shrunk: !showMore}">
-                                <Homophone v-for="homo in homophones" :key="homo.source" :source="homo.source" :destination="homo.destination" :enabled="homo.enabled" />
+                                <Homophone v-for="homo in homophones" :key="homo.source" :source="homo.source" :destination="homo.destination" :enabled.sync="homo.enabled" />
                             </div>
                             <div class="fade" :class="{invisible: showMore}">
                             </div>
@@ -38,7 +38,7 @@
                         <th>Command Words</th>
                     </thead>
                     <tbody>
-                        <Cmd v-for="command in commands" :key="command.name" :dynamic-match="command.dynamicMatch" :global="command.global" :enabled="command.enabled" :name="command.name" :match="command.match" :description="command.description"  />
+                        <Cmd v-for="command in commands" :key="command.name" :dynamic-match="command.dynamicMatch" :global="command.global" :enabled.sync="command.enabled" :name="command.name" :match="command.match" :description="command.description"  />
                     </tbody>
                 </table>
             </div>
@@ -68,6 +68,20 @@
         padding: 0 .7rem;
     }
 
+	.fade {
+		pointer-events: none;
+		background: linear-gradient(to bottom, rgba(var(--bg-color),0) 20%,rgba(var(--bg-color),1) 90%);
+		height: var(--max-homo-list-height);
+	    position: relative;
+		transition: opacity .5s ease;
+		opacity: 1;
+		margin-top: calc(-1 * var(--max-homo-list-height) - 1px);
+    }
+
+	.invisible {
+		opacity: 0 !important;
+	}
+
     .homophones .label {
         width: 20%;
     }
@@ -96,6 +110,8 @@
     }
     
     .language-list {
+        list-style: none;
+        margin: 0;
         padding: 0;
     }
 
@@ -250,24 +266,5 @@
         
         @Prop()
         homophones!: IToggleableHomophone[];
-
-		save() {
-			this.$emit('save');
-		}
-
-		toggleGroupEnabled(e) {
-			e.item.enabled = !e.item.enabled;
-			this.save();
-		}
-
-		toggleExpanded(e) {
-            this.expanded = !this.expanded;
-            this.save();
-		}
-
-		toggleShowMore(e) {
-            this.showMore = !this.showMore;
-			this.save();
-		}
 	}
 </script>
