@@ -21,24 +21,6 @@
             <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the LipSurf icon in your extensions toolbar.</p>
     	</section>
         <section>
-            <h2>Support the Project</h2>
-            <div class="notice warning">
-                <i class="icon warning-empty"></i> &nbsp;&nbsp;LipSurf will always have a free version.
-				</div>
-			<p>You are on the free trial of <strong>LipSurf Pro</strong>. LipSurf Pro is free while in beta. The free trial will end 1 month after the 1.0 release.</p>
-            <div style="text-align: center">
-                <button @click="donate" id="donateBtn">Donate as an Early Bird Supporter
-					<div>
-					<i class="img-icon btc"></i>
-					<i class="img-icon eth"></i>
-					<i class="img-icon pp"></i>
-					<i class="img-icon cc"></i>
-					</div>
-				</button>
-                <p class="mute">Early supporters will be credited 2x the value of their donation when 1.0 is released.</p>
-            </div>
-        </section>
-        <section>
             <h2>General</h2>
             <div class="option">
                 <label title="The languages shown here are the ones supported by the plugins you have installed.">
@@ -67,9 +49,12 @@
                 </label>
             </div>
             <div class="option">
-            <label>
+            <label class="w-note">
                 <i class="icon timer-off"></i>
-                Automatically shut off after &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes without valid commands (set to 0 to never automatically shut off)
+				<div>
+					Automatically shut off after &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes without valid commands.
+					<div class="mute">Set to 0 to never automatically shut off.</div>
+				</div>
             </label>
             </div>
             <div class="option" style="height: 1.2rem; margin: 20px">
@@ -84,9 +69,28 @@
 			<div style="text-align: right">
 				<button @click="getMorePlugins" id="getMorePlugins"><i class="icon lib-add"></i> Get More Plugins</button>
 			</div>
-            <CmdGroup v-for="cmdGroup in optionsPageStore.cmdGroups" class="cmd-group" :key="cmdGroup.name" :languages="cmdGroup.languages" :expanded.sync="cmdGroup.expanded" 
-                    :homophones="cmdGroup.homophones" :description="cmdGroup.description" :commands="cmdGroup.commands" :nice-name="cmdGroup.niceName" :version="cmdGroup.version" 
+            <CmdGroup v-for="cmdGroup in optionsPageStore.cmdGroups" class="cmd-group" :key="cmdGroup.name" :languages="cmdGroup.languages" :expanded.sync="cmdGroup.expanded"
+                    :homophones="cmdGroup.homophones" :description="cmdGroup.description" :commands="cmdGroup.commands" :nice-name="cmdGroup.niceName" :version="cmdGroup.version"
                     :name="cmdGroup.name" :enabled.sync="cmdGroup.enabled" :show-more.sync="cmdGroup.showMore" />
+        </section>
+        <section>
+            <h2>Become a Backer</h2>
+            <div class="notice warning">
+                <i class="icon warning-empty"></i> &nbsp;&nbsp; Upgrade to become a backer of the project.
+				</div>
+			<p>You are on the free trial of <strong>LipSurf Pro</strong> which is free while in beta. The free trial will end 1 month after the 1.0 release.</p>
+			<p>LipSurf will always have a free version.</p>
+            <div style="text-align: center">
+                <button @click="donate" id="donateBtn">Become an Early Backer
+					<div>
+					<i class="img-icon btc"></i>
+					<i class="img-icon eth"></i>
+					<i class="img-icon pp"></i>
+					<i class="img-icon cc"></i>
+					</div>
+				</button>
+                <p class="mute">Early backers will be credited 2x the value of their pre-1.0 donations when 1.0 is released.</p>
+            </div>
         </section>
     </div>
 </template>
@@ -96,9 +100,20 @@
         --bg-color: 245, 245, 245;
     }
 
-    fieldset {
-        border: none;
-    }
+	.w-note > i {
+		vertical-align: top;
+		margin-top: 3px;
+	}
+
+	.w-note > div {
+		display: inline-block;
+	}
+
+	.w-note > div .mute {
+		margin-top: 0.3em;
+		font-size: 0.9em;
+	}
+
 
     .loading-bar {
   width: 100%;
@@ -201,6 +216,10 @@
     .mute {
         color: #555;
     }
+
+	.note {
+		color: #777;
+	}
 
     .notice {
         padding: 9px 10px;
