@@ -199,4 +199,8 @@ Hi all,
 As the SpeechRecognition spec stands, there's no way to distinguish recognized speech output as additional newly recognized utterances vs. corrected (but previously outputted) words.
 
 
+Language Resources:
+https://support.mozilla.org/ja/kb/keyboard-shortcuts-perform-firefox-tasks-quickly
+https://support.google.com/youtube/answer/7631406?hl=ja
+
 

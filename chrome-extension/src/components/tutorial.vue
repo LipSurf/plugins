@@ -313,7 +313,7 @@ export default class Tutorial extends Vue {
       chrome.runtime.sendMessage("closeTutorial");
     });
     // auto activate lipsurf
-    storage.local.registerOnChangeCb(changes => {
+    storage.local.registerOnChangeCb((changes) => {
       if (changes && changes.activated && changes.activated.newValue) {
         this.activated = true;
       }

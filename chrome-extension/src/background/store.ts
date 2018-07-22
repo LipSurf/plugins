@@ -1,7 +1,7 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { mapValues, pick, flatten, assignIn, zip, fromPairs, isEqual } from "lodash";
-import { instanceOfDynamicMatch, objectAssignDeep} from "../common/util";
+import { mapValues, pick, flatten, assignIn, zip, fromPairs, isEqual, omit } from "lodash";
+import { instanceOfDynamicMatch, objectAssignDeep, difference, promiseSerial } from "../common/util";
 import { getOptions, getStoredOrDefault, IOptions, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, ILocalData, ISyncData } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
@@ -11,29 +11,37 @@ import { storage } from "../common/browser-interface";
  */
 export class Store {
     private options: IOptions;
-    private listeners: ((plugins?: IOptions) => void)[] = [];
+    private listeners: {[id: number]: ((plugins?: IOptions) => void)} = {};
+    // we need to keep track of the last one, because if the same author submits two changes in a row, we don't get the 
+    // author id the 2nd time because it hasn't changed
+    private lastSyncAuthorId = null;
+    private lastLocalAuthorId = null;
 
     // fetchPlugin is only required to be set by one instance of store -- the one
     // that is responsible for updating the local cache (such as just the background
     // page, instead of both the background page and the options page, etc.)
     constructor(private fetchPlugin: (id: string, version: string) => Promise<ILocalPluginData> = null) {
-        // TODO: don't publish to authors of change (use subNum)
         storage.sync.registerOnChangeCb((changes) => {
             // changes is not used currently, maybe later
+            this.lastLocalAuthorId = changes.authorId ? changes.authorId.newValue : this.lastLocalAuthorId;
 
-            if (this.fetchPlugin) {
-                // might need to fetch new plugins
-                this.rebuildLocalPluginCache().then(async () => {
-                    await this.getOptions(true);
-                    this.publish();
-                });
-            } else {
-                this.getOptions(true).then(() => this.publish());
+            if (Object.keys(omit(changes, 'authorId')).length > 0) {
+                if (this.fetchPlugin) {
+                    // might need to fetch new plugins
+                    this.rebuildLocalPluginCache().then(() => {
+                        this.getOptions(true).then(() => this.publish(this.lastSyncAuthorId));
+                    });
+                } else {
+                    this.getOptions(true).then(() => this.publish(this.lastSyncAuthorId));
+                }
             }
         });
         storage.local.registerOnChangeCb((changes) => {
-            // handles changes such as missingLangPack, confirmLangPack, problem etc.
-            this.getOptions(true).then(() => this.publish());
+            this.lastSyncAuthorId = changes.authorId ? changes.authorId.newValue : this.lastSyncAuthorId;
+            if (Object.keys(omit(changes, 'authorId')).length > 0) {
+                // handles changes such as missingLangPack
+                this.getOptions(true).then(() => this.publish(this.lastSyncAuthorId));
+            }
         });
     }
 
@@ -111,8 +119,7 @@ export class Store {
 
     // save user preference changes
     // don't need to include DEFAULT_PREFERENCES because those are used on loads only
-    async save(partialOptions: NestedPartial<IOptions>, subNum:number = null) {
-        console.log(`saving options ${JSON.stringify(partialOptions)}`);
+    async save(partialOptions: NestedPartial<IOptions>, authorId:number = null) {
         // first merge plugin arrays manually -- otherwise the arrays just get overwritten naively by the latest merge obj
         if (partialOptions.plugins) {
             partialOptions.plugins = partialOptions.plugins.map(plugin => {
@@ -122,40 +129,52 @@ export class Store {
                 return plugin;
             });
         }
-        let origOptions = Object.assign({}, this.options);
-        objectAssignDeep(this.options, partialOptions);
 
-        if (!isEqual(origOptions, this.options)) {
-            let localSave = storage.local.save(<Partial<StoreSerialized<ILocalData>>>{
-                ...pick(partialOptions, Object.keys(SHARED_LOCAL_DATA))
-            });
+        let promises:Promise<any>[] = [];
+        let localPicked:Partial<StoreSerialized<ILocalData>> = pick(partialOptions, Object.keys(SHARED_LOCAL_DATA));
+        let syncPicker = (options) => {
+            let ret;
+            if (options.plugins) {
+                ret = {
+                    plugins: options.plugins.reduce((memo, plugin) => {
+                        memo[plugin.id] = {
+                            disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
+                            disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
+                            ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
+                        };
+                        return memo;
+                    }, {}),
+                };
+            } else {
+                ret = {};
+            }
+            return {...ret, ...pick(options, Object.keys(GENERAL_PREFERENCES))};
+        };
+        let syncPicked = syncPicker(partialOptions);
 
+        if (Object.keys(localPicked).length > 0) {
+            // console.log(`local difference detected ${JSON.stringify(localPicked)}`);
+
+            // does not do pluginData or langData
+            promises.push(storage.local.save(localPicked, authorId));
+        }
+
+        if (Object.keys(syncPicked).length > 0) {
+            // console.log(`sync difference detected ${JSON.stringify(syncPicked)}`);
             // extract just the sync part from options
-            // not sure why this has a ts error
-            let syncSave = storage.sync.save(<Partial<ISyncData>>{
-                plugins: this.options.plugins.reduce((memo, plugin) => {
-                    memo[plugin.id] = {
-                        disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
-                        disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
-                        ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
-                    };
-                    return memo;
-                }, {}),
-                ... pick(this.options, Object.keys(GENERAL_PREFERENCES)),
-            });
+            promises.push(storage.sync.save(syncPicked, authorId));
+        }
 
-            await Promise.all([syncSave, localSave]);
+        if (promises.length > 0) {
+            await Promise.all(promises);
         } else {
             console.log("store -- no change detected, not publishing options changes");
         }
     }
 
-    // publish changes (exclude a subNum, the author of the changes)
-    publish(exclude:number = null) {
-        let listeners = [...this.listeners];
-        if (exclude !== null && exclude !== undefined)
-            listeners.splice(exclude, 1);
-        listeners.forEach((fn) => fn(this.options));
+    // publish changes (exclude an authorId, the author of the changes)
+    publish(excludeId:number = null) {
+        promiseSerial(Object.values(omit(this.listeners, excludeId)).map(fn => fn.bind(null, this.options)));
     }
 
     async resetPreferences() {
@@ -164,16 +183,18 @@ export class Store {
         this.publish();
     }
 
-    // returns the subNum
+    // returns a unique author id that the subscriber should use
     // call fn when pluginconfig changes
     subscribe(fn: (plugins: IOptions) => void): number {
-        this.listeners.push(fn);
-        return this.listeners.length - 1;
+        let id = Math.ceil(Math.random() * Number.MAX_SAFE_INTEGER);
+        this.listeners[id] = fn;
+        return id;
     }
 }
 
-export class StoreSynced {
+export abstract class StoreSynced {
 
+    private authorId: number;
     // fulfilled when the initial load has happened (useful to make sure stuff
     // doesn't happen until then)
     private initialLoadResolver = () => undefined;
@@ -184,13 +205,17 @@ export class StoreSynced {
     constructor(public store: Store) {
         // call once on initial load so plugin data is ready
         this.init();
-        this.store.getOptions().then(options => {
-            this.storeUpdated(options);
+        this.store.getOptions().then(async options => {
+            await this.storeUpdated(options);
             this.initialLoadResolver()
         });
-        this.store.subscribe(newOptions => {
-            this.storeUpdated(newOptions);
+        this.authorId = this.store.subscribe(async newOptions => {
+            await this.storeUpdated(newOptions);
         });
+    }
+
+    protected save(partialOptions:NestedPartial<IOptions>) {
+        this.store.save(partialOptions, this.authorId)
     }
 
     // We use init instead of a constructor because storeUpdated is called before the
@@ -199,7 +224,7 @@ export class StoreSynced {
     protected init() { }
 
     // override this
-    protected storeUpdated(newOptions: IOptions) {
+    protected async storeUpdated(newOptions: IOptions) {
 
     }
 }

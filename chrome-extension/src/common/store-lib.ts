@@ -35,12 +35,8 @@ export const SHARED_LOCAL_DATA = {
     activated: false,
     // we need to download a lang pack for the selected language
     missingLangPack: false,
-    // user has given permission to download the lang pack
-    confirmLangPack: false,
-    // busy downloading a new lang pack
+    // the recognizer is busy downloading a lang pack
     busyDownloading: false,
-    // if there is some kind of error that needs attention in the options
-    problem: false,
 }
 
 // data to be persisted in the extension that is not user prefs (those are synced) 
@@ -100,8 +96,8 @@ function transformToPluginsConfig(localPluginData: { [id: string]: ILocalPluginD
 
 export async function getStoredOrDefault(): Promise<[ISyncData, ILocalData]> {
     let [syncData, serializedLocalData] = await Promise.all([storage.sync.load<ISyncData>(), storage.local.load()]);
-    let localData = deserialize(serializedLocalData);
-    syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, syncData);
+    let localData = deserialize(omit(serializedLocalData, 'authorId'));
+    syncData = objectAssignDeep(null, DEFAULT_PREFERENCES, omit(syncData, 'authorId'));
     if (!localData || !localData.pluginData) {
         localData = DEFAULT_LOCAL_DATA;
     }

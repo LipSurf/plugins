@@ -22,7 +22,7 @@ interface IPluginCSStore extends IDisableable {
 export class PluginManager extends StoreSynced {
     private pluginsCSStore:IPluginCSStore[];
 
-    protected storeUpdated(newOptions: IOptions) {
+    protected async storeUpdated(newOptions: IOptions) {
         this.pluginsCSStore = newOptions.plugins.map(pluginConfig =>
             ({
                 hasGlobalCmd: !!find(pluginConfig.commands, cmd => cmd.global),

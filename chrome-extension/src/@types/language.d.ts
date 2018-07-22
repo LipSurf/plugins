@@ -10,5 +10,5 @@ declare interface ILanguageRecg {
     ordinalOrNumberToDigit: (input: string) => number;
     wordSplitter: (phrase: string) => Promise<string[]>;
     wordJoiner: (words: string[]) => string;
-    getExtraData?: () => void;
+    getExtraData?: () => Promise<void>;
 }

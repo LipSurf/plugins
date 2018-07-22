@@ -17,7 +17,7 @@ export class PluginSandbox extends StoreSynced {
         this.privilegedCode = <IPrivilegedCode>{};
     }
 
-    protected storeUpdated(newOptions: IOptions) {
+    protected async storeUpdated(newOptions: IOptions) {
         newOptions.plugins.forEach((plugin) => {
             // overwrites existing commands for plugin
             this.privilegedCode[plugin.id] = Object.keys(plugin.commands).reduce((memo, cmdName) => {

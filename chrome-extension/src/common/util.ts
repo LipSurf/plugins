@@ -279,6 +279,43 @@ function executeDeepMerge (target, _objects = []) {
 
 }
 
+import { isEqual, transform, isObject } from 'lodash';
+/**
+ *  FROM: https://gist.github.com/Yimiprod/7ee176597fef230d1451
+ * Only used in DEBUG
+ * Deep diff between two object, using lodash
+ * @param  {Object} object Object compared
+ * @param  {Object} base   Object to compare with
+ * @return {Object}        Return a new object who represent the diff
+ */
+export function difference(object, base) {
+	function changes(object, base) {
+		return transform(object, function(result, value, key) {
+			if (!isEqual(value, base[key])) {
+				result[key] = (isObject(value) && isObject(base[key])) ? changes(value, base[key]) : value;
+			}
+		});
+	}
+	return changes(object, base);
+}
+
+/** FROM: https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
+ * 
+ * promiseSerial resolves Promises sequentially.
+ * @example
+ * const urls = ['/url1', '/url2', '/url3']
+ * const funcs = urls.map(url => () => $.ajax(url))
+ *
+ * promiseSerial(funcs)
+ *   .then(console.log)
+ *   .catch(console.error)
+ */
+export const promiseSerial = funcs =>
+    funcs.reduce((promise, func) =>
+        promise.then(result => func().then(Array.prototype.concat.bind(result))),
+    Promise.resolve([]))
+
+
 export function objectAssignDeep(target, ...objects) {
     return executeDeepMerge(target, objects);
 }

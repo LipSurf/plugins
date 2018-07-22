@@ -28,7 +28,7 @@ const mainStoreProps = {
     inactivityAutoOffMins: 0,
     showLiveText: true,
     noHeadphonesMode: false,
-    problem: false,
+    missingLangPack: false,
     activated: false,
 }
 
@@ -108,21 +108,23 @@ class Main extends StoreSynced {
         }
 
         chrome.browserAction.onClicked.addListener(tab => {
+            if (this.mainStore.missingLangPack) {
+                // open the options
+                chrome.runtime.openOptionsPage();
+                return;
+            } 
+
             this.toggleActivated(!this.mainStore.activated);
         });
     }
 
     protected async storeUpdated(newOptions: IOptions) {
-        // TODO: interface reflection here?
         this.mainStore = pick(newOptions, Object.keys(mainStoreProps));
-        console.log(`newOptions.activated ${newOptions.activated}`);
-        if (this.mainStore.problem && newOptions.activated) {
+        if (this.mainStore.missingLangPack && this.mainStore.activated) {
             // shut it down if there's a problem
             await this.toggleActivated(false);
         }
-        chrome.browserAction.setIcon({
-            path: newOptions.problem ? PROBLEM_ICON : newOptions.activated ? ON_ICON : OFF_ICON
-        });
+        this.updateIcon();
     }
 
     async toggleActivated(_activated = true) {
@@ -133,13 +135,8 @@ class Main extends StoreSynced {
             this.inactiveTimer = undefined;
         }
 
+        console.log(`toggleActivated ${_activated}`);
         if (_activated) {
-            if (this.mainStore.problem) {
-                // open the options
-                chrome.runtime.openOptionsPage();
-                return;
-            } 
-
             // wait until there is permission
             try {
                 await navigator.mediaDevices.getUserMedia({
@@ -188,8 +185,16 @@ class Main extends StoreSynced {
             this.recg.shutdown();
         }
 
-        this.store.save({
-            activated: _activated 
+        this.mainStore.activated = _activated;
+        this.updateIcon();
+        this.save({
+            activated: this.mainStore.activated, 
+        });
+    }
+
+    updateIcon() {
+        chrome.browserAction.setIcon({
+            path: this.mainStore.missingLangPack ? PROBLEM_ICON : this.mainStore.activated ? ON_ICON : OFF_ICON
         });
     }
 

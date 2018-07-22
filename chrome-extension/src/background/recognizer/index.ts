@@ -20,6 +20,13 @@ interface IRecgCommand extends IGlobalCommand, INiceCommand {
     delay?: number[];
 }
 
+const recgStoreProps = {
+    plugins: <IPluginRecgStore[]> [],
+    missingLangPack: false,
+}
+
+type IRecgStore = typeof recgStoreProps;
+
 // transformations of the plugin store go here
 interface IPluginRecgStore {
     id: string;
@@ -41,7 +48,6 @@ interface IMatchCommand {
 
 export type IRecognizedCallback = ILiveTextParcel | ICmdParcel;
 
-
 export class Recognizer extends StoreSynced {
     private recognition;
     private recognizerKilled: boolean = false;
@@ -51,7 +57,7 @@ export class Recognizer extends StoreSynced {
     // we index by transcript resultIndex in case a delayed cmd is pending and new voice
     // recg comes in
     private delayCmds: { [id: number]: ResettableTimeout[] } = {};
-    private pluginsRecgStore: IPluginRecgStore[];
+    private recgStore: IRecgStore = <IRecgStore>{};
     private curActiveTabUrl: string;
     // for global homonyms
     private synKeys: RegExp[];
@@ -74,24 +80,28 @@ export class Recognizer extends StoreSynced {
     protected async storeUpdated(newOptions: IOptions) {
         // language-specific recognizer functionality
         this.langRecg = new LANGS[newOptions.language.substr(0, 2)]();
+
         try {
-            await this.langRecg.init();
+            if (this.langRecg.init) {
+                await this.langRecg.init();
+            }
+            this.save({missingLangPack: false});
         } catch(e) {
             if (e instanceof MissingLangPackError) {
-                if (!newOptions.missingLangPack) {
-                    this.store.save({missingLangPack: true, problem: true});
-                } else if (newOptions.confirmLangPack && !newOptions.busyDownloading) {
-                    this.store.save({busyDownloading: true});
-                    await this.langRecg.getExtraData();
-                    this.store.save({busyDownloading: false, confirmLangPack: null, missingLangPack: false, problem: false});
-                } 
+                this.save({missingLangPack: true, busyDownloading: true});
+                this.langRecg.getExtraData().then(() => {
+                    this.store.save({busyDownloading: false, missingLangPack: false});
+                })
+            } else {
+                // just missingLangPack: true can go here (if it's not busy downloading)
+                throw e;
             }
         }
         let homoKeys = Object.keys(this.langRecg.homophones).sort((a, b) => a.length > b.length ? -1 : 1);
         this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
         this.synVals = homoKeys.map((key) => this.langRecg.homophones[key]);
 
-        this.pluginsRecgStore = newOptions.plugins
+        this.recgStore.plugins = newOptions.plugins
             .filter(plugin => plugin.enabled)
             .map(plugin => {
                 let localized = plugin.localized[newOptions.language] || plugin.localized[<LanguageCode>newOptions.language.substr(0, 2)];
@@ -254,7 +264,7 @@ export class Recognizer extends StoreSynced {
         // commands are sorted by decreasing longest match string
         // plugins are sorted first by matching plugins, then plugins with globals, then browser plugin
         // [sortedIndex, pluginId, IRecgCommand[]]
-        let sortedCmds: [number, string, IRecgCommand[]][] = this.pluginsRecgStore.map(plugin => {
+        let sortedCmds: [number, string, IRecgCommand[]][] = this.recgStore.plugins.map(plugin => {
             let urlMatchesForPlugin = !!find(plugin.match, regx => regx.test(url));
             return <[number, string, IRecgCommand[]]>[plugin.id.toLowerCase() === 'browser' ? 0 : urlMatchesForPlugin ? 2 : 1, plugin.id, [...(urlMatchesForPlugin ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)].sort((a, b) => {
                 if (a.match && !b.match)
@@ -503,8 +513,8 @@ export class Recognizer extends StoreSynced {
             }
         }
         // already has filtered out disabled commands and plugins
-        for (let x = 0; x < this.pluginsRecgStore.length; x++) {
-            let plugin = this.pluginsRecgStore[x];
+        for (let x = 0; x < this.recgStore.plugins.length; x++) {
+            let plugin = this.recgStore.plugins[x];
             if (find(plugin.match, regx => regx.test(url))) {
                 for (let i = 0; i < plugin.synKeys.length; i++) {
                     afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);

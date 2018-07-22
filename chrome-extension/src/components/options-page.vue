@@ -38,19 +38,8 @@
                 <p class="mute">Early supporters will be credited 2x the value of their donation when 1.0 is released.</p>
             </div>
         </section>
-        <fieldset :disabled="optionsPageStore.busyDownloading">
         <section>
             <h2>General</h2>
-            <div class="notice failure spread" v-if="optionsPageStore.missingLangPack && !optionsPageStore.confirmLangPack && !optionsPageStore.busyDownloading">
-                <span>
-                <i class="icon error"></i> &nbsp;&nbsp;You must download the language pack for this language or change the language option.
-                </span>
-                <button @click="downloadLangPack">Download Now</button>
-            </div>
-            <div v-if="optionsPageStore.busyDownloading">
-                <p>Downloading language pack... </p>
-                <div class="loading-bar"></div>
-            </div>
             <div class="option">
                 <label title="The languages shown here are the ones supported by the plugins you have installed.">
                     <i class="icon language"></i>
@@ -60,6 +49,10 @@
                         <option value="add">+ Add a Language</option>
                     </select>
                 </label>
+                <div v-if="optionsPageStore.busyDownloading">
+                    <p>Downloading language pack... </p>
+                    <div class="loading-bar"></div>
+                </div>
             </div>
             <div class="option">
                 <label>
@@ -95,7 +88,6 @@
                     :homophones="cmdGroup.homophones" :description="cmdGroup.description" :commands="cmdGroup.commands" :nice-name="cmdGroup.niceName" :version="cmdGroup.version" 
                     :name="cmdGroup.name" :enabled.sync="cmdGroup.enabled" :show-more.sync="cmdGroup.showMore" />
         </section>
-        </fieldset>
     </div>
 </template>
 <style>
@@ -308,8 +300,8 @@ import { LANG_CODE_TO_NICE } from "../common/constants";
 import * as LANGS from "../background/recognizer/langs";
 
 const pluginOptionsPageStoreProps = {
-    ... GENERAL_PREFERENCES,
-    ... SHARED_LOCAL_DATA,
+    ... pick(GENERAL_PREFERENCES, 'language', 'showLiveText', 'noHeadphonesMode', 'inactivityAutoOffMins', ),
+    ... pick(SHARED_LOCAL_DATA, 'busyDownloading'),
     cmdGroups: <IPluginPref[]>[],
 }
 
@@ -332,6 +324,8 @@ interface IPluginPref {
 interface ICommandPref {
     enabled: boolean;
     name: string;
+    // localized
+    niceName: string;
     global?: boolean;
     match: string | string[];
     // special description for dynamic match functions
@@ -339,12 +333,14 @@ interface ICommandPref {
     description?: string;
 }
 
+// TODO: ideally we would use the StoreSynced for this via a mixin
 @Component({
     components: {
         CmdGroup,
     }
 })
 export default class OptionsPage extends Vue {
+    authorId: number;
     optionsPageStore: IPluginOptionsPageStore = <IPluginOptionsPageStore>{};
     hasMicPerm = true;
     possibleLanguages = [
@@ -360,13 +356,15 @@ export default class OptionsPage extends Vue {
     pluginSelectedLanguage: LanguageCode;
     LANG_CODE_TO_NICE = LANG_CODE_TO_NICE;
 
+    unwatch: () => void;
+
     created() {
         this.store = new Store();
         this.store.getOptions().then(options => {
             this.storeUpdated(options);
         });
-        this.store.subscribe(newOptions => {
-            this.storeUpdated(newOptions);
+        this.authorId = this.store.subscribe(async newOptions => {
+            await this.storeUpdated(newOptions);
         });
     }
 
@@ -390,14 +388,15 @@ export default class OptionsPage extends Vue {
     }
 
     async storeUpdated(newOptions: IOptions) {
-        // check if we need to download a language pack (checking in storeUpdated ensures that this will still work if the language setting
-        // is changed on another instance and synced over)
-        if (newOptions.missingLangPack && (newOptions.confirmLangPack === null || newOptions.confirmLangPack === undefined)) {
-            let isConfirmed = confirm(`You need to download a ~5mb language pack for ${LANG_CODE_TO_NICE[newOptions.language]}. Would you like to continue?`);
-            this.store.save({confirmLangPack: isConfirmed});
+        console.log(`options page store updated busyDownloading: ${newOptions.busyDownloading} `);
+
+        // we manually turn the watch on off as to not send up changes that the server has just given us
+        // only send up changes that are triggered via actions on this frontend page
+        if (this.unwatch) {
+            this.unwatch();
         }
 
-        // workaround to make sure changes are triggered
+        // workaround vue shortcoming to make sure changes are triggered
         this.optionsPageStore = Object.assign({}, this.optionsPageStore,  {
             ... pick(newOptions, Object.keys(pluginOptionsPageStoreProps)),
             cmdGroups: newOptions.plugins.map(plugin => {
@@ -418,25 +417,26 @@ export default class OptionsPage extends Vue {
                                 dynamicMatch: instanceOfDynamicMatch(matcher.match),
                                 match: instanceOfDynamicMatch(matcher.match) ? matcher.match.description : matcher.match,
                                 global_: plugin.commands[cmdName].global,
+                                niceName: matcher.name,
+                                name: cmdName,
                                 ... pick(plugin.commands[cmdName], 'enabled'),
-                                ... pick(matcher, 'name', 'description'),
+                                ... pick(matcher, 'description'),
                             }
                         }
-                    }).filter(identity), // filter out the undefined (no localized version)
+                    }).filter(identity), // filter out the undefined (no matcher => no localized version)
                     languages: Object.keys(plugin.localized),
                     ... pick(localized, 'niceName', 'description', 'homophones', ),
                     ... pick(plugin, 'version', 'expanded', 'enabled', 'showMore', 'id', ),
                 };
             }),
         });
+
+        this.unwatch = this.$watch('optionsPageStore', this.save, {deep: true});
     }
 
-    // old and new will always be the same with objects/arrays when watching
-    @Watch('optionsPageStore', {deep: true})
-    save(updatedProps: Partial<IOptions>, oldProps: Partial<IOptions>) {
-        console.log('watch changes');
+    save(updatedProps: Partial<IOptions>, oldProps: Partial<IOptions> = null) {
         this.store.save(<NestedPartial<IOptions>>{
-            ...omit(this.optionsPageStore, 'cmdGroups'),
+            ...pick(this.optionsPageStore, 'language', 'showLiveText', 'noHeadphonesMode', 'inactivityAutoOffMins', ),
             plugins: this.optionsPageStore.cmdGroups.map(cmdGroup => ({
                 ...pick(cmdGroup, 'id', 'expanded', 'enabled', 'showMore'),
                 localized: {[this.pluginSelectedLanguage]: {homophones: cmdGroup.homophones}},
@@ -444,7 +444,8 @@ export default class OptionsPage extends Vue {
                     Object.assign(memo, {[cmd.name]: pick(cmd, 'enabled')})
                 , {}),
             })),
-        });
+        }, this.authorId);
+
     }
 
     reset() {
@@ -458,10 +459,6 @@ export default class OptionsPage extends Vue {
         /*if (confirm("This feature is not yet available. Click \"OK\" if you're a programmer and want to write a plugin.")) {*/
             /*window.open('https://github.com/mikob/lipsurf', '_blank');*/
         /*}*/
-    }
-
-    downloadLangPack() {
-        this.optionsPageStore.confirmLangPack = true;
     }
 
     donate() {

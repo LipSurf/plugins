@@ -38,7 +38,7 @@
                         <th>Command Words</th>
                     </thead>
                     <tbody>
-                        <Cmd v-for="command in commands" :key="command.name" :dynamic-match="command.dynamicMatch" :global="command.global" :enabled.sync="command.enabled" :name="command.name" :match="command.match" :description="command.description"  />
+                        <Cmd v-for="command in commands" :key="command.name" :dynamic-match="command.dynamicMatch" :global="command.global" :enabled.sync="command.enabled" :name="command.niceName" :match="command.match" :description="command.description"  />
                     </tbody>
                 </table>
             </div>

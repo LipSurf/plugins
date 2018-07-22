@@ -13,8 +13,8 @@ type SyncLoadable = keyof ISyncData;
 
 export module storage {
     export module local {
-        export async function save(data: Partial<LocalSaveable>): Promise<void> {
-            return promisify<void>(chrome.storage.local.set)(data);
+        export async function save(data: Partial<LocalSaveable>, authorId: number = null): Promise<void> {
+            return promisify<void>(chrome.storage.local.set)({...data, authorId});
         }
         export async function load(key: LocalLoadable = null): Promise<StoreSerialized<ILocalData>> {
             return promisify<any>(chrome.storage.local.get)(key);
@@ -36,8 +36,8 @@ export module storage {
     }
 
     export module sync {
-        export async function save(data: SyncSaveable): Promise<void> {
-            return promisify<void>(chrome.storage.sync.set)(data);
+        export async function save(data: SyncSaveable, authorId: number = null): Promise<void> {
+            return promisify<void>(chrome.storage.sync.set)({...data, authorId});
         }
         export async function load<T extends SyncSaveable>(key:SyncLoadable = null): Promise<T> {
             return promisify<T>(chrome.storage.sync.get)(key);
