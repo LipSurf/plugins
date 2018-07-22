@@ -4,7 +4,7 @@ import {
 import { Store, StoreSynced, } from "../store";
 import { IOptions, } from "../../common/store-lib";
 import { find, pick, identity } from "lodash";
-import { ResettableTimeout, instanceOfDynamicMatch, MissingLangPackError } from "../../common/util";
+import { ResettableTimeout, instanceOfDynamicMatch, } from "../../common/util";
 
 import * as LANGS from './langs';
 
@@ -22,7 +22,6 @@ interface IRecgCommand extends IGlobalCommand, INiceCommand {
 
 const recgStoreProps = {
     plugins: <IPluginRecgStore[]> [],
-    missingLangPack: false,
 }
 
 type IRecgStore = typeof recgStoreProps;
@@ -81,22 +80,6 @@ export class Recognizer extends StoreSynced {
         // language-specific recognizer functionality
         this.langRecg = new LANGS[newOptions.language.substr(0, 2)]();
 
-        try {
-            if (this.langRecg.init) {
-                await this.langRecg.init();
-            }
-            this.save({missingLangPack: false});
-        } catch(e) {
-            if (e instanceof MissingLangPackError) {
-                this.save({missingLangPack: true, busyDownloading: true});
-                this.langRecg.getExtraData().then(() => {
-                    this.store.save({busyDownloading: false, missingLangPack: false});
-                })
-            } else {
-                // just missingLangPack: true can go here (if it's not busy downloading)
-                throw e;
-            }
-        }
         let homoKeys = Object.keys(this.langRecg.homophones).sort((a, b) => a.length > b.length ? -1 : 1);
         this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
         this.synVals = homoKeys.map((key) => this.langRecg.homophones[key]);
