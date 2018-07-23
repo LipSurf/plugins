@@ -7,7 +7,6 @@ declare let AUTO_ON: boolean;
 import { pick, omit, } from "lodash";
 import { ON_ICON, OFF_ICON, PROBLEM_ICON, LANG_CODE_TO_NICE, } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
-import * as LANGS from './recognizer/langs';
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
@@ -18,7 +17,6 @@ import {
     instanceOfCmdLiveTextParcel,
     instanceOfTextParcel,
     promisify,
-    MissingLangPackError,
 } from "../common/util";
 import { storage, tabs, queryActiveTab, notifications } from "../common/browser-interface";
 
@@ -96,7 +94,8 @@ class Main extends StoreSynced {
     private inactiveTimer: ResettableTimeout;
     private mainStore: IMainStore;
 
-    private downloadingLangPack: boolean = false;
+    private wasOn: boolean = false;
+    private sentDownloadingNotification: boolean = false;
 
     constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox, private recg: Recognizer) {
         super(store)
@@ -124,43 +123,28 @@ class Main extends StoreSynced {
     }
 
     protected async storeUpdated(newOptions: IOptions) {
-        let langRecg = new LANGS[newOptions.language.substr(0, 2)]();
-        let wasOn;
         this.mainStore = pick(newOptions, Object.keys(mainStoreProps));
 
-        if (!this.downloadingLangPack) {
-            // check for missing lang packs
-            try {
-                if (langRecg.init) {
-                    await langRecg.init();
-                }
-                this.save({missingLangPack: false});
-            } catch(e) {
-                if (e instanceof MissingLangPackError) {
-                    this.downloadingLangPack = true;
-                    this.save({missingLangPack: true, busyDownloading: true});
-                    if (this.mainStore.activated) {
-                        wasOn = true;
-                        await this.toggleActivated(false);
-                    }
-                    let tab = await queryActiveTab();
-                    if (!tab.url.startsWith(`chrome-extension://${chrome.runtime.id}/views/options.html`)) {
-                        notifications.create(
-                            `LipSurf is downloading a missing language pack for ${LANG_CODE_TO_NICE[newOptions.language]}.`,
-                            `Progress can be checked in the options.`,
-                            true);
-                    }
-                    langRecg.getExtraData().then(() => {
-                        this.store.save({busyDownloading: false, missingLangPack: false});
-                        if (wasOn) 
-                            this.toggleActivated(true);
-                        this.downloadingLangPack = false;
-                    })
-                } else {
-                    // just missingLangPack: true can go here (if it's not busy downloading)
-                    throw e;
-                }
+        if (newOptions.busyDownloading && !this.sentDownloadingNotification) {
+            this.sentDownloadingNotification = true;
+            let tab = await queryActiveTab();
+            if (this.mainStore.activated) {
+                this.wasOn = true;
+                await this.toggleActivated(false);
             }
+            if (!tab.url.startsWith(`chrome-extension://${chrome.runtime.id}/views/options.html`)) {
+                notifications.create(
+                    `LipSurf is downloading a missing language pack for ${LANG_CODE_TO_NICE[newOptions.language]}.`,
+                    `Progress can be checked in the options.`,
+                    true);
+            }
+        }
+        if (newOptions.busyDownloading === false) {
+            this.sentDownloadingNotification = false;
+            if (this.wasOn) {
+                await this.toggleActivated(true);
+            }
+            this.wasOn = false;
         }
 
         this.updateIcon();
@@ -246,7 +230,7 @@ class Main extends StoreSynced {
         }
         if (!this.mainStore.showLiveText) {
             if (instanceOfCmdLiveTextParcel(request)) {
-                request = < ICmdParcel > omit(request, ['text', 'isSuccess', 'isFinal', 'hold']);
+                request = <ICmdParcel> omit(request, ['text', 'isSuccess', 'isFinal', 'hold']);
             } else if (instanceOfTextParcel(request)) {
                 // don't send an instanceOfText
                 return;

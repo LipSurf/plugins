@@ -10,6 +10,7 @@ v0.4
 - [ ] WK plugin add click "info"
 - [x] make interfaces constants and simplify picking properties for store/options
 - [ ] the preliminary/bad speech recg. results are showing up after the success one
+   --- stop processing old ones when new ones come in
 - [ ] homophones should not check url? Because we have global homophones
 - [ ] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
 - [ ] switching from Eng/Japanese is too slow

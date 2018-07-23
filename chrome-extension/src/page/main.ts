@@ -5,6 +5,7 @@ import { retrialAndError } from "../common/plugin-lib";
 import * as PluginLib from "../common/plugin-lib";
 import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
 import { storage } from "../common/browser-interface";
+import { resolve } from "url";
 const { PluginBase } = require("../common/plugin-lib");
 
 
@@ -161,6 +162,7 @@ async function showLiveText(parcel: ILiveTextParcel) {
 // TODO: needs tests
 chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
     if (instanceOfCmdLiveTextParcel(msg)) {
+        console.log(`received cmd parcel ${msg.text} ${msg.hold} ${msg.isFinal}`);
         cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCmdParcel(msg)) {
@@ -174,6 +176,7 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
             sendResponse(matcherObj[msg.lang.substr(0, 2)](msg.text));
         }
     } else if (instanceOfTextParcel(msg)) {
+        console.log(`received live-text parcel ${msg.text} ${msg.hold} ${msg.isFinal}`);
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCodeParcel(msg)) {
         eval(msg.code);
@@ -181,6 +184,7 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
         return true;
     }
 });
+
 
 // page could have been switched back to, it was open before the extension
 // was activated -- now it's active again.
