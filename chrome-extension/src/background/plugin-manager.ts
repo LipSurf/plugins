@@ -8,7 +8,7 @@ import { flatten, pick, find, assignIn, mapValues, omit, get } from "lodash";
 import { StoreSynced, } from "./store";
 import { promisify, instanceOfDynamicMatch, httpReq } from "../common/util";
 import { IOptions } from "../common/store-lib";
-import { PluginBasePublic } from "../common/plugin-lib";
+import { BlankPlugin } from "../common/plugin-lib";
 
 // Plugin content-script store for easily loading front-end
 // code into pages
@@ -72,7 +72,7 @@ export class PluginManager extends StoreSynced {
                 });
         // members that the plugin uses internally (shared across commands)
         let privateMembers = Object.keys(plugin)
-                .filter((member) => typeof PluginBasePublic[member] === 'undefined')
+                .filter((member) => !(member in BlankPlugin))
                 .map((member) => {
                     let val = plugin[member];
                     let _type = typeof val;

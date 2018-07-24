@@ -5,8 +5,10 @@ import { retrialAndError } from "../common/plugin-lib";
 import * as PluginLib from "../common/plugin-lib";
 import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
 import { storage } from "../common/browser-interface";
+// Do we need this?
 import { resolve } from "url";
-const { PluginBase } = require("../common/plugin-lib");
+// Plugins eval'd in this context need a `PluginBase` variable to Object.extend
+const PluginBase = PluginLib.PluginBase;
 
 
 declare global {
@@ -29,6 +31,16 @@ let liveTextQ: Promise<any>;
 let allPlugins: {
     [id: string]: IPlugin
 } = {};
+
+
+window.addEventListener('message', function(evt) {
+    let msg = evt.data;
+    let id = msg.id;
+    if (msg.isTop) {
+        PluginLib.msgTracker[id].cb(msg.data);
+        delete PluginLib.msgTracker[id];
+    }
+}, false);
 
 
 function initPlugins() {

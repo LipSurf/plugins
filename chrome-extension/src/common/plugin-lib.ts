@@ -12,17 +12,8 @@ let { deepSet } = require('./util');
 // TODO: make these settings
 const SCROLL_TIME = 450;
 const SCROLL_DISTANCE = 450;
-let msgTracker = {};
 
-
-window.addEventListener('message', function(evt) {
-    let msg = evt.data;
-    let id = msg.id;
-    if (msg.isTop) {
-        msgTracker[id].cb(msg.data);
-        delete msgTracker[id];
-    }
-}, false);
+export let msgTracker = {};
 
 
 export function retrialAndError(f, f_check, delay, times) {
@@ -53,22 +44,28 @@ export function retrialAndError(f, f_check, delay, times) {
     });
 }
 
-// TODO: get rid of the dep. on this and remove it
-export class PluginBasePublic {
+
+// so we can loop through the properties we need concrete implementation
+export const BlankPlugin:IPlugin = {
     // WARNING: these dumby properties are needed!
     // we define all the members so that typeof PluginBase[member] works
     // and we can distinguish what the private methods are of the plugin are
-    static niceName = '';
-    static version = '';
-    static apiVersion = '';
-    static match = new RegExp(/abc/);
-    static commands = [];
+    niceName: undefined,
+    version: undefined,
+    apiVersion: undefined,
+    match: undefined,
+    commands: undefined,
+    languages: {},
 
-    static getOption = async (name: string): Promise<any> => null;
-    static setOption = async (name: string, val: any): Promise<void> => null;
+    // getOption: undefined,
+    // setOption: undefined,
 
-    static util = <IPluginUtil>{};
+    getPluginOption: undefined,
+    setPluginOption: undefined,
+
+    util: undefined,
 }
+
 
 export namespace PluginBase {
 

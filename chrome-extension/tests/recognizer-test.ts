@@ -10,26 +10,24 @@ import { Store } from "../src/background/store";
 import { PluginSandbox } from '../src/background/plugin-sandbox';
 import { storage } from "../src/common/browser-interface";
 import { ILocalData, } from "../src/common/store-lib";
-var {PluginBase} = require("../src/common/plugin-lib");
+import { instanceOfDynamicMatch, } from "../src/common/util";
+import { BlankPlugin } from "../src/common/plugin-lib";
+// used dynamically when Plugins are eval'd
+const PluginBase = BlankPlugin;
 
-const BASE_DIR = `${path.join(__dirname, '..', '..', '..', 'chrome-extension')}/`;
-const getPlugin = (pluginId:string) => fs.readFileSync(`${BASE_DIR}dist/plugins/${pluginId.toLowerCase()}.js`, { encoding: 'utf-8' });
+const BASE_DIR = `${path.join(__dirname, '..', )}/`;
+const getPlugin = (pluginId:string) => fs.readFileSync(`${BASE_DIR}plugins/build/${pluginId.toLowerCase()}.js`, { encoding: 'utf-8' });
 const test = anyTest as TestInterface<{
     recg: Recognizer,
     urlUpdate: (string) => void,
 }>;
 
 
-class Recognition {
+// Stub for HTML5 SpeechRecognition
+class SpeechRecognition {
     onresult;
-
-    constructor() {
-
-    }
-
-    start() {
-
-    }
+    constructor() { }
+    start() { }
 };
 
 
@@ -37,39 +35,33 @@ test.before(async(t) => {
     let testSaveData:ILocalData = <ILocalData>{};
     let biSyncStorageLoad = sinon.stub(storage.sync, 'load');
     sinon.stub(storage.sync, 'registerOnChangeCb');
+    sinon.stub(storage.local, 'registerOnChangeCb');
     let biLocalStorageLoad = sinon.stub(storage.local, 'load');
     let fetchPluginStub = sinon.stub(PluginManager, "fetchPluginCode");
-    let evalPluginsStub = sinon.stub(PluginManager, "evalPluginCode");
     sinon.stub(storage.local, "save").callsFake((saveData:ILocalData) => Object.assign(testSaveData, saveData));
     biSyncStorageLoad.resolves({});
     biLocalStorageLoad.resolves(testSaveData);
     fetchPluginStub.callsFake(async (pluginId:string) => getPlugin(pluginId));
-    evalPluginsStub.callsFake((function (id:string, text:string) {
-        let plugin;
-        let window = {};
-        let $ = () => { return {ready: () => null}};
-        eval(`${text}; plugin = window.${id}Plugin;`);
-        return plugin;
-    }).bind(PluginManager));
 
     let store = new Store(PluginManager.digestNewPlugin);
     await store.rebuildLocalPluginCache();
     let pluginManager = new PluginManager(store);
     t.context.urlUpdate = (url: string) => null;
     let queryActiveTab = async () => (<chrome.tabs.Tab>{id: 1});
-    let sendMsgToActiveTab = (tabId:number, data:ITranscriptParcel) => {
+    let sendMsgToActiveTab = async (tabId:number, data:ITranscriptParcel) => {
         // get the match function for a plugin
-        let window = {};
-        let plugin = eval(getPlugin(data.cmdPluginId));
-        let cmd = window[`${data.cmdPluginId}Plugin`].commands.find((cmd) => cmd.name === data.cmdName);
-        if (typeof cmd.match === 'function')
-            return cmd.match(data.text);
+        let plugin;
+        let name = `${data.cmdPluginId}`;
+        eval(`${getPlugin(data.cmdPluginId)}; plugin = ${name}Plugin`);
+        let cmd:IPluginDefCommand = plugin.Plugin.commands.find((cmd) => cmd.name === data.cmdName);
+        if (instanceOfDynamicMatch(cmd.match))
+            return await cmd.match.fn(data.text);
     };
     t.context.recg = new Recognizer(store,
         t.context.urlUpdate,
         queryActiveTab,
         sendMsgToActiveTab,
-        Recognition
+        SpeechRecognition
     );
     t.context.urlUpdate('https://www.reddit.com');
 });
@@ -98,7 +90,7 @@ let redditCmdToPossibleInput = {
     'expand all comments': ['expand all', 'expand all comments'],
     'scroll top': ['top', 'scroll top', 'scrolltop'],
     'scroll bottom': ['bottom', 'scroll bottom'],
-    'unfullscreen video': ['unfullscreen', 'un fullscreen', 'unfull screen'],
+    // 'unfullscreen video': ['unfullscreen', 'un fullscreen', 'unfull screen'],
 }
 
 for (let expectedCmd in redditCmdToPossibleInput) {

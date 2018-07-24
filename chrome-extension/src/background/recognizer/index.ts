@@ -404,7 +404,6 @@ export class Recognizer extends StoreSynced {
                                 });
                                 inputPartStart = inputPartEnd;
                                 inputPartEnd = origInputPartEnd + 1;
-                                console.log("breaking cmdsByPluginLoop");
                                 break cmdsByPluginLoop;
                             }
                         }
