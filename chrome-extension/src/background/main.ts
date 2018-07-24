@@ -2,6 +2,7 @@
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 declare let CLEAR_SETTINGS: boolean;
 declare let SKIP_TUTORIAL: boolean;
+declare let SKIP_UPDATES: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
 import { pick, omit, } from "lodash";
@@ -301,7 +302,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
             };
         }
 
-        if (details.reason === 'update')
+        if (details.reason === 'update' && !SKIP_UPDATES)
             chrome.tabs.create({ active: true, url: chrome.extension.getURL(`views/updates.html`) });
     }
 });

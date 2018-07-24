@@ -89,17 +89,16 @@ export default class Japanese implements ILanguageRecg {
         return 0;
     }
 
-    // init needs to be called before this
-    async wordSplitter(phrase) {
-        console.time('convert');
-        let iter = convertToHiragana(phrase, this.dictionary);
-        let ret =  iter.next().value.split('');
-        console.timeEnd('convert');
-        return ret;
+    wordSplitter(phrase:string):string[] {
+        return phrase.split('');
     }
 
-    wordJoiner(words) {
+    wordJoiner(words:string[]):string {
         return words.join('');
     }
+
+    // init needs to be called before this
+    preprocess = x => convertToHiragana(x, this.dictionary);
+
 };
 

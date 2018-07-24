@@ -8,7 +8,9 @@ declare interface ILanguageRecg {
         [source: string]: string,
     };
     ordinalOrNumberToDigit: (input: string) => number;
-    wordSplitter: (phrase: string) => Promise<string[]>;
+    wordSplitter: (phrase: string) => string[];
     wordJoiner: (words: string[]) => string;
     getExtraData?: () => Promise<void>;
+    // before homonizing input -- what we do for kanji,katakana->hiragana conversion for Japanese, for example
+    preprocess?: (phrase: string) => IterableIterator<string>;
 }

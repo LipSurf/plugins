@@ -524,15 +524,15 @@ export default class English implements ILanguageRecg {
         'i\'m': 'i am',
     };
 
-    ordinalOrNumberToDigit(ordinal) {
+    ordinalOrNumberToDigit(ordinal:string):number {
         return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];
     }
 
-    async wordSplitter(phrase) {
+    wordSplitter(phrase:string): string[] {
         return phrase.split(' ');
     }
 
-    wordJoiner(words) {
+    wordJoiner(words:string[]): string {
         return words.join(' ');
     }
 };

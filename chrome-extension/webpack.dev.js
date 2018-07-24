@@ -11,6 +11,7 @@ let featureFlags = {
     INCLUDE_SPEECH_TEST_HARNESS: JSON.stringify(true),
     CLEAR_SETTINGS: JSON.stringify(false),
     SKIP_TUTORIAL: JSON.stringify(false),
+    SKIP_UPDATES: JSON.stringify(true),
     AUTO_ON: JSON.stringify(false),
     PRETEND_FIRST_INSTALL: JSON.stringify(false),
 };

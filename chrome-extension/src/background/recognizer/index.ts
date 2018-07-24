@@ -54,7 +54,12 @@ export class Recognizer extends StoreSynced {
     private recognizerKilled: boolean = false;
     private cmdRecognizedCb: (cb: IRecognizedCallback) => Promise<void>;
     private matchedCmdsForIndex = [];
+    // so that we don't send repeat cmdRecognizedCb's when a new transcript comes in that either a) is the same text with a higher confidence/isFinal value
+    // b) was for a command that was a success before (example WK dynamic matched answer) but no longer is
+    private prevMatchedText: string[] = [];
     private lastFinalIndex: number;
+    // used to quit processing old transcripts that have new-er more accurate recognition transcripts that have come in
+    private lastRecgTime: number;
     // we index by transcript resultIndex in case a delayed cmd is pending and new voice
     // recg comes in
     private delayCmds: { [id: number]: ResettableTimeout[] } = {};
@@ -189,11 +194,13 @@ export class Recognizer extends StoreSynced {
                 this.delayCmds[this.lastFinalIndex] = [];
                 this.lastFinalIndex = event.resultIndex;
             }
+            this.lastRecgTime = +new Date();
             this.handleTranscript(
                 recs.map(rec => rec.transcript).join(' ').trim().toLowerCase().replace(/-/g, '').replace(/\s+/g, ' '),
                 <number>recs.reduce((memo, rec) => memo + rec.confidence, 0) / recs.length,
                 <boolean>event.results[event.results.length - 1].isFinal,
                 <number>event.resultIndex,
+                this.lastRecgTime,
             );
             this.recognizerKilled = false;
         };
@@ -227,9 +234,10 @@ export class Recognizer extends StoreSynced {
         };
 
         this.recognition.onend = () => {
-            // don't restart in an infinite loop
             this.matchedCmdsForIndex = [];
+            this.prevMatchedText = [];
             this.delayCmds = {};
+            // don't restart in an infinite loop
             if (!this.recognizerKilled) {
                 console.log("Ended. Restarting.");
                 this.recognition.start();
@@ -247,6 +255,7 @@ export class Recognizer extends StoreSynced {
 
     }
 
+    // TODO: check if this calls this.recognition.onend to make sure matchedCmdsForIndex and delay is reset
     shutdown() {
         try {
             this.recognition.stop();
@@ -303,91 +312,101 @@ export class Recognizer extends StoreSynced {
         let inputPartEnd = inputParts.length;
         let origInputPartEnd = inputPartEnd;
         let retCmds: IMatchCommand[] = [];
+        let preprocessIterator: IterableIterator<string>;
 
         while (inputPartStart < inputPartEnd) {
             let inputPart = this.langRecg.wordJoiner(inputParts.slice(inputPartStart, inputPartEnd));
 
-            // do pre-process here
-            if (useHomos) {
-                homophoneIterator = this.generateHomophones(inputPart, url);
+            if (this.langRecg.preprocess) {
+                preprocessIterator = this.langRecg.preprocess(inputPart);
             } else {
-                homophoneIterator = [inputPart][Symbol.iterator]();
+                preprocessIterator = [inputPart][Symbol.iterator]();
             }
 
             cmdsByPluginLoop:
-            for (let homonizedInput = homophoneIterator.next().value; homonizedInput; homonizedInput = homophoneIterator.next().value) {
-                for (let pluginTup of sortedCmds) {
-                    let pluginId = pluginTup[1];
-                    let cmdsToTest = pluginTup[2];
+            for (let postProcessInputPart = preprocessIterator.next().value; postProcessInputPart; postProcessInputPart = preprocessIterator.next().value) {
 
-                    for (let f = 0; f < cmdsToTest.length; f++) {
-                        let curCmd = cmdsToTest[f];
-                        let runOnPageArgs: string[];
-                        let matchPatterns;
-                        let matchPatternIndex;
-                        if (typeof curCmd.match === 'undefined') {
-                            // TODO: not a big fan of how this works
-                            let tab = await currActiveTabProm;
-                            runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
-                        } else {
-                            if (typeof curCmd.match === 'string') {
-                                matchPatterns = [curCmd.match];
+                if (useHomos) {
+                    homophoneIterator = this.generateHomophones(postProcessInputPart, url);
+                } else {
+                    homophoneIterator = [postProcessInputPart][Symbol.iterator]();
+                }
+
+                for (let homonizedInput = homophoneIterator.next().value; homonizedInput; homonizedInput = homophoneIterator.next().value) {
+                    for (let pluginTup of sortedCmds) {
+                        let pluginId = pluginTup[1];
+                        let cmdsToTest = pluginTup[2];
+
+                        for (let f = 0; f < cmdsToTest.length; f++) {
+                            let curCmd = cmdsToTest[f];
+                            let runOnPageArgs: string[];
+                            let matchPatterns;
+                            let matchPatternIndex;
+                            if (typeof curCmd.match === 'undefined') {
+                                // TODO: not a big fan of how this works
+                                let tab = await currActiveTabProm;
+                                runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
                             } else {
-                                matchPatterns = curCmd.match;
-                            }
+                                if (typeof curCmd.match === 'string') {
+                                    matchPatterns = [curCmd.match];
+                                } else {
+                                    matchPatterns = curCmd.match;
+                                }
 
-                            for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                                let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
-                                let ords = [];
-                                let n = 0;
-                                let nextIsOrdinal = false;
-                                let inputSlice = homonizedInput;
-                                for (; n < tokens.length || nextIsOrdinal; n++) {
-                                    let token = tokens[n];
-                                    if (token == '#') {
-                                        nextIsOrdinal = true;
-                                    } else {
-                                        let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
-                                        if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
-                                            break;
-                                        } else if (nextIsOrdinal) {
-                                            let ord = this.langRecg.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos));
-                                            nextIsOrdinal = false;
-                                            if (typeof ord === 'undefined')
+                                for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
+                                    let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                                    let ords = [];
+                                    let n = 0;
+                                    let nextIsOrdinal = false;
+                                    let inputSlice = homonizedInput;
+                                    for (; n < tokens.length || nextIsOrdinal; n++) {
+                                        let token = tokens[n];
+                                        if (token == '#') {
+                                            nextIsOrdinal = true;
+                                        } else {
+                                            let matchPos = token ? inputSlice.indexOf(token) : inputSlice.length;
+                                            if ((matchPos !== 0 && !nextIsOrdinal) || (matchPos === -1 && nextIsOrdinal)) {
                                                 break;
-                                            else
-                                                ords.push(ord);
+                                            } else if (nextIsOrdinal) {
+                                                let ord = this.langRecg.ordinalOrNumberToDigit(inputSlice.substring(0, matchPos));
+                                                nextIsOrdinal = false;
+                                                if (typeof ord === 'undefined')
+                                                    break;
+                                                else
+                                                    ords.push(ord);
+                                            }
+                                            inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                         }
-                                        inputSlice = inputSlice.substring(matchPos + (token ? token.length : 0), inputSlice.length);
                                     }
-                                }
 
-                                if (inputSlice.trim() === '') {
-                                    // we have a match
-                                    runOnPageArgs = ords;
-                                    break;
-                                }
+                                    if (inputSlice.trim() === '') {
+                                        // we have a match
+                                        runOnPageArgs = ords;
+                                        break;
+                                    }
 
+                                }
                             }
-                        }
-                        if (runOnPageArgs) {
-                            let delay: number = null;
-                            if (curCmd.ordinalMatch) {
-                                delay = ORDINAL_CMD_DELAY;
-                            } else if (curCmd.delay) {
-                                delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                            if (runOnPageArgs) {
+                                let delay: number = null;
+                                if (curCmd.ordinalMatch) {
+                                    delay = ORDINAL_CMD_DELAY;
+                                } else if (curCmd.delay) {
+                                    delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
+                                }
+                                console.log(`Recg. timer: ${+new Date() - startTime}`);
+                                retCmds.push({
+                                    cmdName: curCmd.name,
+                                    cmdPluginId: pluginId,
+                                    matchOutput: runOnPageArgs,
+                                    niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(homonizedInput, runOnPageArgs)) : homonizedInput,
+                                    delay,
+                                });
+                                inputPartStart = inputPartEnd;
+                                inputPartEnd = origInputPartEnd + 1;
+                                console.log("breaking cmdsByPluginLoop");
+                                break cmdsByPluginLoop;
                             }
-                            console.log(`Recg. timer: ${+new Date() - startTime}`);
-                            retCmds.push({
-                                cmdName: curCmd.name,
-                                cmdPluginId: pluginId,
-                                matchOutput: runOnPageArgs,
-                                niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(homonizedInput, runOnPageArgs)) : homonizedInput,
-                                delay,
-                            });
-                            inputPartStart = inputPartEnd;
-                            inputPartEnd = origInputPartEnd + 1;
-                            break cmdsByPluginLoop;
                         }
                     }
                 }
@@ -399,7 +418,7 @@ export class Recognizer extends StoreSynced {
     }
 
 
-    async handleTranscript(text: string, confidence: Number, isFinal: boolean, resultIndex: number) {
+    async handleTranscript(text: string, confidence: Number, isFinal: boolean, resultIndex: number, recgTime: number) {
         if (typeof this.delayCmds[resultIndex] !== 'undefined') {
             for (let v = 0; v < this.delayCmds[resultIndex].length; v++) {
                 console.log(`Reset [${resultIndex}][${v}]`);
@@ -408,10 +427,24 @@ export class Recognizer extends StoreSynced {
         }
 
         if (confidence > CONFIDENCE_THRESHOLD) {
+            // short-circuit if we've already processed this text as a success
+            // currently only uses successful commands and disgregards homophones
+            if (this.prevMatchedText.length > resultIndex && this.prevMatchedText[resultIndex] === text) {
+                console.log(`abandoning ${text} because it's the same as matchedTextForIndex. So we've already ran the command for it.`);
+                return;
+            }
+
             let recgCmds = await this.getCmdsForUserInput(text, this.curActiveTabUrl);
+
+            // short-circuit if something newer came along
+            if (this.lastRecgTime !== recgTime) {
+                console.log(`abandoning ${text} because something newer came along`);
+                return;
+            }
 
             // check if the same commands
             if (recgCmds.length > 0) {
+                this.prevMatchedText[resultIndex] = text; 
                 for (let i = 0; i < recgCmds.length; i++) {
                     let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
                     console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);
@@ -441,9 +474,15 @@ export class Recognizer extends StoreSynced {
                             console.log(`cmdName: ${cmdName}. Setting [${resultIndex}][${i}] to ${delay}`);
                             console.dir(recgCmds);
 
+                            this.cmdRecognizedCb(<ILiveTextParcel>{
+                                text: niceTranscript,
+                                isSuccess: true,
+                                hold: delay ? true : false,
+                                isFinal,
+                            });
                             this.delayCmds[resultIndex][i] = new ResettableTimeout(async () => {
                                 console.log(`running command ${cmdName}`);
-                                await this.cmdRecognizedCb({
+                                this.cmdRecognizedCb({
                                     text: niceTranscript,
                                     isSuccess: true,
                                     cmdArgs: matchOutput,
@@ -451,17 +490,12 @@ export class Recognizer extends StoreSynced {
                                     cmdPluginId,
                                 });
                             }, delay);
-                            await this.cmdRecognizedCb(<ILiveTextParcel>{
-                                text: niceTranscript,
-                                isSuccess: true,
-                                hold: true,
-                                isFinal,
-                            });
+                            return;
                         }
                     }
                 }
             } else {
-                this.cmdRecognizedCb({
+                return this.cmdRecognizedCb({
                     text: text,
                     isFinal,
                 });
@@ -540,7 +574,4 @@ export class Recognizer extends StoreSynced {
             }
         }
     }
-
-
-
 }
