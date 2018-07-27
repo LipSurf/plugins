@@ -326,6 +326,8 @@ export class Recognizer extends StoreSynced {
             cmdsByPluginLoop:
             for (let postProcessInputPart = preprocessIterator.next().value; postProcessInputPart; postProcessInputPart = preprocessIterator.next().value) {
 
+                console.log(`preprocess output: ${postProcessInputPart}`);
+
                 if (useHomos) {
                     homophoneIterator = this.generateHomophones(postProcessInputPart, url);
                 } else {

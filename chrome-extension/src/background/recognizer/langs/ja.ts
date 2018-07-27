@@ -1,13 +1,12 @@
 import { httpReq } from "../../../common/util";
 import { storage } from "../../../common/browser-interface";
 import { MissingLangPackError } from "../../../common/util";
-import { resolve } from "url";
 
 const JA_DICT_URL = 'https://www.lipsurf.com/assets/ja-dict.json';
 
 // character ranges
-const HIRAGANA_CHARS = [0x3040, 0x309f];
-const KATAKANA_CHARS = [0x30a0, 0x30ff];
+const HIRAGANA_CHARS = [0x3041, 0x309f];
+const KATAKANA_CHARS = [0x30a1, 0x30fa];
 const KANJI_CHARS = [0x4e00, 0x9faf];
 
 // The longest dictionary entry is no more than 27 characters
@@ -25,40 +24,43 @@ function isCharInRange(char = '', start:number, end:number):boolean {
 }
 
 /*
- * Generator -- kanji can have ambiguous/multiple readings
- * export so it can be separately tested
+ * Generator -- kanji can have ambiguous/multiple readings.
+ * exported so it can be separately tested
  */
-export function* convertToHiragana(input:string, dictionary={}): IterableIterator<string> {
-    let kananized = [];
-    let ret = [];
-    // first let's convert kanji to hiragana
-    for (let windowStart = 0; windowStart < input.length; windowStart += 1) {
-        let somethingFound = false;
-        for (let windowEnd = Math.min(windowStart + MAX_DICT_ENTRY_LENGTH, input.length); windowEnd > windowStart; windowEnd -= 1) {
-            let entry = dictionary[input.substring(windowStart, windowEnd)];
-            if (entry) {
-                kananized = kananized.concat(entry[0].split(''));
-                windowStart = windowEnd - 1;
-                somethingFound = true;
-                break;
+export function* convertToHiragana(input:string, dictionary={}, outputed=[]): IterableIterator<string> {
+    let dictionaryEntries = dictionary[input];
+    // console.log(`${input} dictEntries: ${dictionaryEntries}`);
+    if (dictionaryEntries) {
+        for (let entry of dictionaryEntries) {
+            // console.log(`yielding ${entry}`)
+            yield entry;
+        }
+    } else {
+        let sp = input.length;
+        while (sp > 1) {
+            // console.log(`sp: ${sp} input: ${input}`);
+            sp -= 1;
+            let a = convertToHiragana(input.substring(0, sp), dictionary, outputed);
+            for (let av = a.next().value; av; av = a.next().value) {
+                // console.log(`a value: ${av}`);
+                let b = convertToHiragana(input.substring(sp, input.length), dictionary, outputed)
+                for (let bv = b.next().value; bv; bv = b.next().value) {
+                    // console.log(`b value: ${bv}`);
+                    let combined = `${av}${bv}`;
+                    // prevent dupes
+                    if (!~outputed.indexOf(combined)) {
+                        outputed.push(combined);
+                        yield combined;
+                    }
+                    // console.log(`sp: ${sp} input: ${input} yielded ${av}${bv}`);
+                }
             }
         }
-        if (!somethingFound)
-            kananized.push(input[windowStart]);
+        // }
     }
-
-    // only let through hiragana and katakana -- don't even allow punctuation
-    for (let c of kananized) {
-        if (isCharInRange(c, KATAKANA_CHARS[0], KATAKANA_CHARS[1])) {
-            ret.push(String.fromCodePoint(c.charCodeAt(0) - 96));
-        } else if (isCharInRange(c, HIRAGANA_CHARS[0], HIRAGANA_CHARS[1])) {
-            ret.push(c);
-        }
-    }
-    console.log(`kananized: ${ret}`);
-
-    yield ret.join('');
+    // console.log('end');
 }
+
 
 export default class Japanese implements ILanguageRecg {
     homophones = {};
@@ -76,7 +78,20 @@ export default class Japanese implements ILanguageRecg {
             if (!stored.langData || !stored.langData['ja']) {
                 throw new MissingLangPackError();
             }
-            this.dictionary = stored.langData['ja']; 
+            // add kana to dictionary
+            let hiragana = String.fromCharCode(...[...Array(HIRAGANA_CHARS[1] - HIRAGANA_CHARS[0]).keys()].map(i => i + HIRAGANA_CHARS[0]))
+                .split('')
+                .reduce((memo, x) => Object.assign(memo, {[x]: x}), {});
+            let katakana = String.fromCharCode(...[...Array(KATAKANA_CHARS[1] - KATAKANA_CHARS[0]).keys()].map(i => i + KATAKANA_CHARS[0]))
+                .split('')
+                .reduce((memo, x) => Object.assign(memo, {[x]: String.fromCharCode(x.charCodeAt(0) - 96)}), {});
+            String.fromCharCode(...[...Array(KATAKANA_CHARS[0] - KATAKANA_CHARS[0])].map(i => i + KATAKANA_CHARS));
+            this.dictionary = {
+                ...stored.langData['ja'],
+                ...hiragana,
+                ...katakana,
+                'ー': 'ー',
+            }; 
         }
     }
 
