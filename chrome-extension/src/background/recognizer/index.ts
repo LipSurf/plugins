@@ -341,13 +341,13 @@ export class Recognizer extends StoreSynced {
 
                         for (let f = 0; f < cmdsToTest.length; f++) {
                             let curCmd = cmdsToTest[f];
-                            let runOnPageArgs: string[];
+                            let pageFnArgs: string[];
                             let matchPatterns;
                             let matchPatternIndex;
                             if (typeof curCmd.match === 'undefined') {
                                 // TODO: not a big fan of how this works
                                 let tab = await currActiveTabProm;
-                                runOnPageArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
+                                pageFnArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
                             } else {
                                 if (typeof curCmd.match === 'string') {
                                     matchPatterns = [curCmd.match];
@@ -383,13 +383,13 @@ export class Recognizer extends StoreSynced {
 
                                     if (inputSlice.trim() === '') {
                                         // we have a match
-                                        runOnPageArgs = ords;
+                                        pageFnArgs = ords;
                                         break;
                                     }
 
                                 }
                             }
-                            if (runOnPageArgs) {
+                            if (pageFnArgs) {
                                 let delay: number = null;
                                 if (curCmd.ordinalMatch) {
                                     delay = ORDINAL_CMD_DELAY;
@@ -400,8 +400,8 @@ export class Recognizer extends StoreSynced {
                                 retCmds.push({
                                     cmdName: curCmd.name,
                                     cmdPluginId: pluginId,
-                                    matchOutput: runOnPageArgs,
-                                    niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(homonizedInput, runOnPageArgs)) : homonizedInput,
+                                    matchOutput: pageFnArgs,
+                                    niceTranscript: curCmd.nice ? (typeof curCmd.nice === 'string' ? curCmd.nice : curCmd.nice(homonizedInput, pageFnArgs)) : homonizedInput,
                                     delay,
                                 });
                                 inputPartStart = inputPartEnd;
@@ -445,7 +445,7 @@ export class Recognizer extends StoreSynced {
 
             // check if the same commands
             if (recgCmds.length > 0) {
-                this.prevMatchedText[resultIndex] = text; 
+                this.prevMatchedText[resultIndex] = text;
                 for (let i = 0; i < recgCmds.length; i++) {
                     let { cmdName, cmdPluginId, matchOutput, delay, niceTranscript } = recgCmds[i];
                     console.log(`delay: ${delay}, input: ${text}, matchOutput: ${matchOutput}, cmdName: ${cmdName}`);

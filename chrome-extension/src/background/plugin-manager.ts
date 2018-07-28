@@ -53,10 +53,10 @@ export class PluginManager extends StoreSynced {
     static async digestNewPlugin(id: string, version: string): Promise<ILocalPluginData> {
         let plugin = PluginManager.evalPluginCode(id, (await PluginManager.fetchPluginCode(id)));
         let csCmdsStr = plugin.commands
-                .filter((cmd) => cmd.runOnPage)
+                .filter((cmd) => cmd.pageFn)
                 .map((cmd) => {
                     let cmdVal:any = {
-                        runOnPage: cmd.runOnPage.toString(),
+                        pageFn: cmd.pageFn.toString(),
                     };
                     if (instanceOfDynamicMatch(cmd.match)) {
                         let dynMatchFns = [`en: ${cmd.match.fn.toString()}`];
@@ -102,12 +102,12 @@ export class PluginManager extends StoreSynced {
                 ${initAndDestrStr}; return ${id}Plugin.Plugin;})()`;
         return {
             commands: plugin.commands.reduce((memo, cmd) => {
-                memo[cmd.name] = pick(cmd, 'run', 'global');
+                memo[cmd.name] = pick(cmd, 'fn', 'global');
                 return memo;
             }, {}),
             localized: assignIn({
                 "en": {
-                    matchers: PluginManager.makeMatcher(plugin.commands.reduce((memo, cmd) => 
+                    matchers: PluginManager.makeMatcher(plugin.commands.reduce((memo, cmd) =>
                         Object.assign(memo, {[cmd.name]: cmd})
                     , {})),
                     homophones: plugin.homophones,

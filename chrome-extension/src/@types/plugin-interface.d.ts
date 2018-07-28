@@ -56,22 +56,22 @@ declare interface ISimpleHomophones {
     [s: string]: string;
 }
 
+// returns processsed transcript result -- an array of args to
+// pass to pageFn
 declare interface IDynamicMatch {
     fn: (transcript: string) => any[];
     description: string;
 }
 
-declare interface IPluginDefCommand extends ILocalizedCommand, IGlobalCommand, IRunCommand {
+declare interface IPluginDefCommand extends ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
-    runOnPage?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>);
+    pageFn?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>);
 }
 
 declare interface ILocalizedCommand extends INiceCommand {
     // the original name to match this command against
     name: string;
     description?: string;
-    // returns processsed transcript result -- an array of args to
-    // pass to runOnPage
     // strings should not have any punctuation in them as puncutation
     // is converted into it's spelled out form eg. "." -> "dot"
     match: string | string[] | IDynamicMatch;
@@ -128,8 +128,8 @@ declare interface IGlobalCommand {
     global?: boolean;
 }
 
-declare interface IRunCommand {
-    run?: (() => any) | ((tabIndex: number) => any);
+declare interface IFnCommand {
+    fn?: (() => any) | ((tabIndex: number) => any);
 }
 
 declare interface INiceCommand {

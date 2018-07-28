@@ -175,10 +175,10 @@ async function showLiveText(parcel: ILiveTextParcel) {
 chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, sendResponse: (data: any[]) => void) {
     if (instanceOfCmdLiveTextParcel(msg)) {
         console.log(`received cmd parcel ${msg.text} ${msg.hold} ${msg.isFinal}`);
-        cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
+        cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].pageFn.apply(null, msg.cmdArgs), cmdsQ);
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCmdParcel(msg)) {
-        cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].runOnPage.apply(null, msg.cmdArgs), cmdsQ);
+        cmdsQ = queueUp(() => allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].pageFn.apply(null, msg.cmdArgs), cmdsQ);
     } else if (instanceOfTranscriptParcel(msg)) {
         let matcherObj = allPlugins[`${msg.cmdPluginId}Plugin`].commands[msg.cmdName].match;
         if (matcherObj[msg.lang]) {

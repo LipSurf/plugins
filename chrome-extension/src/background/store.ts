@@ -12,7 +12,7 @@ import { storage } from "../common/browser-interface";
 export class Store {
     private options: IOptions;
     private listeners: {[id: number]: ((plugins?: IOptions) => void)} = {};
-    // we need to keep track of the last one, because if the same author submits two changes in a row, we don't get the 
+    // we need to keep track of the last one, because if the same author submits two changes in a row, we don't get the
     // author id the 2nd time because it hasn't changed
     private lastSyncAuthorId = null;
     private lastLocalAuthorId = null;
@@ -82,8 +82,8 @@ export class Store {
                     match: localPluginData.match.map(x => x.toString().substr(1, localPluginData.match.toString().length - 2)),
                     commands: mapValues(localPluginData.commands, cmd => {
                         let obj:any = Object.assign({}, cmd);
-                        if (cmd.run)
-                            obj.run = cmd.run.toString();
+                        if (cmd.fn)
+                            obj.fn = cmd.fn.toString();
                         return obj;
                     }),
                     localized: mapValues(localPluginData.localized, local => {
@@ -124,7 +124,7 @@ export class Store {
         if (partialOptions.plugins) {
             partialOptions.plugins = partialOptions.plugins.map(plugin => {
                 let merger = this.options.plugins.find(x => x.id === plugin.id);
-                if (merger) 
+                if (merger)
                     return objectAssignDeep({}, merger, plugin);
                 return plugin;
             });
@@ -140,7 +140,7 @@ export class Store {
                         memo[plugin.id] = {
                             disabledCommands: Object.keys(plugin.commands).filter(x => !plugin.commands[x].enabled),
                             disabledHomophones: flatten(Object.keys(plugin.localized).map(lang => plugin.localized[lang].homophones.filter(x => !x.enabled).map(x => x.source))),
-                            ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')    
+                            ... pick(plugin, 'enabled', 'version', 'expanded', 'showMore', 'settings')
                         };
                         return memo;
                     }, {}),
