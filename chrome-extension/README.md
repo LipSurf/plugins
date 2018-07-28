@@ -12,9 +12,9 @@ v0.4
 - [x] the preliminary/bad speech recg. results are showing up after the success one
    --- stop processing old ones when new ones come in
 - [x] homophones should not check url? Because we have global homophones
-- [ ] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
+- [x] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
 - [ ] switching from Eng/Japanese is too slow
-- [ ] make run, runOnPage, and matchFn more consistently named
+- [x] make run, runOnPage, and matchFn more consistently named
 - [ ] update plugin documentation
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin

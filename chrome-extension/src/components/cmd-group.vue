@@ -139,7 +139,7 @@
     }
 
     .enabled .desc {
-        color: #868686;
+        color: #555;
     }
 
     .enabled .version {

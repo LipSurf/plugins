@@ -342,21 +342,14 @@ export class Recognizer extends StoreSynced {
                         for (let f = 0; f < cmdsToTest.length; f++) {
                             let curCmd = cmdsToTest[f];
                             let pageFnArgs: string[];
-                            let matchPatterns;
                             let matchPatternIndex;
                             if (typeof curCmd.match === 'undefined') {
                                 // TODO: not a big fan of how this works
                                 let tab = await currActiveTabProm;
                                 pageFnArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
                             } else {
-                                if (typeof curCmd.match === 'string') {
-                                    matchPatterns = [curCmd.match];
-                                } else {
-                                    matchPatterns = curCmd.match;
-                                }
-
-                                for (matchPatternIndex = 0; matchPatternIndex < matchPatterns.length; matchPatternIndex++) {
-                                    let tokens = this.tokenizeMatchPattern(matchPatterns[matchPatternIndex]);
+                                for (matchPatternIndex = 0; matchPatternIndex < curCmd.match.length; matchPatternIndex++) {
+                                    let tokens = this.tokenizeMatchPattern(curCmd.match[matchPatternIndex]);
                                     let ords = [];
                                     let n = 0;
                                     let nextIsOrdinal = false;
@@ -493,7 +486,6 @@ export class Recognizer extends StoreSynced {
                                     cmdPluginId,
                                 });
                             }, delay);
-                            return;
                         }
                     }
                 }
