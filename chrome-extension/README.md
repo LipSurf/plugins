@@ -11,7 +11,7 @@ v0.4
 - [x] make interfaces constants and simplify picking properties for store/options
 - [x] the preliminary/bad speech recg. results are showing up after the success one
    --- stop processing old ones when new ones come in
-- [ ] homophones should not check url? Because we have global homophones
+- [x] homophones should not check url? Because we have global homophones
 - [ ] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
 - [ ] switching from Eng/Japanese is too slow
 - [ ] make run, runOnPage, and matchFn more consistently named
@@ -29,11 +29,7 @@ v0.4
 - [ ] email back WK about the addon
 
 WK improvements
-- [ ] put even the wrong answer in the typeahead box so that the user can see when the voice recognizer is recognizing properly but
-      the answer is wrong
 - [ ] furigana?
-- [ ] show/misete -- shows answer and let's user say right/wrong to decide if it was a speech recg. error
-- [ ] let user say kunyomi or onyomi -- put the answer in either way (so they can see the shake too)
 - [ ] do a Levenshtein distance check
 
 
@@ -99,7 +95,7 @@ testing
 ===
 * Send manual command:
 ```
-  var i = 0;window.postMessage({test_probe: true, cmd: `recg.handleTranscript("down", 0.99, true, ${i + 1})`}, '*')
+  var i = i || 0;window.postMessage({test_probe: true, cmd: `recg.handleTranscript("りょうどつぎ", 0.99, true, ${i + 1}, recg.lastRecgTime)`}, '*')
 ```
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream

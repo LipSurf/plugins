@@ -455,6 +455,8 @@ export class Recognizer extends StoreSynced {
                         console.error(`We're changing our mind about a command that already ran!
                         Before: ${this.matchedCmdsForIndex[i]} After: ${cmdName}
                         `);
+                        // no longer counts as previously matching
+                        this.prevMatchedText[resultIndex] = null;
                     } else {
                         // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
                         if (!this.delayCmds[resultIndex])
@@ -564,13 +566,12 @@ export class Recognizer extends StoreSynced {
         // already has filtered out disabled commands and plugins
         for (let x = 0; x < this.recgStore.plugins.length; x++) {
             let plugin = this.recgStore.plugins[x];
-            if (find(plugin.match, regx => regx.test(url))) {
-                for (let i = 0; i < plugin.synKeys.length; i++) {
-                    afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);
-                    if (afterInput !== beforeInput) {
-                        beforeInput = afterInput;
-                        yield afterInput;
-                    }
+            // no longer testing URL as homophones should work for global commands too (so we keep things simple and just always process enabled homophones regardless of url)
+            for (let i = 0; i < plugin.synKeys.length; i++) {
+                afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);
+                if (afterInput !== beforeInput) {
+                    beforeInput = afterInput;
+                    yield afterInput;
                 }
             }
         }
