@@ -13,9 +13,10 @@ v0.4
    --- stop processing old ones when new ones come in
 - [x] homophones should not check url? Because we have global homophones
 - [x] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
-- [ ] switching from Eng/Japanese is too slow
+- [x] switching from Eng/Japanese is too slow
 - [x] make run, runOnPage, and matchFn more consistently named
 - [ ] update plugin documentation
+- [ ] make options page load nicely
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401

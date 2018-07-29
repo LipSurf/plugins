@@ -4,7 +4,7 @@
 /// <reference path="../@types/store.d.ts" />
 import { NO_COLLISION_UNIQUE_ATTR } from "../common/constants";
 import { getOptions } from "./store-lib";
-import { storage } from "./browser-interface";
+import { storage, runtime, } from "./browser-interface";
 import { get } from 'lodash';
 import { isInView } from './util';
 
@@ -94,7 +94,8 @@ export namespace PluginBase {
         },
 
         setLanguage: function(lang: LanguageCode) {
-            storage.sync.save({language: lang});
+            // changing the language by just updating the storage.sync is too slow (~2s) so we communicate with main directly
+            runtime.sendMessage({type: 'setLanguage', payload: lang});
         },
 
         // automatically remove these overlays when add-on is deactivated

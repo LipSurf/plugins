@@ -125,6 +125,12 @@ export module permissions {
     }
 }
 
+export module runtime {
+    export async function sendMessage(msg:IMsgForBg) {
+        return await promisify(chrome.runtime.sendMessage)(msg);
+    }
+}
+
 export namespace ExtensionUtil {
     async function _queryActiveTab(): Promise<chrome.tabs.Tab> {
         let promisifiedChromeTabsQuery = promisify<chrome.tabs.Tab[]>(chrome.tabs.query);

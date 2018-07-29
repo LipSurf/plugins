@@ -2,28 +2,33 @@ declare type IBackgroundParcel = ICmdParcel | ILiveTextParcel | ITranscriptParce
 
 // incoming transcript that we need to check match for
 declare interface ITranscriptParcel {
-    text: string,
-    lang: LanguageCode,
-    cmdName: string,
-    cmdPluginId: string,
+    text: string;
+    lang: LanguageCode;
+    cmdName: string;
+    cmdPluginId: string;
 }
 
 declare interface ICodeParcel {
-    code: string,
+    code: string;
 }
 
 declare interface ICmdParcel {
-    cmdName: string,
-    cmdPluginId: string,
-    cmdArgs: undefined | any[],
+    cmdName: string;
+    cmdPluginId: string;
+    cmdArgs: undefined | any[];
 }
 
 declare interface ILiveTextParcel {
-    text: string,
-    isSuccess?: boolean,
+    text: string;
+    isSuccess?: boolean;
     // not final text is shown as lighter (less certainty)
-    isFinal?: boolean,
-    hold?: boolean,
+    isFinal?: boolean;
+    hold?: boolean;
 }
 
 declare interface ICmdLiveTextParcel extends ILiveTextParcel, ICmdParcel {}
+
+declare interface IMsgForBg {
+    type: 'loadPlugins'|'setLanguage'|'closeTutorial';
+    payload?: any;
+}

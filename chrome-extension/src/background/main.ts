@@ -41,6 +41,7 @@ const {
 }: IWindow = < IWindow > window;
 
 let permissionDetector;
+let recg: Recognizer;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
@@ -49,7 +50,7 @@ let fullyLoadedPromise =
     //  clearing the local data so plugin data is updated between versions -- had issues doing this onInstall because it was called late
     storage.local.clear().then(async() =>
         store.rebuildLocalPluginCache().then(async() => {
-            let recg = new Recognizer(store,
+            recg = new Recognizer(store,
                 tabs.onUrlUpdate,
                 queryActiveTab,
                 tabs.sendMsgToTab,
@@ -310,7 +311,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 // * Make sure this is top-level otherwise when a tab sends a message -- it will
 // get an immediate undefined response instead of the result of this handler.
 // * This must be sync and return true in order to use sendResponse
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request:IMsgForBg, sender, sendResponse) {
     // if (request.bubbleDown) {
     //     // let tab = await queryActiveTab();
     //     if (typeof request.bubbleDown.fullScreen !== 'undefined') {
@@ -337,7 +338,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     //     // go back up to all the frames
     //     // let tab = await queryActiveTab();
     //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
-    switch (request) {
+    switch (request.type) {
+        case 'setLanguage':
+            recg.setLanguage(request.payload);
+            break;
         case 'loadPlugins':
             let tab = sender.tab;
             fullyLoadedPromise.then((res) => {
@@ -356,6 +360,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 storage.sync.save({tutorialMode: -1});
                 console.log('tutorial closed');
             }, 1500);
+            break;
     }
     return true;
 });
@@ -368,7 +373,7 @@ async function sendMsgToActiveTab(request: IBackgroundParcel) {
 
 
 async function promptForPermission() {
-    let tutMode = await storage.sync.load < ITutorialMode > ("tutorialMode");
+    let tutMode = await storage.sync.load<ITutorialMode>("tutorialMode");
     // TODO: load setting defaults here
     if (typeof tutMode.tutorialMode === "undefined" || tutMode.tutorialMode) {
         // do nothing

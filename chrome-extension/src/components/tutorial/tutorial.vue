@@ -414,7 +414,7 @@ ul > li > ul {
 console.log("hi from tutorial");
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
 import Slide from "./slide.vue";
-import { storage } from "../../common/browser-interface";
+import { storage, runtime, } from "../../common/browser-interface";
 
 @Component({
   components: {
@@ -497,7 +497,7 @@ export default class Tutorial extends Vue {
   }
 
   exitTutorial() {
-    chrome.runtime.sendMessage("closeTutorial");
+    runtime.sendMessage({type: "closeTutorial"});
     window.close();
   }
 }

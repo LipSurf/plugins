@@ -4,7 +4,7 @@ import {
 import { Store, StoreSynced, } from "../store";
 import { IOptions, } from "../../common/store-lib";
 import { find, pick, identity } from "lodash";
-import { ResettableTimeout, instanceOfDynamicMatch, MissingLangPackError, } from "../../common/util";
+import { ResettableTimeout, instanceOfDynamicMatch, MissingLangPackError, objectAssignDeep, } from "../../common/util";
 
 import * as LANGS from './langs';
 
@@ -70,8 +70,10 @@ export class Recognizer extends StoreSynced {
     private synVals: string[];
     private lang: LanguageCode;
     private langRecg: ILanguageRecg;
-
     private downloadingLangPack: boolean = false;
+
+    // HACK: egregious hack -- remove this!
+    private prevOptions: IOptions;
 
     constructor(store: Store,
         onUrlUpdate: ((cb: ((url: string) => void)) => void),
@@ -86,7 +88,8 @@ export class Recognizer extends StoreSynced {
     }
 
     protected async storeUpdated(newOptions: IOptions) {
-        // language-specific recognizer functionality
+        // HACK: remove soon
+        this.prevOptions = newOptions;
         this.langRecg = new LANGS[newOptions.language.substr(0, 2)]();
 
         if (!this.downloadingLangPack) {
@@ -143,10 +146,12 @@ export class Recognizer extends StoreSynced {
                                 ...pick(matchers[cmdName], ['delay', 'nice',]),
                             })),
                         ...pick(plugin, ['id', 'match'])
+
                     }
                 }
             })
             .filter(identity);
+
         if (this.lang && this.lang != newOptions.language) {
             // new language
             this.lang = newOptions.language;
@@ -159,6 +164,14 @@ export class Recognizer extends StoreSynced {
         } else {
             this.lang = newOptions.language;
         }
+    }
+
+    // we used to set language by reacting to a storage change but that was too slow 
+    async setLanguage(language:LanguageCode) {
+        // HACK: lazy and stupid, remove this
+        // use store so it comes back to our own storeUpdated
+        this.storeUpdated({...this.prevOptions, language})
+        this.save({language});
     }
 
     async start(cmdRecognizedCb: ((IRecognizedCallback) => Promise<void>)) {

@@ -4,7 +4,7 @@ declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { retrialAndError } from "../common/plugin-lib";
 import * as PluginLib from "../common/plugin-lib";
 import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
-import { storage } from "../common/browser-interface";
+import { storage, runtime, } from "../common/browser-interface";
 // Do we need this?
 import { resolve } from "url";
 // Plugins eval'd in this context need a `PluginBase` variable to Object.extend
@@ -62,7 +62,7 @@ function toggleActivated(_activated = true, quiet = false) {
         // should we check if the tab is "document visible" to prevent other tabs from doing a load too
         if (!commandsLoading) {
             commandsLoading = true;
-            chrome.runtime.sendMessage('loadPlugins', (pluginCSCode) => {
+            runtime.sendMessage({type: 'loadPlugins'}).then((pluginCSCode:string) => {
                 eval(pluginCSCode);
                 console.log(`main.ts received loadPage ${Object.keys(allPlugins)}`);
                 initPlugins();
