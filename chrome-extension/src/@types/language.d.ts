@@ -7,6 +7,8 @@ declare interface ILanguageRecg {
     homophones?: {
         [source: string]: string,
     };
+    // A function to transform the key side of the homophones (eg. for english we add \b word boundaries to either side of the RegExp)
+    homophoneProcessor?(homophone:string):RegExp;
     ordinalOrNumberToDigit: (input: string) => number;
     wordSplitter: (phrase: string) => string[];
     wordJoiner: (words: string[]) => string;

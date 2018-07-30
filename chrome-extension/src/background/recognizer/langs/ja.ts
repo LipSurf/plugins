@@ -63,7 +63,10 @@ export function* convertToHiragana(input:string, dictionary={}, outputed=[]): It
 
 
 export default class Japanese implements ILanguageRecg {
-    homophones = {};
+    homophones = {
+        // gaijin su sounds like se to google
+        "せ": "す",
+    };
     loaded: Promise<void> = new Promise(() => {});
     dictionary: {
         [key: string]: string[],

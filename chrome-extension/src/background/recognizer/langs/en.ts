@@ -522,7 +522,11 @@ export default class English implements ILanguageRecg {
         '\\.': ' dot ',
         ',': ' comma ',
         'i\'m': 'i am',
-    };
+    }
+
+    homophoneProcessor(homophone:string):RegExp {
+        return new RegExp(`\\b${homophone}\\b`);
+    }
 
     ordinalOrNumberToDigit(ordinal:string):number {
         return ORDINALS_TO_DIGITS[ordinal] || NUMBERS_TO_DIGITS[ordinal];

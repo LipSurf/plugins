@@ -120,7 +120,7 @@ export class Recognizer extends StoreSynced {
         }
 
         let homoKeys = Object.keys(this.langRecg.homophones).sort((a, b) => a.length > b.length ? -1 : 1);
-        this.synKeys = homoKeys.map((key) => new RegExp(`\\b${key}\\b`));
+        this.synKeys = homoKeys.map((key) => this.langRecg.homophoneProcessor ? this.langRecg.homophoneProcessor(key) : new RegExp(key));
         this.synVals = homoKeys.map((key) => this.langRecg.homophones[key]);
 
         this.recgStore.plugins = newOptions.plugins
@@ -131,7 +131,7 @@ export class Recognizer extends StoreSynced {
                     let enabledHomophones = localized.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
                     let matchers = localized.matchers;
                     return {
-                        synKeys: enabledHomophones.map((homo) => new RegExp(`\\b${homo.source}\\b`)),
+                        synKeys: enabledHomophones.map((homo) => this.langRecg.homophoneProcessor ? this.langRecg.homophoneProcessor(homo.source) : new RegExp(homo.source)),
                         synVals: enabledHomophones.map((homo) => homo.destination),
                         commands: Object.keys(plugin.commands)
                             .filter(cmdName => plugin.commands[cmdName].enabled)
@@ -464,7 +464,7 @@ export class Recognizer extends StoreSynced {
                         // no longer counts as previously matching
                         this.prevMatchedText[resultIndex] = null;
                     } else {
-                        // prevent dupe commands when cmd is said once, but finalized much later by speech recg.
+                        // prevent dupe commands when cmd is said once, but finalized later by speech recg.
                         if (!this.delayCmds[resultIndex])
                             this.delayCmds[resultIndex] = [];
 

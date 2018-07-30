@@ -15,6 +15,8 @@ v0.4
 - [x] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
 - [x] switching from Eng/Japanese is too slow
 - [x] make run, runOnPage, and matchFn more consistently named
+- [ ] continuos=true but restart on successful commands
+- [x] language plugin homophones not working
 - [ ] update plugin documentation
 - [ ] make options page load nicely
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
