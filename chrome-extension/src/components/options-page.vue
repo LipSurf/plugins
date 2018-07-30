@@ -20,6 +20,10 @@
             </div>
             <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the LipSurf icon in your extensions toolbar.</p>
     	</section>
+        <div v-show="loading" style="text-align: center">
+            <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        </div>
+        <div v-show="!loading">
         <section>
             <h2>General</h2>
             <div class="option">
@@ -92,9 +96,11 @@
                 <p class="mute">Early backers will be credited 2x the value of their pre-1.0 donations when 1.0 is released.</p>
             </div>
         </section>
+        </div>
     </div>
 </template>
 <style>
+@import 'loading-spinner.css';
     :root {
         --max-homo-list-height: 80px;
         --bg-color: 245, 245, 245;
@@ -359,6 +365,7 @@ interface ICommandPref {
     }
 })
 export default class OptionsPage extends Vue {
+    loading: boolean = true;
     authorId: number;
     optionsPageStore: IPluginOptionsPageStore = <IPluginOptionsPageStore>{};
     hasMicPerm = true;
@@ -381,6 +388,7 @@ export default class OptionsPage extends Vue {
         this.store = new Store();
         this.store.getOptions().then(options => {
             this.storeUpdated(options);
+            this.loading = false;
         });
         this.authorId = this.store.subscribe(async newOptions => {
             await this.storeUpdated(newOptions);
