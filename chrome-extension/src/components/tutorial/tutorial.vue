@@ -433,6 +433,11 @@ export default class Tutorial extends Vue {
   optionsUrl = chrome.extension.getURL("views/options.html");
 
   created() {
+    window.addEventListener("unload", () => {
+      // don't call window.close in this one
+      runtime.sendMessage({type: "closeTutorial"});
+    });
+
     this.checkForPermission();
     // auto activate lipsurf
     // this doesn't seem to be used now, use it for when we disable next when 
