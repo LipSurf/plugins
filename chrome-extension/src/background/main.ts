@@ -46,8 +46,8 @@ let store = new Store(PluginManager.digestNewPlugin);
 // initial load -> get plugins from storage
 let fullyLoadedPromise =
     // HACK
-    //  clearing the local data so plugin data is updated between versions -- had issues doing this onInstall because it was called late
-    storage.local.clear().then(async() =>
+    //  clearing the local plugin data so plugin data is updated between versions -- had issues doing this onInstall because it is called late
+    storage.local.save({pluginData: null}).then(async() =>
         store.rebuildLocalPluginCache().then(async() => {
             let recg = new Recognizer(store,
                 tabs.onUrlUpdate,
