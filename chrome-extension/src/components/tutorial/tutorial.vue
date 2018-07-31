@@ -435,6 +435,8 @@ export default class Tutorial extends Vue {
   created() {
     this.checkForPermission();
     // auto activate lipsurf
+    // this doesn't seem to be used now, use it for when we disable next when 
+    // the plugin is not activated
     storage.local.registerOnChangeCb(changes => {
       if (changes && changes.activated && changes.activated.newValue) {
         this.activated = true;

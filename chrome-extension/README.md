@@ -16,6 +16,7 @@ v0.4
 - [x] switching from Eng/Japanese is too slow
 - [x] make run, runOnPage, and matchFn more consistently named
 - [ ] continuos=true but restart on successful commands
+----- restarting when "answer" is called seems to be working well -- issue with recognizer shutdown/restart
 - [x] language plugin homophones not working
 - [ ] update plugin documentation
 - [ ] make options page load nicely

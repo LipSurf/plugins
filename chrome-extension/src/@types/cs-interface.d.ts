@@ -29,6 +29,6 @@ declare interface ILiveTextParcel {
 declare interface ICmdLiveTextParcel extends ILiveTextParcel, ICmdParcel {}
 
 declare interface IMsgForBg {
-    type: 'loadPlugins'|'setLanguage'|'closeTutorial';
+    type: 'loadPlugins'|'closeTutorial'|'setLanguage';
     payload?: any;
 }

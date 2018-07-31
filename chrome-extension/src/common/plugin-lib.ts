@@ -82,6 +82,14 @@ export namespace PluginBase {
     }
 
     export let util: IPluginUtil = {
+        shutdown: function() {
+            storage.local.save({activated: false});
+        },
+
+        start: function() {
+            storage.local.save({activated: true});
+        },
+
         // meta: get's all the installed plugins
         getOptions: async function(): Promise<IOptions> {
             return getOptions();
@@ -95,6 +103,7 @@ export namespace PluginBase {
 
         setLanguage: function(lang: LanguageCode) {
             // changing the language by just updating the storage.sync is too slow (~2s) so we communicate with main directly
+            // TODO: make saving sync route internally so we can trigger the change faster
             runtime.sendMessage({type: 'setLanguage', payload: lang});
         },
 

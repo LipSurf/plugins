@@ -92,6 +92,8 @@ declare interface IOptions {
 
 declare interface IPluginUtil {
     // meta
+    shutdown: () => void; // shutdown LipSurf
+    start: () => void; // startup LipSurf programmatically
     getOptions: () => Promise<IOptions>;
     getLanguage: () => Promise<LanguageCode>;
     setLanguage: (LanguageCode) => void;

@@ -51,7 +51,7 @@ export type IRecognizedCallback = ILiveTextParcel | ICmdParcel;
 
 export class Recognizer extends StoreSynced {
     private recognition;
-    private recognizerKilled: boolean = false;
+    private running: boolean = false;
     private cmdRecognizedCb: (cb: IRecognizedCallback) => Promise<void>;
     private matchedCmdsForIndex = [];
     // so that we don't send repeat cmdRecognizedCb's when a new transcript comes in that either a) is the same text with a higher confidence/isFinal value
@@ -158,7 +158,6 @@ export class Recognizer extends StoreSynced {
 
             if (newOptions.activated) {
                 // restart the recognizer with the new language
-                this.shutdown();
                 this.start(this.cmdRecognizedCb);
             }
         } else {
@@ -177,12 +176,13 @@ export class Recognizer extends StoreSynced {
     async start(cmdRecognizedCb: ((IRecognizedCallback) => Promise<void>)) {
         // kill it to prevent dupes
         try {
-            this.recognition.stop();
+            this.shutdown();
         } catch (e) { }
 
         // call this promise if starting the recognizer fails
         // we do this asynchronously because we don't know it failed
         // until we get a `onerror` event.
+        this.running = true;
         this.cmdRecognizedCb = cmdRecognizedCb;
         this.recognition = new this.speechRecognizer();
         this.recognition.continuous = true;
@@ -192,8 +192,6 @@ export class Recognizer extends StoreSynced {
         this.recognition.maxAlternatives = 1;
 
         // grammar not supported yet in chrome (as of v64)
-
-        this.recognition.start();
 
         this.recognition.onresult = (event) => {
             // slice doesn't exist on the special event.results object, so we need to do a for loop
@@ -215,7 +213,7 @@ export class Recognizer extends StoreSynced {
                 <number>event.resultIndex,
                 this.lastRecgTime,
             );
-            this.recognizerKilled = false;
+            this.running = true;
         };
 
         // Error types:
@@ -232,14 +230,19 @@ export class Recognizer extends StoreSynced {
                 // TODO: throw an exception that stops the
                 // add-on
                 // throw "This should never happen";
-                this.recognizerKilled = true;
+                this.running = false;
             } else if (event.error == 'network') {
                 // TODO: special error message
+                this.running = false;
             } else if (event.error == 'audio-capture') {
                 // no mic
+                // TODO: special error message
+                this.running = false;
             } else if (event.error !== 'no-speech') {
                 console.error(`unhandled error: ${event.error}`);
-            }
+                this.running = false;
+            } 
+
         };
 
         this.recognition.onnomatch = (event) => {
@@ -251,9 +254,11 @@ export class Recognizer extends StoreSynced {
             this.prevMatchedText = [];
             this.delayCmds = {};
             // don't restart in an infinite loop
-            if (!this.recognizerKilled) {
+            if (this.running) {
                 console.log("Ended. Restarting.");
                 this.recognition.start();
+            } else {
+                console.log("Ended. Not restarting");
             }
         };
 
@@ -266,13 +271,17 @@ export class Recognizer extends StoreSynced {
         //console.log("sound end detected");
         //};
 
+        this.recognition.start();
     }
 
-    // TODO: check if this calls this.recognition.onend to make sure matchedCmdsForIndex and delay is reset
     shutdown() {
-        try {
-            this.recognition.stop();
-        } catch (e) { }
+        this.running = false;
+        if (this.recognition) {
+            this.recognition.onend();
+            try {
+                this.recognition.stop();
+            } catch (e) { }
+        }
         try {
             this.recognition.onresult = null;
             this.recognition.onerror = null;
@@ -437,7 +446,7 @@ export class Recognizer extends StoreSynced {
             // short-circuit if we've already processed this text as a success
             // currently only uses successful commands and disgregards homophones
             if (this.prevMatchedText.length > resultIndex && this.prevMatchedText[resultIndex] === text) {
-                console.log(`abandoning ${text} because it's the same as matchedTextForIndex. So we've already ran the command for it.`);
+                console.log(`abandoning ${text} because it's the same as prevMatchedText. So we've already ran the command for it.`);
                 return;
             }
 
@@ -498,6 +507,8 @@ export class Recognizer extends StoreSynced {
                                     cmdName,
                                     cmdPluginId,
                                 });
+                                // restart after every successful command
+                                this.start(this.cmdRecognizedCb);
                             }, delay);
                         }
                     }

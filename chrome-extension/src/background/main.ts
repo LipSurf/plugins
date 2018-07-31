@@ -41,7 +41,6 @@ const {
 }: IWindow = < IWindow > window;
 
 let permissionDetector;
-let recg: Recognizer;
 let store = new Store(PluginManager.digestNewPlugin);
 
 // initial load -> get plugins from storage
@@ -50,7 +49,7 @@ let fullyLoadedPromise =
     //  clearing the local data so plugin data is updated between versions -- had issues doing this onInstall because it was called late
     storage.local.clear().then(async() =>
         store.rebuildLocalPluginCache().then(async() => {
-            recg = new Recognizer(store,
+            let recg = new Recognizer(store,
                 tabs.onUrlUpdate,
                 queryActiveTab,
                 tabs.sendMsgToTab,
@@ -62,7 +61,7 @@ let fullyLoadedPromise =
 
             if (AUTO_ON) {
                 // HACK
-                setTimeout(mn.toggleActivated.bind(mn), 100);
+                setTimeout(() => store.save({activated: true}), 100);
                 // refresh all tabs
                 chrome.tabs.query({}, function (tabs) {
                     for (let tab of tabs) {
@@ -120,7 +119,15 @@ class Main extends StoreSynced {
                 return;
             } 
 
-            this.toggleActivated(!this.mainStore.activated);
+            storage.local.save({activated: !this.mainStore.activated});
+        });
+
+        chrome.runtime.onMessage.addListener((request:IMsgForBg, sender, sendResponse) => {
+            switch (request.type) {
+                case 'setLanguage':
+                    this.recg.setLanguage(request.payload);
+                    break;
+            }
         });
     }
 
@@ -130,9 +137,10 @@ class Main extends StoreSynced {
         if (newOptions.busyDownloading && !this.sentDownloadingNotification) {
             this.sentDownloadingNotification = true;
             let tab = await queryActiveTab();
+            // deactivate while it's download the lang pack
             if (this.mainStore.activated) {
                 this.wasOn = true;
-                await this.toggleActivated(false);
+                await this.save({activated: false});
             }
             if (!tab.url.startsWith(`chrome-extension://${chrome.runtime.id}/views/options.html`)) {
                 notifications.create(
@@ -144,7 +152,7 @@ class Main extends StoreSynced {
         if (newOptions.busyDownloading === false) {
             this.sentDownloadingNotification = false;
             if (this.wasOn) {
-                await this.toggleActivated(true);
+                await this.save({activated: true});
             }
             this.wasOn = false;
         }
@@ -152,7 +160,7 @@ class Main extends StoreSynced {
         this.updateIcon();
     }
 
-    async toggleActivated(_activated = true) {
+    async reactToActivated(_activated = true) {
         await this.initialLoad;
 
         if (this.inactiveTimer) {
@@ -200,7 +208,7 @@ class Main extends StoreSynced {
                         `LipSurf turned off after ${inactivityMins} minutes of inactivity.`,
                         `Inactivity threshold can be set in the options.`,
                         true);
-                    this.toggleActivated(false);
+                    this.store.save({ activated: false });
                 }, inactivityMins * 60 * 1000);
             } 
             // only allow recg to start if at least default
@@ -212,9 +220,6 @@ class Main extends StoreSynced {
 
         this.mainStore.activated = _activated;
         this.updateIcon();
-        this.save({
-            activated: this.mainStore.activated, 
-        });
     }
 
     updateIcon() {
@@ -265,7 +270,7 @@ storage.local.save({
 storage.local.registerOnChangeCb(async (changes) => {
     let {mn} = await fullyLoadedPromise;
     if (changes && changes.activated && changes.activated.newValue !== undefined) {
-        mn.toggleActivated(changes.activated.newValue);
+        mn.reactToActivated(changes.activated.newValue);
     }
 });
 
@@ -339,9 +344,6 @@ chrome.runtime.onMessage.addListener(function (request:IMsgForBg, sender, sendRe
     //     // let tab = await queryActiveTab();
     //     chrome.tabs.connect(tab.id, { name: 'getVideos' });
     switch (request.type) {
-        case 'setLanguage':
-            recg.setLanguage(request.payload);
-            break;
         case 'loadPlugins':
             let tab = sender.tab;
             fullyLoadedPromise.then((res) => {
