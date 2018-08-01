@@ -2,6 +2,9 @@ const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const devMode = process.env.NODE_ENV !== 'production';
+
 
 
 let common = {
@@ -9,7 +12,7 @@ let common = {
 	context: path.resolve(__dirname, 'src/'),
 	output: {
 		filename: "[name].js",
-		path: path.resolve(__dirname, 'chrome-extension/dist/')
+		path: path.resolve(__dirname, 'chrome-extension/dist/'),
 	},
 	resolve: {
 		extensions: [".tsx", ".ts", ".js", ".vue"],
@@ -21,7 +24,7 @@ let common = {
 		rules: [
 			{
 				test: /\.vue$/,
-				loader: 'vue-loader'
+				loader: 'vue-loader',
 			},
 			{
 				test: /\.tsx?$/,
@@ -40,34 +43,18 @@ let common = {
 			},
 			{
 				test: /\.css$/,
-				oneOf: [
-				  // this applies to <style module>
-				  {
-					resourceQuery: /module/,
-					use: [
-					  'vue-style-loader',
-					  {
-						loader: 'css-loader',
-						options: {
-						  modules: true,
-						  localIdentName: '[local]_[hash:base64:8]'
-						}
-					  }
-					]
-				  },
-				  // this applies to <style> or <style scoped>
-				  {
-					use: [
-					  'vue-style-loader',
-					  'css-loader'
-					]
-				  }
-				]
+				use: [
+					devMode ? 'vue-style-loader' : MiniCssExtractPlugin.loader,
+					'css-loader',
+				],
 			},
 		]
 	},
 	plugins: [
-		new VueLoaderPlugin()
+		new VueLoaderPlugin(),
+		new MiniCssExtractPlugin({
+			filename: '[name].css',
+		})
 	],
 };
 

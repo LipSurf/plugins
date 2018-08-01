@@ -11,9 +11,10 @@ let featureFlags = {
 	// for manually forcing speech
 	INCLUDE_SPEECH_TEST_HARNESS: JSON.stringify(false),
 	CLEAR_SETTINGS: JSON.stringify(false),
+    SKIP_TUTORIAL: JSON.stringify(false),
+    SKIP_UPDATES: JSON.stringify(false),
 	AUTO_ON: JSON.stringify(false),
 	PRETEND_FIRST_INSTALL: JSON.stringify(false),
-	SKIP_TUTORIAL: JSON.stringify(false),
 };
 
 let prodCommon = {
@@ -23,7 +24,6 @@ let prodCommon = {
         //new WebpackShellPlugin({onBuildEnd:['tests/plugins/test-plugins.sh']}),
     ]
 };
-
 
 module.exports = [
     merge(bgConfig, prodCommon, {

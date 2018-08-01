@@ -5,9 +5,6 @@
   "engines": {
     "node": ">=6.0"
   },
-  "sideEffects": [
-    "./src/page/main.ts"
-  ],
   "scripts": {
     "pretest": "npm explore plugins -- gulp | webpack --config webpack.dev.js",
     "test": "ava tests/build/tests/*-test.js --verbose",
@@ -23,8 +20,8 @@
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",
     "build": "webpack --config webpack.dev.js --progress && npm explore lipsurf-plugins -- npm run build",
     "watch": "npm explore lipsurf-plugins -- npm run watch | webpack --config webpack.dev.js --watch --progress",
-    "build-prod": "webpack --verbose --config webpack.prod.js --display verbose && npm explore lipsurf-plugins -- npm run build-prod",
-    "watch-prod": "npm explore lipsurf-plugins -- npm run watch-prod | webpack --config webpack.prod.js --watch",
+    "build-prod": "NODE_ENV=production webpack --verbose --config webpack.prod.js --display verbose && npm explore lipsurf-plugins -- npm run build-prod",
+    "watch-prod": "npm explore lipsurf-plugins -- npm run watch-prod | NODE_ENV=production webpack --config webpack.prod.js --watch",
     "release": "npm run build-prod && rm lipsurf.zip; zip -r lipsurf.zip chrome-extension/"
   },
   "repository": {
@@ -64,20 +61,25 @@
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.4",
     "crx": "^3.2.1",
+    "css-loader": "^1.0.0",
     "jsdom": "11.0.0",
     "jsdom-global": "3.0.2",
     "lodash-cli": "^4.17.5",
     "lodash-es": "^4.17.8",
+    "mini-css-extract-plugin": "^0.4.1",
     "node-gtts": "^2.0.2",
     "selenium-webdriver": "^3.6.0",
     "sinon": "^4.4.4",
+    "style-loader": "^0.21.0",
     "ts-loader": "^4.1.0",
     "ts-node": "^6.2.0",
     "tslib": "^1.9.0",
     "typescript": "^2.9.2",
     "vue-class-component": "^6.2.0",
+    "vue-loader": "^15.2.6",
     "vue-property-decorator": "^6.1.0",
     "vue-router": "^3.0.1",
+    "vue-style-loader": "^4.1.1",
     "vue-template-compiler": "^2.5.16",
     "webpack": "^4.8.3",
     "webpack-cli": "^2.0.13",
