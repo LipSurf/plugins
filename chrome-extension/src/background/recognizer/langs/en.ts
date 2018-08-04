@@ -516,6 +516,7 @@ export default class English implements ILanguageRecg {
         'aladdin': 'eleven',
         "letter": "eleven",
         "to": "two",
+        "2": "to",
         "0": "o",
         "too": "two",
         "sex": "six",

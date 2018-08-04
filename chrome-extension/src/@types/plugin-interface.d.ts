@@ -96,7 +96,7 @@ declare interface IPluginUtil {
     start: () => void; // startup LipSurf programmatically
     getOptions: () => Promise<IOptions>;
     getLanguage: () => Promise<LanguageCode>;
-    setLanguage: (LanguageCode) => void;
+    setLanguage: (lang: LanguageCode) => void;
 
     addOverlay: (contents, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLDivElement;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;

@@ -1,43 +1,35 @@
 TODO
 ===
 Something is seriously wrong with the options page... switch to vue?
-v0.4
 - [ ] timing: https://jsfiddle.net/xpvt214o/420526/
 - [ ] Landing page:
    -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
    -- Forum (Discourse), Blog (Ghost)
 	<a href="https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl" class="btn download-button" onclick="if(window.chrome&amp;&amp;window.chrome.webstore&amp;&amp;window.chrome.webstore.install)return chrome.webstore.install(&quot;https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl&quot;,console.log,console.warn),!1" target="_blank"> <img alt="" src="https://d33wubrfki0l68.cloudfront.net/b1bb3a572ed46f4a5069d61dd2cde8dc83b57876/2600e/images/chrome.svg"> <span> Install now for Chrome </span> </a>
-- [x] WK plugin add click "info"
-- [x] make interfaces constants and simplify picking properties for store/options
-- [x] the preliminary/bad speech recg. results are showing up after the success one
-   --- stop processing old ones when new ones come in
-- [x] homophones should not check url? Because we have global homophones
-- [x] split/chaining in Japanese... plugins should use ^ $ if they need to not be allowed in a phrase
-- [x] switching from Eng/Japanese is too slow
-- [x] make run, runOnPage, and matchFn more consistently named
-- [ ] continuos=true but restart on successful commands
------ restarting when "answer" is called seems to be working well -- issue with recognizer shutdown/restart
-- [x] language plugin homophones not working
 - [ ] update plugin documentation
-- [ ] make options page load nicely
-- [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
-- [ ] Top Sites Plugin
 - [ ] https://stackoverflow.com/questions/26223401/show-css3-animate-for-2-times#comment41128302_26223401
 - [ ] annotations in the corner of options page, and changing
-- [ ] BUG newly installed close tutorial, open coursera, options page get's opened
-- [ ] BUG saying annotate multiple times seems to hide annotations
 - [ ] "Voice Control for Google Chrome" landing page
 - [ ] More exciting video
 - [ ] All banners on google chrome store
 - [ ] post on lobsters
-- [ ] email back WK about the addon
+- [x] email back WK about the addon
 
 WK improvements
 - [ ] furigana?
 - [ ] do a Levenshtein distance check
 
+v0.5.1
+- [ ] BUG: expanding homophones in the options page
+- [ ] BUG: 0 minutes timer
+- [ ] BUG newly installed close tutorial, open coursera, options page get's opened
+- [ ] BUG saying annotate multiple times seems to hide annotations
 
-v0.5
+v0.6
+- [ ] don't go back in WK without prompting the user (are you sure you want to leave the page)
+- [ ] pick language in the tutorial (which english accent do you have?)
+- [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
+- [ ] Top Sites Plugin
 - [ ] make livetext hold the command that's being run
 - [ ] make getting/setting options more efficient (make it load defaults but not have to load all plugins -- such as with getLanguage)
 - [ ] simplify store serializing/deserializing use this lib: https://github.com/yahoo/serialize-javascript

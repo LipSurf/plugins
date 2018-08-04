@@ -56,7 +56,7 @@
             <label class="w-note">
                 <i class="icon timer-off"></i>
 				<div>
-					Automatically shut off after &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes without valid commands.
+					Automatically shut off &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes after the last valid command.
 					<div class="mute">Set to 0 to never automatically shut off.</div>
 				</div>
             </label>

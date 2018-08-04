@@ -1,34 +1,64 @@
 <!DOCTYPE html>
+
 <head>
-    <meta charset="utf-8">
-    <title>LipSurf Has Been Updated</title>
-    <script src="/vendor/jquery-3.2.1.min.js" type="text/javascript"></script>
-    <script src="/dist/page.js" type="text/javascript"></script>
-    <link rel="stylesheet" type="text/css" href="/assets/rnh.css"></link>
-    <link rel="stylesheet" type="text/css" href="/assets/rnh-internal.css"></link>
-    <style>
-        body {
-            font-family: "Barlow";
-            font-size: 1.2em;
-        }
+	<meta charset="utf-8">
+	<title>LipSurf Has Been Updated</title>
+	<script src="/vendor/jquery-3.2.1.min.js" type="text/javascript"></script>
+	<script src="/dist/page.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="/assets/rnh.css"></link>
+	<link rel="stylesheet" type="text/css" href="/assets/rnh-internal.css"></link>
+	<style>
+		body {
+			font-family: "Barlow";
+			font-size: 1.2em;
+		}
+
 		h1 {
 			font-family: "Special Elite";
 		}
+
 		.voice-cmd {
 			background-color: #bfffbf8f;
 			text-decoration: none;
 		}
-    </style>
+
+		.small {
+			font-size: 0.8em;
+		}
+	</style>
 </head>
+
 <body>
 	<div style="margin: 0 auto; max-width: 1040px;">
-		<h1>LipSurf has been updated to 0.4!</h1>
-		<img src="https://media1.giphy.com/media/3o6nUOW8ypItWcjHG0/giphy.gif" width="300px">
-		<ul style="display: inline-block; vertical-align: top; margin: 0; font-size: 1.4em;">
-			<li>Improved command selection and live text!</li>
-			<li>Better Japanese  support!</li>
-			<li>Now supports language packs to keep extension lightweight!</li>
-		</ul>
+		<h1>LipSurf has been updated to 0.5!</h1>
+		<div style="display: flex">
+			<section style="margin-right: 20px">
+				<img src="https://media1.giphy.com/media/3o85xxWPJWdJdtPdio/giphy.gif" width="300px">
+				<i>Attack of the crabigator!</i>
+			</section>
+			<section style="float: left">
+				<ul style="display: inline-block; vertical-align: top; margin: 0; font-size: 1.4em;">
+					<li>You can now spell out hard-for-the-recognizer words in WaniKani!
+						<ol>
+							<li>If already in English mode (answering meanings) then just start spelling it out!</li>
+							<li>If in Japanese mode, first say "えいご" then spell the reading as you would type it <div class="small">(eg. for しょうがつ say <i>"s-h-o-u-g-a-t-s-u"</i>)</div></li>
+						</ol>
+					</li>
+					<li>Added commands to switch between Japanese and English</li>
+					<li>Fixed bugs with general Japanese and WaniKani</li>
+				</ul>
+				<section>
+					<h2>Tip of the Update</h2>
+					<p>You can spell out words if LipSurf is having trouble recognizing you. 
+						<div class="small">Try spelling out <i>"g-o-o-g-l-e-l-i-p-s-u-r-f"</i>.</div></p>
+				</section>
+			</section>
+		</div>
+		<div style="margin-top: 50px; text-align: center; font-weight: bold;">
+			<div>Lastly... nobody has donated yet :'( </div>
+				<a target="_blank" href="https://www.lipsurf.com/donate/">support the project</a>.
+		</div>
 	</div>
 </body>
+
 </html>

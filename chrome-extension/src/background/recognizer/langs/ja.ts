@@ -26,6 +26,7 @@ function isCharInRange(char = '', start:number, end:number):boolean {
 /*
  * Generator -- kanji can have ambiguous/multiple readings.
  * exported so it can be separately tested
+ * TODO: this is slow!
  */
 export function* convertToHiragana(input:string, dictionary={}, outputed=[]): IterableIterator<string> {
     let dictionaryEntries = dictionary[input];
@@ -116,7 +117,8 @@ export default class Japanese implements ILanguageRecg {
     }
 
     // init needs to be called before this
-    preprocess = x => convertToHiragana(x, this.dictionary);
+    // HACK: only do up to the first 11 characters because otherwise it's slow
+    preprocess = x => convertToHiragana(x.substr(0, 11), this.dictionary);
 
 };
 

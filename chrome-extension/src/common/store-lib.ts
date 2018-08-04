@@ -21,7 +21,7 @@ const DEFAULT_PREFERENCES = {
             [id]: {
                 version,
                 enabled: true,
-                expanded: false,
+                expanded: true,
                 showMore: false,
                 disabledHomophones: [],
                 disabledCommands: []
