@@ -117,8 +117,43 @@ export default class Japanese implements ILanguageRecg {
     }
 
     // init needs to be called before this
-    // HACK: only do up to the first 11 characters because otherwise it's slow
-    preprocess = x => convertToHiragana(x.substr(0, 11), this.dictionary);
+    // LIMITATION this doesn't handle combos of multiple character & number groups eg. 42階2階 only the first　階 will be yielded from
+    // HACK some silly stuff in here
+    preprocess = function* (input:string) {
+        // strip out numbers:
+        let separatedNumsAndChars = input.match(/\d+|[^\d]+/g);
+        let genAndStrParts:(string|IterableIterator<string>)[] = [];
+        for (let grp of separatedNumsAndChars) {
+            if (isNaN(Number(grp))) {
+                // HACK: only do up to the first 11 characters because otherwise it's slow
+                genAndStrParts.push(convertToHiragana(grp.substr(0, 11), this.dictionary));
+                if (grp.length > 10) {
+                    // not gonna be hiraganized beyond this
+                    genAndStrParts.push(grp.substr(11, grp.length));
+                }
+            } else {
+                genAndStrParts.push(grp);
+            }
+        }
+        let hasYielded = true;
+        while (hasYielded) {
+            hasYielded = false;
+            let retParts = [];
+            for (let x of genAndStrParts) {
+                if (typeof x === 'string') {
+                    retParts.push(x);
+                } else {
+                    let yld = x.next().value;
+                    if (yld) {
+                        retParts.push(yld);
+                        hasYielded = true;
+                    }
+                }
+            }
+            if (retParts.length === genAndStrParts.length)
+                yield retParts.join('');
+        }
+    }
 
 };
 
