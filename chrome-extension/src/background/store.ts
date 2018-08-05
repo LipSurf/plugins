@@ -95,8 +95,13 @@ export class Store {
                                     match: instanceOfDynamicMatch(matcher.match) ? { ...matcher.match, fn: matcher.match.fn.toString()} : matcher.match,
                                 };
                                 if (matcher.nice) {
-                                    // @ts-ignore
-                                    obj.nice = matcher.nice.toString();
+                                    if (typeof matcher.nice === 'string') {
+                                        obj.nice = matcher.nice;
+                                    } else {
+                                        // it's a function
+                                        // @ts-ignore
+                                        obj.nice = { fn: matcher.nice.toString() };
+                                    }
                                 }
                                 return obj;
                             }),

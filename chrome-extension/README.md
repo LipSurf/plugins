@@ -19,7 +19,9 @@ WK improvements
 - [ ] furigana?
 - [ ] do a Levenshtein distance check
 
-v0.5.1
+v0.5.2
+- [ ] fix inconsistent Japanese for back/previous page
+- [ ] saying back in japanese in WK should actually still work?
 - [ ] BUG: expanding homophones in the options page
 - [ ] BUG: 0 minutes timer
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened

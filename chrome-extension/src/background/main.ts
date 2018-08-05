@@ -308,7 +308,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
             };
         }
 
-        if (details.reason === 'update' && !SKIP_UPDATES)
+        // only show updates for those upgrade from 0.4 and below to 0.5
+        if (details.reason === 'update' && !SKIP_UPDATES && details.previousVersion !== '0.5')
             chrome.tabs.create({ active: true, url: chrome.extension.getURL(`views/updates.html`) });
     }
 });

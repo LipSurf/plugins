@@ -135,5 +135,5 @@ declare interface IFnCommand {
 }
 
 declare interface INiceCommand {
-    nice?: (rawInput: string, matchOutput: any[]) => string;
+    nice?: string | ((rawInput: string, matchOutput: any[]) => string);
 }

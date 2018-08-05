@@ -116,8 +116,13 @@ export function deserialize(serializedLocalData: StoreSerialized<ILocalData>): I
                     return {
                         ...local,
                         matchers: mapValues(local.matchers, matcher => {
-                            if (matcher.nice)
-                                eval(`matcher.nice = ${matcher.nice}`);
+                            if (matcher.nice) {
+                                if (typeof matcher.nice !== 'string') {
+                                    // matcher can be a fn or a string, this is special handling 
+                                    // @ts-ignore
+                                    matcher.nice = eval(matcher.nice.fn);
+                                }
+                            }
                             if (typeof matcher.match === 'string')
                                 matcher.match = eval(matcher.match);
                             return matcher;
