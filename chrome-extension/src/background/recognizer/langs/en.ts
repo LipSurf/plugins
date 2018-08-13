@@ -523,6 +523,10 @@ export default class English implements ILanguageRecg {
         '\\.': ' dot ',
         ',': ' comma ',
         'i\'m': 'i am',
+        'kay': 'k',
+        'okay': 'ok',
+        'are': 'r',
+        'you': 'u',
     }
 
     homophoneProcessor(homophone:string):RegExp {
