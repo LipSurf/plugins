@@ -17,10 +17,13 @@ const PluginBase = BlankPlugin;
 
 const BASE_DIR = `${path.join(__dirname, '..', )}/`;
 const getPlugin = (pluginId:string) => fs.readFileSync(`${BASE_DIR}plugins/build/${pluginId.toLowerCase()}.js`, { encoding: 'utf-8' });
-const test = anyTest as TestInterface<{
+type SharedTestData = {
     recg: Recognizer,
+    store: Store,
     urlUpdate: (string) => void,
-}>;
+}
+const test = anyTest as TestInterface<SharedTestData>;
+type EC = ExecutionContext<SharedTestData>;
 
 
 // Stub for HTML5 SpeechRecognition
@@ -45,8 +48,9 @@ test.before(async(t) => {
 
     let store = new Store(PluginManager.digestNewPlugin);
     await store.rebuildLocalPluginCache();
-    let pluginManager = new PluginManager(store);
+    t.context.store = store;
     t.context.urlUpdate = (url: string) => null;
+    let pluginManager = new PluginManager(store);
     let queryActiveTab = async () => (<chrome.tabs.Tab>{id: 1});
     let sendMsgToActiveTab = async (tabId:number, data:ITranscriptParcel) => {
         // get the match function for a plugin
@@ -54,11 +58,13 @@ test.before(async(t) => {
         let name = `${data.cmdPluginId}`;
         eval(`${getPlugin(data.cmdPluginId)}; plugin = ${name}Plugin`);
         let cmd:IPluginDefCommand = plugin.Plugin.commands.find((cmd) => cmd.name === data.cmdName);
+        console.log(`data.text ${data.text}`);
+        if (data.cmdName.toLowerCase() === 'click' && data.text === 'z1') 
+            return ['z1'];
         if (instanceOfDynamicMatch(cmd.match))
             return await cmd.match.fn(data.text);
     };
     t.context.recg = new Recognizer(store,
-        t.context.urlUpdate,
         queryActiveTab,
         sendMsgToActiveTab,
         SpeechRecognition
@@ -66,15 +72,23 @@ test.before(async(t) => {
     t.context.urlUpdate('https://www.reddit.com');
 });
 
-async function testOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, userInput: string, expectedCmd: string) {
-    let matchCmds = (await t.context.recg.getCmdsForUserInput(userInput, url));
-    t.is(matchCmds.length, 1);
-    let selectedCmd = matchCmds ? matchCmds[0].cmdName.toLowerCase() : null;
-    t.is(selectedCmd, expectedCmd, selectedCmd);
+async function testOutput(t:EC, url:string, userInput: string, expectedCmds: string[], recg=t.context.recg) {
+    let matchCmds = (await recg.getCmdsForUserInput(userInput, url, async (cmdPluginId, cmdName, text) => {
+        // TODO: this should execute the match fn for the command
+        // ... or should we just use the test fns for the plugin to test that?
+        if (cmdPluginId.toLowerCase() === 'reddit' && cmdName.toLowerCase() == 'go to subreddit' && ~text.indexOf('go to r')) {
+            console.log(`${cmdPluginId} ${cmdName} ${text}`);
+            return [];
+        }
+    }));
+    t.is(matchCmds.length, expectedCmds.length, `matchCmds: ${matchCmds.map(x => x.cmdName)}`);
+    for (let i = 0; i < expectedCmds.length; i++) {
+        t.is(matchCmds[i].cmdName.toLowerCase(), expectedCmds[i]);
+    }
 }
 
-async function testNoOutput(t:ExecutionContext<{recg: Recognizer}>, url:string, userInput: string) {
-    let matchCmds = await t.context.recg.getCmdsForUserInput(userInput, url);
+async function testNoOutput(t:EC, url:string, userInput: string) {
+    let matchCmds = await t.context.recg.getCmdsForUserInput(userInput, url, async () => null);
     t.is(matchCmds.length, 0, `${userInput} -> ${JSON.stringify(matchCmds)}`);
 }
 
@@ -97,7 +111,7 @@ for (let expectedCmd in redditCmdToPossibleInput) {
     let possibleUserInputs = redditCmdToPossibleInput[expectedCmd];
     for (let userInput of possibleUserInputs) {
         test(`"${userInput}" should execute expected ${expectedCmd}`, async (t) => {
-            await testOutput(t, 'https://www.reddit.com/', userInput, expectedCmd);
+            await testOutput(t, 'https://www.reddit.com/', userInput, [expectedCmd]);
         });
     }
 }
@@ -109,25 +123,25 @@ test('should not activate a command for non-command input', async (t) => {
 });
 
 test('shouldn\'t parse commands that don\'t match for page', async(t) => {
-    let matchCmds = (await t.context.recg.getCmdsForUserInput('upvote', 'http://yahoo.com'));
+    let matchCmds = (await t.context.recg.getCmdsForUserInput('upvote', 'http://yahoo.com', () => null));
     t.is(matchCmds.length, 0);
 });
 
 test('should execute plugin global commands everywhere', async(t) => {
-    let cmdObj = await t.context.recg.getCmdsForUserInput('reddit', 'http://yahoo.com');
+    let cmdObj = await t.context.recg.getCmdsForUserInput('reddit', 'http://yahoo.com', () => null);
     t.is(cmdObj.length, 1);
     t.is(cmdObj[0].cmdName.toLowerCase(), 'go to reddit');
 });
 
 test('should parse subreddit names without spaces', async (t) => {
     let userInput = 'go to r not the onion';
-    let {cmdName, matchOutput, delay} = (await t.context.recg.getCmdsForUserInput(userInput, 'http://www.reddit.com/'))[0];
+    let {cmdName, matchOutput, delay} = (await t.context.recg.getCmdsForUserInput(userInput, 'http://www.reddit.com/', () => null))[0];
     console.log(`cmdName: ${cmdName} matchOutput: ${matchOutput}, delay: ${delay}`);
     t.is(matchOutput[0], 'nottheonion', `${userInput} -> ${matchOutput}`);
 });
 
 test('should parse ordinals with homophones', async(t) => {
-    let sel = (await t.context.recg.getCmdsForUserInput('expand for', 'https://www.reddit.com'))[0];
+    let sel = (await t.context.recg.getCmdsForUserInput('expand for', 'https://www.reddit.com', async () => null))[0];
     t.is(sel.cmdName, 'Expand');
     t.is(sel.matchOutput[0], 4);
 });
@@ -139,7 +153,7 @@ test('should parse ordinals (upvote, expand)', async (t) => {
         '4th expand': ['Expand', 4],
     };
     for (let input in ordinalTests) {
-        let sel = (await t.context.recg.getCmdsForUserInput(input, 'https://www.reddit.com'))[0];
+        let sel = (await t.context.recg.getCmdsForUserInput(input, 'https://www.reddit.com', async () => null))[0];
         t.is(sel.cmdName, ordinalTests[input][0]);
         t.is(sel.matchOutput[0], ordinalTests[input][1]);
     }
@@ -155,6 +169,39 @@ test('test homophones', async(t) => {
     }
 
     t.true(homos.indexOf("next tab") !== -1);
+});
+
+// doesn't include handleTranscript extra massaging
+test('getCmds chaining w/ different commands', async (t:EC) => {
+    await testOutput(t, 'https://www.google.com', 'new tab down', ['new tab', 'scroll down']);
+});
+
+test('getCmds chaining w/ same command', async (t:EC) => {
+    await testOutput(t, 'https://www.google.com', 'down down', ['scroll down', 'scroll down']);
+});
+
+// includes the extra massaging by handleTranscript
+// test('End-to-end chaining ')
+
+test('dynamic match chaining', async (t:EC) => {
+    // let pluginManager = new PluginManager(t.context.store);
+    // let queryActiveTab = async () => (<chrome.tabs.Tab>{id: 1});
+    // let sendMsgToActiveTab = async (tabId:number, data:ITranscriptParcel) => {
+    //     // get the match function for a plugin
+    //     let plugin;
+    //     let name = `${data.cmdPluginId}`;
+    //     if (data.text === 'z1') {
+    //         return ['z1'];
+    //     }
+    // };
+    // let recg = new Recognizer(t.context.store,
+    //     t.context.urlUpdate,
+    //     queryActiveTab,
+    //     sendMsgToActiveTab,
+    //     SpeechRecognition
+    // );
+    // t.context.urlUpdate('https://www.google.com');
+    await testOutput(t, 'https://www.google.com', 'z1 down', ['click', 'scroll down']);
 });
 
 // test.cb('should only execute last input', (t) => {

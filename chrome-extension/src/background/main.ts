@@ -50,7 +50,6 @@ let fullyLoadedPromise =
     storage.local.save({pluginData: null}).then(async() =>
         store.rebuildLocalPluginCache().then(async() => {
             let recg = new Recognizer(store,
-                tabs.onUrlUpdate,
                 queryActiveTab,
                 tabs.sendMsgToTab,
                 webkitSpeechRecognition

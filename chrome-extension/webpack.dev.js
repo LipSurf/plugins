@@ -14,6 +14,7 @@ let featureFlags = {
     SKIP_UPDATES: JSON.stringify(true),
     AUTO_ON: JSON.stringify(false),
     PRETEND_FIRST_INSTALL: JSON.stringify(false),
+    IGNORE_INVALID_TABS: JSON.stringify(false),
 };
 
 

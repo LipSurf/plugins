@@ -64,7 +64,6 @@ export class Recognizer extends StoreSynced {
     // recg comes in
     private delayCmds: { [id: number]: ResettableTimeout[] } = {};
     private recgStore: IRecgStore = <IRecgStore>{};
-    private curActiveTabUrl: string;
     // for global homonyms
     private synKeys: RegExp[];
     private synVals: string[];
@@ -76,15 +75,11 @@ export class Recognizer extends StoreSynced {
     private prevOptions: IOptions;
 
     constructor(store: Store,
-        onUrlUpdate: ((cb: ((url: string) => void)) => void),
         private queryActiveTab: () => Promise<chrome.tabs.Tab>,
         private sendMsgToTab: (tabId: number, object) => Promise<string[]>,
         private speechRecognizer,
     ) {
         super(store);
-        onUrlUpdate((url) => {
-            this.curActiveTabUrl = url;
-        });
     }
 
     protected async storeUpdated(newOptions: IOptions) {
@@ -303,7 +298,7 @@ export class Recognizer extends StoreSynced {
      *
      * Returns an array in order of the cmds found in the input (for chaining).
      */
-    async getCmdsForUserInput(input: string, url: string, useHomos: boolean = true): Promise<IMatchCommand[]> {
+    async getCmdsForUserInput(input: string, url: string, askTabIfDynMatch: (cmdPluginId: string, cmdName: string, text: string) => Promise<string[]>, useHomos: boolean = true): Promise<IMatchCommand[]> {
         let startTime = +new Date();
         let homophoneIterator: IterableIterator<string>;
         // TODO: flatten matchstr lists so it's really sorted by decreasing length, and not just by max
@@ -330,7 +325,6 @@ export class Recognizer extends StoreSynced {
             if (a[1] > b[1]) return -1;
             return 0;
         });
-        let currActiveTabProm = this.queryActiveTab();
         let inputParts = await this.langRecg.wordSplitter(input);
         let inputPartStart = 0;
         let inputPartEnd = inputParts.length;
@@ -368,9 +362,7 @@ export class Recognizer extends StoreSynced {
                             let pageFnArgs: string[];
                             let matchPatternIndex;
                             if (typeof curCmd.match === 'undefined') {
-                                // TODO: not a big fan of how this works
-                                let tab = await currActiveTabProm;
-                                pageFnArgs = await this.sendMsgToTab(tab.id, <ITranscriptParcel>{ cmdPluginId: pluginId, cmdName: curCmd.name, text: homonizedInput, lang: this.lang });
+                                pageFnArgs = await askTabIfDynMatch(pluginId, curCmd.name, homonizedInput);
                             } else {
                                 for (matchPatternIndex = 0; matchPatternIndex < curCmd.match.length; matchPatternIndex++) {
                                     let tokens = this.tokenizeMatchPattern(curCmd.match[matchPatternIndex]);
@@ -452,7 +444,10 @@ export class Recognizer extends StoreSynced {
                 return;
             }
 
-            let recgCmds = await this.getCmdsForUserInput(text, this.curActiveTabUrl);
+            let curActiveTab = await this.queryActiveTab();
+            let recgCmds = await this.getCmdsForUserInput(text, curActiveTab.url, async (cmdPluginId: string, cmdName: string, text:string) => {
+                return this.sendMsgToTab(curActiveTab.id, <ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.lang})
+            });
 
             // short-circuit if something newer came along
             if (this.lastRecgTime !== recgTime) {

@@ -1,5 +1,5 @@
 /// <reference path="../@types/store.d.ts" />
-declare let DEBUG:boolean;
+declare let IGNORE_INVALID_TABS:boolean;
 import { promisify, Detector } from './util';
 import { ILocalData, ISyncData } from './store-lib';
 
@@ -60,6 +60,8 @@ export module storage {
 }
 
 export module tabs {
+    // WARNING:
+    // Doesn't handle changing windows!!!
     export function onUrlUpdate(cb: ((url: string) => void)) {
         chrome.tabs.onUpdated.addListener(
             function (tabId, changeInfo, tab) {
@@ -67,6 +69,7 @@ export module tabs {
                     cb(tab.url);
             }
         );
+        // only fires when the active tab within a window changes
         chrome.tabs.onActivated.addListener(
             function ({tabId, windowId}) {
                 chrome.tabs.get(tabId, function(tab) {
@@ -134,7 +137,7 @@ export module runtime {
 export namespace ExtensionUtil {
     async function _queryActiveTab(): Promise<chrome.tabs.Tab> {
         let promisifiedChromeTabsQuery = promisify<chrome.tabs.Tab[]>(chrome.tabs.query);
-        if (DEBUG) {
+        if (IGNORE_INVALID_TABS) {
             let mostActive;
             let tabs = await promisifiedChromeTabsQuery({ /*active: true, currentWindow: true,*/
                 windowType: "normal"
