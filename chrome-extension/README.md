@@ -15,6 +15,7 @@ TODO
 
 WK improvements
 - [ ] do a Levenshtein distance check
+- [ ] choose correct on'yomi or kunyomi --- 
 - [ ] check timestamp of recognition vs timestamp of when word has changed -- don't fill in old matches on new words
 - [ ] use test account to make reviews for troublesome items: like 罰 , by changing the jStorage item. See if ばつ　gets marked as correct
 - [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.

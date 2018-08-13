@@ -227,48 +227,6 @@
 		color: #777;
 	}
 
-    .notice {
-        padding: 9px 10px;
-        border-radius: 4px;
-        border: 1px #ddd solid;
-        opacity: 0;
-        transition: opacity 1s ease-out;
-    }
-
-    .notice.success i {
-        color: #13bd13;
-        vertical-align: middle;
-        font-size: 1.5em;
-    }
-
-    .notice.success {
-        background-color: #f4fff4;
-        color: #565656;
-        border-color: #cae6ca;
-        opacity: 1.0;
-    }
-
-    .notice.failure {
-        background-color: #ffe3e0;
-        border-color: #e69e9e;
-        color: #8c3838;
-        opacity: 1.0;
-    }
-
-    .notice.warning {
-        background-color: #fffad7;
-        border-color: #e5dda1;
-        color: #615f3b;
-        opacity: 1.0;
-    }
-
-    .notice.failure i, .notice.success i {
-        opacity: 1;
-    }
-
-    .notice.failure i {
-        color: #f34040;
-    }
 
 	.blocked-mic-instructions {
 		color: red;

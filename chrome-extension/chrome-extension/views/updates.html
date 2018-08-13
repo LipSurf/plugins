@@ -22,42 +22,128 @@
 			text-decoration: none;
 		}
 
+		li {
+			padding: 10px;
+		}
+
 		.small {
 			font-size: 0.8em;
+		}
+
+		.update-posts {
+			list-style: none;
+		}	
+
+		.update-posts>li {
+			border-bottom: 1px solid #ccc;
+		}
+
+		.update-posts>li:last-child {
+			border: none;
+		}
+		.support {
+			margin-top: 50px;
+			text-align: center;
+			font-weight: bold;
+		}
+
+		.tip {
+			padding: 15px;
+			margin: 20px;
+		}
+
+		.version {
+			color: #777;
+		}
+
+
+		.date {
+			color: black;
+			padding-left: 30px;
+		}
+
+		.tip p {
+			margin: 15px;
+		}
+
+		.tip h4 {
+			margin: 0;
 		}
 	</style>
 </head>
 
 <body>
 	<div style="margin: 0 auto; max-width: 1040px;">
-		<h1>LipSurf has been updated to 0.5!</h1>
-		<div style="display: flex">
-			<section style="margin-right: 20px">
-				<img src="https://media1.giphy.com/media/3o85xxWPJWdJdtPdio/giphy.gif" width="300px">
-				<i>Attack of the crabigator!</i>
-			</section>
-			<section style="float: left">
-				<ul style="display: inline-block; vertical-align: top; margin: 0; font-size: 1.4em;">
-					<li>You can now spell out hard-for-the-recognizer words in WaniKani!
-						<ol>
-							<li>If already in English mode (answering meanings) then just start spelling it out!</li>
-							<li>If in Japanese mode, first say "えいご" then spell the reading as you would type it <div class="small">(eg. for しょうがつ say <i>"s-h-o-u-g-a-t-s-u"</i>)</div></li>
-						</ol>
-					</li>
-					<li>Added commands to switch between Japanese and English</li>
-					<li>Fixed bugs with general Japanese and WaniKani</li>
-				</ul>
+		<h1>LipSurf has been updated to 0.6!</h1>
+			<div class="support">
+				<a target="_blank" href="https://www.lipsurf.com/donate/">Support the Project</a>
+			</div>
+		<ol class="update-posts">
+			<li>
+				<div style="display: flex">
+					<img style="padding-right:20px" src="https://media1.giphy.com/media/l4FGkcm9bpIKR2hnG/giphy.gif" width="350px" height="200px"/>
 				<section>
-					<h2>Tip of the Update</h2>
-					<p>You can spell out words if LipSurf is having trouble recognizing you. 
-						<div class="small">Try spelling out <i>"g-o-o-g-l-e-l-i-p-s-u-r-f"</i>.</div></p>
+				<h4 class="version">0.6 <span class="date">2018-08-13</span></h4>
+				<ul>
+					<li>
+						Fixed issue where live text would show but commands would not be executed.
+					</li>
+					<li>
+						Fixed issue where LipSurf would break after any network issue -- sometimes caused by saying many things while LipSurf is activated.
+					</li>
+					<li>
+						Fixed issue with setting auto. off timer to 0 not working.
+					</li>
+					<li>
+						Added English homophones: kay->k, okay->ok, are->r, you->u
+					</li>
+					<li>
+						Fixed issue where toggling LipSurf on WaniKani would sometimes cause the wrong language to be selected.
+					</li>
+					<li>
+						Fixed issue where LipSurf would stay on if it was shutdown while on a Japanese reading for WaniKani.
+					</li>
+					<li>
+						Fixed issue with recognizing WaniKani vocab/kanji with numbers.
+					</li>
+					<li>
+						Added many default homophones for WaniKani. esp. for Romaji -> Japanese.
+					</li>
+					<li>
+						Fixed issue with apostrophes, hyphens in WaniKani answers.
+					</li>
+				</ul>
 				</section>
-			</section>
-		</div>
-		<div style="margin-top: 50px; text-align: center; font-weight: bold;">
-			<div>Lastly... nobody has donated yet :'( </div>
-				<a target="_blank" href="https://www.lipsurf.com/donate/">support the project</a>.
-		</div>
+				</div>
+					<section class="tip notice warning">
+						<h4><i class="icon warning-empty"></i> Tip of the Update</h4>
+						<p>Don't say "annotations off" say "turn off annotations" or "hide annotations" -- that way LipSurf doesn't jump the gun and think you're saying just "annotate"!</p>
+					</section>
+			</li>
+			<li>
+				<h4 class="version">0.5 <span class="date">2018-08-05</span></h4>
+				<section>
+					<ul style="display: inline-block; vertical-align: top; margin: 0;">
+						<li>You can now spell out hard-for-the-recognizer words in WaniKani!
+							<ol>
+								<li>If already in English mode (answering meanings) then just start spelling it out!</li>
+								<li>If in Japanese mode, first say "えいご" then spell the reading as you would type it <div class="small">(eg. for しょうがつ say <i>"s-h-o-u-g-a-t-s-u"</i>)</div></li>
+							</ol>
+						</li>
+						<li>Added commands to switch between Japanese and English</li>
+						<li>Fixed bugs with general Japanese and WaniKani</li>
+					</ul>
+					<section class="tip notice warning">
+						<h4><i class="icon warning-empty"></i> Tip of the Update</h4>
+						<p>You can spell out words if LipSurf is having trouble recognizing you. </p>
+						<p>Try spelling out <i>"g-o-o-g-l-e-l-i-p-s-u-r-f"</i>.</p>
+					</section>
+				</section>
+			</li>
+		</ol>
+				<div class="support">
+					<a target="_blank" href="https://www.lipsurf.com/donate/">Support the Project</a>
+				</div>
 	</div>
 </body>
 
