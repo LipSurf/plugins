@@ -165,7 +165,7 @@ export class Recognizer extends StoreSynced {
         }
     }
 
-    // we used to set language by reacting to a storage change but that was too slow 
+    // we used to set language by reacting to a storage change but that was too slow
     async setLanguage(language:LanguageCode) {
         // HACK: lazy and stupid, remove this
         // use store so it comes back to our own storeUpdated
@@ -226,6 +226,7 @@ export class Recognizer extends StoreSynced {
         //    "bad-grammar",
         //    "language-not-supported"
         this.recognition.onerror = (event) => {
+            console.log(`recg error: ${event.error}`);
             if (event.error === 'not-allowed') {
                 // TODO: throw an exception that stops the
                 // add-on
@@ -233,7 +234,7 @@ export class Recognizer extends StoreSynced {
                 this.running = false;
             } else if (event.error == 'network') {
                 // TODO: special error message
-                this.running = false;
+                // this.running = false;
             } else if (event.error == 'audio-capture') {
                 // no mic
                 // TODO: special error message
@@ -241,7 +242,7 @@ export class Recognizer extends StoreSynced {
             } else if (event.error !== 'no-speech') {
                 console.error(`unhandled error: ${event.error}`);
                 this.running = false;
-            } 
+            }
 
         };
 
@@ -275,6 +276,7 @@ export class Recognizer extends StoreSynced {
     }
 
     shutdown() {
+        console.log(`shutting down recg.`);
         this.running = false;
         if (this.recognition) {
             this.recognition.onend();

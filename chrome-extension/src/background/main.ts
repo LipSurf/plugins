@@ -125,6 +125,7 @@ class Main extends StoreSynced {
         chrome.runtime.onMessage.addListener((request:IMsgForBg, sender, sendResponse) => {
             switch (request.type) {
                 case 'setLanguage':
+                    console.log(`main got setLang message ${request.payload}`);
                     this.recg.setLanguage(request.payload);
                     break;
             }

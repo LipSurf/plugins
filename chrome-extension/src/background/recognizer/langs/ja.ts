@@ -7,6 +7,7 @@ const JA_DICT_URL = 'https://www.lipsurf.com/assets/ja-dict.json';
 // character ranges
 const HIRAGANA_CHARS = [0x3041, 0x309f];
 const KATAKANA_CHARS = [0x30a1, 0x30fa];
+const ROMAJI_CHARS = [0x41, 0x7a];
 const KANJI_CHARS = [0x4e00, 0x9faf];
 
 // The longest dictionary entry is no more than 27 characters
@@ -21,6 +22,10 @@ function isCharInRange(char = '', start:number, end:number):boolean {
     let code = char.charCodeAt(0);
     // console.log(`char: ${char} code: ${code.toString(16)}`);
     return start <= code && code <= end;
+}
+
+function isRomaji(phrase:string) {
+    return isCharInRange(phrase[0], ROMAJI_CHARS[0], ROMAJI_CHARS[1]);
 }
 
 /*
@@ -121,10 +126,12 @@ export default class Japanese implements ILanguageRecg {
     // HACK some silly stuff in here
     preprocess = function* (input:string) {
         // strip out numbers:
-        let separatedNumsAndChars = input.match(/\d+|[^\d]+/g);
+        let separatedNumsJapAndRomaji = input.match(/[a-zA-Z]+|\d+|[^\d^a-zA-Z]+/g);
         let genAndStrParts:(string|IterableIterator<string>)[] = [];
-        for (let grp of separatedNumsAndChars) {
-            if (isNaN(Number(grp))) {
+        for (let grp of separatedNumsJapAndRomaji) {
+            if (isRomaji(grp)) {
+                genAndStrParts.push(grp);
+            } else if (isNaN(Number(grp))) {
                 // HACK: only do up to the first 11 characters because otherwise it's slow
                 genAndStrParts.push(convertToHiragana(grp.substr(0, 11), this.dictionary));
                 if (grp.length > 10) {

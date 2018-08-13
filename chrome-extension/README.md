@@ -1,6 +1,5 @@
 TODO
 ===
-Something is seriously wrong with the options page... switch to vue?
 - [ ] timing: https://jsfiddle.net/xpvt214o/420526/
 - [ ] Landing page:
    -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
@@ -13,22 +12,25 @@ Something is seriously wrong with the options page... switch to vue?
 - [ ] More exciting video
 - [ ] All banners on google chrome store
 - [ ] post on lobsters
-- [x] email back WK about the addon
 
 WK improvements
-- [ ] furigana?
 - [ ] do a Levenshtein distance check
+- [ ] check timestamp of recognition vs timestamp of when word has changed -- don't fill in old matches on new words
+- [ ] use test account to make reviews for troublesome items: like 罰 , by changing the jStorage item. See if ばつ　gets marked as correct
+- [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.
+- [ ] switching back to english after reviews is not working
 
-v0.5.2
+v0.5.3
+- [ ] missing on'yomi for 金 likely other kanjis
+- [ ] saying r - u shouldn't take you to reddit.com/r/you, saying "topic" shouldn't do top etc.
+- [ ] inflected Japanese verbs need to work -- even for WK  空いて -> 相手
 - [ ] fix inconsistent Japanese for back/previous page
-- [ ] saying back in japanese in WK should actually still work?
 - [ ] BUG: expanding homophones in the options page
 - [ ] BUG: 0 minutes timer
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
 - [ ] BUG saying annotate multiple times seems to hide annotations
 
 v0.6
-- [ ] don't go back in WK without prompting the user (are you sure you want to leave the page)
 - [ ] pick language in the tutorial (which english accent do you have?)
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin

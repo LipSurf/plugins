@@ -58,6 +58,8 @@ test('to hiragana conversion', (t:ExecutionContext<{langRecg: ILanguageRecg}>) =
         '階42': ['かい42'],
         '42階42': ['42かい42'],
         '42階42階': ['42かい42かい'],
+        // let romaji pass so homophones can be used
+        'skip': ['skip'],
     };
     for (let _case in cases) {
         console.time(`hiraganize ${_case}`);
