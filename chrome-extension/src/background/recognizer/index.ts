@@ -303,16 +303,17 @@ export class Recognizer extends StoreSynced {
         let homophoneIterator: IterableIterator<string>;
         // TODO: flatten matchstr lists so it's really sorted by decreasing length, and not just by max
         // length of all matchStrs
-        // commands are sorted by decreasing longest match string
+        // commands are sorted by decreasing longest match string, with dynamic matches first
         // plugins are sorted first by matching plugins, then plugins with globals, then browser plugin
         // [sortedIndex, pluginId, IRecgCommand[]]
         let sortedCmds: [number, string, IRecgCommand[]][] = this.recgStore.plugins.map(plugin => {
             let urlMatchesForPlugin = !!find(plugin.match, regx => regx.test(url));
             return <[number, string, IRecgCommand[]]>[plugin.id.toLowerCase() === 'browser' ? 0 : urlMatchesForPlugin ? 2 : 1, plugin.id, [...(urlMatchesForPlugin ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)].sort((a, b) => {
+                // if match prop is undefined -- then it's a dynamic match command
                 if (a.match && !b.match)
-                    return -1;
-                else if (!a.match && b.match)
                     return 1;
+                else if (!a.match && b.match)
+                    return -1;
                 else if (!a.match && !b.match)
                     return 0
                 else {
