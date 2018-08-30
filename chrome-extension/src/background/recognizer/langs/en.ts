@@ -527,6 +527,11 @@ export default class English implements ILanguageRecg {
         'okay': 'ok',
         'are': 'r',
         'you': 'u',
+        'why': 'y',
+        'see': 'c',
+        'eye': 'i',
+        'pee': 'p',
+        'tea': 't',
     }
 
     homophoneProcessor(homophone:string):RegExp {

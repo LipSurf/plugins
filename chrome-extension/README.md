@@ -27,7 +27,7 @@ v0.6.1
       "help wanted" should not open "help"
 - [ ] a.m.  or p.m. doesn't working for annotations
 - [ ] missing on'yomi for 金 likely other kanjis
-- [ ] saying r - u shouldn't take you to reddit.com/r/you, saying "topic" shouldn't do top etc.
+- [x] saying r - u shouldn't take you to reddit.com/r/you, saying "topic" shouldn't do top etc.
 - [ ] inflected Japanese verbs need to work -- even for WK  空いて -> 相手
 - [ ] fix inconsistent Japanese for back/previous page
 - [ ] BUG: expanding homophones in the options page
