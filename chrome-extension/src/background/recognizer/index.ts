@@ -1,5 +1,5 @@
 import {
-    ORDINAL_CMD_DELAY, CONFIDENCE_THRESHOLD,
+    ORDINAL_CMD_DELAY, CONFIDENCE_THRESHOLD, PARTIAL_MATCH_DELAY,
 } from "../../common/constants";
 import { Store, StoreSynced, } from "../store";
 import { IOptions, } from "../../common/store-lib";
@@ -298,7 +298,7 @@ export class Recognizer extends StoreSynced {
      *
      * Returns an array in order of the cmds found in the input (for chaining).
      */
-    async getCmdsForUserInput(input: string, url: string, askTabIfDynMatch: (cmdPluginId: string, cmdName: string, text: string) => Promise<string[]>, useHomos: boolean = true): Promise<IMatchCommand[]> {
+    async getCmdsForUserInput(input: string, url: string, askTabIfDynMatch: (cmdPluginId: string, cmdName: string, text: string) => Promise<MatchResult>, useHomos: boolean = true): Promise<IMatchCommand[]> {
         let startTime = +new Date();
         let homophoneIterator: IterableIterator<string>;
         // TODO: flatten matchstr lists so it's really sorted by decreasing length, and not just by max
@@ -332,6 +332,7 @@ export class Recognizer extends StoreSynced {
         let origInputPartEnd = inputPartEnd;
         let retCmds: IMatchCommand[] = [];
         let preprocessIterator: IterableIterator<string>;
+        let delayForOtherPartialMatch = false;
 
         while (inputPartStart < inputPartEnd) {
             let inputPart = this.langRecg.wordJoiner(inputParts.slice(inputPartStart, inputPartEnd));
@@ -360,10 +361,15 @@ export class Recognizer extends StoreSynced {
 
                         for (let f = 0; f < cmdsToTest.length; f++) {
                             let curCmd = cmdsToTest[f];
-                            let pageFnArgs: string[];
+                            let matchResult: MatchResult;
                             let matchPatternIndex;
                             if (typeof curCmd.match === 'undefined') {
-                                pageFnArgs = await askTabIfDynMatch(pluginId, curCmd.name, homonizedInput);
+                                matchResult = await askTabIfDynMatch(pluginId, curCmd.name, homonizedInput);
+
+                                if (matchResult === false) {
+                                    // partial match
+                                    delayForOtherPartialMatch = true;
+                                }
                             } else {
                                 for (matchPatternIndex = 0; matchPatternIndex < curCmd.match.length; matchPatternIndex++) {
                                     let tokens = this.tokenizeMatchPattern(curCmd.match[matchPatternIndex]);
@@ -393,19 +399,27 @@ export class Recognizer extends StoreSynced {
 
                                     if (inputSlice.trim() === '') {
                                         // we have a match
-                                        pageFnArgs = ords;
+                                        matchResult = ords;
                                         break;
                                     }
 
                                 }
                             }
-                            if (pageFnArgs) {
-                                let delay: number = null;
+                            if (matchResult) {
+                                let delay: number = 0;
+                                let pageFnArgs = <string[]>matchResult;
                                 if (curCmd.ordinalMatch) {
                                     delay = ORDINAL_CMD_DELAY;
                                 } else if (curCmd.delay) {
                                     delay = matchPatternIndex ? curCmd.delay[matchPatternIndex] : curCmd.delay[0];
                                 }
+
+                                if (delayForOtherPartialMatch) {
+                                    delay += PARTIAL_MATCH_DELAY;
+                                }
+                                if (delay == 0) 
+                                    delay = null
+
                                 console.log(`Recg. timer: ${+new Date() - startTime}`);
                                 retCmds.push({
                                     cmdName: curCmd.name,
@@ -446,8 +460,8 @@ export class Recognizer extends StoreSynced {
             }
 
             let curActiveTab = await this.queryActiveTab();
-            let recgCmds = await this.getCmdsForUserInput(text, curActiveTab.url, async (cmdPluginId: string, cmdName: string, text:string) => {
-                return this.sendMsgToTab(curActiveTab.id, <ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.lang})
+            let recgCmds = await this.getCmdsForUserInput(text, curActiveTab.url, async (cmdPluginId: string, cmdName: string, text:string): Promise<MatchResult> => {
+                return this.sendMsgToTab(curActiveTab.id, <ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.lang});
             });
 
             // short-circuit if something newer came along

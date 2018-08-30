@@ -15,23 +15,26 @@ TODO
 
 WK improvements
 - [ ] do a Levenshtein distance check
-- [ ] choose correct on'yomi or kunyomi --- 
+- [ ] choose correct on'yomi or kunyomi ---
 - [ ] check timestamp of recognition vs timestamp of when word has changed -- don't fill in old matches on new words
 - [ ] use test account to make reviews for troublesome items: like 罰 , by changing the jStorage item. See if ばつ　gets marked as correct
 - [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.
-- [ ] switching back to english after reviews is not working
+- [ ] switching back to english after reviews leaves LipSurf half-on -- the recognizer is still running!
 
-v0.5.3
+v0.6.1
+- [ ] wrong answer shown in Japanese for vocab meaning
+- [ ] 次　vocab word should work (give match priority)
+      "help wanted" should not open "help"
+- [ ] a.m.  or p.m. doesn't working for annotations
 - [ ] missing on'yomi for 金 likely other kanjis
 - [ ] saying r - u shouldn't take you to reddit.com/r/you, saying "topic" shouldn't do top etc.
 - [ ] inflected Japanese verbs need to work -- even for WK  空いて -> 相手
 - [ ] fix inconsistent Japanese for back/previous page
 - [ ] BUG: expanding homophones in the options page
-- [ ] BUG: 0 minutes timer
 - [ ] BUG newly installed close tutorial, open coursera, options page get's opened
 - [ ] BUG saying annotate multiple times seems to hide annotations
 
-v0.6
+v0.7
 - [ ] pick language in the tutorial (which english accent do you have?)
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin

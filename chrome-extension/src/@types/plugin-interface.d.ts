@@ -56,10 +56,16 @@ declare interface ISimpleHomophones {
     [s: string]: string;
 }
 
-// returns processsed transcript result -- an array of args to
-// pass to pageFn
+// array of args to pass over to pageFn
+//     -or-
+// `false` if there is a partial match -- so we should delay other cmds that 
+// have a full match -- because the user might be in the process of saying this longer
+// command where the partial match is a subset but also a matching command "ie. Help Wanted" 
+// executing a different command from "Help"
+declare type MatchResult = boolean|any[];
+
 declare interface IDynamicMatch {
-    fn: (transcript: string) => any[];
+    fn: (transcript: string) => MatchResult|undefined;
     description: string;
 }
 

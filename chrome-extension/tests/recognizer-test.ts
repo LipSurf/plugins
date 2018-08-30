@@ -52,7 +52,7 @@ test.before(async(t) => {
     t.context.urlUpdate = (url: string) => null;
     let pluginManager = new PluginManager(store);
     let queryActiveTab = async () => (<chrome.tabs.Tab>{id: 1});
-    let sendMsgToActiveTab = async (tabId:number, data:ITranscriptParcel) => {
+    let sendMsgToActiveTab = async (tabId:number, data:ITranscriptParcel): Promise<any> => {
         // get the match function for a plugin
         let plugin;
         let name = `${data.cmdPluginId}`;

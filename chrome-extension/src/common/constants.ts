@@ -4,6 +4,10 @@ export const ON_ICON: string = "assets/icon-on-128.png";
 export const OFF_ICON: string = "assets/icon-off-128.png";
 export const PROBLEM_ICON: string = "assets/icon-error-128.png";
 export const ORDINAL_CMD_DELAY = 500;
+// there's some command that partially matches, so we delay
+// fully matching commands so that the user has a chance
+// to finish their utterance and execute a longer match cmd
+export const PARTIAL_MATCH_DELAY = 700;
 
 export const CONFIDENCE_THRESHOLD = 0.0;
 export const LANG_CODE_TO_NICE: {[L in LanguageCode]?: string} = {
