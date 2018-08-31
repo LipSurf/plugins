@@ -13,8 +13,11 @@ export const CONFIDENCE_THRESHOLD = 0.0;
 // these all have the dialect included
 export const POSSIBLE_LANGS: LanguageCode[] = [
     "en-AU",
+    "en-CA",
+    "en-IE",
     "en-IN",
     "en-NZ",
+    "en-PH",
     "en-ZA",
     "en-GB",
     "en-US",
@@ -24,8 +27,11 @@ export const LANG_CODE_TO_NICE: {[L in LanguageCode]?: string} = {
     "en": "English",
     "ja": "日本語 (Japan)",
     "en-AU": "English (Australia)",
+    "en-CA": "English (Canada)",
+    "en-IE": "English (Ireland)",
     "en-IN": "English (India)",
     "en-NZ": "English (New Zealand)",
+    "en-PH": "English (Philippines)",
     "en-ZA": "English (South Africa)",
     "en-GB": "English (UK)",
     "en-US": "English (US)",

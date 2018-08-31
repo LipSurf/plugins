@@ -147,7 +147,7 @@
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 3px;
-  margin: 2px 8px;
+  margin: 2px 3px;
   padding: 6px 13px;
   cursor: pointer;
   align-items: center;
