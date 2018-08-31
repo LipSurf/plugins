@@ -7,7 +7,7 @@
       <img class="logo" src="/assets/icon-128.png" />
       <h1 class="cowabunga">cowabunga.</h1>
       <ol class="first-steps">
-        <li><strong>Select your language and dialect: </strong>
+        <li><strong>Confirm your language and locale: </strong>
           <div class="languages center">
             <template v-for="(niceLang, possLang) in POSSIBLE_LANGS_TO_NICE">
               <label class="lang-choice" :key="possLang" :class="{selected: tutorialPageStore.language == possLang}">
@@ -459,7 +459,7 @@ import { pick } from 'lodash';
 import { Store, StoreSynced, } from "../../background/store";
 import Slide from "./slide.vue";
 import { storage, runtime, } from "../../common/browser-interface";
-import { POSSIBLE_LANGS_TO_NICE, LANG_CODE_TO_COUNTRY } from "../../common/constants";
+import { POSSIBLE_LANGS_TO_NICE, LANG_CODE_TO_COUNTRY, } from "../../common/constants";
 
 const tutorialPageStoreProps = {
     ... pick(GENERAL_PREFERENCES, 'language', ),
@@ -510,6 +510,14 @@ export default class Tutorial extends Vue {
     this.authorId = this.store.subscribe(async newOptions => {
         await this.storeUpdated(newOptions);
     });
+
+    // auto detect language
+    let detectedLang = <LanguageCode>window.navigator.language;
+    if (detectedLang in POSSIBLE_LANGS_TO_NICE) {
+      this.tutorialPageStore.language = detectedLang;
+      this.langChange()
+    }
+
     // auto activate lipsurf
     storage.local.save({ activated: true });
   }
