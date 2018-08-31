@@ -6,17 +6,29 @@
     <Slide key="slide1" timing="1" v-if="$route.params.slideNum == 1" :has-mic-perm="hasMicPerm">
       <img class="logo" src="/assets/icon-128.png" />
       <h1 class="cowabunga">cowabunga.</h1>
-      <div>
-        <span>Allow LipSurf to access your microphone to begin the tutorial by clicking "allow" in the upper left where chrome prompts you.</span>
-      </div>
-      <div class="perms" ref="perms">
-        <div style="display: inline-block;" class="notice" :class="{success: hasMicPerm, failure: hasMicPerm === false}">
-          <i class="icon" :class="{'check-circle': hasMicPerm, error: !hasMicPerm}"></i>&nbsp;
-          <span>{{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }}</span>
-        </div>
-        <p class="mute left">Privacy: the speech recognizer is only on for the active tab when you click the LipSurf icon in the extensions toolbar.</p>
-      </div>
-      <span>After you've given access...</span>
+      <ol class="first-steps">
+        <li><strong>Select your language and dialect: </strong>
+          <div class="languages center">
+            <template v-for="(niceLang, possLang) in POSSIBLE_LANGS_TO_NICE">
+              <label class="lang-choice" :key="possLang" :class="{selected: tutorialPageStore.language == possLang}">
+                <input type="radio" name="language" :value="possLang" v-model="tutorialPageStore.language" @change="langChange">
+                <img :src="getCountryFlag(possLang)"> {{ niceLang }}
+              </label>
+            </template>
+          </div>
+        </li>
+        <li>
+          <strong>Allow LipSurf to access your microphone to begin the tutorial by clicking "allow" in the upper left where chrome prompts you.</strong>
+          <div class="perms" ref="perms">
+            <div style="display: inline-block;" class="notice" :class="{success: hasMicPerm, failure: hasMicPerm === false}">
+              <i class="icon" :class="{'check-circle': hasMicPerm, error: !hasMicPerm}"></i>&nbsp;
+              <span>{{ hasMicPerm ? 'Has microphone permission.' : 'Needs microphone permission.' }}</span>
+            </div>
+            <p class="mute left">Privacy: the speech recognizer is only on for the active tab when you click the LipSurf icon in the extensions toolbar.</p>
+          </div>
+        </li>
+        <li><strong>After you've given access...</strong></li>
+      </ol>
     </Slide>
     <Slide key="slide2" timing="4" v-if="$route.params.slideNum == 2" :has-mic-perm="hasMicPerm">
       <h4>Working Around Chrome Shortcomings</h4>
@@ -128,6 +140,35 @@
   font-family: "Special elite";
   font-size: 4rem;
   line-height: 100px;
+}
+
+.lang-choice {
+  display: inline-flex;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 2px 8px;
+  padding: 6px 13px;
+  cursor: pointer;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.languages {
+  margin-top: 15px;
+}
+
+.lang-choice.selected {
+  background-color: #befbff !important;
+  border-color: #72cfe2 !important;
+}
+
+.lang-choice:hover {
+  background-color: #eee;
+}
+
+.lang-choice img {
+  margin: 0 5px;
 }
 
 .center {
@@ -413,9 +454,21 @@ ul > li > ul {
 <script lang="ts">
 console.log("hi from tutorial");
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
+import { IOptions, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, } from "../../common/store-lib";
+import { pick } from 'lodash';
+import { Store, StoreSynced, } from "../../background/store";
 import Slide from "./slide.vue";
 import { storage, runtime, } from "../../common/browser-interface";
+import { POSSIBLE_LANGS_TO_NICE, LANG_CODE_TO_COUNTRY } from "../../common/constants";
 
+const tutorialPageStoreProps = {
+    ... pick(GENERAL_PREFERENCES, 'language', ),
+};
+
+type IPluginTutorialPageStore = typeof tutorialPageStoreProps;
+
+// the mixin options for vue are not pretty, so we don't mixin StoreSynced 
+// but use the store lib functions manually
 @Component({
   components: {
     Slide
@@ -425,12 +478,23 @@ export default class Tutorial extends Vue {
   get finalSlide() {
     return +this.$route.params.slideNum === this.totalSlides;
   }
+  authorId: number;
   totalSlides = 8;
   hasMicPerm = false;
   slideLeft = true;
+  POSSIBLE_LANGS_TO_NICE = POSSIBLE_LANGS_TO_NICE;
+  store: Store;
+  tutorialPageStore: IPluginTutorialPageStore = <IPluginTutorialPageStore>{};
 
-  activated = false;
   optionsUrl = chrome.extension.getURL("views/options.html");
+
+  getCountryFlag(possLang: LanguageCode) {
+    let countryCode = possLang.substr(possLang.length - 2, possLang.length);
+    if (countryCode in LANG_CODE_TO_COUNTRY) {
+      countryCode = LANG_CODE_TO_COUNTRY[countryCode];
+    }
+    return `https://www.countryflags.io/${countryCode}/shiny/24.png`
+  }
 
   created() {
     window.addEventListener("unload", () => {
@@ -439,15 +503,19 @@ export default class Tutorial extends Vue {
     });
 
     this.checkForPermission();
-    // auto activate lipsurf
-    // this doesn't seem to be used now, use it for when we disable next when 
-    // the plugin is not activated
-    storage.local.registerOnChangeCb(changes => {
-      if (changes && changes.activated && changes.activated.newValue) {
-        this.activated = true;
-      }
+    this.store = new Store();
+    this.store.getOptions().then(options => {
+        this.storeUpdated(options);
     });
+    this.authorId = this.store.subscribe(async newOptions => {
+        await this.storeUpdated(newOptions);
+    });
+    // auto activate lipsurf
     storage.local.save({ activated: true });
+  }
+
+  storeUpdated(newOptions:IOptions) {
+    this.tutorialPageStore = Object.assign({}, this.tutorialPageStore, pick(newOptions, Object.keys(tutorialPageStoreProps)));
   }
 
   mounted() {
@@ -455,6 +523,10 @@ export default class Tutorial extends Vue {
     setTimeout(() => {
             (<Element>this.$refs.bg).classList.remove('fade-in');
     }, 1000);
+  }
+
+  langChange() {
+    this.store.save({language: this.tutorialPageStore.language}, this.authorId);
   }
 
   @Watch("$route")

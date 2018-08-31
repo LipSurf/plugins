@@ -10,9 +10,19 @@ export const ORDINAL_CMD_DELAY = 500;
 export const PARTIAL_MATCH_DELAY = 700;
 
 export const CONFIDENCE_THRESHOLD = 0.0;
+// these all have the dialect included
+export const POSSIBLE_LANGS: LanguageCode[] = [
+    "en-AU",
+    "en-IN",
+    "en-NZ",
+    "en-ZA",
+    "en-GB",
+    "en-US",
+    "ja",
+];
 export const LANG_CODE_TO_NICE: {[L in LanguageCode]?: string} = {
     "en": "English",
-    "ja": "日本語 (Japanese)",
+    "ja": "日本語 (Japan)",
     "en-AU": "English (Australia)",
     "en-IN": "English (India)",
     "en-NZ": "English (New Zealand)",
@@ -20,3 +30,8 @@ export const LANG_CODE_TO_NICE: {[L in LanguageCode]?: string} = {
     "en-GB": "English (UK)",
     "en-US": "English (US)",
 };
+// for flags
+export const LANG_CODE_TO_COUNTRY: {[L in LanguageCode]?: string} = {
+    "ja": "jp",
+};
+export const POSSIBLE_LANGS_TO_NICE: {[L in LanguageCode]?: string} = POSSIBLE_LANGS.reduce((memo, lang) => {memo[lang] = LANG_CODE_TO_NICE[lang]; return memo;}, {});

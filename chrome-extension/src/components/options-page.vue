@@ -31,7 +31,7 @@
                     <i class="icon language"></i>
                     Language:
                     <select style="height: 1.5em" @change="langSave" ref="lang">
-                        <option v-for="(niceLang, possLang) in possibleLanguages" :key="niceLang" :value="possLang" :selected="optionsPageStore.language == possLang">{{ niceLang }}</option>
+                        <option v-for="(niceLang, possLang) in POSSIBLE_LANGS_TO_NICE" :key="niceLang" :value="possLang" :selected="optionsPageStore.language == possLang">{{ niceLang }}</option>
                         <option value="add">+ Add a Language</option>
                     </select>
                 </label>
@@ -279,7 +279,7 @@ import { pick, omit, identity, reduce, isEqual }  from "lodash";
 import { instanceOfDynamicMatch, } from "../common/util";
 import { Store, StoreSynced, } from "../background/store";
 import { IOptions, IGeneralPreferences, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, } from "../common/store-lib";
-import { LANG_CODE_TO_NICE } from "../common/constants";
+import { POSSIBLE_LANGS_TO_NICE } from "../common/constants";
 import * as LANGS from "../background/recognizer/langs";
 
 const pluginOptionsPageStoreProps = {
@@ -327,18 +327,9 @@ export default class OptionsPage extends Vue {
     authorId: number;
     optionsPageStore: IPluginOptionsPageStore = <IPluginOptionsPageStore>{};
     hasMicPerm = true;
-    possibleLanguages = [
-            "en-AU",
-            "en-IN",
-            "en-NZ",
-            "en-ZA",
-            "en-GB",
-            "en-US",
-            "ja",
-        ].reduce((memo, lang) => {memo[lang] = LANG_CODE_TO_NICE[lang]; return memo;}, {});
+    POSSIBLE_LANGS_TO_NICE = POSSIBLE_LANGS_TO_NICE;
     store: Store;
     pluginSelectedLanguage: LanguageCode;
-    LANG_CODE_TO_NICE = LANG_CODE_TO_NICE;
 
     unwatch: () => void;
 

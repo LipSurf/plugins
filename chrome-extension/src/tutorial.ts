@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import { Route } from 'vue-router';
 import Tutorial from './components/tutorial/tutorial.vue';
 
 Vue.config.productionTip = false;

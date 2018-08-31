@@ -6,12 +6,12 @@
 			Say <router-link class="pulsate voice-cmd" :class="{'pulsate-fwd': pulsate}" :to="{name: 'slide', params: {slideNum: +$route.params.slideNum + 1}}">next</router-link> to continue
 		</div>
 		<div v-if="+$route.params.slideNum > 1" class="voice-btn small" :class="{ disabled: !hasMicPerm }">
-			Say <router-link :to="{name: 'slide', params: {slideNum: +$route.params.slideNum - 1}}" class="voice-cmd">previous</router-link> or <span class="voice-cmd">back</span> to go back
+			Say <router-link :to="{name: 'slide', params: {slideNum: Math.max(1, +$route.params.slideNum - 1)}}" class="voice-cmd">previous</router-link> or <span class="voice-cmd">back</span> to go back
 		</div>
 		<div class="voice-btn" :class="{small: !$parent.finalSlide, first: $parent.finalSlide, disabled: !hasMicPerm}">
 			Say <a @click="$parent.exitTutorial" href="#" class="pulsate voice-cmd" :class="{'pulsate-fwd': pulsate && $parent.finalSlide}">close tab</a> to {{ +$route.params.slideNum == 1 ? 'skip' : 'finish' }} the tutorial
 		</div>
-		<router-link style="display: none" :to="{name: 'slide', params: {slideNum: +$route.params.slideNum - 1}}">prev</router-link>
+		<router-link style="display: none" :to="{name: 'slide', params: {slideNum: Math.max(1, +$route.params.slideNum - 1)}}">prev</router-link>
 	</div>
 	<div class="slide-num small">Page {{ +$route.params.slideNum }}/{{ $parent.totalSlides }}</div>
 	</div>
