@@ -21,6 +21,10 @@ WK improvements
 - [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.
 - [ ] switching back to english after reviews leaves LipSurf half-on -- the recognizer is still running!
 
+WK problematic words:
+ためす　gets だめ
+subjective -> subjectivity
+
 v0.6.1
 - [ ] wrong answer shown in Japanese for vocab meaning
 - [ ] 次　vocab word should work (give match priority)
@@ -35,7 +39,9 @@ v0.6.1
 - [ ] BUG saying annotate multiple times seems to hide annotations
 
 v0.7
-- [ ] pick language in the tutorial (which english accent do you have?)
+- [x] pick language in the tutorial (which english accent do you have?)
+- [ ] only make succesful part of the transcript green - green fade up when there is a delay?
+
 - [ ] Change "no headphone mode" to "headphones mode" and have it on by default?
 - [ ] Top Sites Plugin
 - [ ] make livetext hold the command that's being run
@@ -116,6 +122,7 @@ from both the background and option pages.
 
 marketing/profit
 ===
+* market to multi-taskers
 * "Free, browser-based alternative to Alexa, Google Home etc."
 * Infographic for choosing a home voice speaker
 * Tech. blog post about the Serialized<T> fanciness in typescript

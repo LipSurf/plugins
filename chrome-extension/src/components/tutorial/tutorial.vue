@@ -91,7 +91,7 @@
         </li>
         <li>Commands marked "global" can be run anywhere!</li>
         <li>Anybody can create a plugin for a site and submit it to the LipSurf officials &nbsp;
-          <i>(*cough* just me *cough*)</i> &nbsp;for review.</li>
+          <i>(*cough* just me)</i> &nbsp;for review.</li>
         <li>You can control and see which plugins, commands, and homophones are enabled in the
           <a target="_blank" class="voice-cmd" :href="$parent.optionsUrl">options</a>.
         </li>
@@ -258,10 +258,8 @@ ul > li > ul {
 
 #bg {
   background-image: url(/assets/small_wave_pattern.svg);
-  background-position: bottom;
-  background-repeat-x: repeat;
-  background-repeat-y: no-repeat;
-  background-position-x: 0px;
+  background-repeat: repeat no-repeat;
+  background-position: 0px bottom; 
   background-size: 438.5px;
   height: 100%;
   position: absolute;
@@ -314,139 +312,79 @@ ul > li > ul {
 
 @keyframes waves-right {
   0% {
-    background-position-x: 0px;
+    background-position: 0px bottom;
   }
   100% {
-    background-position-x: 222px;
+    background-position: 219px bottom;
   }
 }
 
 @keyframes waves-left {
   0% {
-    background-position-x: 0px;
+    background-position: 0px bottom;
   }
   100% {
-    background-position-x: -222px;
+    background-position: -219px bottom;
   }
 }
 
 .slide-left-enter-active {
-  -webkit-animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
       animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
 .slide-right-enter-active {
-  -webkit-animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
       animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
 .slide-left-leave-active {
-  -webkit-animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
-          animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+        animation: slide-out-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
 }
 
 .slide-right-leave-active {
-  -webkit-animation: slide-out-right 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
-          animation: slide-out-right 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
-}
+      animation: slide-out-right 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+} 
 
 
-@-webkit-keyframes slide-in-left {
-  0% {
-  -webkit-transform: translateX(1000px);
-      transform: translateX(1000px);
-  opacity: 0;
-  }
-  100% {
-  -webkit-transform: translateX(0);
-      transform: translateX(0);
-  opacity: 1;
-  }
-}
 @keyframes slide-in-left {
   0% {
-  -webkit-transform: translateX(1000px);
-      transform: translateX(1000px);
-  opacity: 0;
+    transform: translateX(1000px);
+    opacity: 0;
   }
   100% {
-  -webkit-transform: translateX(0);
-      transform: translateX(0);
-  opacity: 1;
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
-@-webkit-keyframes slide-in-right {
-  0% {
-  -webkit-transform: translateX(-1000px);
-      transform: translateX(-1000px);
-  opacity: 0;
-  }
-  100% {
-  -webkit-transform: translateX(0);
-      transform: translateX(0);
-  opacity: 1;
-  }
-}
 @keyframes slide-in-right {
   0% {
-  -webkit-transform: translateX(-1000px);
-      transform: translateX(-1000px);
-  opacity: 0;
+    transform: translateX(-1000px);
+    opacity: 0;
   }
   100% {
-  -webkit-transform: translateX(0);
-      transform: translateX(0);
-  opacity: 1;
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
-@-webkit-keyframes slide-out-left {
-  0% {
-    -webkit-transform: translateX(0);
-            transform: translateX(0);
-    opacity: 1;
-  }
-  100% {
-    -webkit-transform: translateX(-1000px);
-            transform: translateX(-1000px);
-    opacity: 0;
-  }
-}
 @keyframes slide-out-left {
   0% {
-    -webkit-transform: translateX(0);
-            transform: translateX(0);
+    transform: translateX(0);
     opacity: 1;
   }
   100% {
-    -webkit-transform: translateX(-1000px);
-            transform: translateX(-1000px);
+    transform: translateX(-1000px);
     opacity: 0;
   }
 }
 
-@-webkit-keyframes slide-out-right {
-  0% {
-    -webkit-transform: translateX(0);
-            transform: translateX(0);
-    opacity: 1;
-  }
-  100% {
-    -webkit-transform: translateX(1000px);
-            transform: translateX(1000px);
-    opacity: 0;
-  }
-}
 @keyframes slide-out-right {
   0% {
-    -webkit-transform: translateX(0);
-            transform: translateX(0);
+    transform: translateX(0);
     opacity: 1;
   }
   100% {
-    -webkit-transform: translateX(1000px);
-            transform: translateX(1000px);
+    transform: translateX(1000px);
     opacity: 0;
   }
 }
