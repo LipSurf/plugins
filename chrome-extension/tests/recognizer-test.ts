@@ -12,6 +12,7 @@ import { storage } from "../src/common/browser-interface";
 import { ILocalData, } from "../src/common/store-lib";
 import { instanceOfDynamicMatch, } from "../src/common/util";
 import { BlankPlugin } from "../src/common/plugin-lib";
+import { isEmpty, xor, } from 'lodash';
 // used dynamically when Plugins are eval'd
 const PluginBase = BlankPlugin;
 
@@ -59,7 +60,7 @@ test.before(async(t) => {
         eval(`${getPlugin(data.cmdPluginId)}; plugin = ${name}Plugin`);
         let cmd:IPluginDefCommand = plugin.Plugin.commands.find((cmd) => cmd.name === data.cmdName);
         console.log(`data.text ${data.text}`);
-        if (data.cmdName.toLowerCase() === 'click' && data.text === 'z1') 
+        if (data.cmdName.toLowerCase() === 'click' && data.text === 'z1')
             return ['z1'];
         if (instanceOfDynamicMatch(cmd.match))
             return await cmd.match.fn(data.text);
@@ -170,6 +171,26 @@ test('test homophones', async(t) => {
 
     t.true(homos.indexOf("next tab") !== -1);
 });
+
+
+test('test unique character homophones', async(t) => {
+    let recg = t.context.recg as any;
+    let cases = {
+        // should also have 'ten %' if the homophone generator was more comprehensive
+        '10%': ['10%', '10 percent', 'ten percent'],
+    };
+
+    for (let _case in cases) {
+        let homoIt:IterableIterator<string> = recg.generateHomophones(_case);
+        let homos = [];
+        for (let homo = homoIt.next().value; homo; homo = homoIt.next().value) {
+            homos.push(homo);
+        }
+        t.is(cases[_case].length, homos.length)
+        t.true(isEmpty(xor(homos, cases[_case])), `expected: ${cases[_case]} differ from actual: ${homos}`);
+    }
+});
+
 
 // doesn't include handleTranscript extra massaging
 test('getCmds chaining w/ different commands', async (t:EC) => {

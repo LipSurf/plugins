@@ -14,7 +14,7 @@
     "test-plugins": "echo npm run pretest && tests/test-in-vm.sh tests/build/tests/plugins/plugin-test.js",
     "test-plugins-debug": "echo not yet working npm run pretest && tests/plugins/test-in-vm.sh -d tests/build/tests/plugins/plugin-test.js",
     "test-plugins-watch": "when-changed -k -1 -s tests/plugins/*.ts src/plugins/* -c npm run test-plugins",
-    "test-lang-watch": "ava --verbose --watch tests/lang-test.ts",
+    "test-lang-watch": "ava --verbose --watch tests/ja-lang-test.ts",
     "test-recg-watch": "ava --verbose --watch tests/recognizer-test.ts",
     "test-plugins-debug-watch": "echo not yet working when-changed -k 1 -s tests/plugins/*.ts src/plugins* -c npm run test-plugins-debug",
     "pack": "node_modules/crx/bin/crx.js pack ./chrome-extension -p ./crx-key.pem",

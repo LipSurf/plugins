@@ -97,6 +97,9 @@ Design rationale:
 
 testing
 ===
+* Run individual ava test
+`$ npm run test-recg-watch -- --match='test unique character homophones'`
+
 * Send manual command:
 ```
   var i = i || 0;window.postMessage({test_probe: true, cmd: `recg.handleTranscript("りょうどつぎ", 0.99, true, ${i + 1}, recg.lastRecgTime)`}, '*')

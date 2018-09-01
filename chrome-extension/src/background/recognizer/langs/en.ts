@@ -520,8 +520,10 @@ export default class English implements ILanguageRecg {
         "0": "o",
         "too": "two",
         "sex": "six",
+        // TODO make these always replace instead of using homophones for perf?
         '\\.': ' dot ',
         ',': ' comma ',
+        '%': ' percent',
         'i\'m': 'i am',
         'kay': 'k',
         'okay': 'ok',
@@ -534,7 +536,12 @@ export default class English implements ILanguageRecg {
         'tea': 't',
     }
 
+    // also needs to split on symbols so 10% will work
     homophoneProcessor(homophone:string):RegExp {
+        // special handling
+        if (homophone === '%') {
+            return new RegExp(homophone);
+        }
         return new RegExp(`\\b${homophone}\\b`);
     }
 
