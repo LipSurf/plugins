@@ -513,6 +513,8 @@ export default class English implements ILanguageRecg {
     homophones = {
         "for": "four",
         'stirred': 'third',
+        // has a strong tendency to choose siri over theory, so we make them homophones
+        'siri': 'theory',
         'aladdin': 'eleven',
         "letter": "eleven",
         "to": "two",
