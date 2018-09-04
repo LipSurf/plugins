@@ -45,13 +45,18 @@ export class PluginManager extends StoreSynced {
         return compiledCsStr;
     }
 
+    static async fetchAndDigestPlugin(id: string, version: string):Promise<ILocalPluginData> {
+        let content = await PluginManager.fetchPluginCode(id);
+        return await PluginManager.digestNewPlugin(id, version, content);
+    }
+
     // Take PluginBase subclass and
     // put into shape compatible with the global shared store (IOptions)
     // only needs to be run when plugin version is changed
     // (most commonly when fetching new plugins, or updating version of
     // existing plugins)
-    static async digestNewPlugin(id: string, version: string): Promise<ILocalPluginData> {
-        let plugin = PluginManager.evalPluginCode(id, (await PluginManager.fetchPluginCode(id)));
+    static async digestNewPlugin(id: string, version: string, content: string): Promise<ILocalPluginData> {
+        let plugin = await PluginManager.evalPluginCode(id, content);
         let csCmdsStr = plugin.commands
                 .filter((cmd) => cmd.pageFn)
                 .map((cmd) => {

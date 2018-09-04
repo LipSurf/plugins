@@ -17,15 +17,7 @@ const DEFAULT_PREFERENCES = {
             ['Google', '1.0.0'],
             ['Reddit', '1.0.0'],
             ['Wanikani', '1.0.0'],
-        ].reduce((memo, [id, version]) => Object.assign(memo, {
-            [id]: {
-                version,
-                enabled: true,
-                expanded: true,
-                showMore: false,
-                disabledHomophones: [],
-                disabledCommands: []
-            }}), {})
+        ].reduce((memo, [id, version]) => Object.assign(memo, createDefaultSyncPrefs(id, version)), {})
 };
 
 // aren't exposed in the getOptions meta API call for plugins
@@ -62,6 +54,20 @@ export type ILocalData = typeof DEFAULT_LOCAL_DATA;
  */
 export interface IOptions extends IGeneralPreferences, ISharedLocalData {
     plugins: IPluginConfig[];
+}
+
+
+export function createDefaultSyncPrefs(id:string, version:string) {
+    return {
+        [id]: {
+            version,
+            enabled: true,
+            expanded: true,
+            showMore: false,
+            disabledHomophones: [],
+            disabledCommands: []
+        }
+    }
 }
 
 

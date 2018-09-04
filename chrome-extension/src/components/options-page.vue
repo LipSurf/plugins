@@ -53,13 +53,18 @@
                 </label>
             </div>
             <div class="option">
-            <label class="w-note">
-                <i class="icon timer-off"></i>
-				<div>
-					Automatically shut off &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model.number="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes after the last valid command.
-					<div class="mute">Set to 0 to never automatically shut off.</div>
-				</div>
-            </label>
+                <label class="w-note">
+                    <i class="icon timer-off"></i>
+                    <div>
+                        Automatically shut off &nbsp;&nbsp;<input class="right" style="width: 3.5em" v-model.number="optionsPageStore.inactivityAutoOffMins" type="number" min="0" max="525600" /> &nbsp;&nbsp;minutes after the last valid command.
+                        <div class="mute">Set to 0 to never automatically shut off.</div>
+                    </div>
+                </label>
+            </div>
+            <div class="option">
+                <label>
+                    <input type="checkbox" v-model="optionsPageStore.developerMode"/> Developer mode
+                </label>
             </div>
             <div class="option" style="height: 1.2rem; margin: 20px">
                 <div class="btn-bar">
@@ -71,6 +76,10 @@
         <section>
             <h2>Plugins</h2>
 			<div style="text-align: right">
+                <label v-if="optionsPageStore.developerMode">
+                    <input type="file" @change="addLocalPlugin" ref="addLocalPlugin" accept=".js">
+                    <i class="icon lib-add"></i> Add a Local Plugin
+                </label>
 				<button @click="getMorePlugins" id="getMorePlugins"><i class="icon lib-add"></i> Get More Plugins</button>
 			</div>
             <CmdGroup v-for="cmdGroup in optionsPageStore.cmdGroups" class="cmd-group" :key="cmdGroup.name" :languages="cmdGroup.languages" :expanded.sync="cmdGroup.expanded"
@@ -280,6 +289,7 @@ import { instanceOfDynamicMatch, } from "../common/util";
 import { Store, StoreSynced, } from "../background/store";
 import { IOptions, IGeneralPreferences, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, } from "../common/store-lib";
 import { POSSIBLE_LANGS_TO_NICE } from "../common/constants";
+import { PluginManager } from "../background/plugin-manager";
 import * as LANGS from "../background/recognizer/langs";
 
 const pluginOptionsPageStoreProps = {
@@ -435,6 +445,18 @@ export default class OptionsPage extends Vue {
         /*if (confirm("This feature is not yet available. Click \"OK\" if you're a programmer and want to write a plugin.")) {*/
             /*window.open('https://github.com/mikob/lipsurf', '_blank');*/
         /*}*/
+    }
+
+    addLocalPlugin() {
+        let f:File = (<HTMLInputElement>this.$refs.addLocalPlugin).files[0];
+        let reader = new FileReader();
+        reader.onload = async (e) => {
+            let text = reader.result;
+            let id = f.name.split('.js')[0];
+            let plugin = await PluginManager.digestNewPlugin(id, '1.0.0', text);
+            this.store.installNewPlugins({[id]: plugin});
+        };
+        reader.readAsText(f);
     }
 
     donate() {

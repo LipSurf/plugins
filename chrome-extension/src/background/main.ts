@@ -41,14 +41,14 @@ const {
 }: IWindow = < IWindow > window;
 
 let permissionDetector;
-let store = new Store(PluginManager.digestNewPlugin);
+let store = new Store(PluginManager.fetchAndDigestPlugin);
 
 // initial load -> get plugins from storage
 let fullyLoadedPromise =
     // HACK
     //  clearing the local plugin data so plugin data is updated between versions -- had issues doing this onInstall because it is called late
     storage.local.save({pluginData: null}).then(async() =>
-        store.rebuildLocalPluginCache().then(async() => {
+        store.rebuildLocalPluginCache(PluginManager.fetchAndDigestPlugin).then(async() => {
             let recg = new Recognizer(store,
                 queryActiveTab,
                 tabs.sendMsgToTab,

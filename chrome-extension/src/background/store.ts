@@ -2,7 +2,7 @@
 /// <reference path="../common/browser-interface.ts" />
 import { mapValues, pick, flatten, assignIn, zip, fromPairs, isEqual, omit } from "lodash";
 import { instanceOfDynamicMatch, objectAssignDeep, difference, promiseSerial } from "../common/util";
-import { getOptions, getStoredOrDefault, IOptions, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, ILocalData, ISyncData } from "../common/store-lib";
+import { getOptions, getStoredOrDefault, IOptions, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, ILocalData, ISyncData, createDefaultSyncPrefs } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
 
@@ -20,15 +20,15 @@ export class Store {
     // fetchPlugin is only required to be set by one instance of store -- the one
     // that is responsible for updating the local cache (such as just the background
     // page, instead of both the background page and the options page, etc.)
-    constructor(private fetchPlugin: (id: string, version: string) => Promise<ILocalPluginData> = null) {
+    constructor(fetchAndDigestPlugin: (id: string, version: string) => Promise<ILocalPluginData> = null) {
         storage.sync.registerOnChangeCb((changes) => {
             // changes is not used currently, maybe later
             this.lastLocalAuthorId = changes.authorId ? changes.authorId.newValue : this.lastLocalAuthorId;
 
             if (Object.keys(omit(changes, 'authorId')).length > 0) {
-                if (this.fetchPlugin) {
+                if (fetchAndDigestPlugin) {
                     // might need to fetch new plugins
-                    this.rebuildLocalPluginCache().then(() => {
+                    this.rebuildLocalPluginCache(fetchAndDigestPlugin).then(() => {
                         this.getOptions(true).then(() => this.publish(this.lastSyncAuthorId));
                     });
                 } else {
@@ -47,13 +47,12 @@ export class Store {
 
     // the initial get (should only be called at extension startup or when preferences change)
     // saves to settings
-    async rebuildLocalPluginCache(): Promise<void> {
+    async rebuildLocalPluginCache(fetchAndDigestPlugin: (id: string, version: string) => Promise<ILocalPluginData>): Promise<void> {
         let [syncData, localData] = await getStoredOrDefault();
         // digest plugins that don't match what we have in the
         // local settings already
         // in case versions have changed (for example remotely)
         let neededPluginIds = Object.keys(syncData.plugins);
-        let serializedLocalData: any = {};
 
         let toInstallPluginIds = neededPluginIds.filter(id =>
             typeof localData.pluginData[id] === 'undefined'
@@ -62,13 +61,21 @@ export class Store {
 
         let newlyInstalledLocalPluginData = await Promise.all(
             toInstallPluginIds.map(
-                async (id: string) => await this.fetchPlugin(id, syncData.plugins[id].version)
+                async (id: string) => await fetchAndDigestPlugin(id, syncData.plugins[id].version)
             )
         );
 
         let idToNewPlugins = fromPairs(zip(toInstallPluginIds, newlyInstalledLocalPluginData));
+        if (toInstallPluginIds.length > 0) {
+            this.installNewPlugins(idToNewPlugins, false);
+        }
 
         // TODO: purge sync data for plugins that are uninstalled?
+    }
+
+    async installNewPlugins(idToNewPlugins: {[id: string]: ILocalPluginData}, sync=true): Promise<void> {
+        let [syncData, localData] = await getStoredOrDefault();
+        let serializedLocalData: any = {};
 
         // extend the existing plugins with the new ones
         assignIn(localData.pluginData, idToNewPlugins);
@@ -112,7 +119,15 @@ export class Store {
         };
 
         // now save the newly rebuilt cache
-        await (storage.local.save)(serializedLocalData);
+        let promises = [storage.local.save(serializedLocalData)];
+
+        // save to sync as well
+        if (sync) {
+            let newSyncData = Object.keys(idToNewPlugins).reduce((memo, id) => Object.assign(memo, createDefaultSyncPrefs(id, idToNewPlugins[id].version)), {})
+            promises.push(storage.sync.save({plugins: Object.assign(syncData.plugins, newSyncData)}));
+        }
+
+        Promise.all(promises);
     }
 
     async getOptions(forceRefresh = false): Promise<IOptions> {
