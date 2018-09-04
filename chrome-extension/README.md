@@ -17,9 +17,9 @@ WK improvements
 - [ ] do a Levenshtein distance check
 - [ ] choose correct on'yomi or kunyomi ---
 - [ ] check timestamp of recognition vs timestamp of when word has changed -- don't fill in old matches on new words
-- [ ] use test account to make reviews for troublesome items: like 罰 , by changing the jStorage item. See if ばつ　gets marked as correct
 - [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.
 - [ ] switching back to english after reviews leaves LipSurf half-on -- the recognizer is still running!
+- [ ] handle hundred, thousand, ten-thousand, hundred million etc.
 
 WK problematic words:
 ためす　gets だめ
@@ -108,7 +108,7 @@ testing
 
 * Send manual command:
 ```
-  var i = i || 0;window.postMessage({test_probe: true, cmd: `recg.handleTranscript("りょうどつぎ", 0.99, true, ${i + 1}, recg.lastRecgTime)`}, '*')
+  var i = i || 0;window.postMessage({test_probe: true, cmd: `this.recg.handleTranscript("りょうどつぎ", 0.99, true, ${i + 1}, this.recg.lastRecgTime)`}, '*')
 ```
 * testing:
     record requests: ./mitmproxy --save-stream-file ~/workspace/no-hands-man/tests.stream

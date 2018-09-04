@@ -49,14 +49,9 @@ let fullyLoadedPromise =
     //  clearing the local plugin data so plugin data is updated between versions -- had issues doing this onInstall because it is called late
     storage.local.save({pluginData: null}).then(async() =>
         store.rebuildLocalPluginCache(PluginManager.fetchAndDigestPlugin).then(async() => {
-            let recg = new Recognizer(store,
-                queryActiveTab,
-                tabs.sendMsgToTab,
-                webkitSpeechRecognition
-            );
             let ps = new PluginSandbox(store);
             let pm = new PluginManager(store);
-            let mn = new Main(store, pm, ps, recg);
+            let mn = new Main(store, pm, ps);
 
             if (AUTO_ON) {
                 // HACK
@@ -84,7 +79,7 @@ let fullyLoadedPromise =
             if (slideNum > 0 && !SKIP_TUTORIAL) {
                 openTutorial(slideNum);
             }
-            return {recg, ps, pm, mn};
+            return {ps, pm, mn};
         })
 );
 
@@ -96,8 +91,9 @@ class Main extends StoreSynced {
 
     private wasOn: boolean = false;
     private sentDownloadingNotification: boolean = false;
+    private recg: Recognizer;
 
-    constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox, private recg: Recognizer) {
+    constructor(public store: Store, private pm: PluginManager, private ps: PluginSandbox) {
         super(store)
 
         if (INCLUDE_SPEECH_TEST_HARNESS) {
@@ -121,6 +117,13 @@ class Main extends StoreSynced {
             storage.local.save({activated: !this.mainStore.activated});
         });
 
+        this.recg = new Recognizer(store,
+            queryActiveTab,
+            tabs.sendMsgToTab,
+            webkitSpeechRecognition,
+            this.cmdRecognizedCb.bind(this),
+        );
+
         chrome.runtime.onMessage.addListener((request:IMsgForBg, sender, sendResponse) => {
             switch (request.type) {
                 case 'setLanguage':
@@ -129,6 +132,7 @@ class Main extends StoreSynced {
                     break;
             }
         });
+
     }
 
     protected async storeUpdated(newOptions: IOptions) {
@@ -211,11 +215,6 @@ class Main extends StoreSynced {
                     this.store.save({ activated: false });
                 }, inactivityMins * 60 * 1000);
             } 
-            // only allow recg to start if at least default
-            // commands are loaded
-            this.recg.start(this.cmdRecognizedCb.bind(this));
-        } else {
-            this.recg.shutdown();
         }
 
         this.mainStore.activated = _activated;

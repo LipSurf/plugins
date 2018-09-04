@@ -2,8 +2,8 @@ import {
     ORDINAL_CMD_DELAY, CONFIDENCE_THRESHOLD, PARTIAL_MATCH_DELAY,
 } from "../../common/constants";
 import { Store, StoreSynced, } from "../store";
-import { IOptions, } from "../../common/store-lib";
-import { find, pick, identity } from "lodash";
+import { IOptions, SHARED_LOCAL_DATA, GENERAL_PREFERENCES, } from "../../common/store-lib";
+import { find, pick, identity, omit, flatten, uniq, } from "lodash";
 import { ResettableTimeout, instanceOfDynamicMatch, MissingLangPackError, objectAssignDeep, } from "../../common/util";
 
 import * as LANGS from './langs';
@@ -21,9 +21,9 @@ interface IRecgCommand extends IGlobalCommand, INiceCommand {
 }
 
 const recgStoreProps = {
-    plugins: <IPluginRecgStore[]> [],
-    missingLangPack: false,
-    busyDownloading: false,
+    plugins: <{[lang in LanguageCode]?: IPluginRecgStore[]}> {},
+    ...pick(SHARED_LOCAL_DATA, 'missingLangPack', 'busyDownloading', 'activated'),
+    ...pick(GENERAL_PREFERENCES, 'language'),
 }
 
 type IRecgStore = typeof recgStoreProps;
@@ -52,7 +52,6 @@ export type IRecognizedCallback = ILiveTextParcel | ICmdParcel;
 export class Recognizer extends StoreSynced {
     private recognition;
     private running: boolean = false;
-    private cmdRecognizedCb: (cb: IRecognizedCallback) => Promise<void>;
     private matchedCmdsForIndex = [];
     // so that we don't send repeat cmdRecognizedCb's when a new transcript comes in that either a) is the same text with a higher confidence/isFinal value
     // b) was for a command that was a success before (example WK dynamic matched answer) but no longer is
@@ -67,41 +66,90 @@ export class Recognizer extends StoreSynced {
     // for global homonyms
     private synKeys: RegExp[];
     private synVals: string[];
-    private lang: LanguageCode;
     private langRecg: ILanguageRecg;
+    private langRecgs: {[lang in LanguageCode]?: ILanguageRecg} = {};
     private downloadingLangPack: boolean = false;
-
-    // HACK: egregious hack -- remove this!
-    private prevOptions: IOptions;
 
     constructor(store: Store,
         private queryActiveTab: () => Promise<chrome.tabs.Tab>,
         private sendMsgToTab: (tabId: number, object) => Promise<string[]>,
         private speechRecognizer,
+        private cmdRecognizedCb: ((cb: IRecognizedCallback) => Promise<void>),
     ) {
         super(store);
     }
 
     protected async storeUpdated(newOptions: IOptions) {
-        // HACK: remove soon
-        this.prevOptions = newOptions;
-        this.langRecg = new LANGS[newOptions.language.substr(0, 2)]();
+        let newLang = false;
+        console.log(`recg storeUpdated activated: ${newOptions.activated} previously: ${this.recgStore.activated}`);
 
+        Object.assign(this.recgStore, pick(newOptions, 'missingLangPack', 'busyDownloading', ));
+        this.langRecg = this.getLangRecg(newOptions.language);
+
+        await this.downloadLangPackIfNeeded(this.langRecg);
+        [this.synKeys, this.synVals] = this.getGlobalHomoKV(this.langRecg);
+
+        let enabledPlugins = newOptions.plugins.filter(plugin => plugin.enabled);
+        let allLangs = uniq(flatten(enabledPlugins.map(plugin => Object.keys(plugin.localized))));
+
+        this.recgStore.plugins = allLangs.reduce((memo, lang) => Object.assign(memo, {[lang]: enabledPlugins.map(plugin => {
+            let localized = plugin.localized[newOptions.language] || plugin.localized[<LanguageCode>newOptions.language.substr(0, 2)];
+            if (localized) {
+                let enabledHomophones = localized.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
+                let matchers = localized.matchers;
+                return {
+                    synKeys: enabledHomophones.map((homo) => this.langRecg.homophoneProcessor ? this.langRecg.homophoneProcessor(homo.source) : new RegExp(homo.source)),
+                    synVals: enabledHomophones.map((homo) => homo.destination),
+                    commands: Object.keys(plugin.commands)
+                        .filter(cmdName => plugin.commands[cmdName].enabled)
+                        // only those which we have a localized version of
+                        .filter(cmdName => matchers[cmdName] !== undefined)
+                        .map(cmdName => ({
+                            name: cmdName,
+                            global: plugin.commands[cmdName].global,
+                            ordinalMatch: instanceOfDynamicMatch(matchers[cmdName].match) ? false : !!find(matchers[cmdName].match, (matchStr: string) => !!~matchStr.indexOf('#')),
+                            // if it's a dynamic match, the fn is defined in the context of the CS
+                            match: instanceOfDynamicMatch(matchers[cmdName].match) ? undefined : <string[]>matchers[cmdName].match,
+                            ...pick(matchers[cmdName], ['delay', 'nice',]),
+                        })),
+                    ...pick(plugin, ['id', 'match'])
+
+                }
+            }
+        })}), {});
+
+        if (this.recgStore.language && this.recgStore.language != newOptions.language) {
+            // new language
+            newLang = true;
+        } 
+        this.recgStore.language = newOptions.language;
+
+        if (newOptions.activated && (!this.recgStore.activated || newLang)) {
+            this.start(this.cmdRecognizedCb);
+        } else if (!newOptions.activated && this.recgStore.activated) {
+            this.shutdown();
+        }
+        this.recgStore.activated = newOptions.activated;
+    }
+
+    private async downloadLangPackIfNeeded(langRecg: ILanguageRecg) {
         if (!this.downloadingLangPack) {
             // check for missing lang packs
             try {
-                if (this.langRecg.init) {
-                    await this.langRecg.init();
+                if (langRecg.init) {
+                    await langRecg.init();
                 }
-                this.recgStore.missingLangPack = false;
-                this.save({missingLangPack: false});
+                if (this.recgStore.missingLangPack) {
+                    this.recgStore.missingLangPack = false;
+                    this.save({missingLangPack: false});
+                }
             } catch(e) {
                 if (e instanceof MissingLangPackError) {
                     this.downloadingLangPack = true;
                     this.recgStore.busyDownloading = true;
                     this.recgStore.missingLangPack = true;
                     this.save({missingLangPack: true, busyDownloading: true});
-                    this.langRecg.getExtraData().then(() => {
+                    langRecg.getExtraData().then(() => {
                         this.recgStore.busyDownloading = false;
                         this.recgStore.missingLangPack = false;
                         this.store.save({busyDownloading: false, missingLangPack: false});
@@ -113,58 +161,35 @@ export class Recognizer extends StoreSynced {
                 }
             }
         }
+    }
 
-        let homoKeys = Object.keys(this.langRecg.homophones).sort((a, b) => a.length > b.length ? -1 : 1);
-        this.synKeys = homoKeys.map((key) => this.langRecg.homophoneProcessor ? this.langRecg.homophoneProcessor(key) : new RegExp(key));
-        this.synVals = homoKeys.map((key) => this.langRecg.homophones[key]);
-
-        this.recgStore.plugins = newOptions.plugins
-            .filter(plugin => plugin.enabled)
-            .map(plugin => {
-                let localized = plugin.localized[newOptions.language] || plugin.localized[<LanguageCode>newOptions.language.substr(0, 2)];
-                if (localized) {
-                    let enabledHomophones = localized.homophones.filter((homo) => homo.enabled).sort((a, b) => a.source.length > b.source.length ? -1 : 1);
-                    let matchers = localized.matchers;
-                    return {
-                        synKeys: enabledHomophones.map((homo) => this.langRecg.homophoneProcessor ? this.langRecg.homophoneProcessor(homo.source) : new RegExp(homo.source)),
-                        synVals: enabledHomophones.map((homo) => homo.destination),
-                        commands: Object.keys(plugin.commands)
-                            .filter(cmdName => plugin.commands[cmdName].enabled)
-                            // only those which we have a localized version of
-                            .filter(cmdName => matchers[cmdName] !== undefined)
-                            .map(cmdName => ({
-                                name: cmdName,
-                                global: plugin.commands[cmdName].global,
-                                ordinalMatch: instanceOfDynamicMatch(matchers[cmdName].match) ? false : !!find(matchers[cmdName].match, (matchStr: string) => !!~matchStr.indexOf('#')),
-                                // if it's a dynamic match, the fn is defined in the context of the CS
-                                match: instanceOfDynamicMatch(matchers[cmdName].match) ? undefined : <string[]>matchers[cmdName].match,
-                                ...pick(matchers[cmdName], ['delay', 'nice',]),
-                            })),
-                        ...pick(plugin, ['id', 'match'])
-
-                    }
-                }
-            })
-            .filter(identity);
-
-        if (this.lang && this.lang != newOptions.language) {
-            // new language
-            this.lang = newOptions.language;
-
-            if (newOptions.activated) {
-                // restart the recognizer with the new language
-                this.start(this.cmdRecognizedCb);
-            }
-        } else {
-            this.lang = newOptions.language;
+    private getLangRecg(language: LanguageCode): ILanguageRecg {
+        let lang = language.substr(0, 2);
+        if (!(lang in this.langRecgs)) {
+            Object.assign(this.langRecgs, {[lang]: new LANGS[lang]()});
         }
+        return this.langRecgs[lang];
+    }
+
+    private getGlobalHomoKV(langRecg: ILanguageRecg): [RegExp[], string[]] {
+        let homoKeys = Object.keys(langRecg.homophones).sort((a, b) => a.length > b.length ? -1 : 1);
+        let synKeys = homoKeys.map((key) => langRecg.homophoneProcessor ? langRecg.homophoneProcessor(key) : new RegExp(key));
+        let synVals = homoKeys.map((key) => langRecg.homophones[key]);
+        return [synKeys, synVals];
     }
 
     // we used to set language by reacting to a storage change but that was too slow
     async setLanguage(language:LanguageCode) {
-        // HACK: lazy and stupid, remove this
-        // use store so it comes back to our own storeUpdated
-        this.storeUpdated({...this.prevOptions, language})
+        console.log(`in recg.setLanguage recgStore.activated: ${this.recgStore.activated} `);
+        this.recgStore.language = language;
+        this.langRecg = this.getLangRecg(language);
+        await this.downloadLangPackIfNeeded(this.langRecg);
+        [this.synKeys, this.synVals] = this.getGlobalHomoKV(this.langRecg);
+
+        if (this.recgStore.activated) {
+            this.start(this.cmdRecognizedCb);
+        }
+        // intentionally won't come back to our own storeUpdated because author id 
         this.save({language});
     }
 
@@ -182,8 +207,8 @@ export class Recognizer extends StoreSynced {
         this.recognition = new this.speechRecognizer();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
-        console.log(`starting recognizer with ${this.lang}`);
-        this.recognition.lang = this.lang;
+        console.log(`starting recognizer with ${this.recgStore.language}`);
+        this.recognition.lang = this.recgStore.language;
         this.recognition.maxAlternatives = 1;
 
         // grammar not supported yet in chrome (as of v64)
@@ -306,7 +331,7 @@ export class Recognizer extends StoreSynced {
         // commands are sorted by decreasing longest match string, with dynamic matches first
         // plugins are sorted first by matching plugins, then plugins with globals, then browser plugin
         // [sortedIndex, pluginId, IRecgCommand[]]
-        let sortedCmds: [number, string, IRecgCommand[]][] = this.recgStore.plugins.map(plugin => {
+        let sortedCmds: [number, string, IRecgCommand[]][] = this.recgStore.plugins[this.recgStore.language.substr(0, 2)].map(plugin => {
             let urlMatchesForPlugin = !!find(plugin.match, regx => regx.test(url));
             return <[number, string, IRecgCommand[]]>[plugin.id.toLowerCase() === 'browser' ? 0 : urlMatchesForPlugin ? 2 : 1, plugin.id, [...(urlMatchesForPlugin ? plugin.commands.filter(cmd => !cmd.global) : []), ...plugin.commands.filter(cmd => cmd.global)].sort((a, b) => {
                 // if match prop is undefined -- then it's a dynamic match command
@@ -461,7 +486,7 @@ export class Recognizer extends StoreSynced {
 
             let curActiveTab = await this.queryActiveTab();
             let recgCmds = await this.getCmdsForUserInput(text, curActiveTab.url, async (cmdPluginId: string, cmdName: string, text:string): Promise<MatchResult> => {
-                return this.sendMsgToTab(curActiveTab.id, <ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.lang});
+                return this.sendMsgToTab(curActiveTab.id, <ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.recgStore.language});
             });
 
             // short-circuit if something newer came along
@@ -592,8 +617,9 @@ export class Recognizer extends StoreSynced {
             }
         }
         // already has filtered out disabled commands and plugins
-        for (let x = 0; x < this.recgStore.plugins.length; x++) {
-            let plugin = this.recgStore.plugins[x];
+        let lang = this.recgStore.language.substr(0, 2);
+        for (let x = 0; x < this.recgStore.plugins[lang].length; x++) {
+            let plugin = this.recgStore.plugins[lang][x];
             // no longer testing URL as homophones should work for global commands too (so we keep things simple and just always process enabled homophones regardless of url)
             for (let i = 0; i < plugin.synKeys.length; i++) {
                 afterInput = beforeInput.replace(plugin.synKeys[i], plugin.synVals[i]);
