@@ -47,13 +47,13 @@ test.before(async(t) => {
     biLocalStorageLoad.resolves(testSaveData);
     fetchPluginStub.callsFake(async (pluginId:string) => getPlugin(pluginId));
 
-    let store = new Store(PluginManager.digestNewPlugin);
-    await store.rebuildLocalPluginCache();
+    let store = new Store(PluginManager.fetchAndDigestPlugin);
+    await store.rebuildLocalPluginCache(PluginManager.fetchAndDigestPlugin);
     t.context.store = store;
     t.context.urlUpdate = (url: string) => null;
     let pluginManager = new PluginManager(store);
     let queryActiveTab = async () => (<chrome.tabs.Tab>{id: 1});
-    let sendMsgToActiveTab = async (tabId:number, data:ITranscriptParcel): Promise<any> => {
+    let sendMsgToActiveTab = async (data:ITranscriptParcel, tabId:number): Promise<any> => {
         // get the match function for a plugin
         let plugin;
         let name = `${data.cmdPluginId}`;
@@ -68,7 +68,8 @@ test.before(async(t) => {
     t.context.recg = new Recognizer(store,
         queryActiveTab,
         sendMsgToActiveTab,
-        SpeechRecognition
+        SpeechRecognition,
+        async (cb: IRecognizedCallback) => {},
     );
     t.context.urlUpdate('https://www.reddit.com');
 });

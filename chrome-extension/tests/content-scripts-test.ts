@@ -2,7 +2,7 @@
  *  Tests compiled versions that are in chrome-extension/dist
  */
 import * as sinon from 'sinon';
-import {test} from 'ava';
+import test from 'ava';
 import {JSDOM} from 'jsdom';
 
 const path = require('path');
