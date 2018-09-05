@@ -197,6 +197,8 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
         }
         sendResponse(null);
         return true;
+    } else {
+        console.warn(`Received unhandled message in page: ${msg}`);
     }
 });
 

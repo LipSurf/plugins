@@ -345,6 +345,10 @@ export function isInView($ele: JQuery<HTMLElement>) {
     return ((elemTop <= docViewBottom) && (elemTop >= docViewTop));
 }
 
+export function instanceOfPromise<T>(object: any): object is Promise<T> {
+    return typeof object === 'object' && 'then' in object;
+}
+
 // TODO: can these just check for exactly a certain set of properties?
 export function instanceOfDynamicMatch(object: any): object is IDynamicMatch {
     return typeof object === 'object' && 'description' in object && 'fn' in object;

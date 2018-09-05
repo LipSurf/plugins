@@ -5,13 +5,13 @@ declare let SKIP_TUTORIAL: boolean;
 declare let SKIP_UPDATES: boolean;
 // automatically activate addon when installed (for faster testing)
 declare let AUTO_ON: boolean;
-import { pick, omit, } from "lodash";
+import { pick, omit, pickBy, } from "lodash";
 import { ON_ICON, OFF_ICON, PROBLEM_ICON, LANG_CODE_TO_NICE, } from "../common/constants";
 import { Recognizer, IRecognizedCallback } from "./recognizer";
 import { PluginManager } from "./plugin-manager";
 import { PluginSandbox } from "./plugin-sandbox";
 import { Store, StoreSynced } from "./store";
-import { IOptions } from "../common/store-lib";
+import { IOptions, DEFAULT_INSTALLED_PLUGINS, } from "../common/store-lib";
 import {
     Detector,
     ResettableTimeout,
@@ -44,10 +44,11 @@ let permissionDetector;
 let store = new Store(PluginManager.fetchAndDigestPlugin);
 
 // initial load -> get plugins from storage
-let fullyLoadedPromise =
-    // HACK
-    //  clearing the local plugin data so plugin data is updated between versions -- had issues doing this onInstall because it is called late
-    storage.local.save({pluginData: null}).then(async() =>
+let fullyLoadedPromise = (async function() {
+    //  clearing the built-in local plugin data so plugin data is updated between versions -- had issues doing this onInstall because it is called late
+    let startupLocal = await storage.local.load();
+    let allButDefaultPlugins = pickBy(startupLocal.pluginData, (plugin, pluginId) => !~DEFAULT_INSTALLED_PLUGINS.indexOf(pluginId));
+    return storage.local.save({pluginData: allButDefaultPlugins}).then(async() =>
         store.rebuildLocalPluginCache(PluginManager.fetchAndDigestPlugin).then(async() => {
             let ps = new PluginSandbox(store);
             let pm = new PluginManager(store);
@@ -82,6 +83,7 @@ let fullyLoadedPromise =
             return {ps, pm, mn};
         })
 );
+})();
 
 
 class Main extends StoreSynced {

@@ -10,14 +10,16 @@ export const GENERAL_PREFERENCES = {
     inactivityAutoOffMins: 20,
 };
 
+export const DEFAULT_INSTALLED_PLUGINS = [
+    'Browser',
+    'Google',
+    'Reddit',
+    'Wanikani',
+];
+
 const DEFAULT_PREFERENCES = {
     ... GENERAL_PREFERENCES,
-    plugins: <IndexedPlugins>[
-            ['Browser', '1.0.0'],
-            ['Google', '1.0.0'],
-            ['Reddit', '1.0.0'],
-            ['Wanikani', '1.0.0'],
-        ].reduce((memo, [id, version]) => Object.assign(memo, createDefaultSyncPrefs(id, version)), {})
+    plugins: DEFAULT_INSTALLED_PLUGINS.reduce((memo, id) => Object.assign(memo, createDefaultSyncPrefs(id, '1.0.0')), {})
 };
 
 // aren't exposed in the getOptions meta API call for plugins
