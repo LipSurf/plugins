@@ -192,6 +192,6 @@ export class PluginManager extends StoreSynced {
     // load options
     // Needs to be public to keep this testable
     static fetchPluginCode(id: string): Promise<string>  {
-        return httpReq(`dist/plugins/${id.toLowerCase()}.js`);
+        return httpReq(`dist/plugins/${id}.js`);
     }
 }
