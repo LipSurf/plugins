@@ -368,7 +368,7 @@ export function instanceOfTranscriptParcel(object: any): object is ITranscriptPa
 }
 
 export function instanceOfCodeParcel(object: any): object is ICodeParcel {
-    return typeof object === 'object' && 'code' in object;
+    return typeof object === 'object' && 'code' in object && 'type' in object;
 }
 
 export class MissingLangPackError extends Error {

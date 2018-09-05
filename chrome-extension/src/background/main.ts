@@ -107,6 +107,13 @@ class Main extends StoreSynced {
             });
         }
 
+        this.recg = new Recognizer(store,
+            queryActiveTab,
+            tabs.sendMsgToTabs,
+            webkitSpeechRecognition,
+            this.cmdRecognizedCb.bind(this),
+        );
+
         chrome.browserAction.onClicked.addListener(tab => {
             if (this.mainStore.missingLangPack) {
                 // open the options
@@ -116,13 +123,6 @@ class Main extends StoreSynced {
 
             storage.local.save({activated: !this.mainStore.activated});
         });
-
-        this.recg = new Recognizer(store,
-            queryActiveTab,
-            tabs.sendMsgToTab,
-            webkitSpeechRecognition,
-            this.cmdRecognizedCb.bind(this),
-        );
 
         chrome.runtime.onMessage.addListener((request:IMsgForBg, sender, sendResponse) => {
             switch (request.type) {
@@ -243,7 +243,7 @@ class Main extends StoreSynced {
             }
         }
         if (this.mainStore.noHeadphonesMode && instanceOfTextParcel(request)) {
-            if ((await promisify < chrome.tabs.Tab[] > (chrome.tabs.query)({
+            if ((await promisify<chrome.tabs.Tab[]>(chrome.tabs.query)({
                     audible: true
                 })).length > 0) {
                 // don't send an instanceOfText
@@ -301,7 +301,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
                     allFrames: scriptTup.all,
                 }, _ => {
                     if (chrome.runtime.lastError) {
-                        console.error(`Could not inject into tab ${tab.url}`);
+                        console.warn(`Could not inject into tab ${tab.url}`);
                     }
                 });
             };

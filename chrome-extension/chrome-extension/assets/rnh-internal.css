@@ -68,6 +68,14 @@
     content: '\e806';
 }
 
+.icon.wrench:before {
+    content: '\e807';
+}
+
+.icon.add-file:before {
+    content: '\e808';
+}
+
 .notice {
     padding: 9px 10px;
     border-radius: 4px;

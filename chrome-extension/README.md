@@ -16,6 +16,7 @@ TODO
 WK improvements
 - [ ] do a Levenshtein distance check
 - [ ] choose correct on'yomi or kunyomi ---
+- [ ] Plugin.util.getLanguage is slow in WK lang switcher
 - [ ] check timestamp of recognition vs timestamp of when word has changed -- don't fill in old matches on new words
 - [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.
 - [ ] switching back to english after reviews leaves LipSurf half-on -- the recognizer is still running!

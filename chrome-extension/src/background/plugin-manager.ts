@@ -4,11 +4,12 @@
  * Resolve remote plugins into configurable objects and save/load this configuration
  * so it persists across chrome sessions.
  */
-import { flatten, pick, find, assignIn, mapValues, omit, get } from "lodash";
+import { flatten, pick, find, assignIn, mapValues, omit, get, isEqual, } from "lodash";
 import { StoreSynced, } from "./store";
-import { promisify, instanceOfDynamicMatch, httpReq } from "../common/util";
+import { instanceOfDynamicMatch, httpReq } from "../common/util";
 import { IOptions } from "../common/store-lib";
 import { BlankPlugin } from "../common/plugin-lib";
+import { tabs } from  "../common/browser-interface";
 
 // Plugin content-script store for easily loading front-end
 // code into pages
@@ -23,11 +24,22 @@ export class PluginManager extends StoreSynced {
     private pluginsCSStore:IPluginCSStore[];
 
     protected async storeUpdated(newOptions: IOptions) {
+        // match is a regex, we can't jsonify it, so exclude it from checking for needed updates to propagate 
+        // downwards for now
+        let oldCSStore = JSON.parse(JSON.stringify((this.pluginsCSStore || []).map(plugin => omit(plugin, 'match'))));
         this.pluginsCSStore = newOptions.plugins.map(pluginConfig =>
             ({
                 hasGlobalCmd: !!find(pluginConfig.commands, cmd => cmd.global),
                 ...pick(pluginConfig, ['enabled', 'cs', 'match']),
             }));
+        if (this.pluginsCSStore.length > 0 && !isEqual(oldCSStore, this.pluginsCSStore.map(plugin => omit(plugin, 'match')))) {
+            console.log('Resending CS code to tabs!');
+            // refresh the cs code on all the tabs
+            tabs.sendMsgToTabs({
+                type: 'plugin',
+                code: await ((tab) => this.getPluginCSCode(tab.url)),
+            }) 
+        }
     }
 
     // checks the given url and returns the plugin cs code for it
@@ -46,8 +58,12 @@ export class PluginManager extends StoreSynced {
     }
 
     static async fetchAndDigestPlugin(id: string, version: string):Promise<ILocalPluginData> {
-        let content = await PluginManager.fetchPluginCode(id);
-        return await PluginManager.digestNewPlugin(id, version, content);
+        try {
+            let content = await PluginManager.fetchPluginCode(id);
+            return await PluginManager.digestNewPlugin(id, version, content);
+        } catch(e) {
+            console.error(`Could not fetch plugin: ${id}`);
+        }
     }
 
     // Take PluginBase subclass and

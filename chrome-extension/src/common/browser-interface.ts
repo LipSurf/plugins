@@ -80,8 +80,26 @@ export module tabs {
         );
     }
 
-    export async function sendMsgToTab(tabId: number, msg: object): Promise<any[]> {
-        return await promisify<any[]>(chrome.tabs.sendMessage)(tabId, msg);
+    export async function sendMsgToTabs(msg: object|Function, tabId?: number): Promise<any[]> {
+        if (tabId) {
+            return await promisify<any[]>(chrome.tabs.sendMessage)(tabId, msg);
+        } else {
+            return new Promise<any[]>((resolve, reject) => {
+                chrome.tabs.query({}, function (tabs) {
+                    for (let tab of tabs) {
+                        if (!tab.url.startsWith('chrome://')) {
+                            if (typeof msg === 'function') {
+                                chrome.tabs.sendMessage(tab.id, msg(tab));
+                            } else {
+                                chrome.tabs.sendMessage(tab.id, msg);
+                            }
+                        }
+                    }
+                    // don't worry about the response -- not needed yet for any implementors
+                    resolve([]);
+                });
+            });
+        }
     }
 }
 

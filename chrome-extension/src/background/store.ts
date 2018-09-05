@@ -1,7 +1,7 @@
 /// <reference path="../@types/store.d.ts" />
 /// <reference path="../common/browser-interface.ts" />
-import { mapValues, pick, flatten, assignIn, zip, fromPairs, isEqual, omit } from "lodash";
-import { instanceOfDynamicMatch, objectAssignDeep, difference, promiseSerial } from "../common/util";
+import { mapValues, pick, flatten, assignIn, zip, fromPairs, omit, pickBy, identity, } from "lodash";
+import { instanceOfDynamicMatch, objectAssignDeep, promiseSerial } from "../common/util";
 import { getOptions, getStoredOrDefault, IOptions, GENERAL_PREFERENCES, SHARED_LOCAL_DATA, ILocalData, ISyncData, createDefaultSyncPrefs } from "../common/store-lib";
 import { storage } from "../common/browser-interface";
 
@@ -83,7 +83,8 @@ export class Store {
         // serialize data
         serializedLocalData = {
             ... pick(localData),
-            pluginData: mapValues(localData.pluginData, localPluginData => {
+            // pickBy filters out plugins with no local data (eg. if they had trouble loading)
+            pluginData: mapValues(pickBy(localData.pluginData, identity), localPluginData => {
                 return Object.assign(localPluginData, {
                     // regex need to get rid of / at head and tail
                     match: localPluginData.match.map(x => x.toString().substr(1, localPluginData.match.toString().length - 2)),

@@ -3,10 +3,8 @@
 declare let INCLUDE_SPEECH_TEST_HARNESS: boolean;
 import { retrialAndError } from "../common/plugin-lib";
 import * as PluginLib from "../common/plugin-lib";
-import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel } from "../common/util";
+import { promisify, instanceOfCmdLiveTextParcel, instanceOfTextParcel, instanceOfTranscriptParcel, instanceOfCodeParcel, instanceOfCmdParcel, } from "../common/util";
 import { storage, runtime, } from "../common/browser-interface";
-// Do we need this?
-import { resolve } from "url";
 // Plugins eval'd in this context need a `PluginBase` variable to Object.extend
 const PluginBase = PluginLib.PluginBase;
 
@@ -44,6 +42,7 @@ window.addEventListener('message', function(evt) {
 
 
 function initPlugins() {
+    console.log(`main.ts received new CS code ${Object.keys(allPlugins)}`);
     Object.values(allPlugins).forEach(plugin => {
         if (plugin.init) {
             try {
@@ -55,6 +54,7 @@ function initPlugins() {
     });
 }
 
+
 // Needs to be safe to call multiple times
 function toggleActivated(_activated = true, quiet = false) {
     if (_activated) {
@@ -64,7 +64,6 @@ function toggleActivated(_activated = true, quiet = false) {
             commandsLoading = true;
             runtime.sendMessage({type: 'loadPlugins'}).then((pluginCSCode:string) => {
                 eval(pluginCSCode);
-                console.log(`main.ts received loadPage ${Object.keys(allPlugins)}`);
                 initPlugins();
             });
         } else {
@@ -192,6 +191,10 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCodeParcel(msg)) {
         eval(msg.code);
+        if (msg.type === 'plugin') {
+            initPlugins();
+            sendResponse
+        }
         sendResponse(null);
         return true;
     }

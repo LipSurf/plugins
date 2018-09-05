@@ -9,6 +9,8 @@ declare interface ITranscriptParcel {
 }
 
 declare interface ICodeParcel {
+    // raw or plugin CS code
+    type: 'raw'|'plugin';
     code: string;
 }
 

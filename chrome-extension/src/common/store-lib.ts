@@ -29,6 +29,7 @@ export const SHARED_LOCAL_DATA = {
     missingLangPack: false,
     // the recognizer is busy downloading a lang pack
     busyDownloading: false,
+    developerMode: false,
 }
 
 // data to be persisted in the extension that is not user prefs (those are synced) 

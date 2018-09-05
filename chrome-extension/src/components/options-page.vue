@@ -20,6 +20,25 @@
             </div>
             <p class="mute">Privacy: the speech recognizer is only activated for the active window when you click the LipSurf icon in your extensions toolbar.</p>
     	</section>
+        <section>
+            <h2>Become a Backer</h2>
+            <div class="notice warning">
+                <i class="icon warning-empty"></i> &nbsp;&nbsp; Upgrade to become a backer of the project.
+				</div>
+			<p>You are on the free trial of <strong>LipSurf Pro</strong> which is free while in beta. The free trial will end 1 month after the 1.0 release.</p>
+			<p>LipSurf will always have a free version.</p>
+            <div style="text-align: center">
+                <button @click="donate" id="donateBtn">Become an Early Backer
+					<div>
+					<i class="img-icon btc"></i>
+					<i class="img-icon eth"></i>
+					<i class="img-icon pp"></i>
+					<i class="img-icon cc"></i>
+					</div>
+				</button>
+                <p class="mute">Early backers will be credited 2x the value of their pre-1.0 donations when 1.0 is released.</p>
+            </div>
+        </section>
         <div v-show="loading" style="text-align: center">
             <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
         </div>
@@ -63,6 +82,7 @@
             </div>
             <div class="option">
                 <label>
+                    <i class="icon wrench"></i>
                     <input type="checkbox" v-model="optionsPageStore.developerMode"/> Developer mode
                 </label>
             </div>
@@ -77,33 +97,16 @@
             <h2>Plugins</h2>
 			<div style="text-align: right">
                 <label v-if="optionsPageStore.developerMode">
-                    <input type="file" @change="addLocalPlugin" ref="addLocalPlugin" accept=".js">
-                    <i class="icon lib-add"></i> Add a Local Plugin
+                    <input type="file" @change="addLocalPlugin" id="addLocalPlugin" ref="addLocalPlugin" accept=".js" style="display: none">
+                    <button @click="$refs.addLocalPlugin.click();">
+                        <i class="icon add-file"></i> Add a Local Plugin
+                    </button>
                 </label>
 				<button @click="getMorePlugins" id="getMorePlugins"><i class="icon lib-add"></i> Get More Plugins</button>
 			</div>
             <CmdGroup v-for="cmdGroup in optionsPageStore.cmdGroups" class="cmd-group" :key="cmdGroup.name" :languages="cmdGroup.languages" :expanded.sync="cmdGroup.expanded"
                     :homophones="cmdGroup.homophones" :description="cmdGroup.description" :commands="cmdGroup.commands" :nice-name="cmdGroup.niceName" :version="cmdGroup.version"
                     :name="cmdGroup.name" :enabled.sync="cmdGroup.enabled" :show-more.sync="cmdGroup.showMore" />
-        </section>
-        <section>
-            <h2>Become a Backer</h2>
-            <div class="notice warning">
-                <i class="icon warning-empty"></i> &nbsp;&nbsp; Upgrade to become a backer of the project.
-				</div>
-			<p>You are on the free trial of <strong>LipSurf Pro</strong> which is free while in beta. The free trial will end 1 month after the 1.0 release.</p>
-			<p>LipSurf will always have a free version.</p>
-            <div style="text-align: center">
-                <button @click="donate" id="donateBtn">Become an Early Backer
-					<div>
-					<i class="img-icon btc"></i>
-					<i class="img-icon eth"></i>
-					<i class="img-icon pp"></i>
-					<i class="img-icon cc"></i>
-					</div>
-				</button>
-                <p class="mute">Early backers will be credited 2x the value of their pre-1.0 donations when 1.0 is released.</p>
-            </div>
         </section>
         </div>
     </div>
@@ -294,7 +297,7 @@ import * as LANGS from "../background/recognizer/langs";
 
 const pluginOptionsPageStoreProps = {
     ... pick(GENERAL_PREFERENCES, 'language', 'showLiveText', 'noHeadphonesMode', 'inactivityAutoOffMins', ),
-    ... pick(SHARED_LOCAL_DATA, 'busyDownloading'),
+    ... pick(SHARED_LOCAL_DATA, 'busyDownloading', 'developerMode', ),
     cmdGroups: <IPluginPref[]>[],
 }
 
@@ -422,7 +425,7 @@ export default class OptionsPage extends Vue {
 
     save(updatedProps: Partial<IOptions>, oldProps: Partial<IOptions> = null) {
         this.store.save(<NestedPartial<IOptions>>{
-            ...pick(this.optionsPageStore, 'language', 'showLiveText', 'noHeadphonesMode', 'inactivityAutoOffMins', ),
+            ...pick(this.optionsPageStore, 'language', 'showLiveText', 'noHeadphonesMode', 'inactivityAutoOffMins', 'developerMode', ),
             plugins: this.optionsPageStore.cmdGroups.map(cmdGroup => ({
                 ...pick(cmdGroup, 'id', 'expanded', 'enabled', 'showMore'),
                 localized: {[this.pluginSelectedLanguage]: {homophones: cmdGroup.homophones}},

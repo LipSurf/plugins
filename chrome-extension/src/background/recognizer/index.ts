@@ -72,7 +72,7 @@ export class Recognizer extends StoreSynced {
 
     constructor(store: Store,
         private queryActiveTab: () => Promise<chrome.tabs.Tab>,
-        private sendMsgToTab: (tabId: number, object) => Promise<string[]>,
+        private sendMsgToTabs: (object, tabId?: number) => Promise<string[]>,
         private speechRecognizer,
         private cmdRecognizedCb: ((cb: IRecognizedCallback) => Promise<void>),
     ) {
@@ -347,8 +347,8 @@ export class Recognizer extends StoreSynced {
             })];
         })
         .sort((a, b) => {
-            if (a[1] < b[1]) return 1;
-            if (a[1] > b[1]) return -1;
+            if (a[0] < b[0]) return 1;
+            if (a[0] > b[0]) return -1;
             return 0;
         });
         let inputParts = await this.langRecg.wordSplitter(input);
@@ -486,7 +486,7 @@ export class Recognizer extends StoreSynced {
 
             let curActiveTab = await this.queryActiveTab();
             let recgCmds = await this.getCmdsForUserInput(text, curActiveTab.url, async (cmdPluginId: string, cmdName: string, text:string): Promise<MatchResult> => {
-                return this.sendMsgToTab(curActiveTab.id, <ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.recgStore.language});
+                return this.sendMsgToTabs(<ITranscriptParcel>{cmdPluginId, cmdName, text, lang: this.recgStore.language}, curActiveTab.id);
             });
 
             // short-circuit if something newer came along
