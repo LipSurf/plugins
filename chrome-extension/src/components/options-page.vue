@@ -458,6 +458,8 @@ export default class OptionsPage extends Vue {
             let id = f.name.split('.js')[0];
             let plugin = await PluginManager.digestNewPlugin(id, '1.0.0', text);
             this.store.installNewPlugins({[id]: plugin});
+            // reset the file input so we get the next "change" event
+            (<HTMLInputElement>this.$refs.addLocalPlugin).value = '';
         };
         reader.readAsText(f);
     }
