@@ -42,7 +42,6 @@ window.addEventListener('message', function(evt) {
 
 
 function initPlugins() {
-    console.log(`main.ts received new CS code ${Object.keys(allPlugins)}`);
     Object.values(allPlugins).forEach(plugin => {
         if (plugin.init) {
             try {
@@ -63,6 +62,7 @@ function toggleActivated(_activated = true, quiet = false) {
         if (!commandsLoading) {
             commandsLoading = true;
             runtime.sendMessage({type: 'loadPlugins'}).then((pluginCSCode:string) => {
+                console.log(`(toggleActivated) main.ts received new CS code ${Object.keys(allPlugins)}`);
                 eval(pluginCSCode);
                 initPlugins();
             });
@@ -190,6 +190,7 @@ chrome.runtime.onMessage.addListener(function (msg: IBackgroundParcel, sender, s
         console.log(`received live-text parcel ${msg.text} ${msg.hold} ${msg.isFinal}`);
         liveTextQ = queueUp(() => showLiveText(msg), liveTextQ);
     } else if (instanceOfCodeParcel(msg)) {
+        console.log(`main.ts received new CS code ${Object.keys(allPlugins)}`);
         eval(msg.code);
         if (msg.type === 'plugin') {
             initPlugins();
