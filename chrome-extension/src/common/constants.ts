@@ -25,7 +25,7 @@ export const POSSIBLE_LANGS: LanguageCode[] = [
 ];
 export const LANG_CODE_TO_NICE: {[L in LanguageCode]?: string} = {
     "en": "English",
-    "ja": "日本語 (Japan)",
+    "ja": "日本語 Japanese",
     "en-AU": "English (Australia)",
     "en-CA": "English (Canada)",
     "en-IE": "English (Ireland)",
