@@ -1,6 +1,6 @@
 /// <reference path="../@types/store.d.ts" />
 declare let IGNORE_INVALID_TABS:boolean;
-import { promisify, Detector } from './util';
+import { promisify, Detector, instanceOfPromise } from './util';
 import { ILocalData, ISyncData } from './store-lib';
 
 
@@ -80,16 +80,20 @@ export module tabs {
         );
     }
 
-    export async function sendMsgToTabs(msg: object|Function, tabId?: number): Promise<any[]> {
+    export async function sendMsgToTabs(msg: IBackgroundParcel|Function, tabId?: number): Promise<any[]> {
         if (tabId) {
             return await promisify<any[]>(chrome.tabs.sendMessage)(tabId, msg);
         } else {
             return new Promise<any[]>((resolve, reject) => {
-                chrome.tabs.query({}, function (tabs) {
+                chrome.tabs.query({}, async function (tabs) {
                     for (let tab of tabs) {
                         if (!tab.url.startsWith('chrome://')) {
                             if (typeof msg === 'function') {
-                                chrome.tabs.sendMessage(tab.id, msg(tab));
+                                let res = msg(tab);
+                                if (instanceOfPromise(res)) {
+                                    res = await res;
+                                } 
+                                chrome.tabs.sendMessage(tab.id, res);
                             } else {
                                 chrome.tabs.sendMessage(tab.id, msg);
                             }

@@ -35,10 +35,10 @@ export class PluginManager extends StoreSynced {
         if (this.pluginsCSStore.length > 0 && !isEqual(oldCSStore, this.pluginsCSStore.map(plugin => omit(plugin, 'match')))) {
             console.log('Resending CS code to tabs!');
             // refresh the cs code on all the tabs
-            tabs.sendMsgToTabs({
+            tabs.sendMsgToTabs(async tab => ({
                 type: 'plugin',
-                code: await ((tab) => this.getPluginCSCode(tab.url)),
-            }) 
+                code: await this.getPluginCSCode(tab.url),
+            })) 
         }
     }
 
