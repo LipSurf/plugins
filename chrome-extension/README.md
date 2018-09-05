@@ -2,7 +2,6 @@ TODO
 ===
 - [ ] timing: https://jsfiddle.net/xpvt214o/420526/
 - [ ] Landing page:
-   -- Hands free browser operation while you (eat, do yoga, cook, have dirty hands)
    -- Forum (Discourse), Blog (Ghost)
 	<a href="https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl" class="btn download-button" onclick="if(window.chrome&amp;&amp;window.chrome.webstore&amp;&amp;window.chrome.webstore.install)return chrome.webstore.install(&quot;https://chrome.google.com/webstore/detail/dagohlmlhagincbfilmkadjgmdnkjinl&quot;,console.log,console.warn),!1" target="_blank"> <img alt="" src="https://d33wubrfki0l68.cloudfront.net/b1bb3a572ed46f4a5069d61dd2cde8dc83b57876/2600e/images/chrome.svg"> <span> Install now for Chrome </span> </a>
 - [ ] update plugin documentation
@@ -14,13 +13,15 @@ TODO
 - [ ] post on lobsters
 
 WK improvements
-- [ ] do a Levenshtein distance check
+- [x] do a Levenshtein distance check
 - [ ] choose correct on'yomi or kunyomi ---
 - [ ] Plugin.util.getLanguage is slow in WK lang switcher
 - [ ] check timestamp of recognition vs timestamp of when word has changed -- don't fill in old matches on new words
 - [ ] 交わる交わる　did not recognize 交わる　even though that item is the only one in the dictionary for that word. Investigate.
-- [ ] switching back to english after reviews leaves LipSurf half-on -- the recognizer is still running!
-- [ ] handle hundred, thousand, ten-thousand, hundred million etc.
+- [ ] missing onyomi
+- [ ] missing on'yomi for 金 likely other kanjis
+aa.langData.ja['島']
+01:31:47.879 (2) ["しま", "とう"]
 
 WK problematic words:
 ためす　gets だめ
@@ -31,7 +32,6 @@ v0.6.1
 - [ ] 次　vocab word should work (give match priority)
       "help wanted" should not open "help"
 - [ ] a.m.  or p.m. doesn't working for annotations
-- [ ] missing on'yomi for 金 likely other kanjis
 - [x] saying r - u shouldn't take you to reddit.com/r/you, saying "topic" shouldn't do top etc.
 - [ ] inflected Japanese verbs need to work -- even for WK  空いて -> 相手
 - [ ] fix inconsistent Japanese for back/previous page

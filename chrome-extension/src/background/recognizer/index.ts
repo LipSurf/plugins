@@ -116,7 +116,7 @@ export class Recognizer extends StoreSynced {
 
                 }
             }
-        })}), {});
+        }).filter(identity), }), {});
 
         if (this.recgStore.language && this.recgStore.language != newOptions.language) {
             // new language
