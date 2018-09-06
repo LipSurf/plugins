@@ -1,0 +1,48 @@
+{
+  "name": "lipsurf-plugins",
+  "version": "1.0.0",
+  "description": "Plugins for the LipSurf chrome extension. Each plugin adds a set of commands to LipSurf.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch-docs": "docsify serve docs",
+    "build": "gulp",
+    "watch": "gulp watch",
+    "build-prod": "gulp prod",
+    "watch-prod": "gulp watch-prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikob/LipSurf.git"
+  },
+  "keywords": [
+    "voice",
+    "recognition",
+    "no",
+    "hands",
+    "abilities"
+  ],
+  "author": "Miko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mikob/LipSurf/issues"
+  },
+  "homepage": "https://github.com/mikob/LipSurf#readme",
+  "devDependencies": {
+    "@types/chrome": "0.0.66",
+    "@types/jquery": "^3.3.2",
+    "@types/selenium-webdriver": "^3.0.8",
+    "docsify-cli": "^4.2.1",
+    "gulp": "^3.9.1",
+    "gulp-typedoc": "^2.2.0",
+    "gulp-typescript": "^4.0.2",
+    "gulp-uglify": "^3.0.1",
+    "typedoc": "^0.12.0",
+    "typescript": "^3.0.3",
+    "uglify-es": "^3.3.9"
+  },
+  "dependencies": {
+    "docsify": "^4.7.1",
+    "wanakana": "^4.0.1"
+  }
+}

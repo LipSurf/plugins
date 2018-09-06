@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noEmitOnError": true,
+    "noImplicitAny": false,
+    "noResolve": false,
+    "moduleResolution": "node",
+    "target": "ES2017"
+  },
+  "exclude": [
+    "node_modules",
+    "src/*/*.*.ts"
+  ]
+}

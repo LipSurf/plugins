@@ -1,0 +1,1 @@
+/home/mikob/workspace/lipsurf/src/@types/plugin-interface.d.ts
