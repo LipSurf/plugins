@@ -13,6 +13,8 @@ Member | Type | Description
 `description`| `string` | _(optional)_ Shown in the plugin list in options.
 `init` | `() => void` | _(optional)_ Called in the context of the page when LipSurf is activated and the plugin matches the current URL. Useful for setting up custom styling on the page that all the commands use, or initializing data that commands share. Also called each time the page is brought back into focus while LipSurf is activated.
 `destroy` | `() => void` | _(optional)_ Clean-up after things potentially created in `init`. Called when LipSurf is turned off.
+`version` | `string` | _(optional)_ Not being used yet.
+`apiVersion` | `string` | _(optional)_ Not being used yet.
 
 ## PluginBase.util
 The following API exists on `PluginBase.util` for interacting with the extension and convenience. It can be used in `init()`, `destroy()`, `test()` or `runOnPage()` functions of the commands (eg. `PluginBase.util.getOptions()`)

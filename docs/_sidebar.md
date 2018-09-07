@@ -4,7 +4,7 @@
   * [Architecture](architecture.md)
 
 * Advanced
-  * [Weather Search Plugin](weather-plugin.md)
+  * [Matching Dynamic Utterances](dynamic-matching.md)
   * [Adding Languages (i18n)](langs.md)
   * [Unit Testing](testing.md)
 
