@@ -6,14 +6,14 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
 
  1. Clone the community plugins repository and `cd` into the directory.
 
- ```bash
- $ git clone https://github.com/LipSurf/plugins.git lipsurf-plugins && cd lipsurf-plugins
+ ```sh
+ git clone https://github.com/LipSurf/plugins.git lipsurf-plugins && cd lipsurf-plugins
  ```
 
  2. Install the dependencies.
 
- ```bash
- $ npm install
+ ```sh
+ npm install
  ```
 
  3. Create a folder named `HelloWorld` with a `HelloWorld.ts` file in it with the following contents:
@@ -29,8 +29,8 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
 
  4. Since we're doing the example in TypeScript, we need to compile down to JavaScript.
 
-    ```bash
-    $ npm run watch
+    ```sh
+    npm run watch
     ```
 
     > This will watch our *.ts files for changes and compile them to JavaScript whenever a change is detected :)

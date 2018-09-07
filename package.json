@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Plugins for the LipSurf chrome extension. Each plugin adds a set of commands to LipSurf.",
   "scripts": {
-    "watch-docs": "docsify serve docs",
+    "docs:watch": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
     "build": "gulp",
     "watch": "gulp watch",
     "build-prod": "gulp prod",
@@ -38,10 +39,10 @@
     "gulp-uglify": "^3.0.1",
     "typedoc": "^0.12.0",
     "typescript": "^3.0.3",
-    "uglify-es": "^3.3.9"
+    "uglify-es": "^3.3.9",
+    "vuepress": "^0.14.2"
   },
   "dependencies": {
-    "docsify": "^4.7.1",
     "wanakana": "^4.0.1"
   }
 }
