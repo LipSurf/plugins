@@ -4,10 +4,10 @@
 
 Let's create a simple "Hello World" plugin that responds with a JavaScript alert "Hello, Developer!" when a user says <span class="voice-cmd">hello world</span> on a tab with a *.lipsurf.com domain.
 
- 1. Clone the community plugins repository.
+ 1. Clone the community plugins repository and `cd` into the directory.
 
  ```bash
- $ git clone
+ $ git clone https://github.com/LipSurf/plugins.git lipsurf-plugins && cd lipsurf-plugins
  ```
 
  2. Install the dependencies.
@@ -23,35 +23,9 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
 
  > *Protip:* Rather than copy-pasting, it's better to type out the code to force yourself to grasp it's intuitive structure and contents better.
 
-    ```typescript
-    // lipsurf-plugins/src/helloworld/HelloWorld.ts
-    /// <reference path="../@types/plugin-interface.d.ts"/>
+[HelloWorld.ts](/assets/HelloWorld.ts ':include')
 
-    namespace HelloWorldPlugin {
-        declare const PluginBase: IPlugin;
-
-        export let Plugin = Object.assign({}, PluginBase, {
-            niceName: 'Hello World',
-            description: 'A hello world plugin that works on the lipsurf.com domain.',
-            // a RegEx that must match against the current tab's url for the plugin to be active (all of it's commands minus global commands)
-            match: /.*\.lipsurf.com/,
-            version: '1.0.0',
-
-            commands: [{
-                name: 'Respond',
-                description: 'Respond with something very insightful to the user',
-                // what the user actually has to say to run this command
-                match: 'hello world',
-                // the js that's run on the page
-                pageFn: function() {
-                    alert('Hello, Developer!');
-                }
-            }]
-        });
-    }
-    ```
-
-    The meat of the plugin lives in the array of commands. Each Command object has properties for what the user needs to say to run it, and the code that's actually run (in addition to meta properties like name, description etc.)
+  The meat of the plugin lives in the array of commands. Each [Command](/api-reference/command) object has properties for what the user needs to say to run it, and the code that's actually run (in addition to meta properties like name, description etc.)
 
  4. Since we're doing the example in TypeScript, we need to compile down to JavaScript.
 

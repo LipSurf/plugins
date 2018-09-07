@@ -14,7 +14,7 @@ Firstly, _prohst_ to you! By nature of being on this page, I can tell you are of
 
 ### Quick Complete Example Plugin
 
-[filename](/assets/GmailPlugin.ts ':include :type=code')
+[filename](/assets/Gmail.ts ':include :type=code')
 
 <div class="button-bar" align=center>
     <a class="btn" href="#quick-start">Get Started! </a>
