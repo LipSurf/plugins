@@ -1,4 +1,4 @@
-# LipSurf Plugin Authoring Manual
+# Overview
 > [LipSurf](https://chrome.google.com/webstore/detail/lipsurf/lnnmjmalakahagblkkcnjkoaihlfglon) plugins are like [UserScripts](https://en.wikipedia.org/wiki/Userscript) (eg. GreaseMonkey et al.) for voice
 
 Firstly, _prohst_ to you! By nature of being on this page, I can tell you are of exquisite tastes for software.
@@ -14,7 +14,7 @@ Firstly, _prohst_ to you! By nature of being on this page, I can tell you are of
 
 ### Quick Complete Example Plugin
 
-[filename](/assets/Gmail.ts ':include :type=code')
+<<< @/docs/assets/Gmail.ts
 
 <div class="button-bar" align=center>
     <a class="btn" href="#quick-start">Get Started! </a>

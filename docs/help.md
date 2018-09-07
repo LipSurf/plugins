@@ -1,4 +1,4 @@
-# Help
+# Get Help
 
 ## Questions
 - Spending too much time getting something simple working?
