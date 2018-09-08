@@ -5,10 +5,10 @@ Firstly, _**prohst**_ to you! By nature of being on this page, I can tell you ha
 
 ### What are you talking about?
 
-[LipSurf](https://chrome.google.com/webstore/detail/lipsurf/lnnmjmalakahagblkkcnjkoaihlfglon) is a Google Chrome Extension that enables users to browse with their voice, augmenting the mouse/keyboard paradigm enabling hands-free productivity. This serves many purposes:
+[LipSurf](https://chrome.google.com/webstore/detail/lipsurf/lnnmjmalakahagblkkcnjkoaihlfglon) is a Google Chrome extension that enables users to browse with their voice — augmenting the mouse/keyboard paradigm, enabling hands-free productivity. This serves many purposes:
 
  - Using the computer while your hands are dirty or busy (eating, cleaning etc.)
- - For those with physical impairments or those wishing to prevent repetitive strain injury (RSI) of the hands
+ - For those with physical impairments or those wishing to prevent repetitive strain injury ([RSI](https://www.nhs.uk/conditions/repetitive-strain-injury-rsi/)) of the hands
  - Quick shortcuts for complex motions (eg. <span class="voice-cmd">compose mail to John</span> can open up a prefilled email message on Gmail faster than traditional browser navigation)
  - Being far from the computer keyboard/mouse (eg. media center PCs)
 
