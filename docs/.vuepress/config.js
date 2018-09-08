@@ -20,6 +20,7 @@ module.exports = {
 				collapsable: false,
 				children: [
 					'/dynamic-matching.md',
+					'/state.md',
 					'/langs.md',
 					'/testing.md',
 				],
@@ -35,7 +36,7 @@ module.exports = {
 				title: 'API Reference',
 				collapsable: false,
 				children: [
-					'api-reference/plugin-base.md',
+					'api-reference/pluginbase.md',
 					'api-reference/command.md',
 				]
 			},
