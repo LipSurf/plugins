@@ -2,7 +2,7 @@
 
 ## Overview
 
-Every LipSurf [Command](api-reference/command.md) must be a member of a [Plugin](api-reference/plugin-base.md).
+Every LipSurf [Command](api-reference/command.md) must be a member of a [Plugin](api-reference/pluginbase.md).
 
 The fact that even the primary browser functionality is written as a _regular ol'_ plugin should attest to the power of LipSurf's extensibility.
 
@@ -28,12 +28,12 @@ Plugins must meet a high minimum standard of quality before being accepted as co
 ---
 ## Anatomy
 
-Plugins are JavaScript classes with a few special attributes. It is recommended to write in [TypeScript](https://www.typescriptlang.org/) to take advantage of the `PluginBase` for inheritance and type checking.
+Plugins are JavaScript objects that extend a [PluginBase](/api-reference/pluginbase.md#pluginbase) object and adhere to an `IPlugin` interface. It is recommended to write in [TypeScript](https://www.typescriptlang.org/) to have more confidence that your plugin is implemented correctly.
 
 ::: tip NOTE
 All relevant examples will be given in TypeScript.
 :::
 
-Here is an example of a simple plugin:
+Here is an example of a simple, complete plugin:
 
 <<< @/docs/assets/GmailPlugin.ts
