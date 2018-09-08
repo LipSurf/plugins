@@ -1,6 +1,8 @@
 # Commands
-## Command
+## ICommand
 Each plugin can have multiple commands.
+
+Also see [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand).
 
 Each command has the following properties:
 
@@ -55,7 +57,7 @@ If you don't want the first "reddit" command to match, return `false` when there
 
 ## ILocalizedCommand
 
-Also see
+Also see [`ICommand`](/api-reference/command.md#icommand).
 
 Member | Type       | Description
 -------|------------|-------------

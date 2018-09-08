@@ -6,7 +6,7 @@ namespace AntiProcrastinationPlugin {
         niceName: 'Anti-procrastination',
         description: 'Helpers for overcoming procrastination.',
         match: /.*/,
-        commands = [{
+        commands: [{
             name: 'Self destructing tab',
             description: 'Open a new tab with x website for y minutes. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.',
             global: true,

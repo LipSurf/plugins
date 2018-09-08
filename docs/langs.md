@@ -20,7 +20,8 @@ Once a user has at least one plugin installed that supports a given language, th
 
 ![Screenshot of language selection in the options](./assets/img/lang-option.png)
 
-Let's localize the [hello world plugin](/quick-start) from the quick start.
+## Example
+Let's localize the [hello world plugin](/quick-start.md#hello-world-plugin) from the quick start guide earlier.
 
  1. Create a new file `HelloWorld.ja.ts` in the `HelloWorld` folder where in this case `ja` is the ISO 639-1 language code for Japanese, what we're localizing for in this example.
 
@@ -40,6 +41,6 @@ Let's localize the [hello world plugin](/quick-start) from the quick start.
 
   You can localize all the things that make sense to: pretty names, descriptions, match patterns etc.
 
-  The `commands` property should be an object with keys of command names that match the command names they localize and of type `ILocalizedCmd`.
+  The `commands` property should be an object with keys of command names that match the command names they localize and of type [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand)).
 
 <<< @/docs/assets/HelloWorld.ja.ts
