@@ -2,7 +2,7 @@
 
 ## Overview
 
-All LipSurf commands are written in plugins.
+Every LipSurf [Command](api-reference/command.md) must be a member of a [Plugin](api-reference/plugin-base.md).
 
 The fact that even the primary browser functionality is written as a _regular ol'_ plugin should attest to the power of LipSurf's extensibility.
 
@@ -15,19 +15,25 @@ Lastly, of course plugins can be shared easily with the community or kept privat
  * If you find that annotations are broken on a certain website you frequent, you can submit a PR to upgrade just the browser plugin which is separate from the core codebase.
  * If you want to give users of your own site voice command functionality, you can write a plugin for your site.
 
-> NOTE: Plugins are usually for a specific site (such as the google search command for that searches when the user says "google ...") but they can also be for a specific set of functionality — like making all annotations in Kanji so you can save screen space and practice Japanese reading.
->
-> Plugins should aim to: "Do one thing, and do it well." &trade;
+::: tip NOTE
+Plugins are usually for a specific site (such as the google search command for that searches when the user says "google ...") but they can also be for a specific set of functionality — like making all annotations in Kanji so you can save screen space and practice Japanese reading.
 
-!> Plugins must meet a high minimum standard of quality before being accepted as community plugins for the general public.
+ Plugins should aim to: "Do one thing, and do it well." &trade;
+:::
+
+::: danger
+Plugins must meet a high minimum standard of quality before being accepted as community plugins for the general public.
+:::
 
 ---
 ## Anatomy
 
 Plugins are JavaScript classes with a few special attributes. It is recommended to write in [TypeScript](https://www.typescriptlang.org/) to take advantage of the `PluginBase` for inheritance and type checking.
 
-> NOTE: All relevant examples will be given in TypeScript.
+::: tip NOTE
+All relevant examples will be given in TypeScript.
+:::
 
 Here is an example of a simple plugin:
 
-[GmailPlugin.ts](assets/GmailPlugin.ts ':include')
+<<< @/docs/assets/GmailPlugin.ts
