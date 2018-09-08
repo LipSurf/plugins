@@ -80,6 +80,7 @@ This will watch our *.ts files for changes and compile them to JavaScript whenev
 ---
 
 ## What's Next
-  If you think that's nifty, we've just scratched the surface! Here are some topics you might be interested in perusing next:
+  If you think that's nifty, we've just scratched the surface! LipSurf can handle homophones, dynamic match commands, multiple languages and more.
+  Check out the "Advanced" section to learn more.
 
 
