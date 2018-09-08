@@ -1,7 +1,10 @@
 module.exports = {
 	title: 'LipSurf Plugin Authoring Manual',
-	description: 'Documentation for developers looking to extend LipSurf using the official API.',
+	description: 'Documentation for developers looking to extend LipSurf using the official API. Create extensions to control your browser via voice.',
 	themeConfig: {
+		logo: '/icon-128.png',
+		repo: 'lipsurf/plugins',
+		footer: '© 2018 LipSurf',
 		sidebar: [
 			{
 				title: 'Basics',

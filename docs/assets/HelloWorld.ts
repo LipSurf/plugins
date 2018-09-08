@@ -1,4 +1,4 @@
-// lipsurf-plugins/src/helloworld/HelloWorld.ts
+// lipsurf-plugins/src/HelloWorld/HelloWorld.ts
 /// <reference path="../@types/plugin-interface.d.ts"/>
 
 namespace HelloWorldPlugin {
