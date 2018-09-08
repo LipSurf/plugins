@@ -1,6 +1,7 @@
 module.exports = {
 	title: 'LipSurf Plugin Authoring Manual',
 	description: 'Documentation for developers looking to extend LipSurf using the official API. Create extensions to control your browser via voice.',
+	base: '/',
 	themeConfig: {
 		logo: '/icon-128.png',
 		repo: 'lipsurf/plugins',
@@ -38,6 +39,7 @@ module.exports = {
 				children: [
 					'api-reference/pluginbase.md',
 					'api-reference/command.md',
+					'api-reference/test.md',
 				]
 			},
 		],

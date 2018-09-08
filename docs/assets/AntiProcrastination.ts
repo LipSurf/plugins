@@ -8,7 +8,7 @@ namespace AntiProcrastinationPlugin {
         match: /.*/,
         commands = [{
             name: 'Self destructing tab',
-            description: 'Open a new tab with a certain website for x minutes. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.',
+            description: 'Open a new tab with x website for y minutes. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.',
             global: true,
             match: 'open * for # minutes',
             pageFn: async (siteStr: string, minutes: number) => {

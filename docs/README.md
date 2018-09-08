@@ -8,12 +8,19 @@ Firstly, _**prohst**_ to you! By nature of being on this page, I can tell you ha
 [LipSurf](https://chrome.google.com/webstore/detail/lipsurf/lnnmjmalakahagblkkcnjkoaihlfglon) is a Google Chrome Extension that enables users to browse with their voice, augmenting the mouse/keyboard paradigm enabling hands-free productivity. This serves many purposes:
 
  - Using the computer while your hands are dirty or busy (eating, cleaning etc.)
- - For those with physical impairments or those wishing to prevent repetitive stress injury of the hands
- - Quick shortcuts for complex motions (eg. <span class="voice-cmd">compose mail to John</span> can open up a prefilled email message on gmail faster than traditional navigation)
+ - For those with physical impairments or those wishing to prevent repetitive strain injury (RSI) of the hands
+ - Quick shortcuts for complex motions (eg. <span class="voice-cmd">compose mail to John</span> can open up a prefilled email message on Gmail faster than traditional browser navigation)
  - Being far from the computer keyboard/mouse (eg. media center PCs)
 
-Writing your own plugins for LipSurf is *pleasureably* straightforward.
+### Features
+ - Extensible architecture
+ - Simple, declarative plugins
+ - Command chaining
+ - Supports [100+ languages](/langs.md)
+ - Testing built-in
+
 ### Quick Complete Example Plugin
+Writing your own plugins for LipSurf is *pleasureably* straightforward.
 
 <<< @/docs/assets/Gmail.ts
 
