@@ -85,6 +85,8 @@
                 name: 'Netflix',
                 global: true,
                 match: 'netflix',
+                // upvote 14 triggered this? wtf...
+                delay: 200,
                 pageFn: async function() {
                     window.location.href = 'https://www.netflix.com';
                 }
