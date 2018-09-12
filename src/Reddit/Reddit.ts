@@ -103,33 +103,37 @@ namespace RedditPlugin {
                 },
             },
             {
+                // separated out because we would get false positives with expand # just doing "expand"
                 name: 'Expand',
-                description: "Expand a preview of a post, or a comment.",
-                match: ["expand #", "# expand", "expand"], // in comments view
-                delay: 600,
-                pageFn: async (i) => {
-                    let index = (i === null || isNaN(Number(i))) ? null : Number(i);
-                    if (index !== null) {
-                        let $ele = $(Plugin.thingAtIndex(index) + ' .expando-button.collapsed');
-                        $ele.click();
-                        PluginBase.util.scrollToAnimated($ele);
-                    } else {
-                        // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-                        let mainItem = $(`#siteTable>.thing .expando-button.collapsed:first`);
-                        let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
+                description: 'Hit the top most expando on the screen',
+                match: 'expand',
+                delay: 1200,
+                pageFn: async () => {
+                    // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
+                    let mainItem = $(`#siteTable .thing .expando-button.collapsed:first`);
+                    let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
 
-                        if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
-                            mainItem[0].click();
-                        } else {
-                            for (let ele of commentItems.reverse()) {
-                                let $ele = $(ele);
-                                if (PluginBase.util.isInView($ele)) {
-                                    $ele.find('a.expand:contains([+]):first')[0].click();
-                                    return;
-                                }
+                    if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
+                        mainItem[0].click();
+                    } else {
+                        for (let ele of commentItems.reverse()) {
+                            let $ele = $(ele);
+                            if (PluginBase.util.isInView($ele)) {
+                                $ele.find('a.expand:contains([+]):first')[0].click();
+                                return;
                             }
                         }
                     }
+                }
+            },
+            {
+                name: 'Expand by Rank',
+                description: "Expand a preview of a post, or a comment by it's position (rank).",
+                match: ["expand #", "# expand"], // in comments view
+                pageFn: async (i) => {
+                    let $ele = $(Plugin.thingAtIndex(i) + ' .expando-button.collapsed');
+                    $ele.click();
+                    PluginBase.util.scrollToAnimated($ele);
                 }
             },
             {
