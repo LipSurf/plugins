@@ -49,13 +49,19 @@ namespace RedditPlugin {
 
         // less common -> common
         homophones: {
+            'apple': 'upvote',
+            'episode': 'upvote',
             'download': 'downvote',
             'down vote': 'downvote',
             'up vote': 'upvote',
+            'i put': 'upvote',
+            'i feel': 'upvote',
             'upload': 'upvote',
             'about': 'upvote',
             'i thought': 'upvote',
             'a phone': 'upvote',
+            'clear up': 'clear vote',
+            'clear vote': 'clear vote',
             'clear boat': 'clear vote',
             'clear about': 'clear vote',
             'clear coat': 'clear vote',
