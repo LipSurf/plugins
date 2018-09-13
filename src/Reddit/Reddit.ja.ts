@@ -4,7 +4,7 @@
 
 namespace RedditPlugin {
     Plugin.languages.ja = {
-        niceName: "レティット",
+        niceName: "レディット",
         description: "Redditで操作します",
         authors: "Miko",
         commands: {
