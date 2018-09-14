@@ -93,6 +93,7 @@ namespace WanikaniPlugin {
             "lonnie connie": "wanikani",
             "wanee connie": "wanikani",
             "winneconne": "wanikani",
+            "ashton": "last 10",
             "1": "one",
             "2": "two",
             "3": "three",
@@ -449,9 +450,25 @@ namespace WanikaniPlugin {
             {
                 name: 'Info',
                 description: "Open the info for the entry",
-                match: ['info', 'information'],
+                match: ['show info', 'info', 'information'],
                 pageFn: async function() {
                     document.querySelector<HTMLButtonElement>('#option-item-info').click();
+                }
+            },
+            {
+                name: 'Show All Info',
+                description: "Open all the info for the current entry",
+                match: ['more info', 'show all info', 'show all information'],
+                pageFn: async function() {
+                    document.querySelector<HTMLButtonElement>('#all-info').click();
+                }
+            },
+            {
+                name: 'Wrap Up',
+                description: "Do only 10 more items in WK.",
+                match: ['wrap up', 'finish up', 'last 10'],
+                pageFn: async function() {
+                    document.querySelector<HTMLButtonElement>('#option-wrap-up').click();
                 }
             },
             {
