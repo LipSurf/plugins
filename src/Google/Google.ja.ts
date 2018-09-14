@@ -6,19 +6,14 @@ namespace GooglePlugin {
         niceName: "ググる",
         description: "Googleで検索します",
         authors: "Miko",
+        homophones: {
+            "google": "ググる",
+        },
         commands: {
             "Search": {
                 name: "検索します",
-                match: {
-                    description: "ググる「空欄を埋めて下さい」",
-                    fn: (input) => {
-                        const REGX = /^(?:ぐーぐる|ぐぐる|google) (.*)/;
-                        let match = input.match(REGX);
-                        if (match) {
-                            return [match[1]];
-                        }
-                    }
-                },
+                description: "ググる「空欄を埋めて下さい」",
+                match: "ぐぐる *",
             }
         }
     };
