@@ -1,7 +1,7 @@
 # Dynamic Match Patterns
 
 ::: warning NOTE
-It's recommended that you go through the [5 Minute Quick Start](/quick-start) first to understand how to install and test your plugins.
+It's recommended that you go through the [5 Minute Quick Start](/quick-start.md) first to understand how to install and test your plugins.
 :::
 
 ## Wildcard Matching
