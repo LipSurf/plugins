@@ -11,10 +11,10 @@
 
 #### _Please don't hesitate to ask us and the community!_
 
-Just write on [Plugin Development section](https://forum.lipsurf.com) the LipSurf Forum. We will answer your questions there in a timely fashion!
+Simply post in the ["Plugin Development" category](https://discuss.lipsurf.com/c/plugin-development) on the LipSurf Forum. We will answer your questions there in a timely fashion!
 
 ::: tip NOTE
-We are not using any chat support channels as we want the Q&A to be easily searchable for everyone who might have similar questions in the future.
+We are not using any chat support channels at the moment as we want the Q&A to be easily searchable for everyone who might have similar questions in the future.
 :::
 
 ## Bug Reports, Documentation Improvements or PR's
