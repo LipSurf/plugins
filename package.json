@@ -17,8 +17,7 @@
   "keywords": [
     "voice",
     "recognition",
-    "no",
-    "hands",
+    "hands-free",
     "abilities",
     "accessibility"
   ],
@@ -33,7 +32,7 @@
     "@types/jquery": "^3.3.2",
     "@types/selenium-webdriver": "^3.0.8",
     "docsify-cli": "^4.2.1",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-typedoc": "^2.2.0",
     "gulp-typescript": "^4.0.2",
     "gulp-uglify": "^3.0.1",
