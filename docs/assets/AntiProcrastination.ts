@@ -12,7 +12,7 @@ namespace AntiProcrastinationPlugin {
             global: true,
             match: 'open * for # minutes',
             pageFn: async (siteStr: string, minutes: number) => {
-                console.log(`site: ${sitestr}, minutes: ${minutes}`);
+                console.log(`site: ${siteStr}, minutes: ${minutes}`);
             }
         }],
     });
