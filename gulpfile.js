@@ -19,9 +19,9 @@ gulp.task('default', function(done) {
 });
 
 gulp.task('prod', function(done) {
-	return glob.sync('src/*').map((folder) => {
+	return glob.sync('src/*').filter(name => !(~name.indexOf('@types'))).map((folder) => {
 		let filename = folder.replace('src/', '') + '.js';
-		return gulp.src([folder + '/*.ts','test.ts'])
+		return gulp.src(`${folder + '/'}*.ts`)
 			.pipe(ts.createProject('tsconfig.json', {
 				outFile: filename
 			})())

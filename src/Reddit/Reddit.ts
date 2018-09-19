@@ -59,6 +59,7 @@ namespace RedditPlugin {
             'xpand': 'expand',
             'spend': 'expand',
             'span': 'expand',
+            'spell': 'expand',
             'reddit dot com': 'reddit',
             'read it': 'reddit',
             'shrink': 'collapse',

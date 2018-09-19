@@ -23,12 +23,18 @@ namespace AntiProcrastinationPlugin {
                         return transcript.match(Plugin.OPEN_X_FOR_Y_TIME_REGX);
                     }
                 },
+                delay: 600,
                 fn: async (fullMatch: string, siteStr: string, secondsStr: string, unit: string) => {
                     let seconds = Number(secondsStr);
                     if (unit.startsWith('minute'))
                         seconds *= 60;
                     else if (unit.startsWith('hour'))
                         seconds *= 3600;
+                    if (~siteStr.indexOf('hacker news'))
+                        siteStr = 'news.ycombinator';
+                    else if (siteStr === 'reddit')
+                        // faster than the redirect
+                        siteStr = 'old.reddit.com'
                     let site = `https://${siteStr.replace(/\s+/g, '').replace('.com', '').replace('dot com', '')}.com`;
                     let id = chrome.tabs.create({
                         url: site,
