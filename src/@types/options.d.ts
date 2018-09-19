@@ -4,6 +4,7 @@
 // serves as a global store
 interface IPluginConfig extends IDisableable {
     commands: {[cmdName: string]: IPluginConfigCommand};
+    privateMembers: string;
     cs: string;
     expanded: boolean;
     id: string;
