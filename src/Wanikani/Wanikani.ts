@@ -73,7 +73,7 @@ namespace WanikaniPlugin {
         match: /^https?:\/\/(www\.)?wanikani.com\/review/,
         homophones: {
             "cracked": "correct",
-            // a bit overarching
+            // a bit overarching -- this is currently affecting tag (TODO: fix to make it work only on WK)
             "text": "next",
             "morning county": "wanikani",
             "morning connie": "wanikani",
