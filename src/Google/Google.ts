@@ -29,7 +29,23 @@ namespace GooglePlugin {
             pageFn: async function (searchQuery) {
                 window.location.href = `https://www.google.com/search?q=${searchQuery}`;
             }
-        }
+        },
+        {
+            name: 'Google Calendar',
+            global: true,
+            match: 'google calendar',
+            pageFn: async function() {
+                window.location.href = `https://calendar.google.com/calendar/r`;
+            }
+        },
+        {
+            name: 'Add Event to Google Calendar',
+            global: true,
+            match: ['add event to google calendar', 'add to google calendar'],
+            pageFn: async function() {
+                window.location.href = `https://calendar.google.com/calendar/r/eventedit`;
+            }
+        },
         ],
     });
 }
