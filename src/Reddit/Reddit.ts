@@ -57,6 +57,7 @@ namespace RedditPlugin {
             'expanded': 'expand',
             'stand': 'expand',
             'xpand': 'expand',
+            'xmen': 'expand',
             'spend': 'expand',
             'span': 'expand',
             'spell': 'expand',

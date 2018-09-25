@@ -123,14 +123,6 @@ declare namespace ExtensionUtil {
     function toggleActivated(_activated:boolean): Promise<void>;
 }
 
-declare interface IActivated {
-    activated: boolean;
-}
-
-declare interface ITutorialMode {
-    tutorialMode: number;
-}
-
 declare interface IGlobalCommand {
     // let command match on any page (not restricted by plugin level match regex)
     global?: boolean;
