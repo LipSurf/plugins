@@ -24,7 +24,7 @@ declare interface IPlugin extends IPluginBase {
     match: RegExp | RegExp[];
     authors?: string;
 
-    commands: IPluginDefCommand[];
+    commands: ICommand[];
     homophones?: ISimpleHomophones;
     // called anytime the page is re-shown. Must be safe to re-run
     // while lipsurf is activated. Or when lipsurf is first activated.
@@ -69,7 +69,7 @@ declare interface IDynamicMatch {
     description: string;
 }
 
-declare interface IPluginDefCommand extends ILocalizedCommand, IGlobalCommand, IFnCommand {
+declare interface ICommand extends ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
     pageFn?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>);
 }

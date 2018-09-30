@@ -35,7 +35,7 @@ namespace AntiProcrastinationPlugin {
                     else if (siteStr === 'reddit')
                         // faster than the redirect
                         siteStr = 'old.reddit.com'
-                    let site = `https://${siteStr.replace(/\s+/g, '').replace('.com', '').replace('dot com', '')}.com`;
+                    let site = `https://${siteStr.replace(/\s+/g, '').replace("'", '').replace('.com', '').replace('dot com', '')}.com`;
                     let id = chrome.tabs.create({
                         url: site,
                         active: true,

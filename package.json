@@ -7,8 +7,8 @@
     "docs:build": "vuepress build docs",
     "build": "gulp",
     "watch": "gulp watch",
-    "build-prod": "gulp prod",
-    "watch-prod": "gulp watch-prod"
+    "build:prod": "gulp prod",
+    "watch:prod": "gulp watch-prod"
   },
   "repository": {
     "type": "git",

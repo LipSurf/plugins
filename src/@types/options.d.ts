@@ -3,7 +3,7 @@
 // easily digestable by the consumers: options page, PM, Recg
 // serves as a global store
 interface IPluginConfig extends IDisableable {
-    commands: {[cmdName: string]: IPluginConfigCommand};
+    commands: {[cmdName: string]: IConfiguredCommand};
     privateMembers: string;
     cs: string;
     expanded: boolean;
@@ -19,7 +19,11 @@ interface IPluginConfig extends IDisableable {
 }
 
 // Run is serialized because it is only eval'd in PluginSandbox
-declare interface IPluginConfigCommand extends IDisableable, StoreSerialized<IFnCommand>, IGlobalCommand {}
+declare interface IConfiguredCommand extends IOrderable, IDisableable, StoreSerialized<IFnCommand>, IGlobalCommand {}
+
+declare interface IOrderable {
+    order: number;
+}
 
 declare interface IToggleableHomophone extends IDisableable {
     source: string;
