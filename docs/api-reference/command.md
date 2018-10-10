@@ -12,10 +12,10 @@ name | `string`   | Friendly-name of the command (not necessarily the words used
 match| `string | string[] | `[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) | The word(s) the user can say to execute this command. Use "#" in the string as an ordinal place holder. Use "*" as a wildcard placeholder. Lastly, a function [`IDynamicMatch`](/api-reference/command.md#idynamicmatch) can be used for the most advanced cases.
 description | `string` | _(optional)_ Detailed description visible in the options page.
 global | `boolean` |  _(default: false)_ let the command match on any page (not restricted by the `match` of the Plugin)
-pageFn | `(number) => Promise<any> | (string) => Promise<any>` | _(optional)_ The async function to run on the page when the command is called. There will be a number parameter if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it).
+pageFn | `(...args: any[]) => Promise<any>` | _(optional)_ The async function to run on the page when the command is called. There will be a number parameter if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it).
 delay | `number | number[]` | _(optional)_ How long to wait for additional input for before executing this command. <br><br> For example with the Google command the user can have a long search term like "search how to boost my wifi signal" in order to prevent the command from executing the search as soon as it hears "search how" instead of the full phrase, we put a delay so that it waits for X ms since the last voice input. <br><br> Use an array with indices that correspond to the different match strings if you should have different delays based on the match string.
 nice | [`INiceCommand`](/api-reference/command.md#inicecommand) |  _(optional)_ See [`INiceCommand`](/api-reference/command.md#inicecommand).
-run | `((tabIndex: number) => any)` | _(optional)_ Code to run in the Chrome extension context.
+fn | `(...args: any[]) => any` | _(optional)_ Code to run in the Chrome extension context. Args are result of match command.
 test | `() => void` | _(optional but recommended)_ Selenium unit test for this command.
 
 

@@ -23,7 +23,7 @@ namespace GooglePlugin {
 
         commands: [{
             name: 'Search',
-            description: "Do a google search",
+            description: "Do a google search.",
             global: true,
             match: 'google *',
             pageFn: async function (searchQuery) {

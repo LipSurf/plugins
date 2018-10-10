@@ -19,7 +19,7 @@ interface IPluginConfig extends IDisableable {
 }
 
 // Run is serialized because it is only eval'd in PluginSandbox
-declare interface IConfiguredCommand extends IOrderable, IDisableable, StoreSerialized<IFnCommand>, IGlobalCommand {}
+declare interface IConfiguredCommand extends IPro, IOrderable, IDisableable, StoreSerialized<IFnCommand>, IGlobalCommand {}
 
 declare interface IOrderable {
     order: number;
