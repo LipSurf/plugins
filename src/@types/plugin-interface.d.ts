@@ -1,7 +1,11 @@
 /// <reference path="./options.d.ts" />
 
 declare interface IDisableable {
-    enabled: boolean,
+    enabled: boolean;
+}
+
+declare interface IPro {
+    isPro?: boolean;
 }
 
 // BCP-47
@@ -69,9 +73,9 @@ declare interface IDynamicMatch {
     description: string;
 }
 
-declare interface ICommand extends ILocalizedCommand, IGlobalCommand, IFnCommand {
+declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
-    pageFn?: (() => Promise<any>) | ((number) => Promise<any>) | ((string) => Promise<any>);
+    pageFn?: (...args: any[]) => Promise<any>;
 }
 
 declare interface ILocalizedCommand extends INiceCommand {
@@ -129,7 +133,7 @@ declare interface IGlobalCommand {
 }
 
 declare interface IFnCommand {
-    fn?: (() => any) | ((tabIndex: number) => any);
+    fn?: (...args: any[]) => any;
 }
 
 declare interface INiceCommand {
