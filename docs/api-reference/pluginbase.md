@@ -8,7 +8,7 @@ Member | Type | Description
 ------|------|------------
 name | `string` | Friendly-name of the plugin. Used in help and in the plugin list in options.
 match | <code>RegExp &#124; RegExp[]</code> | The URL gets matched against this. The plugin commands only run on pages that match (unless the command is marked global).
-commands | `ICommand[]` | The meat of the plugin. Described in [Command](/api-reference/command).
+commands | `ICommand[]` | The meat of the plugin. Described in [Command](/api-reference/command.md).
 homophones | `{ [s: string]: string }` | _(optional)_ "clothes" sounds like "close". If you have a "close" command, you should define a homophone. The key is the misheard part and the value is the command it should run/map-to. This can also include synonyms in some cases. <br> <br> Chaining works. You can do "1000" -> "one thousand" and "one thousand" -> "thousand" to match "1000" in that order.
 description| `string` | _(optional)_ Shown in the plugin list in options.
 init | `() => void` | _(optional)_ Called in the context of the page when LipSurf is activated and the plugin matches the current URL. Useful for setting up custom styling on the page that all the commands use, or initializing data that commands share. Also called each time the page is brought back into focus while LipSurf is activated.
