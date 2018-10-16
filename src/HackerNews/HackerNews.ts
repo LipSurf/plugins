@@ -28,7 +28,7 @@ namespace HackerNewsPlugin {
                 name: 'Upvote',
                 description: "Upvote a post",
                 match: 'upvote #',
-                pageFn: async (index:number) => {
+                pageFn: async (transcript:string, index:number) => {
                     Plugin.getThingAtIndex(index).find('.votearrow[title="upvote"]').get(0).click();
                 }
             },
@@ -36,7 +36,7 @@ namespace HackerNewsPlugin {
                 name: 'Visit Comments',
                 description: "See the comments for a given post",
                 match: ['comments #', 'discuss #'],
-                pageFn: async (index:number) => {
+                pageFn: async (transcript:string, index:number) => {
                     Plugin.getThingAtIndex(index).find('+tr .subtext a[href^="item?id="]').get(0).click();
                 }
             },
@@ -44,7 +44,7 @@ namespace HackerNewsPlugin {
                 name: 'Visit Post',
                 description: "Click a post",
                 match: ['click #', 'visit #'],
-                pageFn: async (index:number) => {
+                pageFn: async (transcript:string, index:number) => {
                     Plugin.getThingAtIndex(index).find('a.storylink').get(0).click();
                 }
             },
@@ -52,7 +52,7 @@ namespace HackerNewsPlugin {
                 name: 'Next Page',
                 description: "Show more hacker news items",
                 match: ['next page', 'show more', 'more'],
-                pageFn: async (index:number) => {
+                pageFn: async (transcript:string, index:number) => {
                     $('a.morelink').get(0).click();
                 }
             },

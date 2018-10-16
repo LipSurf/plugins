@@ -24,7 +24,7 @@ namespace AntiProcrastinationPlugin {
                     }
                 },
                 delay: 600,
-                fn: async (fullMatch: string, siteStr: string, secondsStr: string, unit: string) => {
+                fn: async (transcript: string, fullMatch: string, siteStr: string, secondsStr: string, unit: string) => {
                     let seconds = Number(secondsStr);
                     if (unit.startsWith('minute'))
                         seconds *= 60;

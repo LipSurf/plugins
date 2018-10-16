@@ -26,7 +26,7 @@ namespace GooglePlugin {
             description: "Do a google search.",
             global: true,
             match: 'google *',
-            pageFn: async function (searchQuery) {
+            pageFn: async (searchQuery: string) => {
                 window.location.href = `https://www.google.com/search?q=${searchQuery}`;
             }
         },
@@ -34,7 +34,7 @@ namespace GooglePlugin {
             name: 'Google Calendar',
             global: true,
             match: 'google calendar',
-            pageFn: async function() {
+            pageFn: async () => {
                 window.location.href = `https://calendar.google.com/calendar/r`;
             }
         },
@@ -42,7 +42,7 @@ namespace GooglePlugin {
             name: 'Add Event to Google Calendar',
             global: true,
             match: ['add event to google calendar', 'add to google calendar'],
-            pageFn: async function() {
+            pageFn: async () => {
                 window.location.href = `https://calendar.google.com/calendar/r/eventedit`;
             }
         },

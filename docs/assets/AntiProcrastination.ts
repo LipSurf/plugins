@@ -11,7 +11,7 @@ namespace AntiProcrastinationPlugin {
             description: 'Open a new tab with x website for y minutes. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.',
             global: true,
             match: 'open * for # minutes',
-            pageFn: async (siteStr: string, minutes: number) => {
+            pageFn: async (transcript: string, siteStr: string, minutes: number) => {
                 console.log(`site: ${siteStr}, minutes: ${minutes}`);
             }
         }],

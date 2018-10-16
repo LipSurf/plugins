@@ -34,16 +34,16 @@ namespace GmailPlugin {
                 description: 'Move currently selected messages to a spoken folder',
                 match: {
                     description: 'Say "move to [folder name]"',
-                    fn: async (transcript: string) {
+                    fn: async (transcript: string) => {
                         // if (transcript in folderNames) {
                         //    ...
                         //    return [folderName];
                         // }
                     },
                 },
-                pageFn: async (folderName: string) => {
+                pageFn: async (transcript: string, folderName: string) => {
                     // ...
-                    Plugin.moveToFolder(await Plugin.getSelectedMessages(), { name: folderStr });
+                    Plugin.moveToFolder(await Plugin.getSelectedMessages(), { name: folderName });
                 }
             },
             {
