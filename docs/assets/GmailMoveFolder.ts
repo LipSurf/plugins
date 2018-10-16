@@ -9,7 +9,7 @@ namespace GmailPlugin {
             description: 'Move already selected emails to a spoken folder',
             match: {
                 description: 'Say "move to [folder name]"',
-                fn: async (folderStr: string) {
+                fn: async (folderStr: string) => {
                     // if (folderStr in folders) {
                     //    ...
                     // }
