@@ -75,7 +75,7 @@ declare interface IDynamicMatch {
 
 declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
-    pageFn?: (...args: any[]) => Promise<any>;
+    pageFn?: (transcript: string, ...args: any[]) => Promise<any>;
 }
 
 declare interface ILocalizedCommand extends INiceCommand {
@@ -137,5 +137,5 @@ declare interface IFnCommand {
 }
 
 declare interface INiceCommand {
-    nice?: string | ((rawInput: string, matchOutput: any[]) => string);
+    nice?: string | ((transcript: string, ...matchOutput: any) => string);
 }

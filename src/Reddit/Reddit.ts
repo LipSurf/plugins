@@ -24,7 +24,7 @@ namespace RedditPlugin {
         // TODO: (low priority) how can we make the fact that these need to be functions better
         getThingAttr: () => `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`,
         getCommentsRegX: () => /reddit.com\/r\/[^\/]*\/comments\//,
-        thingAtIndex: (i) => {
+        thingAtIndex: (i:number) => {
             return `#siteTable>div.thing[${Plugin.getThingAttr()}="${i}"]`;
         },
 
@@ -71,14 +71,14 @@ namespace RedditPlugin {
                 name: 'View Comments',
                 description: "View the comments of a reddit post.",
                 match: ["comments #", "view comments #"],
-                pageFn: async (i) => {
+                pageFn: async (transcript:string, i:number) => {
                     $(Plugin.thingAtIndex(i) + ' a.comments')[0].click();
                 },
             }, {
                 name: 'Visit Post',
                 description: "Equivalent of clicking a reddit post.",
-                match: ['click #', 'click', 'visit'],
-                pageFn: async (i) => {
+                match: ['click #', 'click', 'visit #', 'visit'],
+                pageFn: async (transcript:string, i:number) => {
                     // if we're on the post
                     if (Plugin.getCommentsRegX().test(window.location.href)) {
                         $('#siteTable p.title a.title:first')[0].click();
@@ -115,7 +115,7 @@ namespace RedditPlugin {
                 name: 'Expand by Rank',
                 description: "Expand a preview of a post, or a comment by it's position (rank).",
                 match: ["expand #", "# expand"], // in comments view
-                pageFn: async (i) => {
+                pageFn: async (transcript:string, i:number) => {
                     let $ele = $(Plugin.thingAtIndex(i) + ' .expando-button.collapsed');
                     $ele.click();
                     PluginBase.util.scrollToAnimated($ele);
@@ -125,7 +125,7 @@ namespace RedditPlugin {
             name: "Collapse",
             description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
             match: ["collapse #", "close", "collapse"],
-            pageFn: async (i) => {
+            pageFn: async (transcript:string, i:number) => {
                 let index = (i === null || isNaN(Number(i))) ? null : Number(i);
                 if (index !== null) {
                     let $ele = $(Plugin.thingAtIndex(index) + ' .expando-button:not(.collapsed)');
@@ -174,10 +174,10 @@ namespace RedditPlugin {
                 description: 'go to/show r [subreddit name] (do not say slash)',
             },
             delay: 1200,
-            nice: (rawInput:string, matchOutput:any[]) => {
-                return `go to r/${matchOutput[0]}`;
+            nice: (transcript:string, matchOutput:string) => {
+                return `go to r/${matchOutput}`;
             },
-            pageFn: async (subredditName) => {
+            pageFn: async (transcript:string, subredditName:string) => {
                 window.location.href = `https://old.reddit.com/r/${subredditName}`;
             }
         }, {
@@ -191,7 +191,7 @@ namespace RedditPlugin {
             name: 'Clear Vote',
             description: "Unsets the last vote so it's neither up or down.",
             match: ["clear vote #", "reset vote #", "clear vote", "reset vote"],
-            pageFn: async (i) => {
+            pageFn: async (transcript:string, i:number) => {
                 let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
                 $(`${Plugin.thingAtIndex(index)} .arrow.downmod,${Plugin.thingAtIndex(index)} .arrow.upmod`)[0].click();
             },
@@ -199,7 +199,7 @@ namespace RedditPlugin {
             name: 'Downvote',
             match: ["downvote #", "downvote"],
             description: "Downvote the current post or a post # (doesn't work for comments yet)",
-            pageFn: async (i) => {
+            pageFn: async (transcript:string, i:number) => {
                 let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
                 $(`${Plugin.thingAtIndex(index)} .arrow.down:not(.downmod)`)[0].click();
             },
@@ -207,7 +207,7 @@ namespace RedditPlugin {
             name: 'Upvote',
             match: ["upvote #", "upvote"],
             description: "Upvote the current post or a post # (doesn't work for comments yet)",
-            pageFn: async (i) => {
+            pageFn: async (transcript:string, i:number) => {
                 let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
                 $(`${Plugin.thingAtIndex(index)} .arrow.up:not(.upmod)`)[0].click();
             },

@@ -191,23 +191,23 @@ namespace WanikaniPlugin {
         */
         // Compute the edit distance between the two given strings
         getEditDistance: (a:string, b:string): number => {
-            if(a.length == 0) return b.length; 
-            if(b.length == 0) return a.length; 
-        
+            if(a.length == 0) return b.length;
+            if(b.length == 0) return a.length;
+
             var matrix = [];
-        
+
             // increment along the first column of each row
             var i;
             for(i = 0; i <= b.length; i++){
             matrix[i] = [i];
             }
-        
+
             // increment each column in the first row
             var j;
             for(j = 0; j <= a.length; j++){
             matrix[0][j] = j;
             }
-        
+
             // Fill in the rest of the matrix
             for(i = 1; i <= b.length; i++){
             for(j = 1; j <= a.length; j++){
@@ -220,7 +220,7 @@ namespace WanikaniPlugin {
                 }
             }
             }
-        
+
             return matrix[b.length][a.length];
         },
 
@@ -323,7 +323,7 @@ namespace WanikaniPlugin {
                 description: "Goes to https://www.wanikani.com/review/session",
                 global: true,
                 match: ["crocodile crab", "wk", "wanikani"],
-                pageFn: async function () {
+                pageFn: async () => {
                     window.location.href = "https://www.wanikani.com/review/session";
                 }
             },
@@ -408,7 +408,7 @@ namespace WanikaniPlugin {
                     description: "Only fills in answers when you say the correct meaning/reading. To mark as wrong, you must use the \"wrong\" command!",
                 },
                 description: "Only accepts a correct answer to prevent misheard answers by the speech recognizer.",
-                pageFn: async function (query) {
+                pageFn: async (transcript:string, query:string) => {
                     console.log("Before submitting answer");
                     // TODO: only press button if it's still on the right item, otherwise sometimes we submit the same answer twice (skips next answer -- potentially gets wrong answer when lightning mode is on?)
                     Plugin.submitAnswer(query);
@@ -421,7 +421,7 @@ namespace WanikaniPlugin {
                 description: "Marks the current item as correct. In case you know the item, but the speech recognizer picks it up incorrectly, you can use this command to mark it as correct.",
                 match: ['skip', 'correct'],
                 delay: [1000, 0],
-                pageFn: async function() {
+                pageFn: async () => {
                     Plugin.submitAnswer(Plugin.getCorrect());
                 }
             },
@@ -429,7 +429,7 @@ namespace WanikaniPlugin {
                 name: 'Wrong',
                 description: "Saying a wrong answer will not auto-fantasically get marked as wrong because sometimes the speech recognizer is really silly. But in case *you* are the silly one, be honest and say \"wrong\" so you can learn, silly.",
                 match: ['wrong'],
-                pageFn: async function() {
+                pageFn: async () => {
                     if (Plugin.curQType === 'meaning') {
                         Plugin.submitAnswer('I am so silly');
                     } else {
@@ -443,7 +443,7 @@ namespace WanikaniPlugin {
                 match: 'next',
                 // "external apperance" would trigger next
                 delay: 200,
-                pageFn: async function() {
+                pageFn: async () => {
                     document.querySelector<HTMLButtonElement>('#answer-form form button').click();
                 }
             },
@@ -451,7 +451,7 @@ namespace WanikaniPlugin {
                 name: 'Info',
                 description: "Open the info for the entry",
                 match: ['show info', 'info', 'information'],
-                pageFn: async function() {
+                pageFn: async () => {
                     document.querySelector<HTMLButtonElement>('#option-item-info').click();
                 }
             },
@@ -459,7 +459,7 @@ namespace WanikaniPlugin {
                 name: 'Show All Info',
                 description: "Open all the info for the current entry",
                 match: ['more info', 'show all info', 'show all information'],
-                pageFn: async function() {
+                pageFn: async () => {
                     document.querySelector<HTMLButtonElement>('#all-info').click();
                 }
             },
@@ -467,7 +467,7 @@ namespace WanikaniPlugin {
                 name: 'Wrap Up',
                 description: "Do only 10 more items in WK.",
                 match: ['wrap up', 'finish up', 'last 10'],
-                pageFn: async function() {
+                pageFn: async () => {
                     document.querySelector<HTMLButtonElement>('#option-wrap-up').click();
                 }
             },

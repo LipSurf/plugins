@@ -119,8 +119,8 @@ namespace WanikaniPlugin {
             "Skip": {
                 name: "スキップ",
                 match: ["すきっぷ", "ただしい",],
-                nice: (rawInput: string, matchOutput: any[]) => {
-                    if (~rawInput.indexOf("ただしい")) {
+                nice: (transcript: string) => {
+                    if (~transcript.indexOf("ただしい")) {
                         return "正しい";
                     } else {
                         return "スキップ";
@@ -130,8 +130,8 @@ namespace WanikaniPlugin {
             "Next": {
                 name: "次",
                 match: ["つぎ", 'ねくすと'],
-                nice: (rawInput: string, matchOutput: any[]) => {
-                    if (~rawInput.indexOf("つぎ")) {
+                nice: (transcript: string) => {
+                    if (~transcript.indexOf("つぎ")) {
                         return "次";
                     } else {
                         return "ネクスト";
