@@ -162,7 +162,6 @@ namespace RedditPlugin {
             }
         }, {
             name: 'Go to Subreddit',
-            global: true,
             match: {
                 fn: (input) => {
                     const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
