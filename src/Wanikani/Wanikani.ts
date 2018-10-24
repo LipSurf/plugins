@@ -71,6 +71,7 @@ namespace WanikaniPlugin {
         version: '1.0.0',
         apiVersion: '1',
         match: /^https?:\/\/(www\.)?wanikani.com\/review/,
+        pro: true,
         homophones: {
             "cracked": "correct",
             // a bit overarching -- this is currently affecting tag (TODO: fix to make it work only on WK)

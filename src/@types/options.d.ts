@@ -14,6 +14,8 @@ interface IPluginConfig extends IDisableable {
     match: RegExp[];
     settings: object;
     showMore: boolean;
+    // plugin-level pro option
+    pro?: boolean;
     // custom settings that the plugin can set within it's commands (eg. browser annotate)
     version: string;
 }
