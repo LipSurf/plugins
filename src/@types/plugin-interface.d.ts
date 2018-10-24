@@ -5,7 +5,7 @@ declare interface IDisableable {
 }
 
 declare interface IPro {
-    isPro?: boolean;
+    pro?: boolean;
 }
 
 // BCP-47
@@ -27,6 +27,7 @@ declare interface IPlugin extends IPluginBase {
     apiVersion?: string;
     match: RegExp | RegExp[];
     authors?: string;
+    pro?: boolean;
 
     commands: ICommand[];
     homophones?: ISimpleHomophones;
