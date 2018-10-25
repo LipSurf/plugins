@@ -26,7 +26,7 @@ namespace GooglePlugin {
             description: "Do a google search.",
             global: true,
             match: 'google *',
-            pageFn: async (searchQuery: string) => {
+            pageFn: async (transcript: string, searchQuery: string) => {
                 window.location.href = `https://www.google.com/search?q=${searchQuery}`;
             }
         },
