@@ -12,10 +12,10 @@ name | `string`   | Friendly-name of the command (not necessarily the words used
 match| `string | string[] | `[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) | The word(s) the user can say to execute this command. Use "#" in the string as an ordinal place holder. Use "*" as a wildcard placeholder. Lastly, a function [`IDynamicMatch`](/api-reference/command.md#idynamicmatch) can be used for the most advanced cases.
 description | `string` | _(optional)_ Detailed description visible in the options page.
 global | `boolean` |  _(default: false)_ let the command match on any page (not restricted by the `match` of the Plugin)
-pageFn | `(transcript: string, ...matchOutput: any) => Promise<any>` | _(optional)_ The async function to run on the page when the command is called. Special matches (`*` and `#`) will be arguments after the raw transcript, and will come in the order they are specified in the match str. There will be a number argument if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it). 
+pageFn | `(transcript: string, ...matchOutput: any) => Promise<any>` | _(optional)_ An async function to run on the page when the command is called. Special matches (`*` and `#`) will be arguments after the transcript string argument, and will come in the order they are specified in the match property. There will be a number argument if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it). Use `fn` if you need the function to run in the context of the extension rather than the page.
 delay | `number | number[]` | _(optional)_ How long to wait for additional input for before executing this command. <br><br> For example with the Google command the user can have a long search term like "search how to boost my wifi signal" in order to prevent the command from executing the search as soon as it hears "search how" instead of the full phrase, we put a delay so that it waits for X ms since the last voice input. <br><br> Use an array with indices that correspond to the different match strings if you should have different delays based on the match string.
 nice | [`INiceCommand`](/api-reference/command.md#inicecommand) |  _(optional)_ See [`INiceCommand`](/api-reference/command.md#inicecommand).
-fn | `(transcript: string, ...matchOutput: any) => any` | _(optional)_ Code to run in the Chrome extension context. First arg is the transcript that matched, rest of arguments are what's returned from the match command.
+fn | `(transcript: string, ...matchOutput: any) => any` | _(optional)_ An async function that runs in the Chrome extension context when the command is called. First arg is the transcript that matched, rest of arguments are what's returned from the match command. `pageFn` is preferred, which runs in the context of the active tab page.
 test | `() => void` | _(optional but recommended)_ Selenium unit test for this command.
 
 
@@ -63,7 +63,7 @@ Member | Type       | Description
 -------|------------|-------------
 name   | `string`   | The original name of the command to match this localized version with.
 description | `string` | _(optional)_
-match  | `string | string[] | `[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) | The way localized version of command match can be completely different from the base English version.
+match  | `string | string[] |`[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) | The way localized version of command match can be completely different from the base English version.
 delay | `number | number[]` | _(optional)_ Delays for a localized version of a command can be completely different from the base English version.
 nice | [`INiceCommand`](/api-reference/command.md#inicecommand) | _(optional)_ See [`INiceCommand`](/api-reference/command.md#inicecommand).
 
