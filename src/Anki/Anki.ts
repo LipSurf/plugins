@@ -8,7 +8,7 @@ namespace AnkiPlugin {
         description: 'Anki web flashcard functionality.',
         version: '1.0.0',
         apiVersion: '1',
-        match: [/^https:\/\/ankiweb.net/, /^https:\/\/ankiuser.net/],
+        match: [/^https:\/\/ankiweb\.net/, /^https:\/\/ankiuser\.net/],
         homophones: {
             'and key': 'anki',
         },

@@ -70,7 +70,7 @@ namespace WanikaniPlugin {
         description: 'WaniKani lesson reviews',
         version: '1.0.0',
         apiVersion: '1',
-        match: /^https?:\/\/(www\.)?wanikani.com\/review/,
+        match: /^https?:\/\/(www\.)?wanikani\.com\/review/,
         pro: true,
         homophones: {
             "cracked": "correct",
@@ -331,7 +331,7 @@ namespace WanikaniPlugin {
             {
                 name: 'Answer',
                 match: {
-                    fn: (transcript) => {
+                    fn: (transcript:string) => {
                         // are we answering a kana question in English?
                         if (Plugin.curQType === 'reading') {
                             let ans = wanakana.toKana(transcript.replace(/\s*/g, ''));

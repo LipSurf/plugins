@@ -12,7 +12,7 @@ namespace HackerNewsPlugin {
         description: 'Basic controls for news.ycombinator.com.',
         version: '1.0.0',
         apiVersion: '1',
-        match: /^https?:\/\/news.ycombinator.com/,
+        match: /^https?:\/\/news\.ycombinator\.com/,
         homophones: {
             'floor': 'more',
             '4': 'more',
