@@ -4,7 +4,7 @@ namespace WeatherPlugin {
 
     export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Weather',
-        match: /.*accuweather.com/,
+        match: /.*accuweather\.com/,
         commands: [{
             name: 'Check the Weather',
             description: 'Check the weather for a given city.',
