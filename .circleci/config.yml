@@ -6,6 +6,30 @@ jobs:
             - image: circleci/node:10-stretch
         steps:
             - checkout
+            - restore_cache:
+                  name: Restore Yarn Package Cache
+                  keys:
+                    - yarn-packages-{{ checksum "yarn.lock" }}
+            - run:
+                  name: Install Dependencies
+                  command: yarn install
+            - save_cache:
+                  name: Save Yarn Package Cache
+                  key: yarn-packages-{{ checksum "yarn.lock" }}
+                  paths:
+                    - ~/.cache/yarn
             - run: yarn docs:build
-            - run: cd docs/.vuepress/dist && echo 'docs.lipsurf.com' > CNAME && git init && git add -A && git commit -m 'deploy'
+            - add_ssh_keys:
+                  fingerprints:
+                    - "53:01:e7:35:c7:7c:ca:4b:c6:23:7b:38:92:64:30:19"
+            - deploy:
+                name: Deploy
+                command: |
+                    cd docs/.vuepress/dist
+                    echo 'docs.lipsurf.com' > CNAME
+                    git config --global user.email "circleci@lipsurf.com"
+                    git config --global user.name "Circle CI"
+                    git init
+                    git add -A
+                    git commit -m 'deploy'
             - run: git push -f git@github.com:lipsurf/plugins.git master:gh-pages
