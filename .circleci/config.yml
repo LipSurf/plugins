@@ -32,4 +32,4 @@ jobs:
                     git init
                     git add -A
                     git commit -m 'deploy'
-            - run: git push -f git@github.com:lipsurf/plugins.git master:gh-pages
+                    git push -f git@github.com:lipsurf/plugins.git master:gh-pages
