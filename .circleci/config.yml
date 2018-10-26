@@ -2,8 +2,10 @@
 version: 2
 jobs:
     build:
+        docker:
+            - image: circleci/node:10-stretch
         steps:
             - checkout
-            - yarn docs:build
+            - run: yarn docs:build
             - run: cd docs/.vuepress/dist && echo 'docs.lipsurf.com' > CNAME && git init && git add -A && git commit -m 'deploy'
-            - git push -f git@github.com:lipsurf/plugins.git master:gh-pages
+            - run: git push -f git@github.com:lipsurf/plugins.git master:gh-pages
