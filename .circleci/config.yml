@@ -1,13 +1,9 @@
+# TODO: run tests for plugins -- match property collision warnings, failing tests etc.
 version: 2
 jobs:
     build:
         steps:
-            - build_docs
-                name: Build vue-press docs
-                command: deploy-docs.sh
-            - make_gh_pages_commit
-                name: Make GH pages commit
-                command: cd docs/.vuepress/dist && echo 'docs.lipsurf.com' > CNAME && git init && git add -A && git commit -m 'deploy'
-            - push_to_gh_pages_branch
-                name: Push to gh-pages branch
-                command: git push -f git@github.com:lipsurf/plugins.git master:gh-pages
+            - checkout
+            - yarn docs:build
+            - run: cd docs/.vuepress/dist && echo 'docs.lipsurf.com' > CNAME && git init && git add -A && git commit -m 'deploy'
+            - git push -f git@github.com:lipsurf/plugins.git master:gh-pages
