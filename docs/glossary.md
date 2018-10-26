@@ -16,7 +16,7 @@ The utterance that activates a given command is specified via match properties. 
 All the commands in LipSurf are grouped into families called _plugins_. LipSurf plugins can be created by anyone. They extend the default functionality of LipSurf to make it infinitely extensible.
 
 ### pro
-"pro" is the payed version of LipSurf that has all the best features and premium support. You can subscribe to pro [via the site](https://www.lipsurf.com/pricing).
+"pro" is the payed version of LipSurf that has even more powerful features and premium support. You can subscribe to pro [via the site](https://www.lipsurf.com/pricing).
 
 
 

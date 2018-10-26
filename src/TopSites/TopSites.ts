@@ -9,11 +9,8 @@
 
      export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Top Sites',
-        description: 'Commands for going to the most popular websites',
+        description: 'Shortcuts for going to popular websites.',
         match: /.*/,
-        homophones: {
-
-        },
         authors: "Miko",
 
         commands: [
