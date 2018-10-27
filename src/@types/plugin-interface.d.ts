@@ -76,7 +76,7 @@ declare interface IDynamicMatch {
 
 declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
-    pageFn?: (transcript: string, ...matchOutput: any) => Promise<any>;
+    pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<any>;
 }
 
 declare interface ILocalizedCommand extends INiceCommand {
@@ -120,7 +120,7 @@ declare interface IPluginUtil {
     isInView: (ele: JQuery<HTMLElement>) => boolean;
     getNoCollisionUniqueAttr: () => string;
     sleep: (number) => Promise<{}>;
-    pick: (obj: object, ...string) => object;
+    pick: (obj: object, ...props: string[]) => object;
 }
 
 declare namespace ExtensionUtil {
@@ -134,9 +134,9 @@ declare interface IGlobalCommand {
 }
 
 declare interface IFnCommand {
-    fn?: (transcript: string, ...matchOutput: any) => any;
+    fn?: (transcript: string, ...matchOutput: any[]) => any;
 }
 
 declare interface INiceCommand {
-    nice?: string | ((transcript: string, ...matchOutput: any) => string);
+    nice?: string | ((transcript: string, ...matchOutput: any[]) => string);
 }
