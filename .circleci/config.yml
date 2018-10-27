@@ -34,5 +34,5 @@ jobs:
                     git config --global user.name "Circle CI"
                     git init
                     git add -A
-                    git commit -m 'deploy'
+                    git commit -m '[ci skip] deploy'
                     git push -f git@github.com:lipsurf/plugins.git master:gh-pages
