@@ -28,7 +28,7 @@ namespace WikipediaPlugin {
       match: 'wikipedia *',
       fn: async (transcript: string, searchQuery: string) => {
         chrome.tabs.create({
-          url: `https://wikipedia.org/wiki/${searchQuery.replace(/\s+/g, '_')}`,
+          url: `https://wikipedia.org/w/index.php?search=${encodeURIComponent(searchQuery).replace(/%20/g, '+')}`,
           active: true
         });
       }
