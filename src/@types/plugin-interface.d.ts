@@ -61,16 +61,24 @@ declare interface ISimpleHomophones {
     [s: string]: string;
 }
 
-// array of args to pass over to pageFn
-//     -or-
-// `false` if there is a partial match -- so we should delay other cmds that 
-// have a full match -- because the user might be in the process of saying this longer
-// command where the partial match is a subset but also a matching command "ie. Help Wanted" 
-// executing a different command from "Help"
-declare type MatchResult = boolean|any[];
+declare type IndicesPair = [number, number];
+
+// out -- what goes into the pageFn or fn as arguments
+// indices -- the match indices so we know what to highlight with "success" and where to start looking 
+//          for another command in the transcript
+// partial match -- if there's a partial match we should delay other cmds that 
+//                  have a full match; because the user might be in the process of saying this longer
+//                  command where the partial match is a subset but also a matching command "ie. Help Wanted" 
+//                  executing a different command from "Help"
+declare type DynamicMatchResult = {
+    output: any,
+    indices: IndicesPair,
+} | {
+    partial: boolean,
+};
 
 declare interface IDynamicMatch {
-    fn: (transcript: string) => MatchResult|undefined;
+    fn: (transcript: string) => DynamicMatchResult|undefined;
     description: string;
 }
 

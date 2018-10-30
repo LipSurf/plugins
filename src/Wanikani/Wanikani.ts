@@ -331,7 +331,7 @@ namespace WanikaniPlugin {
             {
                 name: 'Answer',
                 match: {
-                    fn: (transcript:string) => {
+                    fn: (transcript: string) => {
                         // are we answering a kana question in English?
                         if (Plugin.curQType === 'reading') {
                             let ans = wanakana.toKana(transcript.replace(/\s*/g, ''));
@@ -345,7 +345,7 @@ namespace WanikaniPlugin {
 
                             if (properAns) {
                                 if (~properAns.indexOf(ans)) {
-                                    return [ans];
+                                    return ans;
                                 } else {
                                     // if there's a partial match -- return false so we can delay executing of another matching command
                                     // to prevent issues like spelling "t-o-d-o-k-e-r-u" going to reddit.com/r/you
@@ -373,7 +373,7 @@ namespace WanikaniPlugin {
                                     if (Plugin.fuzzyCorrect(concatted[i], ts)) {
                                         // don't use the user input because if it's a spelled out word (eg. t a i l) then it will fail on WK
                                         // concatted is no bueno because it has spaces removed -- so rebuild the original ans array
-                                        return [origAns[i].toLowerCase()];
+                                        return origAns[i].toLowerCase();
                                     }
                                 }
                             }

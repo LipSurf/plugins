@@ -23,7 +23,7 @@ namespace AntiProcrastinationPlugin {
                         return transcript.match(Plugin.OPEN_X_FOR_Y_TIME_REGX);
                     }
                 },
-                delay: 600,
+                // delay is not needed as we end with a static string (seconds, minutes, hours)
                 fn: async (transcript: string, fullMatch: string, siteStr: string, secondsStr: string, unit: string) => {
                     let seconds = Number(secondsStr);
                     if (unit.startsWith('minute'))

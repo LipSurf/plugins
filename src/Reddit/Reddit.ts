@@ -163,18 +163,18 @@ namespace RedditPlugin {
         }, {
             name: 'Go to Subreddit',
             match: {
-                fn: (input) => {
+                fn: (input: string) => {
                     const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
                     let match = input.match(SUBREDDIT_REGX);
                     // console.log(`navigate subreddit input: ${input} match: ${match}`);
                     if (match) {
-                        return [match[1].replace(/\s/g, "")];
+                        return match[1].replace(/\s/g, "");
                     }
                 },
                 description: 'go to/show r [subreddit name] (do not say slash)',
             },
             delay: 1200,
-            nice: (transcript:string, matchOutput:string) => {
+            nice: (transcript: string, matchOutput: string) => {
                 return `go to r/${matchOutput}`;
             },
             pageFn: async (transcript:string, subredditName:string) => {

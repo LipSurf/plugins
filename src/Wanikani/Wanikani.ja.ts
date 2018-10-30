@@ -55,7 +55,7 @@ namespace WanikaniPlugin {
             "Answer": {
                 name: "答え",
                 match: {
-                    fn: (transcript) => {
+                    fn: (transcript: string) => {
                         // try matching the words starting from the first word, then slide the part of the transcript that we are checking
                         // for over towards the end word-by-word in case the user made a correction and it's included in the same transcript.
                         // eg. transcript: "部署文章" and the answer is "文章"
@@ -78,7 +78,7 @@ namespace WanikaniPlugin {
                             for (let tsI = 0; tsI < tsParts.length; tsI++) {
                                 let ts = tsParts.slice(tsI, tsParts.length).join('');
                                 if (~properAns.indexOf(ts)) {
-                                    return [ts];
+                                    return ts;
                                 }
                             }
 
