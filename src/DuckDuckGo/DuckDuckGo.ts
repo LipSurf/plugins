@@ -13,13 +13,13 @@ namespace DuckDuckGoPlugin {
   export let Plugin = Object.assign({}, PluginBase, {
     niceName: 'DuckDuckGo',
     description: 'The duckduckgo search engine.',
-    version: '1.0.0',
+    version: '1.0.1',
     apiVersion: '1',
     match: /.*/,
     homophones: {
       'search': 'duck',
     },
-    authors: "Aparajita",
+    authors: 'Aparajita Fishman',
 
     commands: [{
       name: 'Search',
