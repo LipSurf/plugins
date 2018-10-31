@@ -13,13 +13,13 @@ namespace WikipediaPlugin {
   export let Plugin = Object.assign({}, PluginBase, {
     niceName: 'Wikipedia',
     description: 'The Wikipedia search engine.',
-    version: '1.0.0',
+    version: '1.0.1',
     apiVersion: '1',
     match: /.*/,
     homophones: {
       'wiki': 'wikipedia',
     },
-    authors: "Aparajita",
+    authors: 'Aparajita Fishman',
 
     commands: [{
       name: 'Wikipedia',
