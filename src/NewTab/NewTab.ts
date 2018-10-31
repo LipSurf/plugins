@@ -13,13 +13,13 @@ namespace NewTabPlugin {
   export let Plugin = Object.assign({}, PluginBase, {
     niceName: 'New tab',
     description: 'Create a new empty tab.',
-    version: '1.0.0',
+    version: '1.0.1',
     apiVersion: '1',
     match: /.*/,
     homophones: {
       'open tab': 'new tab',
     },
-    authors: "Aparajita",
+    authors: 'Aparajita Fishman',
 
     commands: [{
       name: 'New tab',
