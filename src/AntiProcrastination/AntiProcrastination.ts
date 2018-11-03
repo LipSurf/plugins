@@ -4,6 +4,8 @@ namespace AntiProcrastinationPlugin {
 
     interface IAntiProcrastinationPlugin extends IPlugin {
         OPEN_X_FOR_Y_TIME_REGX: RegExp;
+        OPEN_REGX: RegExp;
+        OPEN_FOR_REGX: RegExp;
     }
 
     export let Plugin = Object.assign({}, PluginBase, {
@@ -11,7 +13,8 @@ namespace AntiProcrastinationPlugin {
         description: 'Tools for curbing procrastination.',
         match: /.*/,
         author: 'Miko',
-        OPEN_X_FOR_Y_TIME_REGX: /open (.*) for (\d+) (seconds|minutes?|hours?)/,
+        OPEN_X_FOR_Y_TIME_REGX: /\bopen (.*) for (\d+) (seconds|minutes?|hours?)/,
+        OPEN_REGX: /\bopen\b/,
         commands: [
             {
                 name: 'Self Destructing Tab',
@@ -20,7 +23,14 @@ namespace AntiProcrastinationPlugin {
                 match: {
                     description: 'Say "open [website name] for x seconds/minutes/hours"',
                     fn: (transcript: string) => {
-                        return transcript.match(Plugin.OPEN_X_FOR_Y_TIME_REGX);
+                        let fullMatch = transcript.match(Plugin.OPEN_X_FOR_Y_TIME_REGX);
+                        if (fullMatch) {
+                            return fullMatch;
+                        } else if (Plugin.OPEN_REGX.test(transcript)) {
+                            // ideally it would be smarter than just testing (open) but that functionality 
+                            // should be built into the recognizer
+                            return false;
+                        }
                     }
                 },
                 // delay is needed to get more accurate site name

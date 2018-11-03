@@ -15,7 +15,7 @@ namespace GooglePlugin {
         description: 'The google search engine.',
         version: '1.0.0',
         apiVersion: '1',
-        match: /.*google\.com/,
+        match: /.*\.google\.com/,
         homophones: {
             'search': 'google',
         },
