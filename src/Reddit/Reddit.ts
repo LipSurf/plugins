@@ -61,6 +61,7 @@ namespace RedditPlugin {
             'spend': 'expand',
             'span': 'expand',
             'spell': 'expand',
+            'spent': 'expand',
             'reddit dot com': 'reddit',
             'read it': 'reddit',
             'shrink': 'collapse',
@@ -88,37 +89,31 @@ namespace RedditPlugin {
                 },
             },
             {
-                // separated out because we would get false positives with expand # just doing "expand"
                 name: 'Expand',
-                description: 'Hit the top most expando on the screen',
-                match: 'expand',
-                delay: 1200,
-                pageFn: async () => {
-                    // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-                    let mainItem = $(`#siteTable .thing .expando-button.collapsed:first`);
-                    let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
-
-                    if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
-                        mainItem[0].click();
+                description: "Expand a preview of a post, or a comment by it's position (rank).",
+                match: ["expand #", "# expand", 'expand'], // in comments view
+                pageFn: async (transcript:string, i:number) => {
+                    if (typeof i !== 'undefined') {
+                        let $ele = $(Plugin.thingAtIndex(i) + ' .expando-button.collapsed');
+                        $ele.click();
+                        PluginBase.util.scrollToAnimated($ele);
                     } else {
-                        for (let ele of commentItems.reverse()) {
-                            let $ele = $(ele);
-                            if (PluginBase.util.isInView($ele)) {
-                                $ele.find('a.expand:contains([+]):first')[0].click();
-                                return;
+                        // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
+                        let mainItem = $(`#siteTable .thing .expando-button.collapsed:first`);
+                        let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
+
+                        if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
+                            mainItem[0].click();
+                        } else {
+                            for (let ele of commentItems.reverse()) {
+                                let $ele = $(ele);
+                                if (PluginBase.util.isInView($ele)) {
+                                    $ele.find('a.expand:contains([+]):first')[0].click();
+                                    return;
+                                }
                             }
                         }
                     }
-                }
-            },
-            {
-                name: 'Expand by Rank',
-                description: "Expand a preview of a post, or a comment by it's position (rank).",
-                match: ["expand #", "# expand"], // in comments view
-                pageFn: async (transcript:string, i:number) => {
-                    let $ele = $(Plugin.thingAtIndex(i) + ' .expando-button.collapsed');
-                    $ele.click();
-                    PluginBase.util.scrollToAnimated($ele);
                 }
             },
             {

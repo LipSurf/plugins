@@ -13,8 +13,8 @@ namespace AntiProcrastinationPlugin {
         description: 'Tools for curbing procrastination.',
         match: /.*/,
         author: 'Miko',
-        OPEN_X_FOR_Y_TIME_REGX: /\bopen (.*) for (\d+) (seconds|minutes?|hours?)/,
-        OPEN_REGX: /\bopen\b/,
+        OPEN_X_FOR_Y_TIME_REGX: /^open (.*) for (\d+) (seconds|minutes?|hours?)$/,
+        OPEN_REGX: /^open\b/,
         commands: [
             {
                 name: 'Self Destructing Tab',
