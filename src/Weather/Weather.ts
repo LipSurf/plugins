@@ -1,0 +1,1 @@
+/home/mikob/workspace/lipsurf/plugins/docs/assets/Weather.ts
