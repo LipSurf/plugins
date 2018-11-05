@@ -8,7 +8,7 @@ Each command has the following properties:
 
 |Member |    Type    | Description|
 |-------|------------|-------------|
-|name | `string`   | Friendly-name of the command (not necessarily the words used to call it).|
+|name | `string`   | Friendly-name of the command (not necessarily the words used to call it). Should be title-cased.|
 |match| `string | string[] | `[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) | The word(s) the user can say to execute this command. Use "#" in the string as an ordinal place holder. Use "*" as a wildcard placeholder. Lastly, a function [`IDynamicMatch`](/api-reference/command.md#idynamicmatch) can be used for the most advanced cases.
 |description | `string` | _(optional)_ Detailed description visible in the options page.|
 |global | `boolean` |  _(default: false)_ let the command match on any page (not restricted by the `match` of the Plugin)|
