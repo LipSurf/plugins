@@ -6,10 +6,6 @@
 namespace GooglePlugin {
     declare const PluginBase: IPlugin;
 
-    interface IGooglePlugin extends IPlugin {
-
-    }
-
     export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Google',
         description: 'The google search engine.',

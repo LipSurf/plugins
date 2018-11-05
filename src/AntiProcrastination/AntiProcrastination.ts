@@ -5,10 +5,9 @@ namespace AntiProcrastinationPlugin {
     interface IAntiProcrastinationPlugin extends IPlugin {
         OPEN_X_FOR_Y_TIME_REGX: RegExp;
         OPEN_REGX: RegExp;
-        OPEN_FOR_REGX: RegExp;
     }
 
-    export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin: IAntiProcrastinationPlugin = Object.assign({}, PluginBase, {
         niceName: 'Anti-procrastination',
         description: 'Tools for curbing procrastination.',
         match: /.*/,
