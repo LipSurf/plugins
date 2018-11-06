@@ -120,6 +120,14 @@
                     window.location.href = 'https://news.ycombinator.com/';
                 }
             },
+            {
+                name: 'Product Hunt',
+                global: true,
+                match: 'product hunt',
+                pageFn: async() => {
+                    window.location.href = 'https://www.producthunt.com';
+                }
+            }
         ]
      })
  }
