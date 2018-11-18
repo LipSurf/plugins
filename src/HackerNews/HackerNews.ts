@@ -1,13 +1,12 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace HackerNewsPlugin {
-    declare const PluginBase: IPlugin;
-
+export module HackerNewsPlugin {
     interface IHackerNewsPlugin extends IPlugin {
-        getThingAtIndex: (index: number) => HTMLElement;
+        getThingAtIndex: (index: number) => JQuery<HTMLElement>;
     }
 
-    export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin: IHackerNewsPlugin = Object.assign({}, PluginBase, {
         niceName: 'Hacker News',
         description: 'Basic controls for news.ycombinator.com.',
         version: '1.0.0',

@@ -2,11 +2,10 @@
  * LipSurf plugin for Google search
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace GooglePlugin {
-    declare const PluginBase: IPlugin;
-
-    export let Plugin = Object.assign({}, PluginBase, {
+export module GooglePlugin {
+    export let Plugin: IPlugin = Object.assign({}, PluginBase, {
         niceName: 'Google',
         description: 'The google search engine.',
         version: '1.0.0',

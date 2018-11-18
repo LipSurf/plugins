@@ -2,13 +2,9 @@
  * LipSurf plugin for Wikipedia search
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace WikipediaPlugin {
-  declare const PluginBase: IPlugin;
-
-  interface IWikipediaPlugin extends IPlugin {
-
-  }
+export module WikipediaPlugin {
 
   export let Plugin = Object.assign({}, PluginBase, {
     niceName: 'Wikipedia',

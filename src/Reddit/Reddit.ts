@@ -2,10 +2,9 @@
  * LipSurf plugin for Reddit.com
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace RedditPlugin {
-    declare const PluginBase: IPluginBase;
-
+export module RedditPlugin {
     interface IRedditPlugin extends IPlugin {
         getThingAttr: () => string;
         getCommentsRegX: () => RegExp;

@@ -1,7 +1,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-namespace TimerPlugin {
-    declare const PluginBase: IPlugin;
+import { PluginBase } from "../PluginBase";
 
+export module TimerPlugin {
     interface ITimerPlugin extends IPlugin {
         SET_TIMER_REGX: RegExp;
         PARTIAL_SET_TIMER_REGX: RegExp;

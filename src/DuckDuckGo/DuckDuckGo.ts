@@ -2,14 +2,9 @@
  * LipSurf plugin for DuckDuckGo search
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace DuckDuckGoPlugin {
-  declare const PluginBase: IPlugin;
-
-  interface IDuckDuckGoPlugin extends IPlugin {
-
-  }
-
+export module DuckDuckGoPlugin {
   export let Plugin = Object.assign({}, PluginBase, {
     niceName: 'DuckDuckGo',
     description: 'The duckduckgo search engine.',

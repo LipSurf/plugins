@@ -1,13 +1,12 @@
-
 /*
  * LipSurf plugin for going to popular sites
  */
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from "../PluginBase";
 
- namespace TopSitesPlugin {
-     declare const PluginBase: IPlugin;
+export module TopSitesPlugin {
 
-     export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Top Sites',
         description: 'Shortcuts for going to popular websites.',
         match: /.*/,

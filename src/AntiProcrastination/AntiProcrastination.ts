@@ -1,7 +1,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-namespace AntiProcrastinationPlugin {
-    declare const PluginBase: IPlugin;
+import { PluginBase } from '../PluginBase';
 
+export module AntiProcrastinationPlugin {
     interface IAntiProcrastinationPlugin extends IPlugin {
         OPEN_X_FOR_Y_TIME_REGX: RegExp;
         OPEN_REGX: RegExp;

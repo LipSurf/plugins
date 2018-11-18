@@ -37,7 +37,6 @@ declare interface IPlugin extends IPluginBase {
     // called when plugin is deactivated (speech recg. paused)
     // in page context
     destroy?: () => void;
-    languages?: {[L in LanguageCode]?: IPluginTranslation};
 }
 
 declare interface IPluginTranslation {
@@ -49,6 +48,7 @@ declare interface IPluginTranslation {
 }
 
 declare interface IPluginBase {
+    languages?: {[L in LanguageCode]?: IPluginTranslation};
     // should not be overridden by plugins
     getPluginOption: (name: string) => Promise<any>;
     setPluginOption: (name: string, val: any) => Promise<void>;
@@ -117,6 +117,7 @@ declare interface IPluginUtil {
     isInView: (ele: JQuery<HTMLElement>) => boolean;
     getNoCollisionUniqueAttr: () => string;
     sleep: (number) => Promise<{}>;
+    getHUDEle: () => [ShadowRoot, boolean];
     pick: (obj: object, ...props: string[]) => object;
 }
 

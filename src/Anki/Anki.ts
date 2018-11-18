@@ -1,8 +1,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace AnkiPlugin {
-    declare const PluginBase: IPlugin;
-
+export module AnkiPlugin {
     export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Anki',
         description: 'Anki web flashcard functionality.',
@@ -11,6 +10,8 @@ namespace AnkiPlugin {
         match: [/^https:\/\/ankiweb\.net/, /^https:\/\/ankiuser\.net/],
         homophones: {
             'and key': 'anki',
+            'should i answer': 'show answer',
+            'show me answer': 'show answer',
         },
         authors: "Miko",
 
