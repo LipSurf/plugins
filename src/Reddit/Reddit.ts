@@ -52,6 +52,7 @@ export module RedditPlugin {
             'contract': 'collapse',
             'claps': 'collapse',
             'expense': 'expand',
+            'it\'s been': 'expand',
             'expanse': 'expand',
             'expanded': 'expand',
             'stand': 'expand',
