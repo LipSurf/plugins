@@ -112,14 +112,6 @@ export module TopSitesPlugin {
                 }
             },
             {
-                name: 'Hacker News',
-                global: true,
-                match: ['hacker news', 'y combinator'],
-                pageFn: async () => {
-                    window.location.href = 'https://news.ycombinator.com/';
-                }
-            },
-            {
                 name: 'Product Hunt',
                 global: true,
                 match: 'product hunt',
