@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# this is run via circle-ci automatically, usually
 
 # abort on errors
 set -e
