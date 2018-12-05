@@ -14,7 +14,7 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
  2. Install the dependencies.
 
  ```sh
- npm install
+ yarn install
  ```
 
  3. Create a folder named `HelloWorld` with a `HelloWorld.ts` file in it with the following contents:
@@ -34,7 +34,7 @@ Rather than copy-pasting, it's better to type out the code to force yourself to 
   4. Since we're doing the example in TypeScript, we need to compile down to JavaScript.
 
   ```sh
-  npm run watch
+  yarn watch
   ```
 
 ::: tip NOTE
@@ -47,7 +47,11 @@ This will watch our *.ts files for changes and compile them to JavaScript whenev
 
  ![Screenshot of developer mode setting](./assets/img/developer-mode.png)
 
- 7. Click "Add a Local Plugin" under "Plugins" and navigate to the compiled `.js` file (eg. `plugins/build/HelloWorld.js`).
+ 7. Click "Add a Local Plugin" under "Plugins" and navigate to the compiled `.mjs` file (eg. `plugins/dist/HelloWorld.mjs`).
+
+ ::: tip NOTE
+ The `mjs` extension is special for ECMAScript modules (ESM). They are basically JavaScript.
+ :::
 
  ![Screenshot of the "Add a local plugin" button.](./assets/img/add-a-local-plugin.png)
 
@@ -79,7 +83,7 @@ Check the developer console (&lt;F12&gt;) for hints if there are installation is
 ---
 
 
-  You can also say <span class="voice-cmd">help</span> to see your new command listed in the auto-generated help cheat-sheet.
+  You can also say <span class="voice-cmd">help</span> to see your new command listed in the auto-generated help overlay.
 
   ![Screenshot of help cheat-sheet that now includes new "hello world" command](./assets/img/help-screen.png)
 

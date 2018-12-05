@@ -1,16 +1,14 @@
 // lipsurf-plugins/src/HelloWorld/HelloWorld.ja.ts
 /// <reference path="../@types/plugin-interface.d.ts"/>
-/// <reference path="HelloWorld.ts"/>
+import { HelloWorldPlugin } from "./HellowWorld";
 
-namespace HelloWorldPlugin {
-    plugin.languages.ja = {
-        niceName: "世界こんにちは",
-        description: "何の役にも立たない",
-        commands: {
-            "Hello World": {
-                name: "世界こんにちは",
-                match: "せかいこんにちは"
-            }
+HelloWorldPlugin.Plugin.languages.ja = {
+    niceName: "世界のご案内",
+    description: "非常に単純のプラグイン",
+    commands: {
+        "Hello World": {
+            name: "ハロー・ワールド",
+            match: "はろーわーるど"
         }
-    };
-}
+    }
+};

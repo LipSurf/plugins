@@ -1,7 +1,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-namespace AntiProcrastinationPlugin {
-    declare const PluginBase: IPlugin;
+import { PluginBase } from '../PluginBase';
 
+export module AntiProcrastinationPlugin {
     export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Anti-procrastination',
         description: 'Helpers for overcoming procrastination.',

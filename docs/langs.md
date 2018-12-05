@@ -23,18 +23,14 @@ Once a user has at least one plugin installed that supports a given language, th
 ## Example
 Let's localize the [hello world plugin](/quick-start.md#hello-world-plugin) from the quick start guide earlier.
 
- 1. Create a new file `HelloWorld.ja.ts` in the `HelloWorld` folder where in this case `ja` is the ISO 639-1 language code for Japanese, what we're localizing for in this example.
+ 1. Create a new file `HelloWorld.ja.ts` in the `HelloWorld` folder where in this case `ja` is the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) language code for Japanese, what we're localizing for in this example.
 
-  ::: tip NOTE
-  [Possible language codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
-  :::
-
- 2. Reference the original plugin so we can extend objects in the `HelloWorldPlugin` namespace.
+ 2. Import the English (base) plugin so we can reference it and extend it's language property.
 
  ```ts
  /// lipsurf-plugins/src/HelloWorld/HelloWorld.ja.ts
  /// <reference path="../@types/plugin-interface.d.ts"/>
- /// <reference path="HelloWorld.ts"/>
+ import { HelloWorldPlugin } from './HelloWorld';
  ```
 
   3. Set `Plugin.languages.ja` to the localizeable things.

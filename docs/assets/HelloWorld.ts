@@ -1,9 +1,8 @@
 // lipsurf-plugins/src/HelloWorld/HelloWorld.ts
 /// <reference path="../@types/plugin-interface.d.ts"/>
+import { PluginBase } from '../PluginBase';
 
-namespace HelloWorldPlugin {
-    declare const PluginBase: IPlugin;
-
+export module HelloWorldPlugin {
     export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Hello World',
         description: 'A hello world plugin that works on the lipsurf.com domain.',

@@ -1,6 +1,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-namespace GmailPlugin {
-    declare const PluginBase: IPlugin;
+import { PluginBase } from '../PluginBase';
+
+export module GmailPlugin {
 
     interface IFolder {
         id: string;
