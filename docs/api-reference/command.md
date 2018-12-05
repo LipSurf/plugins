@@ -62,7 +62,8 @@ If you don't want the first "reddit" command to match, return `false` when there
 
 ## ILocalizedCommand
 
-Also see [`ICommand`](/api-reference/command.md#icommand).
+See also [`ICommand`](/api-reference/command.md#icommand) and [`IPluginTranslation`](/api-reference/pluginbase.md#iplugintranslation).
+
 
 Member | Type       | Description
 -------|------------|-------------

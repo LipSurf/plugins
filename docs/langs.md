@@ -35,8 +35,8 @@ Let's localize the [hello world plugin](/quick-start.md#hello-world-plugin) from
 
   3. Set `Plugin.languages.ja` to the localizeable things.
 
-  You can localize all the things that make sense to: pretty names, descriptions, match patterns etc.
+  You can localize all the things that make sense to: nice names (the pretty ones🌼), descriptions, match patterns etc.
 
-  The `commands` property should be an object with keys of command names that match the command names they localize and of type [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand)).
+  The `commands` property should be an object with keys of command names that map to the English command names they localize and of type [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand)).
 
 <<< @/docs/assets/HelloWorld.ja.ts

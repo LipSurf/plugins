@@ -29,3 +29,13 @@ The following API exists on `PluginBase.util` for interacting with the extension
 |isInView|`(ele: JQuery<HTMLElement>) => boolean`|Checks if an element is in the viewport.|
 |getNoCollisionUniqueAttr|`() => string`|Use the string returned from here to keep everything under the LipSurf namespace and prevent page pollution/plugin collisions.|
 
+## IPluginTranslation
+
+|           Member               |       Type           | Description  |
+|--------------------------------|----------------------|--------------|
+|niceName                        | `string`             | Translated friendly name of the plugin. |
+|authors                         |`string`               | _(optional)_ Authors of the plugin translation. |
+|description                     | `string`              | _(optional)_ Translated long description of the plugin. |
+|homophones                      | `{ [s: string]: string }`              | _(optional)_ Synonyms and/or homophones built-in by default for the translation. Left side should be what was recognized, and the right side should be what it maps to. There cannot be duplicates on the left side (keys). |
+|commands                        | `{ [key: string]: `[`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand)`}`              | The keys of this object should map to the names of commands in the base (English) plugin. |
+
