@@ -6,6 +6,8 @@ module.exports = {
 		logo: '/icon-128.png',
 		repo: 'lipsurf/plugins',
 		footer: '© 2018 LipSurf',
+		editLinks: true,
+		editLinkText: 'Improve this page',
 		algolia: {
 		    apiKey: '813bcf2a81a839cbea24b7899885d1b6',
 		    indexName: 'lipsurf'
