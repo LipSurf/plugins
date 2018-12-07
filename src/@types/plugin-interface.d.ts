@@ -74,7 +74,9 @@ declare interface IDynamicMatch {
 
 declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
-    pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<any>;
+    // matchOutput is the array returned from the match function (if there's a match fn) or 
+    // the arguments from special match string (wildcard, numeral etc. type special params)
+    pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<void>;
 }
 
 declare interface ILocalizedCommand extends INiceCommand {
@@ -86,7 +88,6 @@ declare interface ILocalizedCommand extends INiceCommand {
     match: string | string[] | IDynamicMatch;
     // returns the complete liveText that should be shown.
     // raw input would be eg. "go to are meal time video"
-    // matchOutput is the array returned from the match function (if there's a match fn)
     delay?: number | number[];
 }
 
@@ -116,7 +117,7 @@ declare interface IPluginUtil {
     scrollToAnimated: (ele: JQuery<HTMLElement>) => void;
     isInView: (ele: JQuery<HTMLElement>) => boolean;
     getNoCollisionUniqueAttr: () => string;
-    sleep: (number) => Promise<{}>;
+    sleep: (number) => Promise<void>;
     getHUDEle: () => [ShadowRoot, boolean];
     pick: (obj: object, ...props: string[]) => object;
 }
@@ -132,9 +133,13 @@ declare interface IGlobalCommand {
 }
 
 declare interface IFnCommand {
-    fn?: (transcript: string, ...matchOutput: any[]) => any;
+    // matchOutput is the array returned from the match function (if there's a match fn) or 
+    // the arguments from special match string (wildcard, numeral etc. type special params)
+    fn?: (transcript: string, ...matchOutput: any[]) => Promise<void>;
 }
 
 declare interface INiceCommand {
+    // matchOutput is the array returned from the match function (if there's a match fn) or 
+    // the arguments from special match string (wildcard, numeral etc. type special params)
     nice?: string | ((transcript: string, ...matchOutput: any[]) => string);
 }
