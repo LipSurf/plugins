@@ -66,5 +66,9 @@ TopSitesPlugin.Plugin.languages.ru = {
             name: 'Hacker News',
             match: ['хакер ньюз', 'уай комбинатор', 'уай комбинэтор', 'hacker news', 'y combinator'],
         },
+        "Product Hunt": {
+            name: 'Product Hunt',
+            match: ['продакт хант', 'product hunt']
+        },
         }
 };
