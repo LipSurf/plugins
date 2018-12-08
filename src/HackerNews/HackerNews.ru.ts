@@ -7,35 +7,31 @@ import { PluginBase } from '../PluginBase';
         authors: "Hanna",
         commands: [
             {
-                name: 'Upvote',
-                description: "Upvote a post",
-                match: 'upvote #',
-                pageFn: async (transcript:string, index:number) => {
-                    Plugin.getThingAtIndex(index).find('.votearrow[title="upvote"]').get(0).click();
+                command: 'Upvote',
+                name: 'Голосовать за',
+                description: "Голосовать за пост названного #, upvote",
+                match: ['голосовать за #'],
                 }
             },
             {
-                name: 'Visit Comments',
-                description: "See the comments for a given post",
-                match: ['comments #', 'discuss #'],
-                pageFn: async (transcript:string, index:number) => {
-                    Plugin.getThingAtIndex(index).find('+tr .subtext a[href^="item?id="]').get(0).click();
+                command: 'Visit Comments',
+                name: 'Открыть комментарии',
+                description: "Открывает комментарии к выбранному посту",
+                match: ['открыть комментарии #', 'комментарии #'],
                 }
             },
             {
-                name: 'Visit Post',
-                description: "Click a post",
-                match: ['click #', 'visit #'],
-                pageFn: async (transcript:string, index:number) => {
-                    Plugin.getThingAtIndex(index).find('a.storylink').get(0).click();
+                command: 'Visit Post',
+                name: 'Открыть пост',
+                description: "Кликает на пост выбранного #",
+                match: ['кликнуть #', 'открыть #'],
                 }
             },
             {
-                name: 'Next Page',
-                description: "Show more hacker news items",
-                match: ['next page', 'show more', 'more'],
-                pageFn: async (transcript:string, index:number) => {
-                    $('a.morelink').get(0).click();
+                command: 'Next Page',
+                name: 'Следующая страница',
+                description: "Показать больше постов",
+                match: ['следующая страница', 'показать больше', 'больше'],
                 }
             },
 
