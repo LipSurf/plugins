@@ -12,7 +12,17 @@ GooglePlugin.Plugin.languages.ru = {
         "Search": {
             name: "Поиск в Google",
             description: "Сказажите \"Гугл\" и задайте свой вопрос",
-            match: ["гугл *", "найти в гугл *", "найди в гугл *", "искать в гугл *", "ищи в гугл *", "искать *", "ищи *", "найти *", "найди *"]
+            match: ["гугл *", "найти в гугл *", "искать в гугл *", "искать *", "найти *"]
+        },
+        "Google Calendar": {
+            name: "Google Календарь",
+            description: "Открывает Google Календарь",
+            match: ["гугл календарь", "google calendar"]
+        },
+        "Add event to Google Calendar": {
+            name: "Добавить событие в Google Calendar",
+            description: "Добавляет событие в Google Календарь",
+            match: ["добавить в гугл календарь", "добавить в google calendar", "добавить событие в гугл календарь"]
         }
     }
 };
