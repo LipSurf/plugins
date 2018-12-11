@@ -163,7 +163,7 @@ export module RedditPlugin {
                     let match = input.match(SUBREDDIT_REGX);
                     // console.log(`navigate subreddit input: ${input} match: ${match}`);
                     if (match) {
-                        return match[1].replace(/\s/g, "");
+                        return [match[1].replace(/\s/g, "")];
                     }
                 },
                 description: 'go to/show r [subreddit name] (do not say slash)',
