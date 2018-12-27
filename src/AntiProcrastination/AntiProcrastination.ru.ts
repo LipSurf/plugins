@@ -1,26 +1,17 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
 import { PluginBase } from '../PluginBase';
 
-export module AntiProcrastinationPlugin {
-    interface IAntiProcrastinationPlugin extends IPlugin {
-        OPEN_X_FOR_Y_TIME_REGX: RegExp;
-        OPEN_REGX: RegExp;
-    }
-
-    export let Plugin: IAntiProcrastinationPlugin = Object.assign({}, PluginBase, {
+,{
         niceName: 'Anti-procrastination',
-        description: 'Tools for curbing procrastination.',
-        match: /.*/,
-        author: 'Miko',
-        OPEN_X_FOR_Y_TIME_REGX: /^open (.*) for (\d+) (seconds|minutes?|hours?)$/,
-        OPEN_REGX: /^open\b/,
+        description: '',
+        author: 'Hanna',
         commands: [
             {
-                name: 'Self Destructing Tab',
-                description: 'Open a new tab with x website for y time. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.',
-                global: true,
+                command: 'Self Destructing Tab',
+                name: 'Самозакрывающаяся вкладка',
+                description: 'Открывает новую вкладку только на заданное время. Удобно для ограничения пользования сайтами-времяубийцами вроде facebook, reddit, twitter etc.',
                 match: {
-                    description: 'Say "open [website name] for x seconds/minutes/hours"',
+                    description: 'Скажите "открыть [название сайта] на x секунд/минут/часов"',
                     fn: (transcript: string) => {
                         let fullMatch = transcript.match(Plugin.OPEN_X_FOR_Y_TIME_REGX);
                         if (fullMatch) {
