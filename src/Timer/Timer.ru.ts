@@ -3,19 +3,18 @@ import { PluginBase } from "../PluginBase";
 
 export let Plugin: ITimerPlugin = Object.assign({}, PluginBase, {
         niceName: 'Timer',
-        description: 'Tools for setting timers.',
-        match: /.*/,
-        author: 'Miko',
-        SET_TIMER_REGX: /^set (?:(.*) )?timer (?:for )?(\d+) (seconds|minutes?|hours?)(?:(?: and)? (?:(?:(\d+) (seconds|minutes?))|(?:(?:a (?:(half)|(quarter))))))?/,
-        PARTIAL_SET_TIMER_REGX: /^set\b(.* )?(timer)?/,
+        description: 'Устанавливает таймер.',
+        author: 'Hanna',
+        
         commands: [
             {
-                name: 'Set Timer',
-                description: 'Shows a notification and speaks "timer elapsed" (audio) after the specified duration.',
+              "Set Timer",       
+                name: 'Установить таймер',
+                description: 'Показывает уведомление и говорит "Таймер установлен" после того, как назван промежуток времени.',
                 global: true,
                 match: {
                     // does not handle decimals
-                    description: 'Say "set [timer name (optional)] timer for x seconds/minutes/hours"',
+                    description: 'Скажите "Установить таймер [имя таймера (не обязательно)] на x секунд/минут/часов" ',
                     fn: (transcript: string) => {
                         let fullMatch = transcript.match(Plugin.SET_TIMER_REGX);
                         if (fullMatch) {
