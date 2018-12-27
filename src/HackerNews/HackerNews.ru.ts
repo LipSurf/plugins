@@ -9,7 +9,7 @@ import { PluginBase } from '../PluginBase';
             {
                 command: 'Upvote',
                 name: 'Голосовать за',
-                description: "Голосовать за пост названного #, upvote",
+                description: "Голосует за пост названного номера",
                 match: ['голосовать за #'],
                 }
             },
@@ -17,21 +17,21 @@ import { PluginBase } from '../PluginBase';
                 command: 'Visit Comments',
                 name: 'Открыть комментарии',
                 description: "Открывает комментарии к выбранному посту",
-                match: ['открыть комментарии #', 'комментарии #'],
+                match: ['комментарии #'],
                 }
             },
             {
                 command: 'Visit Post',
                 name: 'Открыть пост',
-                description: "Кликает на пост выбранного #",
+                description: "Кликает на пост названного номера",
                 match: ['кликнуть #', 'открыть #'],
                 }
             },
             {
                 command: 'Next Page',
                 name: 'Следующая страница',
-                description: "Показать больше постов",
-                match: ['следующая страница', 'показать больше', 'больше'],
+                description: "Делает видимыми следующие посты",
+                match: ['следующая страница', 'больше'],
                 }
             },
 
