@@ -26,6 +26,15 @@ export module GooglePlugin {
             }
         },
         {
+            name: "I'm Feeling Lucky",
+            description: 'Equivalent to hitting the "I\'m feeling lucky" button for a Google search. Goes to the first result of the search query if Google feels confident with the results.',
+            global: true,
+            match: 'feeling lucky *',
+            pageFn: async (transcript: string, searchQuery: string) => {
+                window.location.href = `https://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=${searchQuery}`
+            }
+        },
+        {
             name: 'Google Calendar',
             global: true,
             match: 'google calendar',

@@ -71,7 +71,7 @@ export module RedditPlugin {
             {
                 name: 'View Comments',
                 description: "View the comments of a reddit post.",
-                match: ["comments #", "view comments #"],
+                match: "comments #",
                 pageFn: async (transcript:string, i:number) => {
                     $(Plugin.thingAtIndex(i) + ' a.comments')[0].click();
                 },
