@@ -1,8 +1,9 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
 import { HackerNewsPlugin } from './HackerNews';
 
-        niceName: 'Hacker News',
-        description: 'Basic controls for news.ycombinator.com.',
+HackerNewsPlugin.Plugin.languages.ru = {
+        niceName: 'Хакер Ньюс',
+        description: 'Плагин для сайта news.ycombinator.com.',
         authors: "Hanna",
         commands: {
              'Upvote': {
