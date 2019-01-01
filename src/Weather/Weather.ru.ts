@@ -1,16 +1,17 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-import { PluginBase } from "../PluginBase";
+import { WeatherPlugin } from "./Weather";
 
 export module WeatherPlugin {
     export let Plugin = Object.assign({}, PluginBase, {
         niceName: 'Weather',
         match: /.*accuweather\.com/,
         commands: [{
-            name: 'Check the Weather',
-            description: 'Check the weather for a given city.',
+            'Check the Weather': {
+            name: "Погода"
+            description: 'Узнать прогноз погоды в том или ином городе.',
             // say it on any page (not just accuweather domain)
             global: true,
-            match: ['weather for *', 'forecast for *'],
+            match: ['погода в *', 'прогноз погоды в *'],
             pageFn: async (transcript: string, q: string) => {
                 // https://api.accuweather.com/locations/v1/cities/autocomplete?q=chiang%20mai&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value
                 // ex resp: [{"Version":1,"Key":"317505","Type":"City","Rank":41,"LocalizedName":"Chiang Mai","Country":{"ID":"TH","LocalizedName":"Thailand"},"AdministrativeArea":{"ID":"50","LocalizedName":"Chiang Mai"}}]
