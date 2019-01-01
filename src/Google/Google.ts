@@ -50,6 +50,32 @@ export module GooglePlugin {
                 window.location.href = `https://calendar.google.com/calendar/r/eventedit`;
             }
         },
+        // {
+        //     name: 'Back to Google Search Results',
+        //     global: true,
+        //     match: ['back to results', 'back to google', 'back to search'],
+            // fn: async () => {
+            //     chrome.permissions.request({
+            //         permissions: ['webNavigation'],
+            //     }, function (granted) {
+            //         // The callback argument will be true if the user granted the permissions.
+            //         if (granted) {
+            //             // chrome.webNavigation.getFrame({})
+            //             chrome.tabs.query({
+            //                 active: true
+            //             }, (tabs) => {
+            //                 let tab = tabs[0];
+            //                 chrome.webNavigation.getAllFrames({
+            //                     tabId: tab.id
+            //                 }, (frameDetails) => {
+            //                     console.log(frameDetails);
+            //                     debugger;
+            //                 })
+            //             })
+            //         }
+            //     });
+            // }
+        // },
         ],
     });
 }

@@ -33,10 +33,12 @@ declare interface IPlugin extends IPluginBase {
     homophones?: ISimpleHomophones;
     // called anytime the page is re-shown. Must be safe to re-run
     // while lipsurf is activated. Or when lipsurf is first activated.
-    init?: () => void;
+    init?: () => void | (() => Promise<void>);
     // called when plugin is deactivated (speech recg. paused)
     // in page context
-    destroy?: () => void;
+    destroy?: () => void | (() => Promise<void>);
+    // called when LipSurf is turned off (after destroy)
+    deactivatedHook?: () => void | (() => Promise<void>);
 }
 
 declare interface IPluginTranslation {
