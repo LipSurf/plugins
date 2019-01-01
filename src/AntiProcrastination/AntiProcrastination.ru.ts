@@ -1,13 +1,12 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-import { PluginBase } from '../PluginBase';
+import { AntiProcrastinationPlugin } from './AntiProcrastinationPlugin';
 
-,{
+AntiProcrastinationPlugin.Plugin.languages.ru = {
         niceName: 'Anti-procrastination',
-        description: '',
+        description: 'Анти-прокрастинатор',
         author: 'Hanna',
-        commands: [
-            {
-                command: 'Self Destructing Tab',
+        commands: {
+              'Self Destructing Tab',
                 name: 'Самозакрывающаяся вкладка',
                 description: 'Открывает новую вкладку только на заданное время. Удобно для ограничения пользования сайтами-времяубийцами вроде facebook, reddit, twitter etc.',
                 match: {
