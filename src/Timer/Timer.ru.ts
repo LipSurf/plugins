@@ -1,7 +1,7 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-import { PluginBase } from "../PluginBase";
+import { PluginBase } from "./Timer";
 
-export let Plugin: ITimerPlugin = Object.assign({}, PluginBase, {
+TimerPlugin.Plugin.languages.ru = {
         niceName: 'Timer',
         description: 'Устанавливает таймер.',
         author: 'Hanna',
