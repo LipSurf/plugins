@@ -2,7 +2,7 @@
 import { GooglePlugin } from './Google';
 
 GooglePlugin.Plugin.languages.ru = {
-    niceName: "Google",
+    niceName: "Гугл",
     description: "Поиск в Google",
     authors: "Hanna",
     homophones: {
