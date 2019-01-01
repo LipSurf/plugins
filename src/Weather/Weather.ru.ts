@@ -1,12 +1,11 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
 import { WeatherPlugin } from "./Weather";
 
-export module WeatherPlugin {
-    export let Plugin = Object.assign({}, PluginBase, {
-        niceName: 'Weather',
+WeatherPlugin.Plugin.languages.ru = {
+        niceName: 'Прогноз погоды',
         match: /.*accuweather\.com/,
         commands: [{
-            'Check the Weather': {
+           'Check the Weather': {
             name: "Погода"
             description: 'Узнать прогноз погоды в том или ином городе.',
             // say it on any page (not just accuweather domain)
