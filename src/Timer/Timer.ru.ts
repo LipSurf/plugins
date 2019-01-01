@@ -1,8 +1,8 @@
 /// <reference path="../@types/plugin-interface.d.ts"/>
-import { PluginBase } from "./Timer";
+import { TimerPlugin } from './Timer';
 
 TimerPlugin.Plugin.languages.ru = {
-        niceName: 'Timer',
+        niceName: 'Таймер',
         description: 'Устанавливает таймер.',
         author: 'Hanna',
         
@@ -25,44 +25,7 @@ TimerPlugin.Plugin.languages.ru = {
                         }
                     }
                 },
-                fn: async (transcript: string, fullMatch: string, timerName: string, quantity: string, unit: string, quantity2: string, unit2: string, half: 'half'|null, quarter: 'quarter'|null) => {
-                    let seconds = Number(quantity);
-                    if (unit.startsWith('minute'))
-                        seconds *= 60;
-                    else if (unit.startsWith('hour'))
-                        seconds *= 3600;
-
-                    let seconds2 = Number(quantity2);
-                    if (!isNaN(seconds2) && seconds2) {
-                        if (unit2.startsWith('minute'))
-                            seconds2 *= 60;
-                        seconds += seconds2;
-                    } 
-
-                    if (half) 
-                        if (unit.startsWith('minute'))
-                            seconds += 30
-                        else 
-                            seconds += 1800
-                    else if (quarter)
-                        if (unit.startsWith('minute'))
-                            seconds += 15
-                        else 
-                            seconds += 900
-
-                    console.log(`total seconds ${seconds}`);
-                    setTimeout(() => {
-                        let title = `${(timerName ? timerName : '')} timer elapsed.`.trimLeft();
-                        title = title[0].toUpperCase() + title.slice(1, title.length);
-                        chrome.notifications.create({
-                            type: 'basic',
-                            title,
-                            message: `"${transcript}"`,
-                            iconUrl: 'assets/icon-timer-48.png',
-                            requireInteraction: true
-                        });
-                        chrome.tts.speak(title);
-                    }, seconds * 1000);
+                
                 }
             }],
     });
