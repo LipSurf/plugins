@@ -3,7 +3,7 @@
 import { RedditPlugin } from "./Reddit";
 
 RedditPlugin.Plugin.languages.ru = {
-    niceName: "Reddit",
+    niceName: "Реддит",
     description: "Команды для сайта Reddit.com",
     authors: "Hanna",
     commands: {
@@ -15,7 +15,7 @@ RedditPlugin.Plugin.languages.ru = {
          "Visit Post": {
             name: "Открыть пост",
             description: "Кликает пост названного номера.",
-            match: ["кликнуть #", "кликнуть ", "открыть пост #", "открыть пост"],
+            match: ["кликнуть #", "кликнуть", "открыть пост #", "открыть пост"],
     }
          "Expand": {
             name: "Развернуть",
@@ -29,7 +29,7 @@ RedditPlugin.Plugin.languages.ru = {
     }
             "Go to Subreddit": {
             name: "Перейти на r/ [имя сабреддита]",
-            description: "Переходит на r/ [имя сабреддита] ("слеш" не произносится).", 
+            description: "Переходит на r/ [имя сабреддита] (слэш не произносится).", 
             match: ["перейти на r/ "],
     }
             "Go to Reddit": {
@@ -39,7 +39,7 @@ RedditPlugin.Plugin.languages.ru = {
     }
             "Clear Vote": {
             name: "Убрать голос",
-            description: "Убирает последний голос за или против поста",
+            description: "Убирает последний голос за или против последнего поста или поста названного номера",
             match: ["убрать голос #", "убрать голос"],
     }
             "Downvote": {
