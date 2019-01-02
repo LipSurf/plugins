@@ -2,8 +2,7 @@
 import { AntiProcrastinationPlugin } from './AntiProcrastinationPlugin';
 
 AntiProcrastinationPlugin.Plugin.languages.ru = {
-        niceName: 'Anti-procrastination',
-        description: 'Анти-прокрастинатор',
+        niceName: 'Анти-прокрастинатор',
         authors: 'Hanna',
         commands: {
               'Self Destructing Tab',
