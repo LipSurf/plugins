@@ -19,7 +19,7 @@ GooglePlugin.Plugin.languages.ru = {
             description: "Открывает Google Календарь",
             match: ["гугл календарь", "google calendar"]
         },
-        "Add event to Google Calendar": {
+        "Add Event to Google Calendar": {
             name: "Добавить событие в Google Calendar",
             description: "Добавляет событие в Google Календарь",
             match: ["добавить в гугл календарь", "добавить в google calendar"]
