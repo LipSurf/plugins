@@ -4,7 +4,7 @@ import { AntiProcrastinationPlugin } from './AntiProcrastinationPlugin';
 AntiProcrastinationPlugin.Plugin.languages.ru = {
         niceName: 'Anti-procrastination',
         description: 'Анти-прокрастинатор',
-        author: 'Hanna',
+        authors: 'Hanna',
         commands: {
               'Self Destructing Tab',
                 name: 'Самозакрывающаяся вкладка',
