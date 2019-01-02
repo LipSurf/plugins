@@ -5,6 +5,9 @@ HackerNewsPlugin.Plugin.languages.ru = {
         niceName: 'Хакер Ньюс',
         description: 'Плагин для сайта news.ycombinator.com.',
         authors: "Hanna",
+        homophones: {
+        "hacker news": "хакер ньюс"   
+        },
         commands: {
              'Upvote': {
                 name: 'Голосовать за',
@@ -26,4 +29,5 @@ HackerNewsPlugin.Plugin.languages.ru = {
                 description: "Делает видимыми следующие посты",
                 match: ['следующая страница', 'больше'],
                 },
-    };
+    }
+  };
