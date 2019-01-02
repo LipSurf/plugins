@@ -24,6 +24,14 @@ export module HackerNewsPlugin {
 
         commands: [
             {
+                name: 'Hacker News',
+                global: true,
+                match: ['hacker news', 'y combinator'],
+                pageFn: async () => {
+                    window.location.href = 'https://news.ycombinator.com/';
+                }
+            },
+            {
                 name: 'Upvote',
                 description: "Upvote a post",
                 match: 'upvote #',

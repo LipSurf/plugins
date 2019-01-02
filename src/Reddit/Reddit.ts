@@ -52,6 +52,7 @@ export module RedditPlugin {
             'contract': 'collapse',
             'claps': 'collapse',
             'expense': 'expand',
+            'it\'s been': 'expand',
             'expanse': 'expand',
             'expanded': 'expand',
             'stand': 'expand',
@@ -70,7 +71,7 @@ export module RedditPlugin {
             {
                 name: 'View Comments',
                 description: "View the comments of a reddit post.",
-                match: ["comments #", "view comments #"],
+                match: "comments #",
                 pageFn: async (transcript:string, i:number) => {
                     $(Plugin.thingAtIndex(i) + ' a.comments')[0].click();
                 },
@@ -162,7 +163,7 @@ export module RedditPlugin {
                     let match = input.match(SUBREDDIT_REGX);
                     // console.log(`navigate subreddit input: ${input} match: ${match}`);
                     if (match) {
-                        return match[1].replace(/\s/g, "");
+                        return [match[1].replace(/\s/g, "")];
                     }
                 },
                 description: 'go to/show r [subreddit name] (do not say slash)',

@@ -9,7 +9,7 @@ interface IPluginConfig extends IDisableable {
     expanded: boolean;
     id: string;
     // the content script code to inject into the page for this plugin
-    localized: { [L in LanguageCode]?: ILocalizedPluginData  & {homophones?: IToggleableHomophone[]} };
+    localized: { [L in LanguageCode]?: ILocalizedPlugin  & {homophones?: IToggleableHomophone[]} };
     // what urls to match on
     match: RegExp[];
     settings: object;
@@ -32,7 +32,7 @@ declare interface IToggleableHomophone extends IDisableable {
     destination: string;
 }
 
-declare interface ILocalizedPluginData {
+declare interface ILocalizedPlugin {
     matchers: {[cmdName: string]: IMatcher };
     description?: string;
     niceName: string;

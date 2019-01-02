@@ -14,7 +14,7 @@ _Easy peasy._
 
 Use `*` in your `match` string to greedily match any words.
 
-<<< @/docs/assets/Weather.ts{14}
+<<< @/docs/assets/Weather.ts{13}
 
 ## Numeral Matching
 
@@ -24,7 +24,7 @@ Use `#` in your `match` string to match numerals or ordinals including ones that
 
 Let's write a plugin that opens x tab for y minutes so that we can limit it's time wasting-ness. This might be useful if we need to check facebook but don't want to get sucked into the feed for too long.
 
-<<< @/docs/assets/AntiProcrastination.ts{14}
+<<< @/docs/assets/AntiProcrastination.ts{13}
 
 ## Match Function
 
@@ -39,7 +39,7 @@ _Cake walk._
 
 We need to make `match` an object of type [`IDynamicMatch`](/api-reference/command.md#idynamicmatch)
 
-How about a plugin for Gmail that moves the currently selected messages to a folder that the user commands to.
+How about a plugin for Gmail that moves the currently selected messages to a folder that the user commands to?
 
 ::: tip
 We could use the wildcard matching for this (eg. "move to *") but then we cant limit the user's choices to valid folders.

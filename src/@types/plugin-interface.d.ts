@@ -33,10 +33,12 @@ declare interface IPlugin extends IPluginBase {
     homophones?: ISimpleHomophones;
     // called anytime the page is re-shown. Must be safe to re-run
     // while lipsurf is activated. Or when lipsurf is first activated.
-    init?: () => void;
+    init?: () => void | (() => Promise<void>);
     // called when plugin is deactivated (speech recg. paused)
     // in page context
-    destroy?: () => void;
+    destroy?: () => void | (() => Promise<void>);
+    // called when LipSurf is turned off (after destroy)
+    deactivatedHook?: () => void | (() => Promise<void>);
 }
 
 declare interface IPluginTranslation {
@@ -44,7 +46,7 @@ declare interface IPluginTranslation {
     authors?: string;
     description?: string;
     homophones?: ISimpleHomophones;
-    commands: {[key: string]: ILocalizedCommand};
+    commands: {[cmdName: string]: ILocalizedCommand};
 }
 
 declare interface IPluginBase {
@@ -74,19 +76,23 @@ declare interface IDynamicMatch {
 
 declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
-    pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<any>;
+    // matchOutput is the array returned from the match function (if there's a match fn) or 
+    // the arguments from special match string (wildcard, numeral etc. type special params)
+    pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<void>;
 }
 
-declare interface ILocalizedCommand extends INiceCommand {
+declare interface ILocalizedCommandBase {
     // the original name to match this command against
     name: string;
     description?: string;
+}
+
+declare interface ILocalizedCommand extends ILocalizedCommandBase, INiceCommand {
     // strings should not have any punctuation in them as puncutation
     // is converted into it's spelled out form eg. "." -> "dot"
     match: string | string[] | IDynamicMatch;
     // returns the complete liveText that should be shown.
     // raw input would be eg. "go to are meal time video"
-    // matchOutput is the array returned from the match function (if there's a match fn)
     delay?: number | number[];
 }
 
@@ -108,6 +114,7 @@ declare interface IPluginUtil {
     setLanguage: (lang: LanguageCode) => void;
 
     addOverlay: (contents, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLDivElement;
+    ready: () => Promise<void>;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;
     postToAllFrames: (id, fnNames: string | string[], selector?) =>  void;
     // TODO: deprecate in favor of generic postToAllFrames?
@@ -116,8 +123,8 @@ declare interface IPluginUtil {
     scrollToAnimated: (ele: JQuery<HTMLElement>) => void;
     isInView: (ele: JQuery<HTMLElement>) => boolean;
     getNoCollisionUniqueAttr: () => string;
-    sleep: (number) => Promise<{}>;
-    getHUDEle: () => [ShadowRoot, boolean];
+    sleep: (number) => Promise<void>;
+    getHUDEle: () => [HTMLDivElement, boolean];
     pick: (obj: object, ...props: string[]) => object;
 }
 
@@ -132,9 +139,13 @@ declare interface IGlobalCommand {
 }
 
 declare interface IFnCommand {
-    fn?: (transcript: string, ...matchOutput: any[]) => any;
+    // matchOutput is the array returned from the match function (if there's a match fn) or 
+    // the arguments from special match string (wildcard, numeral etc. type special params)
+    fn?: (transcript: string, ...matchOutput: any[]) => Promise<void>;
 }
 
 declare interface INiceCommand {
+    // matchOutput is the array returned from the match function (if there's a match fn) or 
+    // the arguments from special match string (wildcard, numeral etc. type special params)
     nice?: string | ((transcript: string, ...matchOutput: any[]) => string);
 }

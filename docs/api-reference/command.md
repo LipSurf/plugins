@@ -12,10 +12,10 @@ Each command has the following properties:
 |match| `string | string[] | `[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) | The word(s) the user can say to execute this command. Use "#" in the string as an ordinal place holder. Use "*" as a wildcard placeholder. Lastly, a function [`IDynamicMatch`](/api-reference/command.md#idynamicmatch) can be used for the most advanced cases.
 |description | `string` | _(optional)_ Detailed description visible in the options page.|
 |global | `boolean` |  _(default: false)_ let the command match on any page (not restricted by the `match` of the Plugin)|
-pageFn | `(transcript: string, ...matchOutput: any) => Promise<any>` | _(optional)_ An async function to run on the page when the command is called. Special matches (`*` and `#`) will be arguments after the transcript string argument, and will come in the order they are specified in the match property. There will be a number argument if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it).<br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn).
+pageFn | `(transcript: string, ...matchOutput: any) => Promise<void>` | _(optional)_ An async function to run on the page when the command is called. Special matches (`*` and `#`) will be arguments after the transcript string argument, and will come in the order they are specified in the match property. There will be a number argument if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it).<br><br>Optionally resolve the promise when this function is finished to help chaining work. Eg. we can use `return await PluginBase.util.sleep(500);` if we know a command will take no longer than 500ms to finish, and to only execute the next command in the chain after that 500ms delay.<br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn).
 |delay | `number | number[]` | _(optional)_ How long to wait for additional input for before executing this command. Overrides delay that is built-in for commands with match strings that end in ordinals or wildcards. <br><br> Useful when you want to allow time for a more accurate transcript, or for more words to come through. <br><br> Use an array with indices that correspond to the different match strings if you should have different delays based on the match string.<br><br>Use 0 to override dynamically calculated delay and to execute command immediately on match.|
 |nice | [`INiceCommand`](/api-reference/command.md#inicecommand) |  _(optional)_ See [`INiceCommand`](/api-reference/command.md#inicecommand).|
-|fn | `(transcript: string, ...matchOutput: any) => any` | _(optional)_ An async function that runs in the Chrome extension context when the command is called. First arg is the transcript that matched, rest of arguments are what's returned from the match command. <br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn).|
+|fn | `(transcript: string, ...matchOutput: any) => Promise<void>` | _(optional)_ An async function that runs in the Chrome extension context when the command is called. First arg is the transcript that matched, rest of arguments are what's returned from the match command. <br><br>Resolve this promise when the command is done executing in order for chaining to work properly (if desired).<br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn).|
 |test | `() => void` | _(optional but recommended)_ Selenium unit test for this command.|
 
 ### `fn` vs. `pageFn`
@@ -35,9 +35,9 @@ description | `string` | Used to decribe to the user what command words match. S
 
 ## MatchResult
 
-**Type:** `boolean|any[]`
+**Type:** `[string, any[]]|boolean`
 
-Array of args to pass over to `pageFn`.
+Array of `any` type args to pass over to `pageFn` as the `...matchOutput[]` arguments. Don't include the transcript argument, as it's automatically included (the transcript that returns a positive `MatchResult` is used).
 
 
 -or-
@@ -62,7 +62,8 @@ If you don't want the first "reddit" command to match, return `false` when there
 
 ## ILocalizedCommand
 
-Also see [`ICommand`](/api-reference/command.md#icommand).
+See also [`ICommand`](/api-reference/command.md#icommand) and [`IPluginTranslation`](/api-reference/pluginbase.md#iplugintranslation).
+
 
 Member | Type       | Description
 -------|------------|-------------
