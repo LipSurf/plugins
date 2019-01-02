@@ -118,7 +118,7 @@ export module RedditPlugin {
             },
             {
             name: "Collapse",
-            description: "Collapse an expanded preview (or comment if viewing comments). Defaults to top-most in the view port.",
+            description: "Collapse an expanded preview (or comment if viewing comments). Defaults to topmost in the view port.",
             match: ["collapse #", "close", "collapse"],
             pageFn: async (transcript:string, i:number) => {
                 let index = (i === null || isNaN(Number(i))) ? null : Number(i);
