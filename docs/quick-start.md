@@ -29,7 +29,7 @@ Rather than copy-pasting, it's better to type out the code to force yourself to 
 
 <<< @/docs/assets/HelloWorld.ts
 
-  The meat of the plugin lives in the array of commands. Each [Command](/api-reference/command) object has a `match` property for what the user needs to say to run it, a `pageFn` property for the code that's actually run and a bunch of meta properties like `name`, `description` etc.
+  The meat of the plugin lives in the array of commands. Each [Command](/api-reference/command.md) object has a `match` property for what the user needs to say to run it, a `pageFn` property for the code that's actually run and a bunch of meta properties like `name`, `description` etc.
 
   4. Since we're doing the example in TypeScript, we need to compile down to JavaScript.
 
