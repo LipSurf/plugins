@@ -1,46 +1,55 @@
+declare interface IOptions {
+    pluginData: Record<string, ILocalPluginData>;
+    pluginPreferences: Record<string, ISyncPluginData>;
+    language: LanguageCode;
+    showLiveText: boolean;
+    noHeadphonesMode: boolean;
+    tutorialMode: number;
+    inactivityAutoOffMins: number;
+    pushToTalkKey: string;
+    activatedViaPushToTalk: boolean;
+}
 
-// combined local and sync settings in a form that's
-// easily digestable by the consumers: options page, PM, Recg
-// serves as a global store
-interface IPluginConfig extends IDisableable {
-    commands: {[cmdName: string]: IConfiguredCommand};
-    privateMembers: string;
-    cs: string;
-    expanded: boolean;
-    id: string;
-    // the content script code to inject into the page for this plugin
-    localized: { [L in LanguageCode]?: ILocalizedPlugin  & {homophones?: IToggleableHomophone[]} };
-    // what urls to match on
+interface ICommandData extends IPro, IGlobalCommand {
+    order: number;
+    fn?: string;
+}
+
+interface IMatcher {
+    // the original name to match this command against
+    name: string;
+    description?: string;
+    delay?: number[];
+    match: string[] | Serialized<IDynamicMatch>;
+}
+
+interface ILocalPluginData extends IPro {
+    commands: {
+        [cmdName: string]: ICommandData
+    };
+    localized: {
+        [L in LanguageCode]?: {
+            homophones?: ISimpleHomophones,
+            matchers: {[cmdName: string]: IMatcher },
+            description?: string,
+            niceName: string
+        }
+    };
     match: RegExp[];
-    settings: object;
-    showMore: boolean;
-    // plugin-level pro option
-    pro?: boolean;
-    // custom settings that the plugin can set within it's commands (eg. browser annotate)
+    // the version is stored in both local and sync storage because
+    // sync storage can be updated on a different machine, and all
+    // machines would need to update their local plugin versions
     version: string;
 }
 
-// Run is serialized because it is only eval'd in PluginSandbox
-declare interface IConfiguredCommand extends IPro, IOrderable, IDisableable, StoreSerialized<IFnCommand>, IGlobalCommand {}
-
-declare interface IOrderable {
-    order: number;
-}
-
-declare interface IToggleableHomophone extends IDisableable {
-    source: string;
-    destination: string;
-}
-
-declare interface ILocalizedPlugin {
-    matchers: {[cmdName: string]: IMatcher };
-    description?: string;
-    niceName: string;
-}
-
-// localized parameters for commands
-// stricter then ITranslatedCommand (force into arrays)
-declare interface IMatcher extends ILocalizedCommand {
-    delay?: number[];
-    match: string[] | IDynamicMatch;
+interface ISyncPluginData extends IDisableable {
+    version: string;
+    expanded: boolean;
+	showMore: boolean;
+    // the names of the commands
+    disabledCommands: string[];
+    // the source of the homophones
+    disabledHomophones: string[];
+    // private plugin settings for now eg. annotate on setting
+    settings: {[key: string]: any}|undefined;
 }
