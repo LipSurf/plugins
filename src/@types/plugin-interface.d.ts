@@ -15,6 +15,7 @@ type Serialized<T> = {
     [K in keyof T]: T[K] extends RegExp ? string :
                     T[K] extends RegExp[] ? string[] :
                     T[K] extends Function ? string :
+                    T[K] extends Array<object> ? Serialized<T[K]> :
                     T[K] extends Object ? Serialized<T[K]> :
                     T[K];
 }
@@ -33,13 +34,13 @@ declare interface IDynamicMatch {
     description: string;
 }
 
+declare type INiceFn = ((transcript: string, ...matchOutput: any[]) => string);
+
 declare interface INiceCommand {
     // matchOutput is the array returned from the match function (if there's a match fn) or 
     // the arguments from special match string (wildcard, numeral etc. type special params)
-    nice?: string | INiceCommand;
+    nice?: string | INiceFn;
 }
-
-declare type INiceFn = ((transcript: string, ...matchOutput: any[]) => string);
 
 declare interface ILocalizedCommandBase extends INiceCommand {
     // the original name to match this command against
