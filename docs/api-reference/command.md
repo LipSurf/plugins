@@ -78,7 +78,7 @@ nice | [`INiceCommand`](/api-reference/command.md#inicecommand) | _(optional)_ S
 **Type:** `string | ((transcript: string, ...matchOutput: any) => string)`
 
 
-Sometimes we want to adjust the transcript as it is shown on the live text. For example if the user says <span class="voice-cmd">go to are meal time videos</span> we would want to show that as <span class="voice-cmd">go to r/mealtimevideos</span>.
+Sometimes we want to adjust the transcript as it is shown on the live transcript. For example if the user says <span class="voice-cmd">go to are meal time videos</span> we would want to show that as <span class="voice-cmd">go to r/mealtimevideos</span>.
 
-Returns the complete "live text" that should be shown. `rawInput` is the transcript (eg. "go to are meal time videos") `matchOutput` is an array returned from the match command if [`IDynamicMatch`](/api-reference/command.md#idynamicmatch)is used.
+Returns the complete "live transcript" that should be shown. `rawInput` is the transcript (eg. "go to are meal time videos") `matchOutput` is an array returned from the match command if [`IDynamicMatch`](/api-reference/command.md#idynamicmatch)is used.
 
