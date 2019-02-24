@@ -42,7 +42,7 @@ export module AntiProcrastinationPlugin {
                         seconds *= 3600;
                     if (~siteStr.indexOf('hacker news'))
                         siteStr = 'news.ycombinator';
-                    else if (siteStr === 'reddit')
+                    else if (siteStr === 'reddit' || siteStr === 'ready')
                         // faster than the redirect
                         siteStr = 'old.reddit.com'
                     let site = `https://${siteStr.replace(/\s+/g, '').replace("'", '').replace('.com', '').replace('dot com', '')}.com`;
