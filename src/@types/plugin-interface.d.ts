@@ -73,6 +73,8 @@ declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnC
     // matchOutput is the array returned from the match function (if there's a match fn) or 
     // the arguments from special match string (wildcard, numeral etc. type special params)
     pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<void>;
+    context?: string;
+    enterContext?: string;
 }
 
 declare interface IPluginUtil {
@@ -83,6 +85,7 @@ declare interface IPluginUtil {
     getLanguage: () => Promise<LanguageCode>;
     setLanguage: (lang: LanguageCode) => void;
 
+    enterContext: (context: string) => void;
     addOverlay: (contents, id?: string, domLoc?:HTMLElement, hold?: boolean) => HTMLDivElement;
     ready: () => Promise<void>;
     queryAllFrames: (tagName: string, attrs: string[]) => Promise<any[]>;
@@ -111,6 +114,16 @@ declare interface IPluginTranslation {
     commands: {[cmdName: string]: ILocalizedCommand};
 }
 
+declare interface IContext {
+    [name: string]: {
+        // if a context extends another, all the commands in the context it extends can also be used 
+        extends?: string,
+        // false by default. If true, no trimming, lowercasing, hypen removal etc. is done on the
+        // transcripts that come down to be checked by match commands
+        raw?: boolean,
+    }
+}
+
 declare interface IPluginBase {
     languages: {[L in LanguageCode]?: IPluginTranslation};
     // should not be overridden by plugins
@@ -128,9 +141,20 @@ declare interface IPlugin extends IPluginBase {
     match: RegExp | RegExp[];
     authors?: string;
     pro?: boolean;
+    // svg string of an uncolored icon with no height or width
+    icon?: string;
 
     commands: ICommand[];
     homophones?: ISimpleHomophones;
+    contexts?: IContext;
+    // always run the following regexs in this context, unlike homophones these don't look for a valid
+    // command with the homophone...  they simply always replace text in the transcript. Can be used to
+    // filter words, add shortcuts etc.
+    replacements?: {
+        pattern: RegExp,
+        replacement: string,
+        context?: string,
+    }[],
     // called anytime the page is re-shown. Must be safe to re-run
     // while lipsurf is activated. Or when lipsurf is first activated.
     init?: (() => void) | (() => Promise<void>);

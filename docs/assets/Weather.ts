@@ -10,7 +10,7 @@ export module WeatherPlugin {
             description: 'Check the weather for a given city.',
             // say it on any page (not just accuweather domain)
             global: true,
-            match: ['weather for *', 'forecast for *'],
+            match: ['weather for *', 'forecast for *', 'weather in *'],
             pageFn: async (transcript: string, q: string) => {
                 // https://api.accuweather.com/locations/v1/cities/autocomplete?q=chiang%20mai&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value
                 // ex resp: [{"Version":1,"Key":"317505","Type":"City","Rank":41,"LocalizedName":"Chiang Mai","Country":{"ID":"TH","LocalizedName":"Thailand"},"AdministrativeArea":{"ID":"50","LocalizedName":"Chiang Mai"}}]
