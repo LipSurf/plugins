@@ -11,7 +11,7 @@ export module RedditPlugin {
         thingAtIndex: (number) => string;
     }
 
-    export let Plugin: IRedditPlugin = Object.assign({}, PluginBase, {
+    export let Plugin: IRedditPlugin & IPluginBase = Object.assign<{}, IPluginBase, IRedditPlugin>({}, PluginBase, {
         niceName: 'Reddit',
         description: 'Commands for Reddit.com',
         version: '1.0.0',

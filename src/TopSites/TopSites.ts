@@ -6,7 +6,7 @@ import { PluginBase } from "../PluginBase";
 
 export module TopSitesPlugin {
 
-    export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
         niceName: 'Top Sites',
         description: 'Shortcuts for going to popular websites.',
         match: /.*/,

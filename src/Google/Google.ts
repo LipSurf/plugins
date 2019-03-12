@@ -5,7 +5,7 @@
 import { PluginBase } from '../PluginBase';
 
 export module GooglePlugin {
-    export let Plugin: IPlugin = Object.assign({}, PluginBase, {
+    export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
         niceName: 'Google',
         description: 'The google search engine.',
         version: '1.0.0',

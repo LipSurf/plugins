@@ -2,7 +2,7 @@
 import { PluginBase } from '../PluginBase';
 
 export module AntiProcrastinationPlugin {
-    export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
         niceName: 'Anti-procrastination',
         description: 'Helpers for overcoming procrastination.',
         match: /.*/,

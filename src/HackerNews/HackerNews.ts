@@ -6,7 +6,7 @@ export module HackerNewsPlugin {
         getThingAtIndex: (index: number) => JQuery<HTMLElement>;
     }
 
-    export let Plugin: IHackerNewsPlugin = Object.assign({}, PluginBase, {
+    export let Plugin: IHackerNewsPlugin & IPluginBase = Object.assign<{}, IPluginBase, IHackerNewsPlugin>({}, PluginBase, {
         niceName: 'Hacker News',
         description: 'Basic controls for news.ycombinator.com.',
         version: '1.0.0',

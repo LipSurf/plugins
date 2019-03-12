@@ -2,7 +2,7 @@
 import { PluginBase } from '../PluginBase';
 
 export module GmailPlugin {
-    export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
         niceName: 'Gmail',
         match: /.*gmail.com/,
         commands: [{

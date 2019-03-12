@@ -7,7 +7,7 @@ export module TimerPlugin {
         PARTIAL_SET_TIMER_REGX: RegExp;
     }
 
-    export let Plugin: ITimerPlugin = Object.assign({}, PluginBase, {
+    export let Plugin: ITimerPlugin & IPluginBase = Object.assign<{}, IPluginBase, ITimerPlugin>({}, PluginBase, {
         niceName: 'Timer',
         description: 'Tools for setting timers.',
         match: /.*/,

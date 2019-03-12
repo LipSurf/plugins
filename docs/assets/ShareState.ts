@@ -20,7 +20,7 @@ export module GmailPlugin {
         moveToFolder: (messages: IMessage[], q: IFolderQuery) => Promise<void>;
     }
 
-    export let Plugin: IGmailPlugin = Object.assign({}, PluginBase, {
+    export let Plugin: IGmailPlugin & IPluginBase = Object.assign<{}, IPluginBase, IGmailPlugin>({}, PluginBase, {
         niceName: 'Gmail',
         match: /.*gmail.com/,
         moveToFolder: async (messages, q) => {

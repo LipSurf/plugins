@@ -7,11 +7,11 @@ export module AntiProcrastinationPlugin {
         OPEN_REGX: RegExp;
     }
 
-    export let Plugin: IAntiProcrastinationPlugin = Object.assign({}, PluginBase, {
+    export let Plugin: IAntiProcrastinationPlugin & IPluginBase = Object.assign<{}, IPluginBase, IAntiProcrastinationPlugin>({}, PluginBase, {
         niceName: 'Anti-procrastination',
         description: 'Tools for curbing procrastination.',
         match: /.*/,
-        author: 'Miko',
+        authors: 'Miko',
         OPEN_X_FOR_Y_TIME_REGX: /^open (.*) for (\d+) (seconds|minutes?|hours?)$/,
         OPEN_REGX: /^open\b/,
         commands: [

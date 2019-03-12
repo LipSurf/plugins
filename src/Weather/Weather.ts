@@ -2,7 +2,7 @@
 import { PluginBase } from "../PluginBase";
 
 export module WeatherPlugin {
-    export let Plugin = Object.assign({}, PluginBase, {
+    export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
         niceName: 'Weather',
         match: /.*accuweather\.com/,
         commands: [{

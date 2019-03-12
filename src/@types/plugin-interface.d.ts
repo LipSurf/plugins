@@ -133,7 +133,7 @@ declare interface IPluginBase {
     util: IPluginUtil;
 }
 
-declare interface IPlugin extends IPluginBase {
+declare interface IPlugin {
     niceName: string;
     description?: string;
     version?: string;
