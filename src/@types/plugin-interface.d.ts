@@ -68,6 +68,24 @@ declare interface ILocalizedCommand extends ILocalizedCommandBase {
     delay?: number | number[];
 }
 
+interface IBaseSetting {
+    name: string;
+    type: any;
+    default?: any;
+}
+
+interface IBooleanSetting extends IBaseSetting {
+    type: 'boolean';
+    default?: boolean;
+}
+
+interface IStringSetting extends IBaseSetting {
+    type: 'url'|'text'|'string';
+    default?: string;
+}
+
+declare type ISetting = IStringSetting | IBooleanSetting;
+
 declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
     // matchOutput is the array returned from the match function (if there's a match fn) or 
@@ -75,14 +93,15 @@ declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnC
     pageFn?: (transcript: string, ...matchOutput: any[]) => Promise<void>;
     context?: string;
     enterContext?: string;
+    settings?: ISetting[];
 }
 
 declare interface IPluginUtil {
     // meta
     shutdown: () => void; // shutdown LipSurf
     start: () => void; // startup LipSurf programmatically
-    getOptions: (key?: keyof IOptions) => Promise<IOptions>; 
-    getLanguage: () => Promise<LanguageCode>;
+    getOptions: (key?: keyof IOptions) => IOptions; 
+    getLanguage: () => LanguageCode;
     setLanguage: (lang: LanguageCode) => void;
 
     enterContext: (context: string) => void;
@@ -127,7 +146,7 @@ declare interface IContext {
 declare interface IPluginBase {
     languages: {[L in LanguageCode]?: IPluginTranslation};
     // should not be overridden by plugins
-    getPluginOption: (name: string) => Promise<any>;
+    getPluginOption: (name: string) => any;
     setPluginOption: (name: string, val: any) => Promise<void>;
 
     util: IPluginUtil;
@@ -147,6 +166,7 @@ declare interface IPlugin {
     commands: ICommand[];
     homophones?: ISimpleHomophones;
     contexts?: IContext;
+    settings?: ISetting[];
     // always run the following regexs in this context, unlike homophones these don't look for a valid
     // command with the homophone...  they simply always replace text in the transcript. Can be used to
     // filter words, add shortcuts etc.

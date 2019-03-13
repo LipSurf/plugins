@@ -17,13 +17,12 @@ export module DictionaryPlugin {
             global: true,
             match: 'dictionary *',
             pageFn: async (transcript: string, query: string) => {
-                PluginBase.util.getLanguage().then(selectedLang => {
-                    if (selectedLang.startsWith('en')) {
-                        window.location.href = `https://www.merriam-webster.com/dictionary/${query}`;
-                    } else {
-                        window.location.href = `https://www.weblio.jp/content/${query}`;
-                    }
-                });
+                let selectedLang = PluginBase.util.getLanguage();
+                if (selectedLang.startsWith('en')) {
+                    window.location.href = `https://www.merriam-webster.com/dictionary/${query}`;
+                } else {
+                    window.location.href = `https://www.weblio.jp/content/${query}`;
+                }
             }
         },
         ],

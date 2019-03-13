@@ -18,9 +18,7 @@ export module EnglishJapaneseDictionaryPlugin {
             global: true,
             match: 'japanese dictionary *',
             pageFn: async (transcript: string, query: string) => {
-                PluginBase.util.getLanguage().then(selectedLang => {
-                    window.location.href = `https://jisho.org/search/${query}`;
-                });
+                window.location.href = `https://jisho.org/search/${query}`;
             }
         },
         ],

@@ -22,7 +22,7 @@ The following API exists on `PluginBase.util` for interacting with the extension
 
 |           Member               |       Type           | Description  |
 |-----------------------------|---------------------------|--------------|
-|getOptions | `() => Promise<IOptions>` | Get all the user-set options (Used by the "Help" command for example to generate the list of possible commands).|
+|getOptions | `() => IOptions` | Get all the user-set options (Used by the "Help" command for example to generate the list of possible commands).|
 |addOverlay              |`(contents, id?: string, domLoc?:HTMLElement=document.body, hold?: boolean=false) => HTMLDivElement` | Add a div with a shadow DOM and return it. The overlay will be automatically removed when LipSurf is deactivated so you don't need to clean it up yourself. |
 |queryAllFrames|`(tagName: string, attrs: string[]) => Promise<any[]>`|Query all frames includes IFrames.|
 |postToAllFrames|<code>(id, fnNames: string \&#124; string[], selector?) => void</code>|Send a message to the frame beacon of all frames.|
