@@ -4,8 +4,10 @@ declare interface IDisableable {
     enabled: boolean;
 }
 
-declare interface IPro {
-    pro?: boolean;
+type plan = 0|10|20;
+
+declare interface IPlan {
+    plan: plan;
 }
 
 // BCP-47
@@ -86,7 +88,7 @@ interface IStringSetting extends IBaseSetting {
 
 declare type ISetting = IStringSetting | IBooleanSetting;
 
-declare interface ICommand extends IPro, ILocalizedCommand, IGlobalCommand, IFnCommand {
+declare interface ICommand extends Partial<IPlan>, ILocalizedCommand, IGlobalCommand, IFnCommand {
     test?: () => any;
     // matchOutput is the array returned from the match function (if there's a match fn) or 
     // the arguments from special match string (wildcard, numeral etc. type special params)
@@ -152,14 +154,13 @@ declare interface IPluginBase {
     util: IPluginUtil;
 }
 
-declare interface IPlugin {
+declare interface IPlugin extends Partial<IPlan> {
     niceName: string;
     description?: string;
     version?: string;
     apiVersion?: string;
     match: RegExp | RegExp[];
     authors?: string;
-    pro?: boolean;
     // svg string of an uncolored icon with no height or width
     icon?: string;
 

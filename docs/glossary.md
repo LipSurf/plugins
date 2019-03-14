@@ -18,8 +18,11 @@ Will be changed to "headphones mode" soon. When you don't use headphones, audio 
 ### plugin
 All the commands in LipSurf are grouped into families called _plugins_. LipSurf plugins can be created by anyone. They extend the default functionality of LipSurf to make it infinitely extensible.
 
-### pro
-"pro" is the payed version of LipSurf that has even more powerful features and premium support. You can subscribe to pro [via the site](https://www.lipsurf.com/pricing).
+### plus
+"LipSurf Plus" is a payed version of LipSurf that has even more powerful features and some additional officially-supported plugins. You can subscribe to Plus [via the site](https://www.lipsurf.com/pricing).
+
+### premium
+"LipSurf Premium" is a payed version of LipSurf that has dictation mode and custom go to URL features in addition to all the features of LipSurf Plus. You can subscribe to Premium [via the site](https://www.lipsurf.com/pricing).
 
 
 

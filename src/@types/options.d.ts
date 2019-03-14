@@ -10,7 +10,7 @@ declare interface IOptions {
     activatedViaPushToTalk: boolean;
 }
 
-interface ICommandData extends IPro, IGlobalCommand {
+interface ICommandData extends IPlan, IGlobalCommand {
     order: number;
     fn?: string;
 }
@@ -23,7 +23,7 @@ interface IMatcher {
     match: string[] | Serialized<IDynamicMatch>;
 }
 
-interface ILocalPluginData extends IPro {
+interface ILocalPluginData extends IPlan {
     commands: {
         [cmdName: string]: ICommandData
     };
