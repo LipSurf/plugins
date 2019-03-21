@@ -7353,9 +7353,9 @@ typescript@3.0.x:
   integrity sha512-kk80vLW9iGtjMnIv11qyxLqZm20UklzuR2tL0QAnDIygIUIemcZMxlMWudl9OOt76H3ntVzcTiddQ1/pAAJMYg==
 
 typescript@^3.1.0:
-  version "3.1.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.1.4.tgz#c74ef7b3c2da65beff548b903022cb8c3cd997ed"
-  integrity sha512-JZHJtA6ZL15+Q3Dqkbh8iCUmvxD3iJ7ujXS+fVkKnwIVAdHc5BJTDNM0aTrnr2luKulFjU7W+SRhDZvi66Ru7Q==
+  version "3.3.3333"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.3.3333.tgz#171b2c5af66c59e9431199117a3bcadc66fdcfd6"
+  integrity sha512-JjSKsAfuHBE/fB2oZ8NxtRTk5iGcg6hkYXMnZ3Wc+b2RSqejEqTaem11mHASMnFilHrax3sLK0GDzcJrekZYLw==
 
 uc.micro@^1.0.1, uc.micro@^1.0.5:
   version "1.0.5"
