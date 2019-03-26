@@ -1,4 +1,4 @@
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { DictionaryPlugin } from './Dictionary';
 
 DictionaryPlugin.Plugin.languages.ja = {

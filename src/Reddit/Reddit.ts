@@ -1,7 +1,7 @@
 /*
  * LipSurf plugin for Reddit.com
  */
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { PluginBase } from '../PluginBase';
 
 export module RedditPlugin {

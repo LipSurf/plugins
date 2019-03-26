@@ -1,4 +1,3 @@
-/// <reference path="../@types/plugin-interface.d.ts"/>
 import { PluginBase } from '../PluginBase';
 
 export module AnkiPlugin {

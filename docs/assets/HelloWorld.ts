@@ -1,5 +1,5 @@
 // lipsurf-plugins/src/HelloWorld/HelloWorld.ts
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { PluginBase } from '../PluginBase';
 
 export module HelloWorldPlugin {

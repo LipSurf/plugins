@@ -1,5 +1,5 @@
 
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { RedditPlugin } from "./Reddit";
 
 RedditPlugin.Plugin.languages.ru = {

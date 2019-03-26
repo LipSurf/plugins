@@ -1,4 +1,4 @@
-// /// <reference path="../@types/plugin-interface.d.ts"/>
+// /// <reference types="lipsurf-plugin-types"/>
 // // HACK-y. Disabled until we find a better way to separate language-functionality fn
 // // go to `https://yandex.ru/pogoda/${q}`;
 // import { WeatherPlugin } from "./Weather";

@@ -1,4 +1,4 @@
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { PluginBase } from "../PluginBase";
 
 export module TimerPlugin {
@@ -11,7 +11,7 @@ export module TimerPlugin {
         niceName: 'Timer',
         description: 'Tools for setting timers.',
         match: /.*/,
-        author: 'Miko',
+        authors: 'Miko',
         SET_TIMER_REGX: /^set (?:(.*) )?timer (?:for )?(\d+) (seconds|minutes?|hours?)(?:(?: and)? (?:(?:(\d+) (seconds|minutes?))|(?:(?:a (?:(half)|(quarter))))))?/,
         PARTIAL_SET_TIMER_REGX: /^set\b(.* )?(timer)?/,
         commands: [

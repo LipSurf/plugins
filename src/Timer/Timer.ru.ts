@@ -1,4 +1,4 @@
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { TimerPlugin } from './Timer';
 
 TimerPlugin.Plugin.languages.ru = {

@@ -1,4 +1,4 @@
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { WikipediaPlugin } from './Wikipedia';
 
 WikipediaPlugin.Plugin.languages.ru = {
@@ -8,11 +8,11 @@ WikipediaPlugin.Plugin.languages.ru = {
     homophones: {
         'википедия': 'wikipedia',
     },
-    commands: [{
+    commands: {
       "Wikipedia": {
           name: 'Википедия',
           description: "Выполняет поиск по википедии. Скажите википедия [запрос].",
           match: ['википедия *',],
       }
-    }],
+    },
 };

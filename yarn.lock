@@ -4450,6 +4450,10 @@ linkify-it@^2.0.0:
   dependencies:
     uc.micro "^1.0.1"
 
+"lipsurf-plugin-types@https://github.com/lipsurf/plugin-types.git":
+  version "1.0.0"
+  resolved "https://github.com/lipsurf/plugin-types.git#9b66b797c9e4467fb5217378d50e9fe11041eb66"
+
 livereload@^0.6.2:
   version "0.6.3"
   resolved "https://registry.yarnpkg.com/livereload/-/livereload-0.6.3.tgz#d97f6b133db6c70eff575abc7460f10cd35f6f76"

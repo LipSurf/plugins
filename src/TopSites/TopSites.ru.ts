@@ -1,4 +1,4 @@
-/// <reference path="../@types/plugin-interface.d.ts"/>
+/// <reference types="lipsurf-plugin-types"/>
 import { TopSitesPlugin } from "./TopSites";
 
 TopSitesPlugin.Plugin.languages.ru = {
