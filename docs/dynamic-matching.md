@@ -46,3 +46,10 @@ We could use the wildcard matching for this (eg. "move to *") but then we cant l
 :::
 
 <<< @/docs/assets/GmailMoveFolder.ts
+
+
+::: tip NOTE
+The match function only needs to check for whole matches. In other words, the match function will
+first get a complete transcript, if there's no match then it gets the first n-1 words, once it 
+gets to the first word, it starts trimming words from the beginning.
+:::
