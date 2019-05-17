@@ -92,11 +92,11 @@ export module RedditPlugin {
                 name: 'Expand',
                 description: "Expand a preview of a post, or a comment by it's position (rank).",
                 match: ["expand #", "# expand", 'expand'], // in comments view
-                pageFn: async (transcript:string, i:number) => {
+                pageFn: async (transcript: string, i: number) => {
                     if (typeof i !== 'undefined') {
                         let $ele = $(Plugin.thingAtIndex(i) + ' .expando-button.collapsed');
                         $ele.click();
-                        PluginBase.util.scrollToAnimated($ele);
+                        Plugin.util.scrollToAnimated($ele, -25);
                     } else {
                         // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
                         let mainItem = $(`#siteTable .thing .expando-button.collapsed:first`);
