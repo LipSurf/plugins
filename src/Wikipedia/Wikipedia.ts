@@ -2,15 +2,12 @@
  * LipSurf plugin for Wikipedia search
  */
 /// <reference types="lipsurf-plugin-types"/>
-import { PluginBase } from '../PluginBase';
+declare const PluginBase: IPluginBase;
 
-export module WikipediaPlugin {
-
-  export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
+export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Wikipedia',
     description: 'The Wikipedia search engine.',
-    version: '1.0.1',
-    apiVersion: '1',
+    version: '2.0.0',
     match: /.*/,
     homophones: {
       'wiki': 'wikipedia',
@@ -30,5 +27,5 @@ export module WikipediaPlugin {
       }
     }
     ],
-  });
-}
+  }
+};

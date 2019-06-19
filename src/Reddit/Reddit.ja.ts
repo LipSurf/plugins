@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { RedditPlugin } from "./Reddit";
+import Reddit from "./Reddit";
 
-RedditPlugin.Plugin.languages.ja = {
+Reddit.languages.ja = {
     niceName: "レディット",
     description: "Redditで操作します",
     authors: "Miko",

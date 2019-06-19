@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { GooglePlugin } from './Google';
+import Google from './Google';
 
-GooglePlugin.Plugin.languages.ru = {
+Google.languages.ru = {
     niceName: "Гугл",
     description: "Поиск в Google",
     authors: "Hanna",

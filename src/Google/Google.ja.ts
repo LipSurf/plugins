@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { GooglePlugin } from './Google';
+import Google from './Google';
 
-GooglePlugin.Plugin.languages.ja = {
+Google.languages.ja = {
     niceName: "ググる",
     description: "Googleで検索します",
     authors: "Miko",
