@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { DictionaryPlugin } from './Dictionary';
+import Dictionary from './Dictionary';
 
-DictionaryPlugin.Plugin.languages.ja = {
+Dictionary.languages.ja = {
     niceName: "辞書",
     description: "辞書で言葉をひいてごらん",
     authors: "Miko",

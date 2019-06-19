@@ -1,12 +1,10 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { TimerPlugin } from './Timer';
+import Timer from './Timer';
 
-TimerPlugin.Plugin.languages.ru = {
+Timer.languages.ru = {
     niceName: "Таймер",
     description: "Поиск в Google",
     authors: "Hanna",
-    homophones: {
-    },
     commands: {
         "Set Timer": {
             name: 'Установить таймер',

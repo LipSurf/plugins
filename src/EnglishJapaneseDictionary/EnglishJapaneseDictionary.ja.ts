@@ -1,8 +1,8 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { EnglishJapaneseDictionaryPlugin } from './EnglishJapaneseDictionary';
+import EnglishJapaneseDictionary from './EnglishJapaneseDictionary';
 
 
-EnglishJapaneseDictionaryPlugin.Plugin.languages.ja = {
+EnglishJapaneseDictionary.languages.ja = {
     niceName: '英語＜ー＞日本語の辞書',
     description: '英語と日本語の言葉を辞書でひいてごらん。',
     authors: 'Miko',

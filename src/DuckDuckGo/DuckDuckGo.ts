@@ -1,33 +1,31 @@
 /*
- * LipSurf plugin for DuckDuckGo search
- */
+* LipSurf plugin for DuckDuckGo search
+*/
 /// <reference types="lipsurf-plugin-types"/>
-import { PluginBase } from '../PluginBase';
+declare const PluginBase: IPluginBase;
 
-export module DuckDuckGoPlugin {
-  export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
+export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'DuckDuckGo',
     description: 'The duckduckgo search engine.',
-    version: '1.0.1',
-    apiVersion: '1',
+    version: '2.0.0',
     match: /.*/,
     homophones: {
-      'search': 'duck',
+        'search': 'duck',
     },
     authors: 'Aparajita Fishman',
-
+    
     commands: [{
-      name: 'Search',
-      description: "Do a duckduckgo search.",
-      global: true,
-      match: 'duck *',
-      fn: async (transcript: string, searchQuery: string) => {
-        chrome.tabs.create({
-          url: `https://duckduckgo.com/?q=${searchQuery}`,
-          active: true
-        });
-      }
+        name: 'Search',
+        description: "Do a duckduckgo search.",
+        global: true,
+        match: 'duck *',
+        fn: async (transcript: string, searchQuery: string) => {
+            chrome.tabs.create({
+                url: `https://duckduckgo.com/?q=${searchQuery}`,
+                active: true
+            });
+        }
     }
-    ],
-  });
+],
 }
+};

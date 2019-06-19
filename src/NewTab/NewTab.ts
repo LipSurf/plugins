@@ -2,31 +2,28 @@
  * LipSurf plugin for creating a new empty tab
  */
 /// <reference types="lipsurf-plugin-types"/>
-import { PluginBase } from '../PluginBase';
+declare const PluginBase: IPluginBase;
 
-export module NewTabPlugin {
-  export let Plugin = Object.assign({}, PluginBase, {
-    niceName: 'New tab',
-    description: 'Create a new empty tab.',
-    version: '1.0.1',
-    apiVersion: '1',
-    match: /.*/,
-    homophones: {
-      'open tab': 'new tab',
-    },
-    authors: 'Aparajita Fishman',
+export default <IPluginBase & IPlugin> {...PluginBase, ...{
+  niceName: 'New tab',
+  description: 'Create a new empty tab.',
+  version: '2.0.0',
+  match: /.*/,
+  homophones: {
+    'open tab': 'new tab',
+  },
+  authors: 'Aparajita Fishman',
 
-    commands: [{
-      name: 'New tab',
-      description: "Create a new empty tab.",
-      global: true,
-      match: 'new tab',
-      fn: async () => {
-        chrome.tabs.create({
-          active: true,
-        });
-      }
+  commands: [{
+    name: 'New tab',
+    description: "Create a new empty tab.",
+    global: true,
+    match: 'new tab',
+    fn: async () => {
+      chrome.tabs.create({
+        active: true,
+      });
     }
-    ],
-  });
-}
+  }
+  ],
+}};

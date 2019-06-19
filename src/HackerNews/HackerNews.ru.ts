@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { HackerNewsPlugin } from './HackerNews';
+import HackerNewsPlugin from './HackerNews';
 
-HackerNewsPlugin.Plugin.languages.ru = {
+HackerNewsPlugin.languages.ru = {
         niceName: 'Хакер Ньюс',
         description: 'Плагин для сайта news.ycombinator.com.',
         authors: "Hanna",

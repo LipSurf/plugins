@@ -1,8 +1,8 @@
 
 /// <reference types="lipsurf-plugin-types"/>
-import { RedditPlugin } from "./Reddit";
+import Reddit from "./Reddit";
 
-RedditPlugin.Plugin.languages.ru = {
+Reddit.languages.ru = {
     niceName: "Реддит",
     description: "Команды для сайта Reddit.com",
     authors: "Hanna",
