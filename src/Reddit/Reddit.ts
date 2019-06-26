@@ -91,11 +91,11 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     PluginBase.util.scrollToAnimated($ele, -25);
                 } else {
                     // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-                    let mainItem = $(`#siteTable .thing .expando-button.collapsed:first`);
-                    let commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
+                    const mainItem = document.querySelector<HTMLAnchorElement>(`#siteTable .thing .expando-button.collapsed:first`);
+                    const commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
 
-                    if (mainItem.length > 0 && PluginBase.util.isInView(mainItem)) {
-                        mainItem[0].click();
+                    if (mainItem && PluginBase.util.isInView(mainItem)) {
+                        mainItem.click();
                     } else {
                         for (let ele of commentItems.reverse()) {
                             let $ele = $(ele);
