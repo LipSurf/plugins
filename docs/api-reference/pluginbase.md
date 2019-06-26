@@ -26,7 +26,7 @@ The following API exists on `PluginBase.util` for interacting with the extension
 |addOverlay              |`(contents, id?: string, domLoc?:HTMLElement=document.body, hold?: boolean=false) => HTMLDivElement` | Add a div with a shadow DOM and return it. The overlay will be automatically removed when LipSurf is deactivated so you don't need to clean it up yourself. |
 |queryAllFrames|`(tagName: string, attrs: string[]) => Promise<any[]>`|Query all frames includes IFrames.|
 |postToAllFrames|<code>(id, fnNames: string \&#124; string[], selector?) => void</code>|Send a message to the frame beacon of all frames.|
-|isInView|`(ele: JQuery<HTMLElement>) => boolean`|Checks if an element is in the viewport.|
+|isInView|`(ele: HTMLElement) => boolean`|Checks if an element is in the viewport.|
 |getNoCollisionUniqueAttr|`() => string`|Use the string returned from here to keep everything under the LipSurf namespace and prevent page pollution/plugin collisions.|
 
 ## IPluginTranslation
