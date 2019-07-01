@@ -29,6 +29,7 @@ module.exports = {
 				collapsable: false,
 				children: [
 					'/dynamic-matching.md',
+					'/contexts.md',
 					'/state.md',
 					'/langs.md',
 					'/testing.md',
