@@ -22,6 +22,8 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     homophones: {
         'coffee': 'copy',
         'poppee': 'copy',
+        'pissed': 'paste',
+        'taste': 'paste',
     },
     authors: "Miko",
 

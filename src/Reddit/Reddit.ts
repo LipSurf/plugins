@@ -98,8 +98,8 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                         mainItem.click();
                     } else {
                         for (let ele of commentItems.reverse()) {
-                            let $ele = $(ele);
-                            if (PluginBase.util.isInView($ele)) {
+                            if (PluginBase.util.isInView(ele)) {
+                                let $ele = $(ele);
                                 $ele.find('a.expand:contains([+]):first')[0].click();
                                 return;
                             }
@@ -120,8 +120,8 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             } else {
                 // collapse first visible item (can be comment or post)
                 $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`).each(function(i) {
-                    var $ele = $(this);
-                    if (PluginBase.util.isInView($ele)) {
+                    if (PluginBase.util.isInView(this)) {
+                        var $ele = $(this);
                         $ele[0].click();
                         return false;
                     }
