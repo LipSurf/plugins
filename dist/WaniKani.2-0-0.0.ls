@@ -1,0 +1,1 @@
+../../premium-plugins/dist/WaniKani.2-0-0.0.ls

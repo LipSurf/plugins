@@ -1,3 +1,4 @@
-dist
+dist/*
+!dist/*.ls
 node_modules
 docs/.vuepress/dist
