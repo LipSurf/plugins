@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import Reddit from "./Reddit";
 
-Reddit.languages.ja = {
+Reddit.languages!.ja = {
     niceName: "レディット",
     description: "Redditで操作します",
     authors: "Miko",

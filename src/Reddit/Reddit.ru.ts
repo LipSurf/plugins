@@ -2,7 +2,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import Reddit from "./Reddit";
 
-Reddit.languages.ru = {
+Reddit.languages!.ru = {
     niceName: "Реддит",
     description: "Команды для сайта Reddit.com",
     authors: "Hanna",

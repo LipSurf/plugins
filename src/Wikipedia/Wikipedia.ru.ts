@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import WikipediaPlugin from './Wikipedia';
 
-WikipediaPlugin.languages.ru = {
+WikipediaPlugin.languages!.ru = {
     niceName: 'Wikipedia',
     description: 'Поиск по Википедии.',
     authors: 'Hanna',

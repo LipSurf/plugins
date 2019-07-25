@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import Google from './Google';
 
-Google.languages.ja = {
+Google.languages!.ja = {
     niceName: "ググる",
     description: "Googleで検索します",
     authors: "Miko",

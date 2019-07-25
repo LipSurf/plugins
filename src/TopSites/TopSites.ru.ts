@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import TopSitesPlugin from "./TopSites";
 
-TopSitesPlugin.languages.ru = {
+TopSitesPlugin.languages!.ru = {
     niceName: 'Популярные сайты',
     description: 'Комманды для перехода на популярные сайты',
     homophones: {

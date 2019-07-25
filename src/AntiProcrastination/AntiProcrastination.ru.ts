@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import AntiProcrastination from './AntiProcrastination';
 
-AntiProcrastination.languages.ru = {
+AntiProcrastination.languages!.ru = {
     niceName: 'Анти-прокрастинатор',
     authors: 'Hanna',
     commands: {

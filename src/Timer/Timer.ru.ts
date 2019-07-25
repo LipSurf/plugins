@@ -1,7 +1,7 @@
 /// <reference types="lipsurf-plugin-types"/>
 import Timer from './Timer';
 
-Timer.languages.ru = {
+Timer.languages!.ru = {
     niceName: "Таймер",
     description: "Поиск в Google",
     authors: "Hanna",
