@@ -5,9 +5,9 @@
   "scripts": {
     "docs:watch": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "build": "lipsurf-cli build && yarn clean",
+    "build": "lipsurf-cli build",
     "watch": "lipsurf-cli build --watch",
-    "build:prod": "NODE_ENV=production lipsurf-cli build && yarn clean",
+    "build:prod": "NODE_ENV=production lipsurf-cli build",
     "watch:prod": "NODE_ENV=production lipsurf-cli build --watch",
     "clean": "rm -r dist/tmp"
   },
