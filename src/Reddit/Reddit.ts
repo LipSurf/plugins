@@ -15,7 +15,7 @@ function thingAtIndex(i: number) {
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Reddit',
     description: 'Commands for Reddit.com',
-    version: '2.3.0',
+    version: '2.3.3',
     match: /^https?:\/\/.*\.reddit.com/,
     authors: "Miko",
 
