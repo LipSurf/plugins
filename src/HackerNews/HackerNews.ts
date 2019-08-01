@@ -8,7 +8,7 @@ function getThingAtIndex(index: number) {
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Hacker News',
     description: 'Basic controls for news.ycombinator.com.',
-    version: '2.3.3',
+    version: '2.4.0',
     match: /^https?:\/\/news\.ycombinator\.com/,
     homophones: {
         'floor': 'more',

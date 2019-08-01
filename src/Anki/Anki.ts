@@ -4,7 +4,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Anki',
     description: 'Anki web flashcard functionality.',
-    version: '2.3.3',
+    version: '2.4.0',
     match: [/^https:\/\/ankiweb\.net/, /^https:\/\/ankiuser\.net/],
     homophones: {
         'and key': 'anki',

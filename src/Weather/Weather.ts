@@ -4,7 +4,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Weather',
     match: /.*accuweather\.com/,
-    version: '2.3.3',
+    version: '2.4.0',
     commands: [{
         name: 'Check the Weather',
         description: 'Check the weather for a given city.',

@@ -8,7 +8,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Anti-procrastination',
     description: 'Tools for curbing procrastination.',
     match: /.*/,
-    version: '2.3.3',
+    version: '2.4.0',
     authors: 'Miko',
     commands: [
         {
