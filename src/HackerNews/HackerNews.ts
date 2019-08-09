@@ -1,8 +1,18 @@
 /// <reference types="lipsurf-plugin-types"/>
 declare const PluginBase: IPluginBase;
 
-function getThingAtIndex(index: number) {
-    return $(`table.itemlist tr td .rank:contains("${index}")`).closest('tr.athing');
+function getThingAtIndex(index: number): HTMLElement|undefined {
+    return <HTMLElement>document.evaluate(`//table[contains(@class, 'itemlist')]//tr//td//*[contains(@class, 'rank')][contains(text(), "${index}")]/ancestor-or-self::tr[contains(@class, 'athing')]`, 
+            document, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue;
+}
+
+function isInComments(): boolean {
+    return window.location.pathname === '/item';
+}
+
+function clickIfExists(el: HTMLElement|undefined|null) {
+    if (el)
+        el.click();
 }
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
@@ -19,42 +29,55 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     commands: [
         {
             name: 'Hacker News',
+            description: 'Go to news.ycombinator.com.',
             global: true,
             match: ['hacker news', 'y combinator'],
-            pageFn: async () => {
+            pageFn: () => {
                 window.location.href = 'https://news.ycombinator.com/';
             }
         },
         {
             name: 'Upvote',
-            description: "Upvote a post",
-            match: 'upvote #',
-            pageFn: async (transcript:string, index:number) => {
-                getThingAtIndex(index).find('.votearrow[title="upvote"]').get(0).click();
+            description: "Upvote a post.",
+            match: ['upvote #', 'upvote'],
+            pageFn: (transcript: string, index: number) => {
+                let parent: HTMLElement|Document|undefined = document;
+                if (!isInComments()) {
+                    parent = getThingAtIndex(index);
+                }
+                if (parent)
+                    clickIfExists(parent.querySelector<HTMLElement>('.votearrow[title="upvote"]'));
             }
         },
         {
             name: 'Visit Comments',
-            description: "See the comments for a given post",
+            description: "See the comments for a given post.",
             match: ['comments #', 'discuss #'],
-            pageFn: async (transcript:string, index:number) => {
-                getThingAtIndex(index).find('+tr .subtext a[href^="item?id="]').get(0).click();
+            pageFn: (transcript: string, index: number) => {
+                let thing = getThingAtIndex(index);
+                if (thing)
+                    clickIfExists(thing.nextElementSibling!.querySelector<HTMLElement>('.subtext a[href^="item?id="]'));
             }
         },
         {
             name: 'Visit Post',
-            description: "Click a post",
-            match: ['click #', 'visit #'],
-            pageFn: async (transcript:string, index:number) => {
-                getThingAtIndex(index).find('a.storylink').get(0).click();
+            description: "Visit a post.",
+            match: ['visit #', 'visit'],
+            pageFn: (transcript: string, index: number) => {
+                let parent: HTMLElement|Document|undefined = document;
+                if (!isInComments()) {
+                    parent = getThingAtIndex(index);
+                }
+                if (parent)
+                    clickIfExists(parent.querySelector<HTMLElement>('a.storylink'));
             }
         },
         {
             name: 'Next Page',
-            description: "Show more hacker news items",
+            description: "Show more Hacker News items.",
             match: ['next page', 'show more', 'more'],
-            pageFn: async (transcript:string, index:number) => {
-                $('a.morelink').get(0).click();
+            pageFn: (transcript: string, index: number) => {
+                clickIfExists(document.querySelector<HTMLElement>('a.morelink'));
             }
         },
 

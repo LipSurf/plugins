@@ -6,13 +6,13 @@ HackerNewsPlugin.languages!.ru = {
     description: 'Плагин для сайта news.ycombinator.com.',
     authors: "Hanna",
     homophones: {
-        "hacker news": "хакер ньюс"
+        "hacker news": "хакер ньюс",
     },
     commands: {
         'Upvote': {
             name: 'Голосовать за',
             description: "Голосует за пост названного номера",
-            match: ['голосовать за #'],
+            match: ['голосовать за #', 'голосовать'],
         },
         'Visit Comments': {
             name: 'Открыть комментарии',
@@ -22,7 +22,7 @@ HackerNewsPlugin.languages!.ru = {
         'Visit Post': {
             name: 'Открыть пост',
             description: "Кликает на пост названного номера",
-            match: ['кликнуть #', 'открыть #'],
+            match: ['открыть #', 'открыть'],
         },
         'Next Page': {
             name: 'Следующая страница',
