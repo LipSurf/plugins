@@ -2,7 +2,6 @@
  * LipSurf plugin for Reddit.com
  */
 /// <reference types="lipsurf-plugin-types"/>
-/// <reference types="jquery"/>
 declare const PluginBase: IPluginBase;
 
 const thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
@@ -11,6 +10,11 @@ function thingAtIndex(i: number) {
     return `#siteTable>div.thing[${thingAttr}="${i}"]`;
 }
 
+function clickIfExists(selector: string) {
+    const el = document.querySelector<HTMLElement>(selector);
+    if (el)
+        el.click();
+}
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Reddit',
@@ -20,22 +24,23 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     authors: "Miko",
 
     // runs when page loads
-    init: () => {
+    init: async () => {
         if (/^https?:\/\/www.reddit/.test(document.location.href)) {
             document.location.href = document.location.href.replace(/^https?:\/\/.*\.reddit.com/,  'http://old.reddit.com');
         }
-        $(document).ready(() => {
-            $('#siteTable>div.thing').each((i, ele) => {
-                let index = i + 1;
-                $(ele).attr(thingAttr, index);
-                // can't use .style because jquery doesn't understand !important
-                $(ele).find('.rank').attr('style', `
-                    display: block !important;
-                    margin-right: 10px;
-                    opacity: 1 !important';
-                `).text('' + index);
-            });
-        });
+        await PluginBase.util.ready();
+        let index = 0;
+        for (let el of document.querySelectorAll<HTMLElement>('#siteTable>div.thing')) {
+            index++;
+            el.setAttribute(thingAttr, '' + index);
+            const rank = <HTMLElement>el.querySelector('.rank');
+            rank.setAttribute('style', `
+                display: block !important;
+                margin-right: 10px;
+                opacity: 1 !important';
+            `);
+            rank.innerText = '' + index;
+        }
     },
 
     // less common -> common
@@ -57,6 +62,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         'reddit dot com': 'reddit',
         'read it': 'reddit',
         'shrink': 'collapse',
+        'advert': 'upvote',
     },
 
     commands: [
@@ -64,19 +70,19 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'View Comments',
             description: "View the comments of a reddit post.",
             match: "comments #",
-            pageFn: async (transcript:string, i:number) => {
-                $(thingAtIndex(i) + ' a.comments')[0].click();
+            pageFn: async (transcript: string, i: number) => {
+                clickIfExists(thingAtIndex(i) + ' a.comments');
             },
         }, {
             name: 'Visit Post',
             description: "Equivalent of clicking a reddit post.",
-            match: ['click #', 'click', 'visit #', 'visit'],
+            match: ['visit #', 'visit'],
             pageFn: async (transcript:string, i:number) => {
                 // if we're on the post
                 if (COMMENTS_REGX.test(window.location.href)) {
-                    $('#siteTable p.title a.title:first')[0].click();
+                    clickIfExists('#siteTable p.title a.title');
                 } else {
-                    $(thingAtIndex(i) + ' a.title')[0].click();
+                    clickIfExists(thingAtIndex(i) + ' a.title');
                 }
             },
         },
@@ -86,21 +92,20 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             match: ["expand #", "# expand", 'expand'], // in comments view
             pageFn: async (transcript: string, i: number) => {
                 if (typeof i !== 'undefined') {
-                    let $ele = $(`${thingAtIndex(i)} .expando-button.collapsed`);
-                    $ele.click();
-                    PluginBase.util.scrollToAnimated($ele, -25);
+                    let el = <HTMLElement>document.querySelector(`${thingAtIndex(i)} .expando-button.collapsed`);
+                    el.click();
+                    PluginBase.util.scrollToAnimated(el, -25);
                 } else {
                     // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-                    const mainItem = document.querySelector<HTMLAnchorElement>(`#siteTable .thing .expando-button.collapsed:first`);
-                    const commentItems = $(`.commentarea .thing.collapsed:not(.child div)`).get();
+                    const mainItem = document.querySelector<HTMLAnchorElement>(`#siteTable .thing .expando-button.collapsed`);
+                    const commentItems = Array.from(document.querySelectorAll<HTMLElement>(`.commentarea > div > .thing.collapsed`));
 
                     if (mainItem && PluginBase.util.isInView(mainItem)) {
                         mainItem.click();
                     } else {
-                        for (let ele of commentItems.reverse()) {
-                            if (PluginBase.util.isInView(ele)) {
-                                let $ele = $(ele);
-                                $ele.find('a.expand:contains([+]):first')[0].click();
+                        for (let el of commentItems.reverse()) {
+                            if (PluginBase.util.isInView(el)) {
+                                el.querySelector<HTMLAnchorElement>('.comment.collapsed a.expand')!.click();
                                 return;
                             }
                         }
@@ -115,24 +120,23 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         pageFn: async (transcript:string, i:number) => {
             let index = (i === null || isNaN(Number(i))) ? null : Number(i);
             if (index !== null) {
-                let $ele = $(thingAtIndex(index) + ' .expando-button:not(.collapsed)');
-                $ele.click();
+                let el = <HTMLElement>document.querySelector(thingAtIndex(index) + ' .expando-button:not(.collapsed)');
+                el.click();
             } else {
                 // collapse first visible item (can be comment or post)
-                $(`#siteTable>.thing .expando-button:not(.collapsed), .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`).each(function(i) {
-                    if (PluginBase.util.isInView(this)) {
-                        var $ele = $(this);
-                        $ele[0].click();
-                        return false;
+                for (let el of document.querySelectorAll<HTMLElement>(`#siteTable .thing .expando-button.expanded, .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`)) {
+                    if (PluginBase.util.isInView(el)) {
+                        el.click();
+                        break;
                     }
-                });
+                }
             }
         },
         test: async function(context) {
             var tierTwoComment, commentUnderTest;
             await context.loadPage('https://old.reddit.com/r/IAmA/comments/z1c9z/i_am_barack_obama_president_of_the_united_states/');
             await context.driver.wait(context.until.elementIsVisible(context.driver.findElement(context.By.css('.commentarea'))), 1000);
-            await context.driver.executeScript(`$('.commentarea')[0].scrollIntoView();`);
+            await context.driver.executeScript(`document.queryElement('.commentarea').scrollIntoView();`);
             // make sure it's expanded
             //<div class=" thing id-t1_c60o0iw noncollapsed   comment " id="thing_t1_c60o0iw" onclick="click_thing(this)" data-fullname="t1_c60o0iw" data-type="comment" data-subreddit="IAmA" data-subreddit-fullname="t5_2qzb6" data-author="Biinaryy" data-author-fullname="t2_76bmi"><p class="parent"><a name="c60o0iw"></a></p><div class="midcol unvoted"><div class="arrow up login-required archived access-required" data-event-action="upvote" role="button" aria-label="upvote" tabindex="0"></div><div class="arrow down login-required archived access-required" data-event-action="downvote" role="button" aria-label="downvote" tabindex="0"></div></div><div class="entry unvoted"><p class="tagline"><a href="javascript:void(0)" class="expand" onclick="return togglecomment(this)">[–]</a><a href="https://old.reddit.com/user/Biinaryy" class="author may-blank id-t2_76bmi">Bi
 
@@ -180,7 +184,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         match: ["clear vote #", "reset vote #", "clear vote", "reset vote"],
         pageFn: async (transcript:string, i:number) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
-            $(`${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(index)} .arrow.upmod`)[0].click();
+            clickIfExists(`${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(index)} .arrow.upmod`);
         },
     }, {
         name: 'Downvote',
@@ -188,7 +192,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         description: "Downvote the current post or a post # (doesn't work for comments yet)",
         pageFn: async (transcript:string, i:number) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
-            $(`${thingAtIndex(index)} .arrow.down:not(.downmod)`)[0].click();
+            clickIfExists(`${thingAtIndex(index)} .arrow.down:not(.downmod)`);
         },
     }, {
         name: 'Upvote',
@@ -196,16 +200,16 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         description: "Upvote the current post or a post # (doesn't work for comments yet)",
         pageFn: async (transcript:string, i:number) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
-            $(`${thingAtIndex(index)} .arrow.up:not(.upmod)`)[0].click();
+            clickIfExists(`${thingAtIndex(index)} .arrow.up:not(.upmod)`);
         },
     }, {
         name: 'Expand All Comments',
         description: "Expands all the comments.",
         match: ["expand all", "expand all comments"],
         pageFn: async () => {
-            $('.thing.comment.collapsed a.expand').each(function() {
-                this.click();
-            });
+            for (let el of document.querySelectorAll<HTMLElement>('.thing.comment.collapsed a.expand')) {
+                el.click();
+            }
         },
         test: async function(context) {
             // Only checks to see that more than 5 comments are collapsed.

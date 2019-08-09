@@ -1540,11 +1540,6 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
-"@types/jquery@^3.3.2":
-  version "3.3.10"
-  resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-3.3.10.tgz#d0afaec7ee55f591992e74c607df5dc7cd9c76ab"
-  integrity sha512-W2bE8pGh9Tsg8mxh+B6BSH8lTG6ZV7K2ZMAlEwSTqKFU1wMI5HShyRKSp3DngnxCmDu35tW3RAC4mxBFYRsTuw==
-
 "@types/minimatch@*":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
@@ -5823,7 +5818,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-plugin-types@https://github.com/lipsurf/plugin-types":
   version "1.0.0"
-  resolved "https://github.com/lipsurf/plugin-types#d6c8a9a2bdd222ee1d57739368de2507de316e84"
+  resolved "https://github.com/lipsurf/plugin-types#09067bcab9749f50ad971f1db9c2da48fb2801f9"
   dependencies:
     "@types/selenium-webdriver" "^4.0.0"
     ava "^2.1.0"
