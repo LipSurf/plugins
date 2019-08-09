@@ -16,29 +16,30 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     commands: [
         {
             name: 'Anki',
-            description: 'Go to ankiweb decks page',
+            description: 'Go to ankiweb decks page.',
             match: 'anki',
             global: true,
             pageFn: async () => {
                 window.location.href = 'https://ankiweb.net/decks/';
             }
         },
-    {
-        name: 'Select Answer Difficulty',
-        description: "Select the ease level after seeing the answer.",
-        // only works with the default ease levels...
-        match: ['again', 'hard', 'good', 'easy'],
-        pageFn: async (transcript:string) => {
-            let capitalized = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-            $(`#easebuts button:contains("${capitalized}")`).click();
-        }
-    },
-    {
-        name: 'Show Answer',
-        description: "Show the other side of the flash card.",
-        match: 'show answer',
-        pageFn: async () => {
-            $('#ansbuta').click();
-        }
-    }],
+        {
+            name: 'Select Answer Difficulty',
+            description: "Select the ease level after seeing the answer.",
+            // only works with the default ease levels...
+            match: ['again', 'hard', 'good', 'easy'],
+            pageFn: async (transcript: string) => {
+                let capitalized = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+                (<HTMLElement>document.evaluate(`//*[@id='easebuts']//button[contains(text(), "${capitalized}")]`, 
+                        document, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue)!.click();
+            }
+        },
+        {
+            name: 'Show Answer',
+            description: "Show the other side of the flash card.",
+            match: 'show answer',
+            pageFn: async () => {
+                document.querySelector<HTMLElement>('#ansbuta')!.click();
+            }
+        }],
 }};
