@@ -73,6 +73,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'VK',
             global: true,
             match: 'vk',
+            minConfidence: 0.5,
             pageFn: async () => {
                 window.location.href = 'https://vk.com';
             }
@@ -81,8 +82,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Netflix',
             global: true,
             match: 'netflix',
-            // upvote 14 triggered this? wtf...
-            delay: 200,
+            minConfidence: 0.5,
             pageFn: async () => {
                 window.location.href = 'https://www.netflix.com';
             }

@@ -175,6 +175,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         name: 'Go to Reddit',
         global: true,
         match: ["reddit", "go to reddit"],
+        minConfidence: 0.5,
         pageFn: async () => {
             document.location.href = "https://old.reddit.com";
         },
@@ -182,7 +183,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         name: 'Clear Vote',
         description: "Unsets the last vote so it's neither up or down.",
         match: ["clear vote #", "reset vote #", "clear vote", "reset vote"],
-        pageFn: async (transcript:string, i:number) => {
+        pageFn: async (transcript: string, i: number) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
             clickIfExists(`${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(index)} .arrow.upmod`);
         },
@@ -190,7 +191,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         name: 'Downvote',
         match: ["downvote #", "downvote"],
         description: "Downvote the current post or a post # (doesn't work for comments yet)",
-        pageFn: async (transcript:string, i:number) => {
+        pageFn: async (transcript: string, i: number) => {
             let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
             clickIfExists(`${thingAtIndex(index)} .arrow.down:not(.downmod)`);
         },
