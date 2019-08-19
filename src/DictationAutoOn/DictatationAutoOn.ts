@@ -4,7 +4,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
         niceName: 'Dictation Auto On',
         description: 'Automatically go into dictation mode when LipSurf is turned on.',
-        version: '2.4.0',
+        version: '2.5.0',
         match: /.*/,
         authors: "Miko",
 
