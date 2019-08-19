@@ -5818,7 +5818,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-plugin-types@https://github.com/lipsurf/plugin-types":
   version "1.0.0"
-  resolved "https://github.com/lipsurf/plugin-types#09067bcab9749f50ad971f1db9c2da48fb2801f9"
+  resolved "https://github.com/lipsurf/plugin-types#870de48cceaae68889db4deade81cb82d24b6790"
   dependencies:
     "@types/selenium-webdriver" "^4.0.0"
     ava "^2.1.0"
