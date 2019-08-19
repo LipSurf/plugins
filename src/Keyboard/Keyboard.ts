@@ -7,14 +7,30 @@ export function backendPressKey(codes: number|number[]) {
     chrome.runtime.sendMessage({ type: 'pressKeys', payload: { codes: codesArr, nonChar: true } });
 }
 
-function pressKey(key: string): boolean {
-    const activeEle = document.activeElement;
-    if (activeEle) {
-        activeEle.dispatchEvent(new KeyboardEvent("keydown", {bubbles : true, cancelable : true, key}));
-        activeEle.dispatchEvent(new KeyboardEvent("keyup", {bubbles : true, cancelable : true, key}));
-        return true;
-    }
-    return false;
+function pressKey(key: string, code: number = 0): boolean {
+    backendPressKey(code);
+    return true;
+    // const activeEle = document.activeElement;
+    // console.log(activeEle);
+    // if (activeEle) {
+    //     const code = key.charCodeAt(0);
+    //     const evtDeets = {
+    //         bubbles: true,
+    //         cancelable: true,
+    //         key,
+    //         code: key,
+    //         location: 0,
+    //         // @ts-ignore
+    //         keyCode: code,
+    //         // deprecated, but we include it
+    //         which: code,
+    //     }
+    //     activeEle.dispatchEvent(new KeyboardEvent("keydown", evtDeets));
+    //     activeEle.dispatchEvent(new KeyboardEvent("keyup", evtDeets));
+    //     activeEle.dispatchEvent(new KeyboardEvent("keypress", evtDeets));
+    //     return true;
+    // }
+    // return false;
 }
 
 export default <IPlugin & IPluginBase> {...PluginBase, ...{
@@ -33,7 +49,7 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
             description: 'Equivalent of hitting the tab key.',
             match: 'press tab',
             pageFn: () => {
-                if (!pressKey("Tab"))
+                if (!pressKey("Tab", 9))
                     backendPressKey(9);
             }
         },
@@ -42,7 +58,7 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
             description: 'Equivalent of hitting the enter key.',
             match: 'press enter',
             pageFn: () => {
-                if (!pressKey("Enter"))
+                if (!pressKey("Enter", 13))
                     backendPressKey(13);
             }
         },
@@ -52,7 +68,7 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
             match: 'press down',
             pageFn: () => {
                 // gmail down arrow needs forcus when selecting recipient
-                if (!pressKey("ArrowDown"))
+                if (!pressKey("ArrowDown", 40))
                     // not sure of the use case for this
                     backendPressKey(40);
             }
@@ -62,7 +78,7 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
             description: 'Equivalent of hitting the up arrow key.',
             match: 'press up',
             pageFn: () => {
-                if (!pressKey("ArrowUp"))
+                if (!pressKey("ArrowUp", 38))
                     backendPressKey(38);
             }
         },
@@ -71,7 +87,7 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
             description: 'Equivalent of hitting the left arrow key.',
             match: 'press left',
             pageFn: () => {
-                if (!pressKey("ArrowLeft"))
+                if (!pressKey("ArrowLeft", 37))
                     backendPressKey(37);
             }
         },
@@ -80,7 +96,7 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
             description: 'Equivalent of hitting the right arrow key.',
             match: 'press right',
             pageFn: () => {
-                if (!pressKey("ArrowRight"))
+                if (!pressKey("ArrowRight", 39))
                     backendPressKey(39);
             }
         },
