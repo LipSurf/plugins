@@ -7,7 +7,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'DuckDuckGo',
     description: 'The duckduckgo search engine.',
-    version: '2.5.0',
+    version: '2.5.1',
     match: /.*/,
     homophones: {
         'search': 'duck',
