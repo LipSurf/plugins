@@ -8,6 +8,9 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     match: [/^https:\/\/ankiweb\.net/, /^https:\/\/ankiuser\.net/],
     homophones: {
         'and key': 'anki',
+        'show insta': 'show answer',
+        'show enter': 'show answer',
+        'show cancer': 'show answer',
         'should i answer': 'show answer',
         'show me answer': 'show answer',
     },
