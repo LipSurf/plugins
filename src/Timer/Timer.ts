@@ -7,7 +7,7 @@ const PARTIAL_SET_TIMER_REGX = /^set\b(.* )?(timer)?/;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Timer',
     description: 'Tools for setting timers.',
-    version: '2.5.1',
+    version: '2.6.0',
     match: /.*/,
     authors: 'Miko',
     commands: [
