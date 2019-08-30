@@ -8,5 +8,13 @@ Hosted docs: <https://docs.lipsurf.com>
 
 For general questions and help, please post on <https://discuss.lipsurf.com> we will answer you quickly there.
 
-
 > IMPORTANT: Plugins must meet a high minimum standard of quality before being accepted.
+
+# Building
+$ yarn build
+ - or -
+$ yarn watch
+
+## Single Plugin
+$ yarn build Reddit
+
