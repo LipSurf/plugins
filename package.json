@@ -9,7 +9,7 @@
     "watch": "lipsurf-cli build --watch",
     "build:prod": "NODE_ENV=production lipsurf-cli build",
     "watch:prod": "NODE_ENV=production lipsurf-cli build --watch",
-    "clean": "rm -r dist/tmp"
+    "clean": "rm -r dist/"
   },
   "repository": {
     "type": "git",
