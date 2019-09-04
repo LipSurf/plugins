@@ -100,11 +100,11 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     const mainItem = document.querySelector<HTMLAnchorElement>(`#siteTable .thing .expando-button.collapsed`);
                     const commentItems = Array.from(document.querySelectorAll<HTMLElement>(`.commentarea > div > .thing.collapsed`));
 
-                    if (mainItem && PluginBase.util.isInView(mainItem)) {
+                    if (mainItem && PluginBase.util.isInViewAndTakesSpace(mainItem)) {
                         mainItem.click();
                     } else {
                         for (let el of commentItems.reverse()) {
-                            if (PluginBase.util.isInView(el)) {
+                            if (PluginBase.util.isInViewAndTakesSpace(el)) {
                                 el.querySelector<HTMLAnchorElement>('.comment.collapsed a.expand')!.click();
                                 return;
                             }
@@ -125,7 +125,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             } else {
                 // collapse first visible item (can be comment or post)
                 for (let el of document.querySelectorAll<HTMLElement>(`#siteTable .thing .expando-button.expanded, .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`)) {
-                    if (PluginBase.util.isInView(el)) {
+                    if (PluginBase.util.isInViewAndTakesSpace(el)) {
                         el.click();
                         break;
                     }
