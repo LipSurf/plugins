@@ -7,7 +7,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
   niceName: 'New tab',
   description: 'Create a new empty tab.',
-  version: '2.6.1',
+  version: '2.7.0',
   match: /.*/,
   homophones: {
     'open tab': 'new tab',
