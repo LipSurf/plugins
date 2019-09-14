@@ -19,7 +19,7 @@ function clickIfExists(selector: string) {
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Reddit',
     description: 'Commands for Reddit.com',
-    version: '2.7.1',
+    version: '2.7.2',
     match: /^https?:\/\/.*\.reddit.com/,
     authors: "Miko",
 

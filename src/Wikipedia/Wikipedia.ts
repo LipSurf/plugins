@@ -7,7 +7,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Wikipedia',
     description: 'The Wikipedia search engine.',
-    version: '2.7.1',
+    version: '2.7.2',
     match: /.*/,
     homophones: {
       'wiki': 'wikipedia',
