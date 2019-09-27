@@ -4,7 +4,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Dictionary',
     description: 'Quickly lookup words in an English dictionary. Switch to another language to lookup words in the language\'s respective dictionary.',
-    version: '2.7.2',
+    version: '2.8.0',
     match: [/https?:\/\/www\.merriam-webster\.com/, /https?:\/\/www\.weblio\.jp/],
     authors: "Miko",
 
