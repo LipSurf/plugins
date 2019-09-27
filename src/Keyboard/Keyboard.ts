@@ -40,7 +40,8 @@ export default <IPlugin & IPluginBase> {...PluginBase, ...{
     match: /.*/,
     authors: "Miko",
     homophones: {
-        'preston': 'press down',
+        // causes issues with "press tab"
+        // 'preston': 'press down',
         'pressed': 'press',
     },
     commands: [

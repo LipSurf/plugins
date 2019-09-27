@@ -13,9 +13,10 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
 
     commands: [
         {
-            name: 'Youtube',
+            name: 'YouTube',
             global: true,
             match: 'youtube',
+            nice: 'YouTube',
             minConfidence: 0.5,
             pageFn: async () => {
                 window.location.href = 'https://www.youtube.com/';
