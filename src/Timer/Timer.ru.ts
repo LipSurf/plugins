@@ -13,17 +13,18 @@ Timer.languages!.ru = {
                 // does not handle decimals
                 description: 'Скажите "Установить таймер [имя таймера (не обязательно)] на x секунд/минут/часов"',
                 fn: (transcript: string) => {
-                    let regxMatch = transcript.match(/^установить (?:(.*) )?таймер (?:на )?(полчаса|полтора часа|(\d+) ?(секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)(?:(?: и)? (?:(?:(\d+) (секунд(?:у|ы)?|минут(?:у|ы)?))))?)/);
-                    if (regxMatch) {
+                    const match = transcript.match(/\bустановить (?:(.*) )?таймер (?:на )?(полчаса|полтора часа|(\d+) ?(секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)(?:(?: и)? (?:(?:(\d+) (секунд(?:у|ы)?|минут(?:у|ы)?))))?)\b/);
+                    if (match) {
                         let quarter = null;
-                        let timerName = regxMatch[1];
-                        let half = regxMatch[2] && regxMatch[2].startsWith('пол') ? 'half' : null;
-                        let quantity = regxMatch[3];
-                        let unit = regxMatch[4] ? regxMatch[4].startsWith('секунд') ? 'second' : regxMatch[4].startsWith('минут') ? 'minute' : 'hour' : '';
-                        let quantity2 = regxMatch[5];
-                        let unit2 = regxMatch[6] ? regxMatch[6].startsWith('секунд') ? 'second' : regxMatch[6].startsWith('минут') ? 'minute' : 'hour' : '';
-                        return [regxMatch[0], timerName, quantity, unit, quantity2, unit2, half, quarter];
-                    } else if (/^установить (?:(.*) )?(?:таймер)? (?:на )?/.test(transcript)) {
+                        let timerName = match[1];
+                        let half = match[2] && match[2].startsWith('пол') ? 'half' : null;
+                        let quantity = match[3];
+                        let unit = match[4] ? match[4].startsWith('секунд') ? 'second' : match[4].startsWith('минут') ? 'minute' : 'hour' : '';
+                        let quantity2 = match[5];
+                        let unit2 = match[6] ? match[6].startsWith('секунд') ? 'second' : match[6].startsWith('минут') ? 'minute' : 'hour' : '';
+                        const endPos = match.index! + match[0].length;
+                        return [match.index!, endPos, [transcript.substring(0, endPos), match[0], timerName, quantity, unit, quantity2, unit2, half, quarter]];
+                    } else if (/\bустановить (?:(.*) )?(?:таймер)? (?:на )?/.test(transcript)) {
                         // ideally it would be smarter. Smartness should be built into the recognizer
                         return false;
                     }

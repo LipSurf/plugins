@@ -1,8 +1,8 @@
 /// <reference types="lipsurf-plugin-types"/>
 declare const PluginBase: IPluginBase;
 
-const SET_TIMER_REGX = /^set (?:(.*) )?timer (?:for )?(\d+) (seconds|minutes?|hours?)(?:(?: and)? (?:(?:(\d+) (seconds|minutes?))|(?:(?:a (?:(half)|(quarter))))))?/;
-const PARTIAL_SET_TIMER_REGX = /^set\b(.* )?(timer)?/;
+const SET_TIMER_REGX = /\bset (?:(.*) )?timer (?:for )?(\d+) (seconds|minutes?|hours?)(?:(?: and)? (?:(?:(\d+) (seconds|minutes?))|(?:(?:a (?:(half)|(quarter))))))?\b/;
+const PARTIAL_SET_TIMER_REGX = /\bset\b(.* )?(timer)?\b/;
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Timer',
@@ -19,9 +19,10 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                 // does not handle decimals
                 description: 'Say "set [timer name (optional)] timer for x seconds/minutes/hours"',
                 fn: (transcript: string) => {
-                    let fullMatch = transcript.match(SET_TIMER_REGX);
-                    if (fullMatch) {
-                        return fullMatch;
+                    let match = transcript.match(SET_TIMER_REGX);
+                    if (match) {
+                        const endPos = match.index! + match[0].length;
+                        return [match.index!, endPos, [transcript.substring(0, endPos), ...match]];
                     } else if (PARTIAL_SET_TIMER_REGX.test(transcript)) {
                         // ideally it would be smarter. Smartness should be built into the recognizer
                         return false;

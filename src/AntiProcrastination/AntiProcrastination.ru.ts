@@ -11,11 +11,12 @@ AntiProcrastination.languages!.ru = {
             match: {
                 description: 'Скажите "открыть [название сайта] на x секунд/минут/часов"',
                 fn: (transcript: string) => {
-                    let fullMatch = transcript.match(/^открыть (.*) на (\d+) (секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)/);
-                    if (fullMatch) {
-                        fullMatch[3] = fullMatch[3].startsWith('минут') ? 'minute' : fullMatch[3].startsWith('час') ? 'hour' : 'second';
-                        return fullMatch;
-                    } else if (/^открыть\b/.test(transcript)) {
+                    let match = transcript.match(/\bоткрыть (.*) на (\d+) (секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)\b/);
+                    if (match) {
+                        const endPos = match.index! + match[0].length;
+                        match[3] = match[3].startsWith('минут') ? 'minute' : match[3].startsWith('час') ? 'hour' : 'second';
+                        return [match.index!, endPos, [transcript.substring(0, endPos), ...match]];
+                    } else if (/\bоткрыть\b/.test(transcript)) {
                         // ideally it would be smarter than just testing (open) but that functionality 
                         // should be built into the recognizer
                         return false;

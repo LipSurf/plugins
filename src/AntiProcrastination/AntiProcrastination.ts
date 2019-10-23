@@ -1,8 +1,8 @@
 /// <reference types="lipsurf-plugin-types"/>
 declare const PluginBase: IPluginBase;
 
-const OPEN_X_FOR_Y_TIME_REGX = /^open (.*) for (\d+) (seconds|minutes?|hours?)$/;
-const OPEN_REGX = /^open\b/;
+const OPEN_X_FOR_Y_TIME_REGX = /\bopen (.*) for (\d+) (seconds|minutes?|hours?)\b/;
+const OPEN_REGX = /\bopen\b/;
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Anti-procrastination',
@@ -18,9 +18,10 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             match: {
                 description: 'Say "open [website name] for x seconds/minutes/hours"',
                 fn: (transcript: string) => {
-                    let fullMatch = transcript.match(OPEN_X_FOR_Y_TIME_REGX);
-                    if (fullMatch) {
-                        return fullMatch;
+                    const match = transcript.match(OPEN_X_FOR_Y_TIME_REGX);
+                    if (match) {
+                        const endPos = match.index! + match[0].length;
+                        return [match.index!, endPos, [transcript.substring(0, endPos), ...match]];
                     } else if (OPEN_REGX.test(transcript)) {
                         // ideally it would be smarter than just testing (open) but that functionality 
                         // should be built into the recognizer

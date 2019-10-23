@@ -106,7 +106,8 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     if (mainItem && PluginBase.util.isInViewAndTakesSpace(mainItem)) {
                         mainItem.click();
                     } else {
-                        for (let el of commentItems.reverse()) {
+                        let el: HTMLElement;
+                        for (el of commentItems.reverse()) {
                             if (PluginBase.util.isInViewAndTakesSpace(el)) {
                                 el.querySelector<HTMLAnchorElement>('.comment.collapsed a.expand')!.click();
                                 return;
@@ -158,11 +159,12 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         name: 'Go to Subreddit',
         match: {
             fn: (input: string) => {
-                const SUBREDDIT_REGX = /^(?:go to |show )?(?:are|our|r) (.*)/;
+                const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
                 let match = input.match(SUBREDDIT_REGX);
                 // console.log(`navigate subreddit input: ${input} match: ${match}`);
                 if (match) {
-                    return [match[1].replace(/\s/g, "")];
+                    const endPos = match.index! + match[0].length;
+                    return [match.index, endPos, [input.substring(0, endPos), match[1].replace(/\s/g, "")]];
                 }
             },
             description: 'go to/show r [subreddit name] (do not say slash)',
