@@ -23,7 +23,7 @@ Timer.languages!.ru = {
                         let quantity2 = match[5];
                         let unit2 = match[6] ? match[6].startsWith('секунд') ? 'second' : match[6].startsWith('минут') ? 'minute' : 'hour' : '';
                         const endPos = match.index! + match[0].length;
-                        return [match.index!, endPos, [transcript.substring(0, endPos), match[0], timerName, quantity, unit, quantity2, unit2, half, quarter]];
+                        return [match.index!, endPos, [match[0], timerName, quantity, unit, quantity2, unit2, half, quarter]];
                     } else if (/\bустановить (?:(.*) )?(?:таймер)? (?:на )?/.test(transcript)) {
                         // ideally it would be smarter. Smartness should be built into the recognizer
                         return false;

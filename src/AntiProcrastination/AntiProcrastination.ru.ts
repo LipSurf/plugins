@@ -15,7 +15,7 @@ AntiProcrastination.languages!.ru = {
                     if (match) {
                         const endPos = match.index! + match[0].length;
                         match[3] = match[3].startsWith('минут') ? 'minute' : match[3].startsWith('час') ? 'hour' : 'second';
-                        return [match.index!, endPos, [transcript.substring(0, endPos), ...match]];
+                        return [match.index!, endPos, match];
                     } else if (/\bоткрыть\b/.test(transcript)) {
                         // ideally it would be smarter than just testing (open) but that functionality 
                         // should be built into the recognizer

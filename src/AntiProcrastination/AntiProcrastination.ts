@@ -21,7 +21,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     const match = transcript.match(OPEN_X_FOR_Y_TIME_REGX);
                     if (match) {
                         const endPos = match.index! + match[0].length;
-                        return [match.index!, endPos, [transcript.substring(0, endPos), ...match]];
+                        return [match.index!, endPos, match];
                     } else if (OPEN_REGX.test(transcript)) {
                         // ideally it would be smarter than just testing (open) but that functionality 
                         // should be built into the recognizer

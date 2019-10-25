@@ -164,7 +164,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                 // console.log(`navigate subreddit input: ${input} match: ${match}`);
                 if (match) {
                     const endPos = match.index! + match[0].length;
-                    return [match.index, endPos, [input.substring(0, endPos), match[1].replace(/\s/g, "")]];
+                    return [match.index, endPos, [match[1].replace(/\s/g, "")]];
                 }
             },
             description: 'go to/show r [subreddit name] (do not say slash)',

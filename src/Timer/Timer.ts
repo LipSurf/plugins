@@ -22,7 +22,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     let match = transcript.match(SET_TIMER_REGX);
                     if (match) {
                         const endPos = match.index! + match[0].length;
-                        return [match.index!, endPos, [transcript.substring(0, endPos), ...match]];
+                        return [match.index!, endPos, match];
                     } else if (PARTIAL_SET_TIMER_REGX.test(transcript)) {
                         // ideally it would be smarter. Smartness should be built into the recognizer
                         return false;
