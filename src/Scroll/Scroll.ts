@@ -1,4 +1,5 @@
 /// <reference types="lipsurf-plugin-types"/>
+import { ExecutionContext } from 'ava';
 declare const PluginBase: IPluginBase;
 
 let autoscrollIntervalId: number;
@@ -135,6 +136,28 @@ async function scroll(direction: ScrollType, little: boolean = false) {
     }
 }
 
+function queryScrollPos(querySelector?: string) {
+    if (querySelector) {
+        const scrollEl = document.querySelector(querySelector)!;
+        return scrollEl.scrollTop;
+    } else {
+        return window.scrollY;
+    }
+}
+
+async function testScroll(t: ExecutionContext<ICommandTestContext>, 
+        say: () => Promise<void>, 
+        client: WebdriverIOAsync.BrowserObject,
+        url: string, 
+        querySelector?: string) {
+    await client.navigateTo(url);
+    const scrollStart = await client.execute(queryScrollPos, querySelector);
+    await say();
+    await t.context.timeout(2000);
+    const scrollEnd = await client.execute(queryScrollPos, querySelector);
+    t.true(scrollEnd > scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd} for ${url}`);
+}
+
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Scroll',
     description: 'Commands for scrolling the page.',
@@ -204,6 +227,30 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             pageFn: async () => {
                 return scroll('d');
             },
+            test: async (t, say, client) => {
+                // google search results (normal page)
+                await testScroll(
+                    t, 
+                    say,
+                    client,
+                    'https://www.google.com/search?q=lipsurf'
+                    );
+
+                // gdocs
+                await testScroll(
+                    t,
+                    say,
+                    client,
+                    'https://docs.google.com/document/d/1Tdfk2UvIXxwZOoluLh6o1kN1CrKHWbXcmUIsDKRHTEI/edit',
+                    '.kix-appview-editor');
+
+                // gmail (a long email message)
+                // await testScroll(
+                //     t,
+                //     client,
+                //     'https://mail.google.com/mail/u/0/#inbox/FMfcgxwDrRRWlxSRxcLxzMQLSFHVdMXz',
+                //     '#:3');
+            }
         }, {
             name: 'Scroll Up',
             match: ["up", "scroll up"],
