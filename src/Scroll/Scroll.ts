@@ -84,7 +84,8 @@ function scrollableMousedownHandler(e: MouseEvent) {
 function getScrollableEls(): HTMLElement[] {
     console.time('getScrollableEls');
     let nodes = listElements(document.body, NodeFilter.SHOW_ELEMENT, function(n) {
-        return (hasScroll(n, 'y', 16) && n.scrollHeight > 200 ) || (hasScroll(n, 'x', 16) && n.scrollWidth > 200);
+        // the offset height is how much is visible currently
+        return (hasScroll(n, 'y', 16) && n.scrollHeight - n.offsetHeight > 100 ) || (hasScroll(n, 'x', 16) && n.scrollWidth - n.scrollWidth > 100);
     });
     nodes.sort(function(a, b) {
         if (b.contains(a)) return 1;
@@ -331,20 +332,28 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     '.kix-appview-editor');
 
                 // gmail (a long email message)
-                // await testScroll(
-                //     t,
-                //     client,
-                //     'https://mail.google.com/mail/u/0/#inbox/FMfcgxwDrRRWlxSRxcLxzMQLSFHVdMXz',
-                //     '#:3');
+                await testScroll(
+                    t,
+                    say,
+                    client,
+                    `${t.context.localPageDomain}/gmail-long-message.html`,
+                    '#\\:3');
 
                 // whatsapp
                 await testScroll(
                     t,
                     say,
                     client,
-                    'https://docs.google.com/document/d/1Tdfk2UvIXxwZOoluLh6o1kN1CrKHWbXcmUIsDKRHTEI/edit',
-                    '.kix-appview-editor');
+                    `${t.context.localPageDomain}/whatsapp.html`,
+                    '._1_keJ');
 
+                // quip
+                await testScroll(
+                    t,
+                    say,
+                    client,
+                    `${t.context.localPageDomain}/quip.html`,
+                    '.parts-screen-body.scrollable');
             }
         }, {
             name: 'Scroll Up',
