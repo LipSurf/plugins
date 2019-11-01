@@ -240,7 +240,6 @@ async function testScroll(t: ExecutionContext<ICommandTestContext>,
     await client.navigateTo(url);
     const scrollStart = await client.execute(queryScrollPos, querySelector);
     await say();
-    await t.context.timeout(2000);
     const scrollEnd = await client.execute(queryScrollPos, querySelector);
     t.true(scrollEnd > scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd} for ${url}`);
 }
