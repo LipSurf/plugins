@@ -6,6 +6,8 @@ let autoscrollIntervalId: number;
 const SCROLL_SPEED_FACTORS = [200, 100, 75, 50, 30, 20, 10, 5];
 const SCROLL_DURATION = 400;
 const AUTOSCROLL_OPT = 'autoscroll-index';
+let scrollNodes: HTMLElement[] = [];
+let scrollIndex: number = 0;
 
 function stopAutoscroll(): void {
     window.clearInterval(autoscrollIntervalId);
@@ -43,19 +45,103 @@ function setAutoscroll(indexDelta: number = 0) {
     }, SCROLL_SPEED_FACTORS[scrollSpeedIndex]);
 }
 
-function getScrollEl(): HTMLElement|Window {
-    let el: HTMLElement|Window = window;
+// The following inspired by Surfingkeys
+// https://github.com/brookhong/Surfingkeys
 
-    if (document.location.origin === 'https://mail.google.com' || document.location.origin === 'https://inbox.google.com') {
-        el = document.getElementById(':3') || el;
-    } else if (document.location.host === 'docs.google.com') {
-        el = document.querySelector<HTMLElement>('.kix-appview-editor')!;
+function hasScroll(el: HTMLElement, direction: 'y'|'x', barSize: number) {
+    const offset = (direction === 'y') ? ['scrollTop', 'height'] : ['scrollLeft', 'width'];
+    let scrollPos = el[offset[0]];
+
+    if (scrollPos < barSize) {
+        // set scroll offset to barSize, and verify if we can get scroll offset as barSize
+        const originOffset = el[offset[0]];
+        el[offset[0]] = el.getBoundingClientRect()[offset[1]];
+        scrollPos = el[offset[0]];
+        // if (scrollPos !== originOffset) {
+        //     Mode.suppressNextScrollEvent();
+        // }
+        el[offset[0]] = originOffset;
+    }
+    return scrollPos >= barSize;
+}
+
+function scrollableMousedownHandler(e: MouseEvent) {
+    const n = <HTMLElement>e.currentTarget!;
+    const target = <HTMLElement>e.target;
+    if (!n.contains(target)) return;
+    let index = scrollNodes.lastIndexOf(target);
+    if (index === -1) {
+        for (var i = scrollNodes.length - 1; i >= 0; i--) {
+            if (scrollNodes[i].contains(target)) {
+                index = i;break;
+            }
+        }
+        if (index === -1) console.warn('cannot find scrollable', e.target);
+    }
+    scrollIndex = index;
+};
+
+function getScrollableEls(): HTMLElement[] {
+    console.time('getScrollableEls');
+    let nodes = listElements(document.body, NodeFilter.SHOW_ELEMENT, function(n) {
+        return (hasScroll(n, 'y', 16) && n.scrollHeight > 200 ) || (hasScroll(n, 'x', 16) && n.scrollWidth > 200);
+    });
+    nodes.sort(function(a, b) {
+        if (b.contains(a)) return 1;
+        else if (a.contains(b)) return -1;
+        return b.scrollHeight * b.scrollWidth - a.scrollHeight * a.scrollWidth;
+    });
+    if (document.scrollingElement!.scrollHeight > window.innerHeight
+        || document.scrollingElement!.scrollWidth > window.innerWidth) {
+        nodes.unshift(<HTMLElement>document.scrollingElement);
+    }
+    nodes.forEach(function (n) {
+        n.removeEventListener('mousedown', scrollableMousedownHandler);
+        n.addEventListener('mousedown', scrollableMousedownHandler);
+    });
+    console.timeEnd('getScrollableEls');
+    return nodes;
+}
+
+function listElements(root, whatToShow, filter): HTMLElement[] {
+    const elms: HTMLElement[] = [];
+    let currentNode: HTMLElement|null;
+    const nodeIterator = document.createNodeIterator(
+        root,
+        whatToShow,
+        null
+    );
+
+    while (currentNode = <HTMLElement>nodeIterator.nextNode()) {
+        filter(currentNode) && elms.push(currentNode);
+
+        if (currentNode.shadowRoot) {
+            elms.push(...listElements(currentNode.shadowRoot, whatToShow, filter));
+        }
     }
 
-    let helpBox = document.getElementById(`${PluginBase.util.getNoCollisionUniqueAttr()}-helpBox`);
+    return elms;
+}
 
-    if (helpBox && helpBox.scrollHeight > helpBox.clientHeight)
+// END surfingkeys inspiration
+
+function getScrollEl(): HTMLElement|Window {
+    let el: HTMLElement|Window = window;
+    const helpBox = document.getElementById(`${PluginBase.util.getNoCollisionUniqueAttr()}-helpBox`);
+
+    if (helpBox && helpBox.scrollHeight > helpBox.clientHeight) {
         el = helpBox;
+    } else if (document.location.host === 'docs.google.com') {
+        el = document.querySelector<HTMLElement>('.kix-appview-editor')!;
+    } else if (document.scrollingElement!.scrollHeight > window.innerHeight ||
+        document.scrollingElement!.scrollWidth > window.innerWidth) {
+        el = <HTMLElement>document.scrollingElement!;
+    } else {
+        // find it the hard way
+        scrollNodes = getScrollableEls();
+        el = scrollNodes[scrollIndex];
+    }
+
     return el;
 }
 
@@ -250,6 +336,15 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                 //     client,
                 //     'https://mail.google.com/mail/u/0/#inbox/FMfcgxwDrRRWlxSRxcLxzMQLSFHVdMXz',
                 //     '#:3');
+
+                // whatsapp
+                await testScroll(
+                    t,
+                    say,
+                    client,
+                    'https://docs.google.com/document/d/1Tdfk2UvIXxwZOoluLh6o1kN1CrKHWbXcmUIsDKRHTEI/edit',
+                    '.kix-appview-editor');
+
             }
         }, {
             name: 'Scroll Up',
