@@ -1,3 +1,9 @@
 {
-  "extends": "./node_modules/lipsurf-cli/plugins-tsconfig.json"
+  "extends": "./node_modules/lipsurf-cli/plugins-tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/tmp"
+  },
+  "include": [
+    "src/*/*.ts"
+  ]
 }

@@ -5,10 +5,10 @@
   "scripts": {
     "docs:watch": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "build": "lipsurf-cli build",
-    "watch": "lipsurf-cli build --watch",
-    "build:prod": "NODE_ENV=production lipsurf-cli build",
-    "watch:prod": "NODE_ENV=production lipsurf-cli build --watch",
+    "build": "tsc -p tsconfig.json && lipsurf-cli build",
+    "watch": "concurrently \"tsc -w -p tsconfig.json\" \"lipsurf-cli build --watch\"",
+    "build:prod": "tsc -p tsconfig.json && NODE_ENV=production lipsurf-cli build",
+    "watch:prod": "concurrently \"tsc -w -p tsconfig.json\" \"NODE_ENV=production lipsurf-cli build --watch\"",
     "clean": "rm -r dist/"
   },
   "repository": {
@@ -30,8 +30,10 @@
   "homepage": "https://www.lipsurf.com",
   "devDependencies": {
     "@types/chrome": "0.0.66",
+    "concurrently": "^5.0.0",
     "lipsurf-cli": "https://github.com/lipsurf/lipsurf-cli",
     "lipsurf-plugin-types": "https://github.com/lipsurf/plugin-types",
+    "typescript": "^3.6.4",
     "vuepress": "^0.14.2"
   }
 }

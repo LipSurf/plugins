@@ -1,5 +1,4 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { ExecutionContext } from 'ava';
 declare const PluginBase: IPluginBase;
 
 let autoscrollIntervalId: number;
