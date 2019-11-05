@@ -6140,7 +6140,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-plugin-types@https://github.com/lipsurf/plugin-types":
   version "1.0.0"
-  resolved "https://github.com/lipsurf/plugin-types#ba526015973fd23562926cdfa7cc11bb809b0df6"
+  resolved "https://github.com/lipsurf/plugin-types#e3f605a9388df570f69992f53412f7e96e9752cd"
   dependencies:
     "@types/webdriverio" "^5.0.0"
     ava "^2.1.0"

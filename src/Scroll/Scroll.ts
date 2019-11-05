@@ -232,15 +232,30 @@ function queryScrollPos(querySelector?: string) {
 }
 
 async function testScroll(t: ExecutionContext<ICommandTestContext>, 
-        say: () => Promise<void>, 
+        say: (phrase?: string) => Promise<void>, 
         client: WebdriverIOAsync.BrowserObject,
         url: string, 
-        querySelector?: string) {
-    await client.navigateTo(url);
+        querySelector?: string,
+        test: {
+            greater?: boolean,
+            lessThan?: boolean,
+            zero?: boolean,
+        } = {greater: true}) {
+    await client.url(url);
+    // scroll down first
+    if (test.zero || test.lessThan)
+        // compound test 
+        await say('bottom');
+
     const scrollStart = await client.execute(queryScrollPos, querySelector);
     await say();
     const scrollEnd = await client.execute(queryScrollPos, querySelector);
-    t.true(scrollEnd > scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd} for ${url}`);
+    if (test.greater)
+        t.true(scrollEnd > scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd} for ${url}`);
+    else if (test.lessThan)
+        t.true(scrollEnd < scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd} for ${url}`);
+    else if (test.zero)
+        t.is(scrollEnd, 0, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd} for ${url}`);
 }
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
@@ -397,12 +412,18 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             pageFn: async () => {
                 return scroll('b');
             },
+            test: async function(t, say, client) {
+                await testScroll(t, say, client, `http://motherfuckingwebsite.com/`);
+            }
         }, {
             name: 'Scroll Top',
             match: ["top", "top of page", "top of the page", "scroll top", "scroll to top", "scroll to the top"],
             pageFn: async () => {
                 return scroll('t');
             },
+            test: async function(t, say, client) {
+                await testScroll(t, say, client, `http://motherfuckingwebsite.com/`, undefined, {zero: true});
+            }
         }, {
             name: 'Scroll Down a Little',
             match: ["little down", "little scroll down"],
