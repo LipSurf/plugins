@@ -6125,7 +6125,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-cli@https://github.com/lipsurf/lipsurf-cli":
   version "0.0.1"
-  resolved "https://github.com/lipsurf/lipsurf-cli#1af900efa891be498b8fa8f891a7122538a933e6"
+  resolved "https://github.com/lipsurf/lipsurf-cli#0d801de53f4a43bd6e46eb7863d566ef6c903253"
   dependencies:
     jscodeshift "https://github.com/mikob/jscodeshift#js-api"
     meow "^5.0.0"
