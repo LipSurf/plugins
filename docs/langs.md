@@ -30,10 +30,14 @@ Let's localize the [hello world plugin](/quick-start.md#hello-world-plugin) from
  ```ts
  /// lipsurf-plugins/src/HelloWorld/HelloWorld.ja.ts
  /// <reference types="lipsurf-plugin-types"/>
- import { HelloWorldPlugin } from './HelloWorld';
+ import HelloWorld from './HelloWorld';
  ```
 
-  3. Set `Plugin.languages.ja` to the localizeable things.
+  3. Set `Plugin.languages!.ja` to the localizeable things.
+
+::: warning
+`Plugin.languages` needs a non-null assertion operator.
+:::
 
   You can localize all the things that make sense to: nice names (the pretty ones🌼), descriptions, match patterns etc.
 

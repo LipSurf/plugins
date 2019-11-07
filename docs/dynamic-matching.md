@@ -1,12 +1,12 @@
 # Dynamic Match Patterns
 
 ::: warning NOTE
-It's recommended that you go through the [5 Minute Quick Start](/quick-start.md) first to understand how to install and test your plugins.
+It's recommended that you go through the [5 Minute Quick Start](/quick-start.md) first to understand how to create and install your plugin.
 :::
 
 ## Wildcard Matching
 
-What if we want a plugin that accepts an arbitrary argument after some key words?
+What if we want a plugin that accepts an arbitrary argument after some key words (AKA a slot)?
 
 Let's make a plugin that shows the weather for any city when user says: <span class="voice-cmd">weather for [city name]</span> (eg. <span class="voice-cmd">weather for Chiang Mai</span>)
 
@@ -22,7 +22,7 @@ _Ain't nothin' to it._
 
 Use `#` in your `match` string to match numerals or ordinals including ones that are spelled-out (ie. <span class="voice-cmd">four-thousand</span>)
 
-Let's write a plugin that opens x tab for y minutes so that we can limit it's time wasting-ness. This might be useful if we need to check facebook but don't want to get sucked into the feed for too long.
+Let's write a plugin that opens a tab with URL x for y minutes so that we can limit it's time wasting-ness. This might be useful if we need to check Facebook but don't want to get sucked into the feed for too long.
 
 <<< @/docs/assets/AntiProcrastination.ts{13}
 
@@ -49,7 +49,6 @@ We could use the wildcard matching for this (eg. "move to *") but then we cant l
 
 
 ::: tip NOTE
-The match function only needs to check for whole matches. In other words, the match function will
-first get a complete transcript, if there's no match then it gets the first n-1 words, once it 
-gets to the first word, it starts trimming words from the beginning.
+The match function needs to check the whole transcript for matches and then return indexes for which parts it used.
+This way the transcript can have the proper section success highlighted (in green) that matches a command, and command chaining will work.
 :::

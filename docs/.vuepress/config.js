@@ -30,8 +30,8 @@ module.exports = {
 				children: [
 					'/dynamic-matching.md',
 					'/contexts.md',
-					'/state.md',
 					'/langs.md',
+					'/plugin-level-settings.md',
 					'/testing.md',
 				],
 			},

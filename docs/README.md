@@ -20,7 +20,7 @@ Firstly, _**prohst**_ to you! By nature of being on this page, I can tell you ha
  - Testing is built-in
 
 ### Quick Complete Example Plugin
-Writing your own plugins for LipSurf is *pleasureably* straightforward.
+Writing your own plugins for LipSurf is *pleasurably* straightforward.
 
 <<< @/docs/assets/Gmail.ts
 

@@ -19,11 +19,12 @@ pageFn | `(transcript: string, ...matchOutput: any) => Promise<void>` | _(option
 |enterContext| `string` | _(optional)_ What context to enter if this command matches.<br><br> See [Contexts](/contexts.md) for details.|
 |minConfidence |`number`| _(optional)_ A decimal between 0.0 and 1.0 that specifies the minimum confidence needed for this command to be considered a match. <br><br> Useful for lowering sensitivity of specific commands if they are relatively "dangerous" to execute, for example.|
 |delay | `number | number[]` | _(optional)_ How long to wait for additional input for before executing this command. Overrides delay that is built-in for commands with match strings that end in ordinals or wildcards. <br><br> Useful for when you want to allow time for more words to come through. <br><br> Use an array with indices that correspond to the different match strings if you should have different delays based on the match string.<br><br>Use 0 to override dynamically calculated delay and to execute command immediately on match.|
-|test | `() => void` | _(optional but recommended)_ Selenium unit test for this command.|
+|activeDocument | `boolean` | _(default: false)_ whether to execute this command in the focused iFrame.|
+|test | `(t: ExecutionContext<ICommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIOAsync.BrowserObject) => void` | _(optional but recommended)_ <a href="https://github.com/avajs/ava">AVA</a> integration test for this command.|
 
 ### `fn` vs. `pageFn`
 ::: tip NOTE
-`pageFn` runs in the context of the page so it has access to the DOM, but doesn't have access to Chrome extension APIs like `chrome.tabs`. `fn` on the other hand runs in the (sandboxed) context of the Chrome extension; it doesn't have access to the page or it's DOM but it does have access to the Chrome extension APIs. `pageFn` is preferred unless you need access to extension APIs.
+`pageFn` runs in the context of the page so it has access to the DOM, but doesn't have access to Chrome extension APIs like `chrome.tabs`. `fn` on the other hand runs in the (sandboxed) context of the Chrome extension; it doesn't have access to the page or it's DOM but it does have access to the Chrome extension APIs.
 :::
 
 
@@ -33,20 +34,17 @@ A function that decides whether a command matches based on a transcript input fo
 
 Member | Type | Description
 -------|------|---------------
-fn | `(transcript: string) => `[`MatchResult`](/api-reference/command.md#matchresult)`| undefined` | A function that takes in the transcript and returns a [`MatchResult`](/api-reference/command.md#matchresult)if the command should execute on the given transcript.
+fn | `(transcript: string) => `[`DynamicMatchFnResp`](/api-reference/command.md#dynamicmatchfnresp)`| undefined` | A function that takes in the transcript and returns a [`DynamicMatchFnResp`](/api-reference/command.md#dynamicmatchfnresp)if the command should execute on the given transcript.
 description | `string` | Used to decribe to the user what command words match. Seen in plugins list in options.
 
-## MatchResult
+## DynamicMatchFnResp
 
-**Type:** `[string, any[]]|boolean`
+**Type:** `[number, number, any[]?]|undefined|false` or a `Promise` with the same result type.
 
-Array of `any` type args to pass over to `pageFn` as the `...matchOutput[]` arguments. Don't include the transcript argument, as it's automatically included (the transcript that returns a positive `MatchResult` is used).
-
-
--or-
+The start match index, the end match index and an array of `any` type args to pass over to `pageFn` as the `...matchOutput[]` arguments. Don't include the transcript argument, as it's automatically included (and trimmed depending on the start and end match indices).
 
 
-`false` if there is a partial match. If there is a partial match we will delay other commands that might already want to execute.
+Return `false` or `Promise<false>` if there is a partial match. If there is a partial match we will delay other commands that might already want to execute.
 
 ::: tip E.g.
 Imagine there's a command word for <span class="voice-cmd">reddit</span> and a [dynamic match command](/api-reference/command.md#idynamicmatch) for <span class="voice-cmd">reddit message</span> that are both valid on a given page. If the user says <span class="voice-cmd">reddit message</span> the transcripts will come down the wire something like this:
@@ -78,7 +76,7 @@ nice | [`INiceCommand`](/api-reference/command.md#inicecommand) | _(optional)_ S
 
 ## INiceCommand
 
-**Type:** `string | ((transcript: string, ...matchOutput: any) => string)`
+**Type:** `string | ((transcript: string, ...matchOutput: any[]) => string)`
 
 
 Sometimes we want to adjust the transcript as it is shown on the live transcript. For example if the user says <span class="voice-cmd">go to are meal time videos</span> we would want to show that as <span class="voice-cmd">go to r/mealtimevideos</span>.

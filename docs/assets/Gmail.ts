@@ -1,18 +1,16 @@
 /// <reference types="lipsurf-plugin-types"/>
-import { PluginBase } from '../PluginBase';
+declare const PluginBase: IPluginBase;
 
-export module GmailPlugin {
-    export let Plugin: IPlugin & IPluginBase = Object.assign<{}, IPluginBase, IPlugin>({}, PluginBase, {
-        niceName: 'Gmail',
-        match: /^https:\/\/mail\.google\.com/,
-        commands: [{
-            name: 'Compose Mail',
-            description: 'Open the new email composition form in gmail',
-            global: true,
-            match: ['compose mail', 'write new mail'],
-            pageFn: async () => {
-                window.location.href = 'https://mail.google.com/mail/?view=cm&fs=1';
-            }
-        }],
-    });
-}
+export default <IPluginBase & IPlugin> {...PluginBase, ...{
+    niceName: 'Gmail',
+    match: /^https:\/\/mail\.google\.com/,
+    commands: [{
+        name: 'Compose Mail',
+        description: 'Open the new email composition form in gmail',
+        global: true,
+        match: ['compose mail', 'write new mail'],
+        pageFn: function() {
+            window.location.href = 'https://mail.google.com/mail/?view=cm&fs=1';
+        }
+    }],
+}};

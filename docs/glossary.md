@@ -15,7 +15,7 @@ See [Contexts](/contexts.md) for details.
 The text that shows on the top of the page when you speak and LipSurf is activated. Can be configured in the options.
 
 ### match property
-The utterance that activates a given command is specified via match properties. Match properties can be simple strings, strings with special characters to represent wildcard or numeral text, or with full-on functions!
+The utterance that activates a given command is specified via match properties. Match properties can be simple strings, strings with special characters to represent wildcard or numeral text, or full-on functions!
 
 ### no headphones mode
 Will be changed to "headphones mode" soon. When you don't use headphones, audio from the speakers can feed back into the microphone which is usually undesirable when you're watching a video. With "no headphones mode" on the live text does not show when media is detected to be playing on the page — unless there's a valid command.

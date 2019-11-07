@@ -5,7 +5,7 @@ Contexts are specific states that LipSurf can enter, which limit the scope of co
 Use cases include:
  * Allowing certain commands only in certain situations.
     * eg. <span class="voice-cmd">slower</span> and <span class="voice-cmd">faster</span> for <span class="voice-cmd">auto scroll</span> only makes sense after the user has said <span class="voice-cmd">auto scroll</span>.
- * Limiting which commands are valid. 
+ * Limiting which commands are valid.
     * eg. In the "Dictation" context, we don't want "youtube" to take us to youtube.com, we want it to literally write "youtube" where we're composing our text.
 
  To make a context, simply designate a context as a part of an [ICommand's](/api-reference/command.md#icommand) `context` or `enterContext` property

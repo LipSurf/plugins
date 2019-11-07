@@ -14,17 +14,16 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
  2. Install the dependencies.
 
  ```sh
- yarn install
+ yarn
  ```
 
- 3. Create a folder named `HelloWorld` with a `HelloWorld.ts` file in it with the following contents:
+ 3. Create a folder named `HelloWorld` in `src` with a `HelloWorld.ts` file in it with the following contents:
 
 ::: warning
-It's important to keep the capitalization consistent. The case-sensitive namespace must always end in `Plugin` (eg. `HelloWorldPlugin`) and
-   the folder and file name should have the same name and capitalization (without the `Plugin` suffix).
+It's important to keep the folder name and plugin name the same. Please use PascalCasing.
 :::
 ::: tip PROTIP
-Rather than copy-pasting, it's better to type out the code to force yourself to grasp it's intuitive structure and contents better.
+Rather than copying and pasting, it's better to type out the code to better grasp its intuitive structure and contents.
 :::
 
 <<< @/docs/assets/HelloWorld.ts
@@ -47,10 +46,10 @@ This will watch our *.ts files for changes and compile them to JavaScript whenev
 
  ![Screenshot of developer mode setting](./assets/img/developer-mode.png)
 
- 7. Click "Add a Local Plugin" under "Plugins" and navigate to the compiled `.mjs` file (eg. `plugins/dist/HelloWorld.mjs`).
+ 7. Click "Add a Local Plugin" under "Plugins" and navigate to the compiled `.ls` file (eg. `plugins/dist/HelloWorld.1-0-0.0.ls`).
 
  ::: tip NOTE
- The `mjs` extension is special for ECMAScript modules (ESM). They are basically JavaScript.
+ The `ls` extension is special for LipSurf extensions. It's basically 3 JavaScript files rolled into one.
  :::
 
  ![Screenshot of the "Add a local plugin" button.](./assets/img/add-a-local-plugin.png)
@@ -92,6 +91,6 @@ Check the developer console (&lt;F12&gt;) for hints if there are installation is
 ## What's Next
   If you think that's nifty, we've just scratched the surface! LipSurf can handle homophones, dynamic match commands, multiple languages and more!
 
-  Check out the "Advanced" topics after you've regained composure from all the excitement this is generating!
+  Check out the "Advanced" topics after you take a deep breath and regain your composure from all this excitement!
 
 
