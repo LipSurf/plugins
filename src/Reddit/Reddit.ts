@@ -117,6 +117,14 @@ export default <IPluginBase & IPlugin>{
                             }
                         }
                     }
+                },
+                test: async function (t: ExecutionContext<ICommandTestContext>, say, client) {
+                    await client.url(`${t.context.localPageDomain}/reddit-r-comics.html`);
+                    const selector = `#thing_t3_dvpn38 > div > div > div.expando-button.collapsed`;
+                    const item = await client.$(selector);
+                    t.true(await item.isExisting());
+                    await say('expand for');
+                    t.true((await item.getAttribute('class')).split(' ').includes('expanded'));
                 }
             }, {
                 name: "Collapse",
