@@ -286,6 +286,8 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         'boreham': 'bottom',
         'volume': 'bottom',
         'barton': 'bottom',
+        'barn': 'bottom',
+        'born': 'bottom',
         'littledown': 'little down',
         'put it down': 'little down',
         'will down': 'little down',
