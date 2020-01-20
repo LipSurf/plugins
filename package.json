@@ -22,6 +22,9 @@
     "abilities",
     "accessibility"
   ],
+  "engines": {
+    "node": ">=11"
+  },
   "author": "Miko",
   "license": "UNLICENSED",
   "bugs": {
