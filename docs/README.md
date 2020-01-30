@@ -3,6 +3,8 @@ _[LipSurf](https://www.lipsurf.com) plugins are like [UserScripts](https://en.wi
 
 Firstly, _**prohst**_ to you! By nature of being on this page, I can tell you have exquisite taste for software!
 
+If you were looking for the user manual, [see here(]https://help.lipsurf.com).
+
 ### What are you talking about?
 
 [LipSurf](https://chrome.google.com/webstore/detail/lipsurf/lnnmjmalakahagblkkcnjkoaihlfglon) is a Google Chrome extension that enables users to browse with their voice — augmenting the mouse/keyboard paradigm, enabling hands-free productivity. This serves many purposes:

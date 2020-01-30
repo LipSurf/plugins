@@ -5,7 +5,7 @@ module.exports = {
 	themeConfig: {
 		logo: '/icon-128.png',
 		repo: 'lipsurf/plugins',
-		footer: '© 2019 LipSurf',
+		footer: '© 2020 LipSurf',
 		editLinks: true,
 		editLinkText: 'Improve this page',
 		docsDir: 'docs',
