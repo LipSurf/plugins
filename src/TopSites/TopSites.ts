@@ -7,7 +7,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Top Sites',
     description: 'Shortcuts for going to popular websites.',
-    version: '2.11.0',
+    version: '2.12.0',
     match: /.*/,
     authors: "Miko",
 
