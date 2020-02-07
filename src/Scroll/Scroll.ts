@@ -242,6 +242,8 @@ async function testScroll(t: ExecutionContext<ICommandTestContext>,
             zero?: boolean,
         } = {greater: true}) {
     await client.url(url);
+    // in case there's a redirect or something
+    t.is(await client.getUrl(), url);
     // scroll down first
     if (test.zero || test.lessThan)
         // compound test 
