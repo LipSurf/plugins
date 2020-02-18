@@ -8,7 +8,7 @@ Member | Type | Description
 -------|------|------------
 loadPage | `(url: string) => void` | Load a page in the currently active tab via selenium.
 say | `(phrase: string) => void` |
-timeout | |
+sleep | |
 driver | | The selenium driver.
 Key | |
 By | |

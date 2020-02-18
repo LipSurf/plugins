@@ -1,3 +1,7 @@
+/**
+ * TODO: add arrows, tab, enter tests for Google Sheets
+ * 
+ */
 /// <reference types="lipsurf-plugin-types"/>
 declare const PluginBase: IPluginBase;
 
