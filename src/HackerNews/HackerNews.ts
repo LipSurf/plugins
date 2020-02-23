@@ -18,7 +18,7 @@ function clickIfExists(el: HTMLElement|undefined|null) {
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Hacker News',
     description: 'Basic controls for news.ycombinator.com.',
-    version: '2.13.0',
+    version: '2.13.1',
     match: /^https?:\/\/news\.ycombinator\.com/,
     homophones: {
         'floor': 'more',
