@@ -31,17 +31,19 @@ function setAutoscroll(indexDelta: number = 0) {
 
     window.clearInterval(autoscrollIntervalId);
     const scrollEl = getScrollEl();
-    autoscrollIntervalId = window.setInterval(() => {
-        // @ts-ignore
-        const scrollYPos = scrollEl.scrollY || scrollEl.scrollTop;
-        scrollEl.scrollBy(0, scrollFactor);
-        // if there was outside movement, or if we hit the bottom
-        if (prevPos && (scrollYPos - prevPos <= 0 || scrollYPos - prevPos > scrollFactor * 1.5)) {
-            console.log('stopping due to detected scroll activity');
-            stopAutoscroll();
-        }
-        prevPos = scrollYPos;
-    }, SCROLL_SPEED_FACTORS[scrollSpeedIndex]);
+    if (scrollEl) {
+        autoscrollIntervalId = window.setInterval(() => {
+            // @ts-ignore
+            const scrollYPos = scrollEl.scrollY || scrollEl.scrollTop;
+            scrollEl.scrollBy(0, scrollFactor);
+            // if there was outside movement, or if we hit the bottom
+            if (prevPos && (scrollYPos - prevPos <= 0 || scrollYPos - prevPos > scrollFactor * 1.5)) {
+                console.log('stopping due to detected scroll activity');
+                stopAutoscroll();
+            }
+            prevPos = scrollYPos;
+        }, SCROLL_SPEED_FACTORS[scrollSpeedIndex]);
+    }
 }
 
 // The following inspired by Surfingkeys
@@ -80,11 +82,14 @@ function scrollableMousedownHandler(e: MouseEvent) {
     scrollIndex = index;
 };
 
+/**
+ * Currently has a minimum threshold of 60 scrolling pixels
+ */
 function getScrollableEls(): HTMLElement[] {
     console.time('getScrollableEls');
     let nodes = listElements(document.body, NodeFilter.SHOW_ELEMENT, function(n) {
         // the offset height is how much is visible currently
-        return (hasScroll(n, 'y', 16) && n.scrollHeight - n.offsetHeight > 100 ) || (hasScroll(n, 'x', 16) && n.scrollWidth - n.scrollWidth > 100);
+        return (hasScroll(n, 'y', 16) && n.scrollHeight - n.offsetHeight > 60 ) || (hasScroll(n, 'x', 16) && n.scrollWidth - n.scrollWidth > 60);
     });
     nodes.sort(function(a, b) {
         if (b.contains(a)) return 1;
@@ -125,8 +130,8 @@ function listElements(root, whatToShow, filter): HTMLElement[] {
 
 // END surfingkeys inspiration
 
-function getScrollEl(): HTMLElement|Window {
-    let el: HTMLElement|Window = window;
+function getScrollEl(): HTMLElement|Window|undefined {
+    let el: HTMLElement|Window|undefined = window;
     const helpBox = document.getElementById(`${PluginBase.util.getNoCollisionUniqueAttr()}-helpBox`);
 
     if (helpBox && helpBox.scrollHeight > helpBox.clientHeight) {
@@ -146,16 +151,18 @@ function getScrollEl(): HTMLElement|Window {
 }
 
 async function scrollAmount({top, left}: {top?: number, left?: number}, relative=true) {
-    let el = getScrollEl();
-    let scrollObj = {
-        top,
-        left,
-        behavior: 'smooth' as ScrollBehavior, 
-    };
-    if (relative) {
-        el.scrollBy(scrollObj);
-    } else {
-        el.scrollTo(scrollObj);
+    const el = getScrollEl();
+    if (el) {
+        const scrollObj = {
+            top,
+            left,
+            behavior: 'smooth' as ScrollBehavior, 
+        };
+        if (relative) {
+            el.scrollBy(scrollObj);
+        } else {
+            el.scrollTo(scrollObj);
+        }
     }
     // used to not need this because the scroll change would be enough,
     // to cancel autoscrolling internally
@@ -240,7 +247,8 @@ async function testScroll(t: ExecutionContext<ICommandTestContext>,
             greater?: boolean,
             lessThan?: boolean,
             zero?: boolean,
-        } = {greater: true}) {
+        } = {greater: true},
+        ) {
     await client.url(url);
     // in case there's a redirect or something
     t.is(await client.getUrl(), url);
@@ -248,7 +256,6 @@ async function testScroll(t: ExecutionContext<ICommandTestContext>,
     if (test.zero || test.lessThan)
         // compound test 
         await say('bottom');
-
     const scrollStart = await client.execute(queryScrollPos, querySelector);
     await say();
     const scrollEnd = await client.execute(queryScrollPos, querySelector);
@@ -328,7 +335,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             match: ["down", "scroll down", "d"],
             // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
             // delay: [300, 0],
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('d');
             },
             test: async (t, say, client) => {
