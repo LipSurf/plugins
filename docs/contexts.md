@@ -1,6 +1,6 @@
 # Contexts
 
-Contexts are specific states that LipSurf can enter, which limit the scope of commands that are valid. By default, if a command does not have a context, it is in the "default" context where most other commands work.
+Contexts are specific states that LipSurf can enter, which limit the scope of commands that are valid. By default, if a command does not have a context, it is in the "Normal" context where most other commands work.
 
 Use cases include:
  * Allowing certain commands only in certain situations.
@@ -16,11 +16,11 @@ Use cases include:
 
 ---------------------
 
-You can use [`PluginBase.util.enterContext`](api-reference/pluginbase.md#pluginbase-util) to programmatically enter a context. To exit the context, simply enter the 'default' context.
+You can use [`PluginBase.util.enterContext`](api-reference/pluginbase.md#pluginbase-util) to programmatically enter a context. To exit the context, simply enter the 'Normal' context.
 
 ::: tip NOTE
-The first use case has a context that _extends_ the default context, because in the "Auto Scroll" context, it is still valid to use other commands eg. for clicking links.
+The first use case has a context that _extends_ the Normal context, because in the "Auto Scroll" context, it is still valid to use other commands eg. for clicking links.
 
 On the other hand, the second use case involves a context that does
-not extend the default context, so only commands specified in the context will work.
+not extend the Normal context, so only commands specified in the context will work.
 :::

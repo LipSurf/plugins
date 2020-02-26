@@ -10,7 +10,7 @@ let scrollIndex: number = 0;
 
 function stopAutoscroll(): void {
     window.clearInterval(autoscrollIntervalId);
-    PluginBase.util.enterContext('default');
+    PluginBase.util.enterContext('Normal');
 }
 
 function setAutoscroll(indexDelta: number = 0) {
@@ -321,7 +321,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     },
     contexts: {
         'Auto Scroll': {
-            extends: 'default',
+            extends: 'Normal',
         }
     },
 

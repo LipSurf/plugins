@@ -7,7 +7,7 @@ When the extension button is pressed, and a circular red recording symbol shows 
 A command performs an action based on a certain voice input. Every command is a part of a plugin.
 
 ### context
-A context is a specific state that LipSurf can be in, where valid commands are limited to those within that specific context. The primary context that commands are in by default is called "default".
+A context is a specific state that LipSurf can be in, where valid commands are limited to those within that specific context. The primary context that commands are in by default is called "Normal".
 
 See [Contexts](/contexts.md) for details.
 
