@@ -6146,7 +6146,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-cli@https://github.com/lipsurf/lipsurf-cli":
   version "0.0.1"
-  resolved "https://github.com/lipsurf/lipsurf-cli#e74256680047abaaa2243909edec4e7bd541ffbf"
+  resolved "https://github.com/lipsurf/lipsurf-cli#0a1a6a6d7532ac5a780d034ca2db2d1029ca0e39"
   dependencies:
     commander "^4.1.1"
     jscodeshift "https://github.com/mikob/jscodeshift#js-api"
@@ -6161,7 +6161,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-plugin-types@https://github.com/lipsurf/plugin-types":
   version "1.0.0"
-  resolved "https://github.com/lipsurf/plugin-types#30d4cd1eb1782c766829ab93c860e2097749d2c9"
+  resolved "https://github.com/lipsurf/plugin-types#f15f3a9858a89d5c3787d45728eac593edc4b21b"
   dependencies:
     "@types/webdriverio" "^5.0.0"
     ava "^2.1.0"
