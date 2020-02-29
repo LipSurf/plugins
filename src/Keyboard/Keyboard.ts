@@ -40,7 +40,7 @@ function pressKey(key: string, code: number = 0): boolean {
 export default <IPlugin & IPluginBase> {...PluginBase, ...{
     niceName: 'Keyboard',
     description: 'For pressing individual keyboard buttons with your voice.',
-    version: '2.13.1',
+    version: '2.14.0',
     match: /.*/,
     authors: "Miko",
     homophones: {
