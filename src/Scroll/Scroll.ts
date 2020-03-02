@@ -338,46 +338,52 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             pageFn: () => {
                 return scroll('d');
             },
-            test: async (t, say, client) => {
-                // google search results (normal page)
-                await testScroll(
-                    t, 
-                    say,
-                    client,
-                    'https://www.google.com/search?q=lipsurf'
-                    );
-
-                // gdocs
-                await testScroll(
-                    t,
-                    say,
-                    client,
-                    'https://docs.google.com/document/d/1Tdfk2UvIXxwZOoluLh6o1kN1CrKHWbXcmUIsDKRHTEI/edit',
-                    '.kix-appview-editor');
-
-                // gmail (a long email message)
-                await testScroll(
-                    t,
-                    say,
-                    client,
-                    `${t.context.localPageDomain}/gmail-long-message.html`,
-                    '#\\:3');
-
-                // whatsapp
-                await testScroll(
-                    t,
-                    say,
-                    client,
-                    `${t.context.localPageDomain}/whatsapp.html`,
-                    '._1_keJ');
-
-                // quip
-                await testScroll(
-                    t,
-                    say,
-                    client,
-                    `${t.context.localPageDomain}/quip.html`,
-                    '.parts-screen-body.scrollable');
+            test: {
+                'google': async (t, say, client) => {
+                    // google search results (normal page)
+                    await testScroll(
+                        t, 
+                        say,
+                        client,
+                        'https://www.google.com/search?q=lipsurf'
+                        );
+                },
+                'gdocs': async (t, say, client) => {
+                    await testScroll(
+                        t,
+                        say,
+                        client,
+                        'https://docs.google.com/document/d/1Tdfk2UvIXxwZOoluLh6o1kN1CrKHWbXcmUIsDKRHTEI/edit',
+                        '.kix-appview-editor'
+                        );
+                },
+                'gmail': async (t, say, client) => {
+                    await testScroll(
+                        t,
+                        say,
+                        client,
+                        `${t.context.localPageDomain}/gmail-long-message.html`,
+                        '#\\:3'
+                        );
+                },
+                'whatsapp': async (t, say, client) => {
+                    await testScroll(
+                        t,
+                        say,
+                        client,
+                        `${t.context.localPageDomain}/whatsapp.html`,
+                        '._1_keJ'
+                        );
+                },
+                'quip': async (t, say, client) => {
+                    await testScroll(
+                        t,
+                        say,
+                        client,
+                        `${t.context.localPageDomain}/quip.html`,
+                        '.parts-screen-body.scrollable'
+                        );
+                },
             }
         }, {
             name: 'Scroll Up',
