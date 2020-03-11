@@ -2,3 +2,4 @@ dist/tmp
 node_modules
 docs/.vuepress/dist
 .rpt2_cache
+.ignore
