@@ -10,7 +10,7 @@ let scrollIndex: number = 0;
 
 function stopAutoscroll(): void {
     window.clearInterval(autoscrollIntervalId);
-    PluginBase.util.enterContext('Normal');
+    PluginBase.util.enterContext(['Normal']);
 }
 
 function setAutoscroll(indexDelta: number = 0) {
@@ -323,8 +323,12 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     },
     contexts: {
         'Auto Scroll': {
-            extends: 'Normal',
-        }
+            commands: [
+                'Speed Up',
+                'Slow Down',
+                'Stop',
+            ],
+        },
     },
 
     destroy() {
@@ -390,45 +394,42 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Up',
             match: ["up", "scroll up"],
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('u');
             },
         }, {
             name: 'Auto Scroll',
             match: ["auto scroll", "automatic scroll"],
             description: 'Continuously scroll down the page slowly, at a reading pace.',
-            enterContext: 'Auto Scroll',
-            pageFn: async () => {
+            fn: () => PluginBase.util.enterContext(['Auto Scroll', 'Normal']),
+            pageFn: () => {
                 setAutoscroll();
             }
         }, {
             name: 'Slow Down',
             match: ['slower', 'slow down'],
-            context: 'Auto Scroll',
             description: 'Slow down the auto scroll',
-            pageFn: async () => {
+            pageFn: () => {
                 setAutoscroll(-1);
             }
         }, {
             name: 'Speed Up',
             match: ['faster', 'speed up'],
-            context: 'Auto Scroll',
             description: 'Speed up the auto scroll',
-            pageFn: async () => {
+            pageFn: () => {
                 setAutoscroll(1);
             }
         }, {
             name: 'Stop',
             match: ['stop', 'pause'],
-            context: 'Auto Scroll',
             description: 'Stop the auto scrolling.',
-            pageFn: async () => {
+            pageFn: () => {
                 stopAutoscroll();
             }
         }, {
             name: 'Scroll Bottom',
             match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('b');
             },
             test: async function(t, say, client) {
@@ -437,7 +438,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Top',
             match: ["top", "top of page", "top of the page", "scroll top", "scroll to top", "scroll to the top"],
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('t');
             },
             test: async function(t, say, client) {
@@ -446,25 +447,25 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Down a Little',
             match: ["little down", "little scroll down"],
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('d', true);
             },
         }, {
             name: 'Scroll Up a Little',
             match: ["little up", "little scroll up"],
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('u', true);
             },
         }, {
             name: 'Scroll Left',
             match: 'scroll left',
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('l');
             }
         }, {
             name: 'Scroll Right',
             match: 'scroll right',
-            pageFn: async () => {
+            pageFn: () => {
                 return scroll('r');
             }
         }

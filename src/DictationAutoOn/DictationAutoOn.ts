@@ -9,7 +9,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         authors: "Miko",
 
         init: () => {
-            PluginBase.util.enterContext('Dictate');
+            PluginBase.util.enterContext(['Dictate']);
         },
 
         commands: [],
