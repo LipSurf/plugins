@@ -2,7 +2,7 @@
 declare const PluginBase: IPluginBase;
 
 let autoscrollIntervalId: number;
-const SCROLL_SPEED_FACTORS = [200, 100, 75, 50, 30, 20, 10, 5];
+const SCROLL_SPEED_FACTORS = [240, 120, 90, 60, 36, 24, 12, 6];
 const SCROLL_DURATION = 400;
 const AUTOSCROLL_OPT = 'autoscroll-index';
 let scrollNodes: HTMLElement[] = [];
@@ -15,7 +15,9 @@ function stopAutoscroll(): void {
 
 function setAutoscroll(indexDelta: number = 0) {
     let prevPos: number|undefined;
-    const scrollFactor = 1;
+    const zoomFactor = window.outerWidth / window.document.documentElement.clientWidth;
+    // need to add .1 (if it's less than a device pixel, no scrolling will happen)
+    const scrollFactor = Math.round(1/zoomFactor * 10)/10 + 0.1;
     const savedScrollSpeed = PluginBase.getPluginOption('Scroll', AUTOSCROLL_OPT);
     let scrollSpeedIndex = (typeof savedScrollSpeed === 'number' ? savedScrollSpeed : 3) + indexDelta;
 
