@@ -17,7 +17,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             global: true,
             match: {
                 // does not handle decimals
-                description: 'Say "set [timer name (optional)] timer for x seconds/minutes/hours"',
+                description: 'set [timer name (optional)] timer for [n] [seconds/minutes/hours]',
                 fn: (transcript: string) => {
                     let match = transcript.match(SET_TIMER_REGX);
                     if (match) {

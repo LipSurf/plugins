@@ -16,7 +16,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             description: 'Open a new tab with x website for y time. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.',
             global: true,
             match: {
-                description: 'Say "open [website name] for x seconds/minutes/hours"',
+                description: 'open [website name] for [n] [seconds/minutes/hours]',
                 fn: (transcript: string) => {
                     const match = transcript.match(OPEN_X_FOR_Y_TIME_REGX);
                     if (match) {

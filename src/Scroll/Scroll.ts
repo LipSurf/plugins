@@ -10,7 +10,7 @@ let scrollIndex: number = 0;
 
 function stopAutoscroll(): void {
     window.clearInterval(autoscrollIntervalId);
-    PluginBase.util.enterContext(['Normal']);
+    PluginBase.util.removeContext('Auto Scroll');
 }
 
 function setAutoscroll(indexDelta: number = 0) {
@@ -152,8 +152,7 @@ function getScrollEl(): HTMLElement|Window|undefined {
     return el;
 }
 
-async function scrollAmount({top, left}: {top?: number, left?: number}, relative=true) {
-    const el = getScrollEl();
+async function scrollAmount({top, left}: {top?: number, left?: number}, relative=true, el=getScrollEl()) {
     if (el) {
         const scrollObj = {
             top,
@@ -172,7 +171,8 @@ async function scrollAmount({top, left}: {top?: number, left?: number}, relative
     return await PluginBase.util.sleep(SCROLL_DURATION);
 }
 
-type ScrollType = 'u'|'d'|'l'|'r'|'t'|'b';
+// hd and hu are help down and help up respectively
+type ScrollType = 'u'|'d'|'l'|'r'|'t'|'b'|'hd'|'hu';
 
 async function scroll(direction: ScrollType, little: boolean = false) {
     // pdf needs keypresses
@@ -182,10 +182,12 @@ async function scroll(direction: ScrollType, little: boolean = false) {
     let key: number;
     switch (direction) {
         case 'u':
+        case 'hu':
             factor = -0.85;
             key = 38;
             break
         case 'd':
+        case 'hd':
             factor = 0.85;
             key = 40;
             break
@@ -207,7 +209,11 @@ async function scroll(direction: ScrollType, little: boolean = false) {
             break;
     }
     const littleFactor = little ? 0.5 : 1;
-    if (needsKeyPressEvents) {
+    if (direction === 'hd' || direction === 'hu') {
+        const hud = PluginBase.util.getHUDEl()[0]; 
+        const helpContents = hud.querySelector<HTMLDivElement>('#help .cmds')!;
+        scrollAmount({top: helpContents.offsetHeight * factor! }, true, helpContents);
+    } else if (needsKeyPressEvents) {
         let codes: number[];
         if (direction === 't' || direction === 'b') {
             codes = [key!];
@@ -285,6 +291,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     authors: "Miko",
     homophones: {
         'autoscroll': 'auto scroll',
+        'horoscrope': 'auto scroll',
         'app': 'up',
         'upwards': 'up',
         'upward': 'up',
@@ -320,6 +327,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         'master': 'faster',
         'auto spa': 'auto scroll',
         'scallop': 'scroll up',
+        'school health': 'scroll help',
     },
     contexts: {
         'Auto Scroll': {
@@ -401,7 +409,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Auto Scroll',
             match: ["auto scroll", "automatic scroll"],
             description: 'Continuously scroll down the page slowly, at a reading pace.',
-            fn: () => PluginBase.util.enterContext(['Auto Scroll', 'Normal']),
+            fn: () => PluginBase.util.addContext('Auto Scroll'),
             pageFn: () => {
                 setAutoscroll();
             }
@@ -409,12 +417,14 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Slow Down',
             match: ['slower', 'slow down'],
             description: 'Slow down the auto scroll',
+            normal: false,
             pageFn: () => {
                 setAutoscroll(-1);
             }
         }, {
             name: 'Speed Up',
             match: ['faster', 'speed up'],
+            normal: false,
             description: 'Speed up the auto scroll',
             pageFn: () => {
                 setAutoscroll(1);
@@ -422,6 +432,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Stop',
             match: ['stop', 'pause'],
+            normal: false,
             description: 'Stop the auto scrolling.',
             pageFn: () => {
                 stopAutoscroll();
@@ -444,6 +455,14 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             test: async function(t, say, client) {
                 await testScroll(t, say, client, `http://motherfuckingwebsite.com/`, undefined, {zero: true});
             }
+        }, {
+            name: 'Scroll Help Down',
+            match: "scroll help down",
+            pageFn: () => scroll('hd', true),
+        }, {
+            name: 'Scroll Help Up',
+            match: "scroll help up", 
+            pageFn: () => scroll('hu', true),
         }, {
             name: 'Scroll Down a Little',
             match: ["little down", "little scroll down"],
