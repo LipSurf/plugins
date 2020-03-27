@@ -17,7 +17,7 @@ function ensurePermission(perm: string) {
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Copy, Cut and Paste',
-    version: '2.14.0',
+    version: '3.0.0',
     match: /.*/,
     homophones: {
         'coffee': 'copy',
