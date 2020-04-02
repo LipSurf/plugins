@@ -328,6 +328,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         'auto spa': 'auto scroll',
         'scallop': 'scroll up',
         'school health': 'scroll help',
+        'prohealth': 'scroll help',
     },
     contexts: {
         'Auto Scroll': {
