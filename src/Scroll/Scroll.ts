@@ -410,8 +410,8 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Auto Scroll',
             match: ["auto scroll", "automatic scroll"],
             description: 'Continuously scroll down the page slowly, at a reading pace.',
-            fn: () => PluginBase.util.addContext('Auto Scroll'),
             pageFn: () => {
+                PluginBase.util.addContext('Auto Scroll');
                 setAutoscroll();
             }
         }, {
