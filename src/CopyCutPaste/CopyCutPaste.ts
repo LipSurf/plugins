@@ -17,6 +17,7 @@ function ensurePermission(perm: string) {
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Copy, Cut and Paste',
+    description: "Permissions must be granted with the mouse the first time this plugin is used.",
     version: '3.0.0',
     match: /.*/,
     homophones: {

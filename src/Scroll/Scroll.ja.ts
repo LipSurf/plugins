@@ -45,5 +45,21 @@ ScrollPlugin.languages!.ja = {
             name: "自動スクロール",
             match: "じどうすくろーる",
         },
+        "Faster": {
+            name: "もっと早く",
+            match: "もっとはやく",
+        }, 
+        "Slower": {
+            name: "もっとゆっくり",
+            match: "もっとゆっくり",
+        },
+        "Scroll Help Down": {
+            name: "へるぷ下に",
+            match: "へるぷしたに",
+        },
+        "Scroll Help Up": {
+            name: "へるぷ上に",
+            match: "へるぷうえに",
+        },
     },
 };
