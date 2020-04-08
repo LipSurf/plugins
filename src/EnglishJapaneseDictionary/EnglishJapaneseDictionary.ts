@@ -4,7 +4,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Dictionary for Japanese Language Learners',
     description: 'Quickly lookup words in a English ⬌ Japanese dictionary.',
-    version: '3.0.0',
+    version: '3.1.0',
     match: /https?:\/\/\.jisho\.org/,
     authors: "Miko",
 
