@@ -6,7 +6,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     match: /^https:\/\/mail\.google\.com/,
     commands: [{
         name: 'Compose Mail',
-        description: 'Open the new email composition form in gmail',
+        description: 'Open the new email composition form in Gmail.',
         global: true,
         match: ['compose mail', 'write new mail'],
         pageFn: function() {
