@@ -348,6 +348,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         {
             name: 'Scroll Down',
             match: ["down", "scroll down", "d"],
+            activeDocument: true,
             // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
             // delay: [300, 0],
             pageFn: () => {
@@ -403,6 +404,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Up',
             match: ["up", "scroll up"],
+            activeDocument: true,
             pageFn: () => {
                 return scroll('u');
             },
@@ -410,6 +412,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Auto Scroll',
             match: ["auto scroll", "automatic scroll"],
             description: 'Continuously scroll down the page slowly, at a reading pace.',
+            activeDocument: true,
             pageFn: () => {
                 PluginBase.util.addContext('Auto Scroll');
                 setAutoscroll();
@@ -418,6 +421,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Slow Down',
             match: ['slower', 'slow down'],
             description: 'Slow down the auto scroll',
+            activeDocument: true,
             normal: false,
             pageFn: () => {
                 setAutoscroll(-1);
@@ -425,6 +429,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Speed Up',
             match: ['faster', 'speed up'],
+            activeDocument: true,
             normal: false,
             description: 'Speed up the auto scroll',
             pageFn: () => {
@@ -433,6 +438,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Stop',
             match: ['stop', 'pause'],
+            activeDocument: true,
             normal: false,
             description: 'Stop the auto scrolling.',
             pageFn: () => {
@@ -441,6 +447,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Bottom',
             match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
+            activeDocument: true,
             pageFn: () => {
                 return scroll('b');
             },
@@ -450,6 +457,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Top',
             match: ["top", "top of page", "top of the page", "scroll top", "scroll to top", "scroll to the top"],
+            activeDocument: true,
             pageFn: () => {
                 return scroll('t');
             },
@@ -467,24 +475,28 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         }, {
             name: 'Scroll Down a Little',
             match: ["little down", "little scroll down"],
+            activeDocument: true,
             pageFn: () => {
                 return scroll('d', true);
             },
         }, {
             name: 'Scroll Up a Little',
             match: ["little up", "little scroll up"],
+            activeDocument: true,
             pageFn: () => {
                 return scroll('u', true);
             },
         }, {
             name: 'Scroll Left',
             match: 'scroll left',
+            activeDocument: true,
             pageFn: () => {
                 return scroll('l');
             }
         }, {
             name: 'Scroll Right',
             match: 'scroll right',
+            activeDocument: true,
             pageFn: () => {
                 return scroll('r');
             }
