@@ -400,6 +400,17 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                         '.parts-screen-body.scrollable'
                         );
                 },
+                'iframe': async (t, say, client) => {
+                    const getScrollPos = () => {
+                        return document.querySelector('iframe')!.contentDocument?.querySelector('._1_keJ')!.scrollTop;
+                    };
+                    await client.url(`${t.context.localPageDomain}/scroll-iframe.html`);
+                    await (await client.$('iframe')).click();
+                    const scrollStart = await client.execute(getScrollPos);
+                    await say();
+                    const scrollEnd = await client.execute(getScrollPos);
+                    t.true(scrollEnd > scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd}`);
+                },
             }
         }, {
             name: 'Scroll Up',
