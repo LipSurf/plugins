@@ -7,7 +7,7 @@ declare const PluginBase: IPluginBase;
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Google',
     description: 'The google search engine.',
-    version: '3.3.0',
+    version: '3.3.1',
     match: /.*\.google\.com/,
     homophones: {
         'search': 'google',
