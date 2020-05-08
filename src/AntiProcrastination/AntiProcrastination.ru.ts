@@ -1,4 +1,4 @@
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 import AntiProcrastination from './AntiProcrastination';
 
 AntiProcrastination.languages!.ru = {

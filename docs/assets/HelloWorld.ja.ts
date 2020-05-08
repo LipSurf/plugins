@@ -1,5 +1,5 @@
 // lipsurf-plugins/src/HelloWorld/HelloWorld.ja.ts
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 import HelloWorld from "./HelloWorld";
 
 HelloWorld.languages!.ja = {

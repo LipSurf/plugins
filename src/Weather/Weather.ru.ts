@@ -1,4 +1,4 @@
-// /// <reference types="lipsurf-plugin-types"/>
+// /// <reference types="lipsurf-types/extension"/>
 // // HACK-y. Disabled until we find a better way to separate language-functionality fn
 // // go to `https://yandex.ru/pogoda/${q}`;
 // import { WeatherPlugin } from "./Weather";

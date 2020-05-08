@@ -29,7 +29,7 @@ Let's localize the [hello world plugin](/quick-start.md#hello-world-plugin) from
 
  ```ts
  /// lipsurf-plugins/src/HelloWorld/HelloWorld.ja.ts
- /// <reference types="lipsurf-plugin-types"/>
+ /// <reference types="lipsurf-types/extension"/>
  import HelloWorld from './HelloWorld';
  ```
 
