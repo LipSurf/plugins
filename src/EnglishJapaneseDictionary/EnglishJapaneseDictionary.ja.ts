@@ -1,4 +1,4 @@
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 import EnglishJapaneseDictionary from './EnglishJapaneseDictionary';
 
 EnglishJapaneseDictionary.languages!.ja = {

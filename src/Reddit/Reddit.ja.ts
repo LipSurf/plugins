@@ -1,4 +1,4 @@
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 import Reddit from "./Reddit";
 
 Reddit.languages!.ja = {

@@ -2,7 +2,7 @@
  * TODO: add arrows, tab, enter tests for Google Sheets
  * 
  */
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 declare const PluginBase: IPluginBase;
 
 export function backendPressKey(codes: number|number[]) {

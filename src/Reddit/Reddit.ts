@@ -3,7 +3,7 @@ import { ExecutionContext } from "ava";
 /*
  * LipSurf plugin for Reddit.com
  */
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 declare const PluginBase: IPluginBase;
 
 const thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;

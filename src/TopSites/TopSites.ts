@@ -1,7 +1,7 @@
 /*
  * LipSurf plugin for going to popular sites
  */
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 declare const PluginBase: IPluginBase;
 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{

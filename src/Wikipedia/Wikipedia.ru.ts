@@ -1,4 +1,4 @@
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 import WikipediaPlugin from './Wikipedia';
 
 WikipediaPlugin.languages!.ru = {

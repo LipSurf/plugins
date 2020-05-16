@@ -1,4 +1,4 @@
-/// <reference types="lipsurf-plugin-types"/>
+/// <reference types="lipsurf-types/extension"/>
 declare const PluginBase: IPluginBase;
 
 const OPEN_X_FOR_Y_TIME_REGX = /\bopen (.*) for (\d+) (seconds|minutes?|hours?)\b/;

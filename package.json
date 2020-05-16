@@ -35,7 +35,7 @@
   "devDependencies": {
     "@types/chrome": "0.0.66",
     "lipsurf-cli": "https://github.com/lipsurf/lipsurf-cli",
-    "lipsurf-plugin-types": "https://github.com/lipsurf/plugin-types",
+    "lipsurf-types": "https://github.com/lipsurf/types",
     "typescript": "^3.8.3",
     "vuepress": "^0.14.2"
   }
