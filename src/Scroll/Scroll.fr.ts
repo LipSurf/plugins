@@ -16,59 +16,59 @@ ScrollPlugin.languages!.fr = {
     commands: {
         "Scroll Down": {
             name: "Défilement vers le Bas",
-            match: ["en bas", "faire défiler vers le bas", "fais défiler vers le bas", "défilement vers le bas", "défiler vers le bas", "défile vers le bas"],
+            match: ["vers le bas", "faire défiler vers le bas", "défiler vers le bas"],
         },
         "Scroll Up": {
             name: "Défilement vers le Haut",
-            match: ["en haut", "faire défiler vers le haut", "fais défiler vers le haut", "défiler vers le haut", "défilement vers le haut", "défile vers le haut"],
+            match: ["vers le haut", "faire défiler vers le haut", "défiler vers le haut"],
         },
         "Auto Scroll": {
             name: "Défilement Automatique",
-            match: ["défilement automatique", "défilement auto", "fais défiler automatiquement", "faire défiler automatiquement", "défiler automatiquement", "défile automatiquement"],
+            match: ["défilement automatique", "défilement auto"],
         },
         "Slow Down": {
             name: "Ralentir",
-            match: ["plus lentement", "ralentir", "ralentis"],
+            match: ["plus lentement", "ralentir"],
         },
         "Speed Up": {
             name: "Accélérer",
-            match: ["plus vite", "accélérer", "accélère"],
+            match: ["plus vite", "accélérer"],
         },
         "Stop": {
             name: "Arrêter",
-            match: ["arrêter", "stop", "pause", "arrête"],
+            match: ["arrêter", "pause"],
         },
         "Scroll Bottom": {
             name: "Défilement en Bas",
-            match: ["en bas", "en bas de page", "bas de page", "le bas de la page", "faire défiler en bas", "fais défiler en bas", "défiler en bas", "défile en bas", "défilement en bas"],
+            match: ["en bas", "bas de page", "faire défiler en bas", "défiler en bas", "aller en bas de la page"],
         },
         "Scroll Top": {
             name: "Défilement en Haut",
-            match: ["en haut", "le haut de la page", "faire défiler en haut", "fais défiler en haut", "défiler en haut", "défile en haut", "défilement en haut"],
+            match: ["en haut", "haut de page", "faire défiler en haut", "défiler en haut", "aller en haut de la page"],
         },
         "Scroll Down a Little": {
             name: "Défilement Léger vers le Bas",
-            match: ["un peu en bas", "un peu vers le bas faire défiler un peu vers le bas", "fais défiler un peu vers le bas", "défiler un peu vers le bas", "défile un peu vers le bas"],
+            match: ["un peu vers le bas", "faire défiler un peu vers le bas", "défiler un peu vers le bas"],
         },
         "Scroll Up a Little": {
             name: "Défilement Léger vers le Haut",
-            match: ["un peu en haut", "défiler un peu vers le haut", "défile un peu vers le haut", "faire défiler un peu vers le haut", "fais défiler un peu vers le haut"],
+            match: ["un peu vers le haut", "faire défiler un peu vers le haut", "défiler un peu vers le haut"],
         },
         "Scroll Left": {
             name: "Défilement à Gauche",
-            match: ["faire défiler à gauche", "fais défiler à gauche", "défiler à gauche", "défile à gauche"],
+            match: ["faire défiler à gauche", "défiler à gauche", "défiler vers la gauche", "faire défiler vers la gauche"],
         },
         "Scroll Right": {
             name: "Défilement à Droite",
-            match: ["faire défiler à droite", "fais défiler à droite", "défiler à droite", "défile à droite"],
+            match: ["faire défiler à droite", "faire défiler vers la droite", "défiler à droite", "défiler vers la droite"],
         },
         "Scroll Help Down": {
             name: "Faire Défiler l’Aide vers le Bas",
-            match: ["faire défiler l’aide vers le bas", "fais défiler l’aide vers bas"],
+            match: ["faire défiler l'aide vers le bas", "défiler l'aide vers le bas"],
         },
         "Scroll Help Up": {
             name: "Faire Défiler l’Aide vers le Haut",
-            match: ["faire défiler l’aide vers le haut", "fais défiler l’aide vers haut"],
+            match: ["faire défiler l'aide vers le haut", "défiler l'aide vers le haut"],
         },
     },
 };
