@@ -49,8 +49,16 @@ module.exports = {
 					'api-reference/pluginbase.md',
 					'api-reference/command.md',
 					'api-reference/test.md',
-				]
+				],
 			},
+			{
+				title: 'Enterprise',
+				collapsable: false,
+				children: [
+					'api-reference/customstt.md',
+					'api-reference/script.md',
+				],
+			}
 		],
 		lastUpdated: 'Last updated',
 	}
