@@ -32,8 +32,8 @@ Sends STT generated transcript to LipSurf for processing and command execution.
   * @param isFinal set to true if there will not be any subsequent adjustments 
   *     to this transcript
   * @param resultIndex so we can identify if we're updating a previous 
-  *     transcript (eg. with a higher confidence, or if we're adding newly said 
-  *     things)
+  *     transcript (eg. with a higher confidence), or if we're adding newly said 
+  *     things
   * @param recgTime when the transcript was generated in milliseconds since 
   *     UNIX epoch
   */
