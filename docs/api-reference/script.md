@@ -8,17 +8,20 @@ Plugins may be bundled with the LipSurf.js script.
 <script src="/path/to/lipsurf.js"></script>
 ```
 
-## Initializing LipSurf.js
-```typescript
-var lipsurf = LipSurf(options?);
-```
-
 ## Quick Start
 ```js
 var lipsurf = LipSurf();
 var i = 0;
 lipsurf.start();
 lipsurf.handleTranscript('hello world', 0.99, true, i++, +new Date())
+```
+
+## Initializing LipSurf.js
+```typescript
+var lipsurf = LipSurf({
+  // default `true`
+  liveTranscript?: boolean,
+});
 ```
 
 ## Methods
