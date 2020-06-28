@@ -406,9 +406,9 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
                     };
                     await client.url(`${t.context.localPageDomain}/scroll-iframe.html`);
                     await (await client.$('iframe')).click();
-                    const scrollStart = await client.execute(getScrollPos);
+                    const scrollStart = (await client.execute(getScrollPos))!;
                     await say();
-                    const scrollEnd = await client.execute(getScrollPos);
+                    const scrollEnd = (await client.execute(getScrollPos))!;
                     t.true(scrollEnd > scrollStart, `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd}`);
                 },
             }

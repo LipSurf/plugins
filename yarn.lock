@@ -2413,7 +2413,7 @@ autoprefixer@^8.2.0:
     postcss "^6.0.23"
     postcss-value-parser "^3.2.3"
 
-ava@^2.1.0:
+ava@^2.1.0, ava@^2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/ava/-/ava-2.4.0.tgz#a3bd8b0e01d8826004c91de375eb2313ba5237c3"
   integrity sha512-CQWtzZZZeU2g4StojRv6MO9RIRi4sLxGSB9+3C3hv0ttUEG1tkJLTLyrBQeFS4WEeK12Z4ovE3f2iPVhSy8elA==
@@ -6448,10 +6448,10 @@ linkify-it@^2.0.0:
     tslib "^1"
 
 "lipsurf-types@https://github.com/lipsurf/types":
-  version "1.0.0"
-  resolved "https://github.com/lipsurf/types#52ea3275f822d4c809cd6a7a165a8883df51663c"
+  version "1.0.1"
+  resolved "https://github.com/lipsurf/types#30a924923cf7dda867d3250fec3e0ddc7d7ec970"
   dependencies:
-    ava "^2.1.0"
+    ava "^2.4.0"
     webdriverio "^6.1.17"
 
 load-json-file@^4.0.0:
