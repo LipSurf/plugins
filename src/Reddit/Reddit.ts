@@ -118,7 +118,7 @@ export default <IPluginBase & IPlugin>{
                         }
                     }
                 },
-                test: async function (t: ExecutionContext<ICommandTestContext>, say, client) {
+                test: async (t: ExecutionContext<ICommandTestContext>, say, client) => {
                     await client.url(`${t.context.localPageDomain}/reddit-r-comics.html?fakeUrl=https://www.reddit.com/r/comics`);
                     const selector = `#thing_t3_dvpn38 > div > div > div.expando-button.collapsed`;
                     const item = await client.$(selector);
@@ -145,7 +145,7 @@ export default <IPluginBase & IPlugin>{
                         }
                     }
                 },
-                test: async function (t: ExecutionContext<ICommandTestContext>, say, client) {
+                test: async (t: ExecutionContext<ICommandTestContext>, say, client) => {
                     await client.url('https://old.reddit.com/r/IAmA/comments/z1c9z/i_am_barack_obama_president_of_the_united_states/');
 
                     // await client.driver.wait(client.until.elementIsVisible(client.driver.findElement(client.By.css('.commentarea'))), 1000);
@@ -228,7 +228,7 @@ export default <IPluginBase & IPlugin>{
                         el.click();
                     }
                 },
-                test: async function (t, say, client) {
+                test: async (t, say, client) => {
                     // Only checks to see that more than 5 comments are collapsed.
                     await client.url('https://old.reddit.com/r/OldSchoolCool/comments/2uak5a/arnold_schwarzenegger_flexing_for_two_old_ladies/co6nw85/');
                     // first let's make sure there's some collapsed items

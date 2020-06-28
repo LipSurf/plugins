@@ -462,7 +462,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             pageFn: () => {
                 return scroll('b');
             },
-            test: async function(t, say, client) {
+            test: async (t, say, client) => {
                 await testScroll(t, say, client, `http://motherfuckingwebsite.com/`);
             }
         }, {
@@ -472,7 +472,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             pageFn: () => {
                 return scroll('t');
             },
-            test: async function(t, say, client) {
+            test: async (t, say, client) => {
                 await testScroll(t, say, client, `http://motherfuckingwebsite.com/`, undefined, {zero: true});
             }
         }, {
