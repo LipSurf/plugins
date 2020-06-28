@@ -6456,10 +6456,10 @@ linkify-it@^2.0.0:
 
 "lipsurf-types@https://github.com/lipsurf/types":
   version "1.0.0"
-  resolved "https://github.com/lipsurf/types#ac4bf5af8654ff0474a229886d613b7d675ecfed"
+  resolved "https://github.com/lipsurf/types#ca1fe4cac6c268ed90dbb77159512a5534cb4f82"
   dependencies:
-    "@types/webdriverio" "^5.0.0"
     ava "^2.1.0"
+    webdriverio "^6.1.17"
 
 load-json-file@^4.0.0:
   version "4.0.0"
@@ -10336,7 +10336,7 @@ webdriver@6.1.17:
     got "^11.0.2"
     lodash.merge "^4.6.1"
 
-webdriverio@*:
+webdriverio@*, webdriverio@^6.1.17:
   version "6.1.22"
   resolved "https://registry.yarnpkg.com/webdriverio/-/webdriverio-6.1.22.tgz#c230d639e141e64c16240dbcce49e13183cb46c8"
   integrity sha512-OBiur+Lybs3V+//OtU+9/qwTsLwRIicsVyYCBSqVFGBu3shk0zM6BppfB6uHeRSBmMGSRtA4od1K/rFysX1j6w==
