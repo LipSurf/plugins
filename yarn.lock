@@ -1758,13 +1758,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/webdriverio@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@types/webdriverio/-/webdriverio-5.0.0.tgz#9a46fbd8ba2f44ed40d1efa2e1bd8ac0cfd36a3f"
-  integrity sha512-x4XylDdijSMmhvpyFdQ6/Ow1CvJBY1Z38MnK3gAtGDy3MnR3AnI8CW9O5B8Q0PNLgLAMA466ghsolhb7+xaZ/Q==
-  dependencies:
-    webdriverio "*"
-
 "@types/yauzl@^2.9.1":
   version "2.9.1"
   resolved "https://registry.yarnpkg.com/@types/yauzl/-/yauzl-2.9.1.tgz#d10f69f9f522eef3cf98e30afb684a1e1ec923af"
@@ -6441,7 +6434,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-cli@https://github.com/lipsurf/cli":
   version "0.0.1"
-  resolved "https://github.com/lipsurf/cli#a406d5a0c254b6e6fce6b4879494dca8dd2fce23"
+  resolved "https://github.com/lipsurf/cli#2e73c88a1fe3e75a1b00a3dfaf04056b0e534901"
   dependencies:
     commander "^4.1.1"
     jscodeshift "https://github.com/mikob/jscodeshift#js-api"
@@ -6456,7 +6449,7 @@ linkify-it@^2.0.0:
 
 "lipsurf-types@https://github.com/lipsurf/types":
   version "1.0.0"
-  resolved "https://github.com/lipsurf/types#ca1fe4cac6c268ed90dbb77159512a5534cb4f82"
+  resolved "https://github.com/lipsurf/types#52ea3275f822d4c809cd6a7a165a8883df51663c"
   dependencies:
     ava "^2.1.0"
     webdriverio "^6.1.17"
@@ -10336,7 +10329,7 @@ webdriver@6.1.17:
     got "^11.0.2"
     lodash.merge "^4.6.1"
 
-webdriverio@*, webdriverio@^6.1.17:
+webdriverio@^6.1.17:
   version "6.1.22"
   resolved "https://registry.yarnpkg.com/webdriverio/-/webdriverio-6.1.22.tgz#c230d639e141e64c16240dbcce49e13183cb46c8"
   integrity sha512-OBiur+Lybs3V+//OtU+9/qwTsLwRIicsVyYCBSqVFGBu3shk0zM6BppfB6uHeRSBmMGSRtA4od1K/rFysX1j6w==
