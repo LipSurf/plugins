@@ -20,7 +20,7 @@ pageFn | `(transcript: string, ...matchOutput: any) => Promise<void>` | _(option
 |minConfidence |`number`| _(optional)_ A decimal between 0.0 and 1.0 that specifies the minimum confidence needed for this command to be considered a match. <br><br> Useful for lowering sensitivity of specific commands if they are relatively "dangerous" to execute, for example.|
 |delay | `number | number[]` | _(optional)_ How long to wait for additional input for before executing this command. Overrides delay that is built-in for commands with match strings that end in ordinals or wildcards. <br><br> Useful for when you want to allow time for more words to come through. <br><br> Use an array with indices that correspond to the different match strings if you should have different delays based on the match string.<br><br>Use 0 to override dynamically calculated delay and to execute command immediately on match.|
 |activeDocument | `boolean` | _(default: false)_ whether to execute this command in the focused frame or iFrame.|
-|test | `(t: ExecutionContext<ICommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIOAsync.BrowserObject) => void` | _(optional but recommended)_ <a href="https://github.com/avajs/ava">AVA</a> integration test for this command.|
+|test | `(t: ExecutionContext<ICommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIO.BrowserObject) => void` | _(optional but recommended)_ <a href="https://github.com/avajs/ava">AVA</a> integration test for this command.|
 
 ### `fn` vs. `pageFn`
 ::: tip NOTE
