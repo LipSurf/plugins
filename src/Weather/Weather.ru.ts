@@ -1,15 +1,17 @@
-// /// <reference types="lipsurf-types/extension"/>
-// // HACK-y. Disabled until we find a better way to separate language-functionality fn
-// // go to `https://yandex.ru/pogoda/${q}`;
-// import { WeatherPlugin } from "./Weather";
+/// <reference types="lipsurf-types/extension"/>
+import Weather, { registerWeatherCbForLang } from "./Weather";
 
-// WeatherPlugin.Plugin.languages.ru = {
-//         niceName: 'Прогноз погоды',
-//         commands: {
-//            'Check the Weather': {
-//                 name: "Погода",
-//                 description: 'Узнать прогноз погоды в том или ином городе. Например, "погода минск" (название города не склоняется).',
-//                 match: 'погода *',
-//             },
-//         }
-// };
+registerWeatherCbForLang('ru', (q) => {
+    return window.location.href = `https://yandex.ru/pogoda/search?request=${q}`;
+});
+
+Weather.languages!.ru = {
+        niceName: 'Прогноз погоды',
+        commands: {
+           'Check the Weather': {
+                name: "Погода",
+                description: 'Узнать прогноз погоды в том или ином городе. Например, "погода минск" (название города не склоняется).',
+                match: 'погода *',
+            },
+        }
+};
