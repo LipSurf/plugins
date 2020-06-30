@@ -3,7 +3,7 @@ import ScrollPlugin from "./Scroll";
 
 ScrollPlugin.languages!.fr = {
     niceName: "Défilement",
-    authors: "Miko",
+    authors: "Byron Kearns, Miko",
     homophones: {
         "des fils vers le bas": "défile vers le bas",
         "des fils vers le haut": "défile vers le haut",
