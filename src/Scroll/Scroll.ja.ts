@@ -1,65 +1,70 @@
 /// <reference types="lipsurf-types/extension"/>
-import ScrollPlugin from "./Scroll";
+import Scroll from "./Scroll";
 
-ScrollPlugin.languages!.ja = {
+Scroll.languages!.ja = {
     niceName: "スクロール",
-    description: "ページのスクロール管理できます.",
+    description: "ページのスクロールを管理できます。",
     homophones: {
         "しーた": "した",
+        "ちーたー": "した",
     },
-    authors: "Miko",
+    authors: "Miko, Hiroki Yamazaki",
     commands: {
         "Scroll Bottom": {
-            name: "ページの終端へ移動する",
-            match: ["しゅうたんへいどうして"],
+            name: "ページの一番下に移動",
+            match: ["いちばんした"],
         },
         "Scroll Top": {
-            name: "ページの先頭へ移動する",
-            match: "とっぷ",
+            name: "ページの一番上に移動",
+            match: ["いちばんうえ"],
         },
         "Scroll Down": {
-            name: "下へスクロールする",
-            match: ["した", "したへすくろーる"],
+            name: "下にスクロール",
+            match: ["した", "したにすくろーる", "したへすくろーる", "だうん"],
         },
         "Scroll Up": {
-            name: "上へスクロールする",
-            match: ["うえ", "うっぷ", "うえへすくろーる"],
+            name: "上にスクロール",
+            match: ["うえ", "うえにすくろーる", "うえへすくろーる", "あっぷ"],
         },
         "Scroll Right": {
-            name: "右へスクロールする",
-            match: ["みぎへすくろーる"],
+            name: "右にスクロール",
+            match: ["みぎ", "みぎにすくろーる", "みぎへすくろーる"],
         },
         "Scroll Left": {
-            name: "左へスクロールする",
-            match: ["ひだりへすくろーる"],
+            name: "左にスクロール",
+            match: ["ひだり", "ひだりにすくろーる", "ひだりへすくろーる"],
         },
         "Scroll Up a Little": {
-            name: "ちょっと上へスクロールする",
-            match: ["ちょっとうえ", "ちょっとうえへすくろーる", "ちょっとうっぷ"],
+            name: "少し上にスクロール",
+            match: ["すこしうえ", "すこしうえにすくろーる", "すこしうえへすくろーる"],
         },
         "Scroll Down a Little": {
-            name: "ちょっと下へスクロールする",
-            match: ["ちょっとしたへすくろーる", "ちょっとしたへ"],
+            name: "少し下にスクロール",
+            match: ["すこしした", "すこししたにすくろーる", "すこししたへすくろーる"],
         },
         "Auto Scroll": {
             name: "自動スクロール",
             match: "じどうすくろーる",
         },
         "Faster": {
-            name: "もっと早く",
-            match: "もっとはやく",
+            name: "もっと早くスクロール",
+            match: "はやく",
         }, 
         "Slower": {
-            name: "もっとゆっくり",
-            match: "もっとゆっくり",
+            name: "もっとゆっくりスクロール",
+            match: "ゆっくり",
+        },
+        "Stop": {
+            name: 'スクロールを止める',
+            match: ['すとっぷ', 'ていし', 'とめる'],
         },
         "Scroll Help Down": {
-            name: "へるぷ下に",
-            match: "へるぷしたに",
+            name: "ヘルプ下",
+            match: "へるぷした",
         },
         "Scroll Help Up": {
-            name: "へるぷ上に",
-            match: "へるぷうえに",
+            name: "ヘルプ上",
+            match: "へるぷうえ",
         },
     },
 };
