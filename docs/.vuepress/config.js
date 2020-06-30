@@ -33,6 +33,7 @@ module.exports = {
 					'/langs.md',
 					'/plugin-level-settings.md',
 					'/testing.md',
+					'/recipes.md',
 				],
 			},
 			{
