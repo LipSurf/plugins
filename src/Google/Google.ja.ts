@@ -3,7 +3,7 @@ import Google from './Google';
 
 Google.languages!.ja = {
     niceName: "Google検索",
-    description: "Googleで検索",
+    description: "Google検索, Googleカレンダーなどのツール",
     authors: "Miko, Hiroki Yamazaki",
     homophones: {
         'ぐーぐる': 'ぐぐる',
