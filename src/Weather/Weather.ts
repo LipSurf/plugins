@@ -22,7 +22,7 @@ export function registerWeatherCbForLang(lang: LanguageCode, cb: (q: string) => 
 export default <IPluginBase & IPlugin> {...PluginBase, ...{
     niceName: 'Weather',
     match: /.*accuweather\.com/,
-    version: '3.5.0',
+    version: '3.6.0',
     commands: [{
         name: 'Check the Weather',
         description: 'Check the weather for a given city.',
