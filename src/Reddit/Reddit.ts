@@ -82,7 +82,7 @@ export default <IPluginBase & IPlugin>{
             }, {
                 name: 'Visit Post',
                 description: "Equivalent of clicking a reddit post.",
-                match: ['visit #', 'visit'],
+                match: ['visit[ #/]'],
                 pageFn: async (transcript: string, i: number) => {
                     // if we're on the post
                     if (COMMENTS_REGX.test(window.location.href)) {
@@ -94,7 +94,7 @@ export default <IPluginBase & IPlugin>{
             }, {
                 name: 'Expand',
                 description: "Expand a preview of a post, or a comment by it's position (rank).",
-                match: ["expand #", "# expand", 'expand'], // in comments view
+                match: ["expand[ #/]", "# expand"], // in comments view
                 pageFn: async (transcript: string, i: number) => {
                     if (typeof i !== 'undefined') {
                         let el = <HTMLElement>document.querySelector(`${thingAtIndex(i)} .expando-button.collapsed`);
@@ -129,7 +129,7 @@ export default <IPluginBase & IPlugin>{
             }, {
                 name: "Collapse",
                 description: "Collapse an expanded preview (or comment if viewing comments). Defaults to topmost in the view port.",
-                match: ["collapse #", "close", "collapse"],
+                match: ["collapse[ #/]", "close"],
                 pageFn: async (transcript: string, i: number) => {
                     let index = (i === null || isNaN(Number(i))) ? null : Number(i);
                     if (index !== null) {
@@ -190,7 +190,7 @@ export default <IPluginBase & IPlugin>{
             }, {
                 name: 'Go to Reddit',
                 global: true,
-                match: ["reddit", "go to reddit"],
+                match: ["[/go to ]reddit"],
                 minConfidence: 0.5,
                 pageFn: async () => {
                     document.location.href = "https://old.reddit.com";
@@ -198,14 +198,14 @@ export default <IPluginBase & IPlugin>{
             }, {
                 name: 'Clear Vote',
                 description: "Unsets the last vote so it's neither up or down.",
-                match: ["clear vote #", "reset vote #", "clear vote", "reset vote"],
+                match: ["[clear/reset] vote[ #/]"],
                 pageFn: async (transcript: string, i: number) => {
                     let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
                     clickIfExists(`${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(index)} .arrow.upmod`);
                 },
             }, {
                 name: 'Downvote',
-                match: ["downvote #", "downvote"],
+                match: ["downvote[ #/]"],
                 description: "Downvote the current post or a post # (doesn't work for comments yet)",
                 pageFn: async (transcript: string, i: number) => {
                     let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
@@ -213,7 +213,7 @@ export default <IPluginBase & IPlugin>{
                 },
             }, {
                 name: 'Upvote',
-                match: ["upvote #", "upvote"],
+                match: ["upvote[ #/]"],
                 description: "Upvote the current post or a post # (doesn't work for comments yet)",
                 pageFn: async (transcript: string, i: number) => {
                     let index = (i === null || isNaN(Number(i))) ? 1 : Number(i);
@@ -222,7 +222,7 @@ export default <IPluginBase & IPlugin>{
             }, {
                 name: 'Expand All Comments',
                 description: "Expands all the comments.",
-                match: ["expand all", "expand all comments"],
+                match: ["expand all[/ comments]"],
                 pageFn: async () => {
                     for (let el of document.querySelectorAll<HTMLElement>('.thing.comment.collapsed a.expand')) {
                         el.click();

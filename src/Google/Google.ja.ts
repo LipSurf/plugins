@@ -13,7 +13,7 @@ Google.languages!.ja = {
         "Search": {
             name: "検索",
             description: "検索するテキスト(*)を組み合わせてください",
-            match: ["けんさく*", "ぐぐる*"],
+            match: ["[けんさく/ぐぐる]*"],
         },  
         "I'm Feeling Lucky": {
             name: "I'm Feeling Lucky",
@@ -23,12 +23,12 @@ Google.languages!.ja = {
         "Google Calendar": {
             name: "Googleカレンダー",
             description: "Googleカレンダーを開きます",
-            match: ["かれんだー", "ぐぐるかれんだー"]
+            match: ["[/ぐぐる]かれんだー"]
         },
         "Add Event to Google Calendar": {
             name: "Googleカレンダーに予定を追加",
             description: "Googleカレンダーに予定を追加します",
-            match: ["ぐぐるかれんだーによていをついか", "ぐぐるかれんだーについか"]
+            match: ["ぐぐるかれんだーに[よていをついか/ついか]"]
         }
     }
 };

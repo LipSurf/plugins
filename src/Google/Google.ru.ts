@@ -22,7 +22,7 @@ Google.languages!.ru = {
         "Add Event to Google Calendar": {
             name: "Добавить событие в Google Calendar",
             description: "Добавляет событие в Google Календарь",
-            match: ["добавить в гугл календарь", "добавить в google calendar"]
+            match: ["добавить в [гугл календарь/google calendar]"]
         }
     }
 };

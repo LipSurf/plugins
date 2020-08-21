@@ -28,7 +28,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         description: 'Check the weather for a given city.',
         // say it on any page (not just accuweather domain)
         global: true,
-        match: ['weather for *', 'forecast for *', 'weather in *'],
+        match: ['[weather/forecast] [for/in] *'],
         pageFn: async (transcript: string, q: string) => {
             const curLang = PluginBase.util.getLanguage();
             const shortenedLang: LanguageCode = <LanguageCode>curLang.substr(0, 2);

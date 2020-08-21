@@ -11,15 +11,15 @@ ScrollPlugin.languages!.es = {
         },
         "Scroll Top": {
             name: "Desplazarse Hasta Arriba",
-            match: ["desplazarse hasta arriba", "parte arriba", "cima"],
+            match: ["[desplazarse hasta] [/parte ]arriba", "cima", "parte arriba"],
         },
         "Scroll Down": {
             name: "Desplazarse Hacia Abajo",
-            match: ["abajo", "desplazarse hacia abajo"],
+            match: ["[/desplazarse hacia ]abajo"],
         },
         "Scroll Up": {
             name: "Desplazarse Hacia Arriba",
-            match: ["arriba", "desplazarse hacia arriba"],
+            match: ["[/desplazarse hacia ]arriba"],
         },
         "Scroll Right": {
             name: "Desplazarse a la Derecha",

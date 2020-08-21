@@ -347,7 +347,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     commands: [
         {
             name: 'Scroll Down',
-            match: ["down", "scroll down", "d"],
+            match: ["[/scroll ]down"],
             activeDocument: true,
             // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
             // delay: [300, 0],
@@ -414,14 +414,14 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             }
         }, {
             name: 'Scroll Up',
-            match: ["up", "scroll up"],
+            match: ["[/scroll ]up"],
             activeDocument: true,
             pageFn: () => {
                 return scroll('u');
             },
         }, {
             name: 'Auto Scroll',
-            match: ["auto scroll", "automatic scroll"],
+            match: ["[auto/automatic] scroll"],
             description: 'Continuously scroll down the page slowly, at a reading pace.',
             activeDocument: true,
             pageFn: () => {
@@ -457,7 +457,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             }
         }, {
             name: 'Scroll Bottom',
-            match: ["bottom", "bottom of page", "bottom of the page", "scroll bottom", "scroll to bottom", "scroll to the bottom of page", "scroll to the bottom of the page"],
+            match: ["bottom[/ of page/of the page]", "scroll [bottom/to bottom/to the bottom/to bottom of page/to the bottom of the page]"],
             activeDocument: true,
             pageFn: () => {
                 return scroll('b');
@@ -467,7 +467,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             }
         }, {
             name: 'Scroll Top',
-            match: ["top", "top of page", "top of the page", "scroll top", "scroll to top", "scroll to the top"],
+            match: ["top[/ of page/ of the page]", "scroll [top/to top/to the top/to the top of the page]"],
             activeDocument: true,
             pageFn: () => {
                 return scroll('t');
@@ -485,14 +485,14 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             pageFn: () => scroll('hu', true),
         }, {
             name: 'Scroll Down a Little',
-            match: ["little down", "little scroll down"],
+            match: ["little [scroll /]down"],
             activeDocument: true,
             pageFn: () => {
                 return scroll('d', true);
             },
         }, {
             name: 'Scroll Up a Little',
-            match: ["little up", "little scroll up"],
+            match: ["little [scroll/ ]up"],
             activeDocument: true,
             pageFn: () => {
                 return scroll('u', true);

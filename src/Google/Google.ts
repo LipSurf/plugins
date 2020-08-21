@@ -43,7 +43,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
     {
         name: 'Add Event to Google Calendar',
         global: true,
-        match: ['add event to google calendar', 'add to google calendar'],
+        match: ['add [event /]to google calendar'],
         pageFn: async () => {
             window.location.href = `https://calendar.google.com/calendar/r/eventedit`;
         }

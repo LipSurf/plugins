@@ -20,7 +20,7 @@ Scroll.languages!.ru = {
         },
         "Scroll Down a Little": {
             name: "Прокрутить немного вниз",
-            match: ["немного вниз", "чутьчуть вниз"]
+            match: ["[немного/чутьчуть] вниз"]
         },
         "Scroll Down": {
             name: "Прокрутить вниз",
@@ -32,7 +32,7 @@ Scroll.languages!.ru = {
         },
         "Scroll Up a Little": {
             name: "Прокрутить немного вверх",
-            match: ["немного вверх", "чутьчуть вверх"]
+            match: ["[немного/чутьчуть] вверх"]
         },
         "Scroll Up": {
             name: "Прокрутить вверх",

@@ -12,7 +12,7 @@ Weather.languages!.ja = {
         'Check the Weather': {
             name: "天気を調べる",
             description: '任意の都市の天気を調べます。',
-            match: ['てんき*', 'てんきよほう*'],
+            match: ['てんき[/よほう]*'],
         },
     }
 };
