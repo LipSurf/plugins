@@ -19,7 +19,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         description: "Do a google search.",
         global: true,
         match: 'google *',
-        pageFn: async (transcript: string, searchQuery: string) => {
+        pageFn: (transcript: string, searchQuery: string) => {
             window.location.href = `https://www.google.com/search?q=${searchQuery}`;
         }
     },
@@ -28,7 +28,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         description: 'Equivalent to hitting the "I\'m feeling lucky" button for a Google search. Goes to the first result of the search query if Google feels confident with the results.',
         global: true,
         match: 'feeling lucky *',
-        pageFn: async (transcript: string, searchQuery: string) => {
+        pageFn: (transcript: string, searchQuery: string) => {
             window.location.href = `https://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=${searchQuery}`
         }
     },
@@ -36,7 +36,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         name: 'Google Calendar',
         global: true,
         match: 'google calendar',
-        pageFn: async () => {
+        pageFn: () => {
             window.location.href = `https://calendar.google.com/calendar/r`;
         }
     },
@@ -44,7 +44,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         name: 'Add Event to Google Calendar',
         global: true,
         match: ['add [event /]to google calendar'],
-        pageFn: async () => {
+        pageFn: () => {
             window.location.href = `https://calendar.google.com/calendar/r/eventedit`;
         }
     },
