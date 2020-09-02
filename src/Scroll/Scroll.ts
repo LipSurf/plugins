@@ -287,7 +287,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
         <path d="M0 8l3 3v-6z"></path>
         <path d="M8 16l3-3h-6z"></path>
     </g></svg>`,
-    version: '3.7.0',
+    version: '3.8.0',
     match: /.*/,
     authors: "Miko",
     homophones: {
