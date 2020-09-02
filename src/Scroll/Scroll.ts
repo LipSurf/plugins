@@ -174,7 +174,7 @@ async function scrollAmount({top, left}: {top?: number, left?: number}, relative
 // hd and hu are help down and help up respectively
 type ScrollType = 'u'|'d'|'l'|'r'|'t'|'b'|'hd'|'hu';
 
-async function scroll(direction: ScrollType, little: boolean = false) {
+function scroll(direction: ScrollType, little: boolean = false): Promise<void> {
     // pdf needs keypresses
     const needsKeyPressEvents = /\.pdf$/.test(document.location.pathname);
     let factor: number;
@@ -212,7 +212,7 @@ async function scroll(direction: ScrollType, little: boolean = false) {
     if (direction === 'hd' || direction === 'hu') {
         const hud = PluginBase.util.getHUDEl()[0]; 
         const helpContents = hud.querySelector<HTMLDivElement>('#help .cmds')!;
-        scrollAmount({top: helpContents.offsetHeight * factor! }, true, helpContents);
+        return scrollAmount({top: helpContents.offsetHeight * factor! }, true, helpContents);
     } else if (needsKeyPressEvents) {
         let codes: number[];
         if (direction === 't' || direction === 'b') {
@@ -221,10 +221,11 @@ async function scroll(direction: ScrollType, little: boolean = false) {
             codes = new Array(14 * littleFactor).fill(key!);
         }
         chrome.runtime.sendMessage({ type: 'pressKeys', payload: { codes, nonChar: true } });
+        return PluginBase.util.sleep(100);
     } else {
         let horizontal = direction === 'l' || direction === 'r';
         if (horizontal)
-            scrollAmount({left: window.innerWidth * factor! * littleFactor});
+            return scrollAmount({left: window.innerWidth * factor! * littleFactor});
         else {
             // special case for bottom
             const relative = direction !== 't';
@@ -232,7 +233,7 @@ async function scroll(direction: ScrollType, little: boolean = false) {
                 // document.body.scrollHeight is too small on duckduckgo
                 return scrollAmount({ top: document.documentElement.scrollHeight });
             }
-            scrollAmount({top: window.innerHeight * factor! * littleFactor}, relative);
+            return scrollAmount({top: window.innerHeight * factor! * littleFactor}, relative);
         }
     }
 }
@@ -351,9 +352,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             activeDocument: true,
             // A delay would be alleviate mismatches between "little down" but isn't worth the slowdown
             // delay: [300, 0],
-            pageFn: () => {
-                return scroll('d');
-            },
+            pageFn: () => scroll('d'),
             test: {
                 'google': async (t, say, client) => {
                     // google search results (normal page)
@@ -416,9 +415,7 @@ export default <IPluginBase & IPlugin> {...PluginBase, ...{
             name: 'Scroll Up',
             match: ["[/scroll ]up"],
             activeDocument: true,
-            pageFn: () => {
-                return scroll('u');
-            },
+            pageFn: () => scroll('u'),
         }, {
             name: 'Auto Scroll',
             match: ["[auto/automatic] scroll"],
