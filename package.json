@@ -8,9 +8,9 @@
     "build": "lipsurf-cli build",
     "watch": "lipsurf-cli build --watch",
     "vup": "lipsurf-cli vup",
-    "build:prod": "NODE_ENV=production lipsurf-cli build",
-    "watch:prod": "NODE_ENV=production lipsurf-cli build --watch",
-    "clean": "rm -r dist/"
+    "build:prod": "cross-env NODE_ENV=production lipsurf-cli build",
+    "watch:prod": "cross-env NODE_ENV=production lipsurf-cli build --watch",
+    "clean": "rimraf -r dist/"
   },
   "repository": {
     "type": "git",
@@ -34,8 +34,10 @@
   "homepage": "https://www.lipsurf.com",
   "devDependencies": {
     "@types/chrome": "0.0.66",
+    "cross-env": "^7.0.2",
     "lipsurf-cli": "https://github.com/lipsurf/cli",
     "lipsurf-types": "https://github.com/lipsurf/types",
+    "rimraf": "^3.0.2",
     "typescript": "^4.0.2",
     "vuepress": "^0.14.2"
   }
