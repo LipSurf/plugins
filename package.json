@@ -39,6 +39,6 @@
     "lipsurf-types": "https://github.com/lipsurf/types",
     "rimraf": "^3.0.2",
     "typescript": "^4.0.2",
-    "vuepress": "^0.14.2"
+    "vuepress": "^1.6.0"
   }
 }
