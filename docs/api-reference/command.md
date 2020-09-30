@@ -1,5 +1,5 @@
 # Commands
-## ICommand
+## Command
 Each plugin has a list of commands.
 
 Also see [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand).
@@ -14,9 +14,9 @@ Each command has the following properties:
 
 ### match
 
-- Type:  `string | string[] | `[`IDynamicMatch`](/api-reference/command.md#idynamicmatch) 
+- Type:  `string | string[] | `[`DynamicMatch`](/api-reference/command.md#dynamicmatch) 
 
- The word(s) the user can say to execute this command. <br><br>Make sure it's completely lowercase and without any punctuation. Use "#" in the string as an ordinal place holder. Use "*" as a wildcard placeholder. Lastly, a function [`IDynamicMatch`](/api-reference/command.md#idynamicmatch) can be used for the most advanced cases
+ The word(s) the user can say to execute this command. <br><br>Make sure it's completely lowercase and without any punctuation. Use "#" in the string as an ordinal place holder. Use "*" as a wildcard placeholder. Lastly, a function [`DynamicMatch`](/api-reference/command.md#dynamicmatch) can be used for the most advanced cases
 
 ### description 
 
@@ -91,7 +91,7 @@ How long to wait for additional input for before executing this command. Overrid
 ### test 
 
 - Optional
-- Type:  `(t: ExecutionContext<ICommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIO.BrowserObject) => void` 
+- Type:  `(t: ExecutionContext<CommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIO.BrowserObject) => void` 
 
  <a href="https://github.com/avajs/ava">AVA</a> integration test for this command.
 
@@ -102,7 +102,7 @@ How long to wait for additional input for before executing this command. Overrid
 :::
 
 
-## IDynamicMatch
+## DynamicMatch
 
 A function that decides whether a command matches based on a transcript input for more dynamic command word possibilities.
 
@@ -119,7 +119,7 @@ The start match index, the end match index and an array of `any` type args to pa
 Return `false` or `Promise<false>` if there is a partial match. If there is a partial match we will delay other commands that might already want to execute.
 
 ::: tip E.g.
-Imagine there's a command word for <span class="voice-cmd">reddit</span> and a [dynamic match command](/api-reference/command.md#idynamicmatch) for <span class="voice-cmd">reddit message</span> that are both valid on a given page. If the user says <span class="voice-cmd">reddit message</span> the transcripts will come down the wire something like this:
+Imagine there's a command word for <span class="voice-cmd">reddit</span> and a [dynamic match command](/api-reference/command.md#dynamicmatch) for <span class="voice-cmd">reddit message</span> that are both valid on a given page. If the user says <span class="voice-cmd">reddit message</span> the transcripts will come down the wire something like this:
 
  - red
  - reddit
@@ -135,7 +135,7 @@ If you don't want the first "reddit" command to match, return `false` when there
 
 ## ILocalizedCommand
 
-See also [`ICommand`](/api-reference/command.md#icommand) and [`IPluginTranslation`](/api-reference/pluginbase.md#iplugintranslation).
+See also [`Command`](/api-reference/command.md#command) and [`IPluginTranslation`](/api-reference/pluginbase.md#iplugintranslation).
 
 
 ### name
@@ -146,7 +146,7 @@ The original name of the command to match this localized version with.
 
 ### match
 
- - Type: `string | string[] | IDynamicMatch`](/api-reference/command.md#idynamicmatch) 
+ - Type: `string | string[] | DynamicMatch`](/api-reference/command.md#dynamicmatch) 
  
 A localized command can match in a way independent from the base (en) command.
 
@@ -169,4 +169,4 @@ Delays for a localized version of a command can be completely different from the
 
 Sometimes we want to adjust the transcript as it is shown on the live transcript. For example if the user says <span class="voice-cmd">go to are meal time videos</span> we would want to show that as <span class="voice-cmd">go to r/mealtimevideos</span>.
 
-Returns the complete "live transcript" that should be shown. `rawInput` is the transcript (eg. "go to are meal time videos") `matchOutput` is an array returned from the match command if [`IDynamicMatch`](/api-reference/command.md#idynamicmatch)is used.
+Returns the complete "live transcript" that should be shown. `rawInput` is the transcript (eg. "go to are meal time videos") `matchOutput` is an array returned from the match command if [`DynamicMatch`](/api-reference/command.md#dynamicmatch)is used.

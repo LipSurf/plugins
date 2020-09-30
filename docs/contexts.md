@@ -10,7 +10,7 @@ Use cases include:
  * Limiting which commands are valid.
     * eg. In the "Dictation" context, we don't want "youtube" to take us to youtube.com, we want it to literally write "youtube" where we're composing our text.
 
- To make a context, simply designate a context as a part of an [ICommand's](/api-reference/command.md#icommand) `context` or `enterContext` property
+ To make a context, simply designate a context as a part of an [`Command`'s](/api-reference/command.md#command) `context` or `enterContext` property
  <br>
  <center>-or-</center>
  <br>

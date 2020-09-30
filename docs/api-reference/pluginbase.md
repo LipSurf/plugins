@@ -24,7 +24,7 @@ Version of the plugin.
 
 ### commands 
 
-- Type: `ICommand[]` 
+- Type: `Command[]` 
 
  The meat of the plugin. 
  
