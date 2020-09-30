@@ -37,7 +37,7 @@ Use cases include:
 
 _Cake walk._
 
-We need to make `match` an object of type [`IDynamicMatch`](/api-reference/command.md#idynamicmatch)
+We need to make `match` an object of type [`DynamicMatch`](/api-reference/command.md#dynamicmatch)
 
 How about a plugin for Gmail that moves the currently selected messages to a folder that the user commands to?
 

@@ -56,9 +56,9 @@ Called in the context of the page when LipSurf is activated and the plugin match
 ### context 
 
 - Optional
-- Type: [`IContext`](/api-reference/pluginbase.md#icontext) 
+- Type: [`Context`](/api-reference/pluginbase.md#context) 
 
-For advanced use cases of [contexts](/contexts.md). <br><br>See [`IContext`](/api-reference/pluginbase.md#icontext).
+For advanced use cases of [contexts](/contexts.md). <br><br>See [`Context`](/api-reference/pluginbase.md#context).
 
 ### destroy 
 
@@ -84,7 +84,7 @@ Not being used yet.
 
 
 
-## IPluginTranslation
+## PluginTranslation
 
 ### niceName                        
 
@@ -115,7 +115,7 @@ Authors of the plugin translation. Multiple authors may be separated by commas.
 
 ### commands                        
 
-- Type: `{ [key: string]: `[`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand)`}`              
+- Type: `{ [key: string]: `[`LocalizedCommand`](/api-reference/command.md#localizedcommand)`}`              
 
  The keys of this object should map to the names of commands in the base (English) plugin. 
 
@@ -187,7 +187,7 @@ Query all frames includes IFrames.
 Send a message to the frame beacon of all frames.
 
 
-## IContext
+## Context
 
 ### extends                         
 

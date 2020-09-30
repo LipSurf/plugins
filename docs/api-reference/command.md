@@ -2,7 +2,7 @@
 ## Command
 Each plugin has a list of commands.
 
-Also see [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand).
+Also see [`LocalizedCommand`](/api-reference/command.md#localizedcommand).
 
 Each command has the following properties:
 
@@ -42,9 +42,9 @@ Each command has the following properties:
 ### nice 
 
 - Optional
-- Type:  [`INiceCommand`](/api-reference/command.md#inicecommand) 
+- Type:  [`NiceCommand`](/api-reference/command.md#nicecommand) 
 
-  See [`INiceCommand`](/api-reference/command.md#inicecommand).
+  See [`NiceCommand`](/api-reference/command.md#nicecommand).
 
 ### fn 
 
@@ -133,9 +133,9 @@ Imagine there's a command word for <span class="voice-cmd">reddit</span> and a [
 
 If you don't want the first "reddit" command to match, return `false` when there is a partial match for the dynamic <span class="voice-cmd">reddit</span> command for transcripts that start with "reddit".
 
-## ILocalizedCommand
+## LocalizedCommand
 
-See also [`Command`](/api-reference/command.md#command) and [`IPluginTranslation`](/api-reference/pluginbase.md#iplugintranslation).
+See also [`Command`](/api-reference/command.md#command) and [`PluginTranslation`](/api-reference/pluginbase.md#plugintranslation).
 
 
 ### name
