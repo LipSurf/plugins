@@ -4,35 +4,35 @@ Contexts are groups of commands that can be combined to determine which commands
 
 Example use cases:
  * Allowing certain commands only in certain situations.
-    * eg. When we're watching a Netflix show, we want <span class="voice-cmd">play</span>, <span class="voice-cmd">pause</span> etc. available. When we're browsing the Netflix catalogue, we don't want player commands, but we do want things like <span class="voice-cmd">next page</span>. To handle this, we could watch for URL changes, and if we're on a page to watch a show, we could use [`addContext('Player Controls')`](/api-reference/pluginbase.md#addContext) to add the context that the player controls are under. 
+    * eg. When we're watching a Netflix show, we want <span class="voice-cmd">play</span>, <span class="voice-cmd">pause</span> etc. available. When we're browsing the Netflix catalogue, we don't want player commands, but we do want things like <span class="voice-cmd">next page</span>. To handle this, we could watch for URL changes, and if we're on a page to watch a show, we could use [`addContext('Player Controls')`](/api-reference/pluginbase-util.md#addContext) to add the context that the player controls are under. 
     
     ::: tip NOTE
-    Since we used [`addContext`](/api-reference/pluginbase.md#addContext) the default commands will still work.
+    Since we used [`addContext`](/api-reference/pluginbase-util.md#addContext) the default commands will still work.
     :::
 
  * Limiting which commands are valid.
-    * eg. In the "Dictation" context, we don't want <span class="voice-cmd">youtube</span> to take us to youtube.com, we want it to literally write "youtube" where we're composing our text. In this case we don't want the "Normal" context, so we would [`enterContext(["Dictation"])`](/api-reference/pluginbase.md#enterContext) to replace the current context with only "Dictation".
+    * eg. In the "Dictation" context, we don't want <span class="voice-cmd">youtube</span> to take us to youtube.com, we want it to literally write "youtube" where we're composing our text. In this case we don't want the "Normal" context, so we would [`enterContext(["Dictation"])`](/api-reference/pluginbase-util.md#enterContext) to replace the current context with only "Dictation".
 
 
 Contexts are per-tab. So the user may be in "Dictation Mode" in one tab, and "Normal Mode" in another. 
 
 ::: warning 
-* Make sure to remove a context if it's specific to the plugin in the plugin's [destroy](/api-reference/pluginbase.md#destroy) function.
+* Make sure to remove a context if it's specific to the plugin in the plugin's [destroy](/api-reference/plugin.md#destroy) function.
 :::
 
 ## Designating a Context
 A context is "created" by designating:
 - A command's [`context` property](/api-reference/command.md#context)
 - A command's [`enterContext` property](/api-reference/command.md#entercontext)
-- A plugin's [`contexts` property](api-reference/pluginbase.md#contexts)
+- A plugin's [`contexts` property](api-reference/plugin.md#contexts)
 
 ---------------------
 
 Context can be manipulated programmatically using:
-* [`PluginBase.util.enterContext`](api-reference/pluginbase.md#entercontext) 
-* [`PluginBase.util.addContext`](api-reference/pluginbase.md#addcontext)
-* [`PluginBase.util.removeContext`](api-reference/pluginbase.md#removecontext)
-* [`PluginBase.util.getContext`](api-reference/pluginbase.md#getcontext)
+* [`PluginBase.util.enterContext`](api-reference/pluginbase-util.md#entercontext) 
+* [`PluginBase.util.addContext`](api-reference/pluginbase-util.md#addcontext)
+* [`PluginBase.util.removeContext`](api-reference/pluginbase-util.md#removecontext)
+* [`PluginBase.util.getContext`](api-reference/pluginbase-util.md#getcontext)
 
 ## Commands Outside of Normal Mode
 

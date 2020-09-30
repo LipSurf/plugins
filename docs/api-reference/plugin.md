@@ -1,4 +1,4 @@
-# PluginBase
+# Plugin
 
 ## PluginBase
 
@@ -14,7 +14,7 @@ Extend `PluginBase` to create a LipSurf plugin.
 
 - Type: <code>RegExp &#124; RegExp[]</code> 
 
- The URL gets tested against these and commands, [`init`](/api-reference/pluginbase.md#init) only work on pages that match (unless the command is marked global).
+ The URL gets tested against these and commands, [`init`](/api-reference/plugin.md#init) only work on pages that match (unless the command is marked global).
 
 ### version 
 
@@ -56,7 +56,7 @@ Called in the context of the page when LipSurf is activated and the plugin match
 ### contexts
 
 - Optional
-- Type: [`Context`](/api-reference/pluginbase.md#context) 
+- Type: [`Context`](/api-reference/plugin.md#context) 
 
 For advanced use cases of [contexts](/contexts.md). 
 
@@ -82,6 +82,40 @@ Called after destroy.
 
 Not being used yet.
 
+### getPluginOption
+
+ - Arguments:
+    - `pluginId: string`
+    - `name: string`
+ - Returns: `any`
+
+ Gets plugin-level settings.
+
+### setPluginOption
+
+ - Arguments:
+    - `pluginId: string`
+    - `name: string`
+    - `val: any`
+ - Returns: `Promise<void>`
+
+ Sets a plugin-level setting.
+
+### watch
+ 
+ - Arguments:
+    - `handler: StoreListener<IOptions>`
+ - Returns: `id: Promise<number>`
+
+ Watch properties in the LipSurf state. Returns watcher id that can be used by [`unwatch`](#unwatch).
+
+### unwatch
+ 
+ - Arguments:
+    - `id: number`
+ - Returns: `void`
+
+Unregister watcher of LipSurf state.
 
 ## Contexts
 
@@ -111,13 +145,13 @@ Use format `[plugin id].[command name]` (eg. `LipSurf.Open Help`) if the command
 
  See also: 
    * [Contexts guide](/contexts.md)
-   * [enterContext](/api-reference/pluginbase.md#entercontext)
-   * [addContext](/api-reference/pluginbase.md#addcontext)
-   * [removeContext](/api-reference/pluginbase.md#removecontext)
-   * [getContext](/api-reference/pluginbase.md#getcontext)
+   * [enterContext](/api-reference/pluginbase-util.md#entercontext)
+   * [addContext](/api-reference/pluginbase-util.md#addcontext)
+   * [removeContext](/api-reference/pluginbase-util.md#removecontext)
+   * [getContext](/api-reference/pluginbase-util.md#getcontext)
 
 
-## PluginTranslation
+## LocalizedPlugin
 
 ### niceName                        
 
@@ -151,105 +185,3 @@ Authors of the plugin translation. Multiple authors may be separated by commas.
 - Type: `{ [key: string]: `[`LocalizedCommand`](/api-reference/command.md#localizedcommand)`}`              
 
  The keys of this object should map to the names of commands in the base (English) plugin. 
-
-
-## PluginBase.util
-
-The following API exists on `PluginBase.util` for interacting with the extension and convenience. It can be used within plugins - some utilities are only available in the context of the page (will only work in [`init`](#init), [`destroy`](#destroy), [`commands::pageFn`](/commands.md#pageFn)) others only in the context of the extension ([`fn`](/commands.md#fn)).
-
-
-### enterContext
-
-- Arguments: 
-    - `contexts: string[]`
-- Returns: `void`
-
-Modifies the context to be exactly what is specified in the argument.
-
-Also see: [Contexts](/contexts.md).
-
-### addContext
-
-- Arguments: 
-    - `contexts: string | string[]`
-- Returns: `void`
-
-Add a context to the existing active contexts for this page.
-
-Also see: [Contexts](/contexts.md).
-
-### removeContext
-
-- Arguments: 
-    - `contexts: string | string[]`
-- Returns: `void`
-
-Removes a context from the active contexts for this page.
-
-Also see: [Contexts](/contexts.md).
-
-### getContext
-
-- Arguments: 
-    - None
-- Returns: `string[]`
-
-Gets the contexts that we're in on the current page.
-
-Also see: [Contexts](/contexts.md).
-
-
-### isInView
-
-- Arguments: 
-    - `el: HTMLElement`
-- Returns: `boolean`
-
-Checks if an element is in the viewport.
-
-### getNoCollisionUniqueAttr
-
-- Arguments: 
-    - None
-- Returns: `string`
-
-Use the string returned from here to keep everything under the LipSurf namespace and prevent page pollution/plugin collisions.
-
-### getOptions 
-
-- Arguments: 
-    - None
-- Returns: `Options` 
-
- Get all the user-set options. 
- 
-::: tip NOTE
- Used by the "help" command to get the list of commands and generate the help overlay.
-:::
-
-### getHUDEl
-
-- Arguments: 
-    - `obscureTags: boolean` 
-- Returns: `Promise<[hudEl: HTMLElement, hadToReattach: boolean]>`
-
- Get the shadow DOM element used for most LipSurf HUD elements. The HUD will be automatically removed when LipSurf is deactivated so you don't need to clean it up yourself. 
-
-### queryAllFrames
-
-- Arguments: 
-    - `tagName: string`
-    - `attrs: string[]`
-- Returns: `Promise<any[]>`
-
-Query all frames includes IFrames.
-
-### postToAllFrames
-
-- Arguments: 
-    - `id` 
-    - `fnNames: string | string[]`
-    - `selector?`
-- Returns: `void`
-
-Send a message to the frame beacon of all frames.

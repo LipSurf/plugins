@@ -48,8 +48,9 @@ module.exports = {
 				title: 'API Reference',
 				collapsable: false,
 				children: [
-					'api-reference/pluginbase.md',
+					'api-reference/plugin.md',
 					'api-reference/command.md',
+					'api-reference/pluginbase-util.md',
 					'api-reference/test.md',
 				],
 			},
