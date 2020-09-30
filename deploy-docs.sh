@@ -5,7 +5,7 @@
 set -e
 
 # build
-yarn docs:build
+NODE_ENV=production yarn docs:build
 
 # navigate into the build output directory
 cd docs/.vuepress/dist
