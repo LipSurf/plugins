@@ -30,6 +30,8 @@ await PluginBase.setPluginOption('TabsAndWindows', 'New Tab/Window URL', 'www.du
 PluginBase.getPluginOption('TabsAndWindows', 'New Tab/Window URL');
 ```
 
-See [`setPluginOption`](api-reference/plugin.md#setpluginoption) and [`getPluginOption`](api-reference/plugin.md#getpluginoption) for details.
+See also:  
+    - [`setPluginOption`](api-reference/plugin.md#setpluginoption) 
+    - [`getPluginOption`](api-reference/plugin.md#getpluginoption).
 
 
