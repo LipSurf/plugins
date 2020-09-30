@@ -2,6 +2,46 @@
 
 The following API exists on `PluginBase.util` for interacting with the extension and convenience. It can be used within plugins - some utilities are only available in the context of the page (will only work in [`init`](#init), [`destroy`](#destroy), [`commands::pageFn`](/command.md#pagefn)) others only in the context of the extension ([`fn`](/command.md#fn)).
 
+-------------------------------------------------------------
+
+### shutdown
+
+- Arguments:
+    - None
+- Returns: `void`
+
+
+### pause
+
+- Arguments:
+    - None
+- Returns: `void`
+
+Pauses the speech recognizer, but leaves plugins and HUD un-destroyed. Shows a pause icon in the corner of the extension.
+
+
+### start
+
+- Arguments:
+    - None
+- Returns: `void`
+
+-------------------------------------------------------------
+
+### getLanguage
+
+- Arguments:
+    - None
+- Returns: `LanguageCode`
+
+
+### setLanguage
+
+- Arguments:
+    - `lang: LanguageCode`
+- Returns: `void`
+
+-------------------------------------------------------------
 
 ### enterContext
 
@@ -33,6 +73,7 @@ Removes a context from the active contexts for this page.
 
 Also see: [Contexts](/contexts.md).
 
+
 ### getContext
 
 - Arguments: 
@@ -43,14 +84,126 @@ Gets the contexts that we're in on the current page.
 
 Also see: [Contexts](/contexts.md).
 
+-------------------------------------------------------------
 
-### isInView
+### queryAllFrames
+
+- Arguments: 
+    - `query: string`
+    - `attrs?: string | string[]`
+    - `props?: string | string[]`
+    - `specialProps?: SpecialProp[]`
+- Returns: `Promise<string, ...any[]>`
+
+Query all frames includes IFrames.
+
+
+### postToAllFrames
+
+- Arguments: 
+    - `ids?: string | string[]` 
+    - `fnNames?: string | string[]`
+    - `selector?`
+    - `specialFns?: SpecialFn | SpecialFn[]`
+- Returns: `void`
+
+-------------------------------------------------------------
+
+### pick
+
+- Arguments:
+    - `obj: object`
+    - `...props: string[]`
+- Returns: `object`
+
+
+### deepSetArray
+
+- Arguments:
+    - `obj: object`
+    - `keys: string[]`
+    - `value: any`
+- Returns: `object`
+
+
+### memoize
+
+- Arguments:
+    - `...any[]`
+- Returns: `any`
+
+
+-------------------------------------------------------------
+
+### fuzzyHighScore
+
+- Arguments:
+    - `query: string`
+    - `sources: string[]`
+    - `minScore?: number`
+    - `partial?: boolean`
+    - `skipCanonicalizing?: boolean`
+- Returns: `Promise<[idx: number, score: number]>`
+
+
+### topFuzzyElMatches<T>
+
+- Arguments:
+    - `query: string`
+    - `itemWTextColl: ItemWAssocText<T>[], minScore?: number`
+- Returns: `Promise<T[]>`
+
+-------------------------------------------------------------
+
+### highlight
+
+- Arguments:
+    - `...els: HTMLElement[]`
+- Returns: `void`
+
+
+### unhighlightAll
+
+- Arguments:
+    - None
+- Returns: `void`
+
+-------------------------------------------------------------
+
+### disambiguate
+
+- Arguments:
+    - `els: HTMLElement[] | FrameElWOffsets[]`
+- Returns: `Promise<[number, Promise<void>]>`
+
+
+-------------------------------------------------------------
+
+### clickOrFocus
+
+- Arguments:
+    - `el: HTMLElement`
+- Returns: `void`
+
+Intelligently "clicks" an element depending on the element type.
+
+
+### isInViewAndTakesSpace
 
 - Arguments: 
     - `el: HTMLElement`
 - Returns: `boolean`
 
-Checks if an element is in the viewport.
+Checks if an element is in the viewport and takes up view space (not 0x0 pixels)
+
+
+### getRGB
+
+ - Arguments: 
+    - `colorHexOrRgbStr: string`
+ - Returns: `[red: number, green: number, blue: number]`
+
+Used for getting color from computed css.
 
 ### getNoCollisionUniqueAttr
 
@@ -80,21 +233,11 @@ Use the string returned from here to keep everything under the LipSurf namespace
 
  Get the shadow DOM element used for most LipSurf HUD elements. The HUD will be automatically removed when LipSurf is deactivated so you don't need to clean it up yourself. 
 
-### queryAllFrames
+### scrollToAnimated
 
-- Arguments: 
-    - `tagName: string`
-    - `attrs: string[]`
-- Returns: `Promise<any[]>`
-
-Query all frames includes IFrames.
-
-### postToAllFrames
-
-- Arguments: 
-    - `id` 
-    - `fnNames: string | string[]`
-    - `selector?`
+- Arguments:
+    - `el: HTMLElement`
+    - `offset?: number`
 - Returns: `void`
 
-Send a message to the frame beacon of all frames.
+Smooth animated scroll to an element.
