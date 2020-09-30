@@ -154,7 +154,7 @@ If you don't want the first "reddit" command to match, return `false` when there
 
 ## LocalizedCommand
 
-See also [`Command`](/api-reference/command.md#command) and [`PluginTranslation`](/api-reference/pluginbase.md#plugintranslation).
+See also [`Command`](/api-reference/command.md#command) and [`LocalizedPlugin`](/api-reference/plugin.md#localizedplugin).
 
 
 ### name
