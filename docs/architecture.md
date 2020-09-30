@@ -1,10 +1,13 @@
 # Architecture
 
+> The fact that even the core LipSurf functionality is written as plugins should attest to the power of LipSurf's extensibility.
+
 ## Overview
+
+LipSurf [Plugins](api-reference/pluginbase.md) add global or site-level voice functionality.
 
 Every LipSurf [Command](api-reference/command.md) must be a member of a [Plugin](api-reference/pluginbase.md).
 
-The fact that even the core LipSurf functionality is written as _regular ol'_ plugins should attest to the power of LipSurf's extensibility.
 
 Each website has its idiosyncrasies and many can benefit from custom commands. LipSurf functionality does not begin and end with the what it comes installed with. A subset of plugins come installed by default (plugins for the browser, Google, Reddit etc.) and additional plugins can be installed by users from within the extension. Plugins abstract the commands so they can stay separate from the extensions foundation — evolving fluidly with website updates.
 

@@ -1,8 +1,10 @@
 # Contexts
 
-Contexts are specific states that LipSurf can enter, which limit the scope of commands that are valid. By default, if a command does not have a context, it is in the "Normal" context where most other commands work.
+Contexts are states that LipSurf can enter, which limit the scope of commands that are valid. By default, if a command does not have a context, it is in the "Normal" context where most default commands live. LipSurf is always in <b>one or more</b> contexts. 
 
 Use cases include:
+ * Making different commands available on different pages.
+    * eg. When we're watching a Netflix show, we want <span class="voice-cmd">play</span>, <span class="voice-cmd">pause</span> etc. available. When we're browsing the Netflix catalogue, we don't want player commands, but we do want things like <span class="voice-cmd">next page</span>.
  * Allowing certain commands only in certain situations.
     * eg. <span class="voice-cmd">slower</span> and <span class="voice-cmd">faster</span> for <span class="voice-cmd">auto scroll</span> only makes sense after the user has said <span class="voice-cmd">auto scroll</span>.
  * Limiting which commands are valid.
