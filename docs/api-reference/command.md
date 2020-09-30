@@ -21,13 +21,13 @@ Each command has the following properties:
 ### description 
 
 - Optional
-- Type:  `string` 
+- Type: `string` 
 
  Detailed description visible in the options page.
 
 ### global 
 
-- Type:  `boolean` 
+- Type: `boolean` 
 - Default: `false`
 
  Let the command work on any page (not restricted by the `match` of the Plugin).
@@ -65,7 +65,24 @@ What context(s) this command works in. <br><br> See [Contexts](/contexts.md) for
 - Optional
 - Type:  `string` 
 
- What context to enter if this command matches.<br><br> See [Contexts](/contexts.md) for details.
+ What context to enter if this command matches.
+
+ This is a sugar for writing:
+
+ ```ts
+fn: () => PluginBase.util.enterContext(...)
+ ```
+ 
+  See [Contexts](/contexts.md) for details.
+
+### normal
+
+- Type: `boolean` 
+- Default: `true`
+
+ Make `false` if you don't wan't this command included in the "Normal" (default) context.
+ 
+ See [Contexts](/contexts.md) for details.
 
 ### minConfidence 
 
@@ -86,7 +103,7 @@ How long to wait for additional input for before executing this command. Overrid
 - Type: `boolean` 
 - Default: `false`
 
- Whether to execute this command in the focused frame or iFrame.
+ Whether to execute this command in the focused frame or iFrame. Won't work if the final focus is document.body.
 
 ### test 
 
@@ -97,29 +114,31 @@ How long to wait for additional input for before executing this command. Overrid
 
 
 ### `fn` vs. `pageFn`
-::: tip NOTE
+::: tip 
 `pageFn` runs in the context of the page so it has access to the DOM, but doesn't have access to Chrome extension APIs like `chrome.tabs`. `fn` on the other hand runs in the (sandboxed) context of the Chrome extension; it doesn't have access to the page or it's DOM but it does have access to the Chrome extension APIs.
 :::
 
 
 ## DynamicMatch
 
-A function that decides whether a command matches based on a transcript input for more dynamic command word possibilities.
+- Type: `{description: string, fn: (transcript: string) => `[`DynamicMatchFnResp`](/api-reference/command.md#dynamicmatchfnresp)` }` 
 
-fn | `(transcript: string) => `[`DynamicMatchFnResp`](/api-reference/command.md#dynamicmatchfnresp)`| undefined` | A function that takes in the transcript and returns a [`DynamicMatchFnResp`](/api-reference/command.md#dynamicmatchfnresp)if the command should execute on the given transcript.
-description | `string` | Used to decribe to the user what command words match. Seen in plugins list in options.
+A function and it's description. The function decides whether a command matches based on a transcript input for more dynamic command word possibilities.
+Returns non-void if the command should execute on the given transcript. The description is used to inform the user what command words match. 
+It's seen in plugins list in the LipSurf options, and in the help.
 
 ## DynamicMatchFnResp
 
-**Type:** `[number, number, any[]?]|undefined|false` or a `Promise` with the same result type.
+- Type: `[startMatchIndex: number, endMatchIndex: number, matchOutput?: any[]] | false | undefined` (or a `Promise` with the same result type).
 
-The start match index, the end match index and an array of `any` type args to pass over to `pageFn` as the `...matchOutput[]` arguments. Don't include the transcript argument, as it's automatically included (and trimmed depending on the start and end match indices).
+The start match index, the end match index and an array of `any` type args to pass over to `pageFn` as the `...matchOutput: any[]` arguments. Don't include the transcript argument, as it's automatically included (and trimmed depending on the start and end match indices).
 
 
+
+::: tip When to return false 
 Return `false` or `Promise<false>` if there is a partial match. If there is a partial match we will delay other commands that might already want to execute.
 
-::: tip E.g.
-Imagine there's a command word for <span class="voice-cmd">reddit</span> and a [dynamic match command](/api-reference/command.md#dynamicmatch) for <span class="voice-cmd">reddit message</span> that are both valid on a given page. If the user says <span class="voice-cmd">reddit message</span> the transcripts will come down the wire something like this:
+For example, imagine there's a command word for <span class="voice-cmd">reddit</span> and a [dynamic match command](/api-reference/command.md#dynamicmatch) for <span class="voice-cmd">reddit message</span> that are both valid on a given page. If the user says <span class="voice-cmd">reddit message</span> the transcripts will come down the wire something like this:
 
  - red
  - reddit
@@ -129,9 +148,9 @@ Imagine there's a command word for <span class="voice-cmd">reddit</span> and a [
  - reddit message
 
  Can you see the problem? Our "reddit" command will execute even though we only want "reddit" message to.
-:::
 
 If you don't want the first "reddit" command to match, return `false` when there is a partial match for the dynamic <span class="voice-cmd">reddit</span> command for transcripts that start with "reddit".
+:::
 
 ## LocalizedCommand
 
@@ -146,7 +165,7 @@ The original name of the command to match this localized version with.
 
 ### match
 
- - Type: `string | string[] | DynamicMatch`](/api-reference/command.md#dynamicmatch) 
+ - Type: `string | string[] | `[`DynamicMatch`](/api-reference/command.md#dynamicmatch) 
  
 A localized command can match in a way independent from the base (en) command.
 

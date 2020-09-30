@@ -53,12 +53,12 @@ Shown in the plugin list in options.
 
 Called in the context of the page when LipSurf is activated and the plugin matches the current URL. Useful for setting up custom styling on the page that all the commands use, or initializing data that commands share. Also called each time the page is brought back into focus while LipSurf is activated.
 
-### context 
+### contexts
 
 - Optional
 - Type: [`Context`](/api-reference/pluginbase.md#context) 
 
-For advanced use cases of [contexts](/contexts.md). <br><br>See [`Context`](/api-reference/pluginbase.md#context).
+For advanced use cases of [contexts](/contexts.md). 
 
 ### destroy 
 
@@ -82,6 +82,39 @@ Called after destroy.
 
 Not being used yet.
 
+
+## Contexts
+
+- Type: 
+``` ts
+{ 
+    [contextName: string]: { 
+        commands: [groupName: string, commands: string[]][] | string[],
+        raw?: true 
+    }
+}
+```
+
+
+### commands
+Can either be specified as a list of commands, or commands can be grouped (groups shown in the help) in a tuple where the first element is the group name, and the second element is the list of commands.
+
+Use format `[plugin id].[command name]` (eg. `LipSurf.Open Help`) if the command is not in this plugin, otherwise simply the command name for the list of commands.
+
+
+### raw                             
+
+- Type: `boolean`
+- Default: `false`
+
+ If true, no trimming, lowercasing, hypen removal etc. is done on the transcripts that come down to be checked by match commands. Useful for eg. <span class="voice-cmd">Dictation Mode</span>.
+
+ See also: 
+   * [Contexts guide](/contexts.md)
+   * [enterContext](/api-reference/pluginbase.md#entercontext)
+   * [addContext](/api-reference/pluginbase.md#addcontext)
+   * [removeContext](/api-reference/pluginbase.md#removecontext)
+   * [getContext](/api-reference/pluginbase.md#getcontext)
 
 
 ## PluginTranslation
@@ -128,17 +161,48 @@ The following API exists on `PluginBase.util` for interacting with the extension
 ### enterContext
 
 - Arguments: 
+    - `contexts: string[]`
+- Returns: `void`
+
+Modifies the context to be exactly what is specified in the argument.
+
+Also see: [Contexts](/contexts.md).
+
+### addContext
+
+- Arguments: 
     - `contexts: string | string[]`
 - Returns: `void`
 
-Enter a context.
+Add a context to the existing active contexts for this page.
 
 Also see: [Contexts](/contexts.md).
+
+### removeContext
+
+- Arguments: 
+    - `contexts: string | string[]`
+- Returns: `void`
+
+Removes a context from the active contexts for this page.
+
+Also see: [Contexts](/contexts.md).
+
+### getContext
+
+- Arguments: 
+    - None
+- Returns: `string[]`
+
+Gets the contexts that we're in on the current page.
+
+Also see: [Contexts](/contexts.md).
+
 
 ### isInView
 
 - Arguments: 
-    - `ele: HTMLElement`
+    - `el: HTMLElement`
 - Returns: `boolean`
 
 Checks if an element is in the viewport.
@@ -155,9 +219,13 @@ Use the string returned from here to keep everything under the LipSurf namespace
 
 - Arguments: 
     - None
-- Returns: `IOptions` 
+- Returns: `Options` 
 
- Get all the user-set options (Used by the "Help" command for example to generate the list of possible commands).
+ Get all the user-set options. 
+ 
+::: tip NOTE
+ Used by the "help" command to get the list of commands and generate the help overlay.
+:::
 
 ### getHUDEl
 
@@ -185,27 +253,3 @@ Query all frames includes IFrames.
 - Returns: `void`
 
 Send a message to the frame beacon of all frames.
-
-
-## Context
-
-### extends                         
-
-- Optional
-- Type: `string`
-
- If a context extends another, all the commands in the context it extends can also be used.
-
-### external                        
-
-- Type: `string[]`
-- Default: `[]`
-
- List of additional, external commands to allow in this context. Use format [plugin id].[command name]eg. (LipSurf.Open Help)
-
-### raw                             
-
-- Type: `boolean`
-- Default: `false`
-
- If true, no trimming, lowercasing, hypen removal etc. is done on the transcripts that come down to be checked by match commands. Useful for eg. <span class="voice-cmd">Dictation Mode</span>.

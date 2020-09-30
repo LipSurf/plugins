@@ -1,7 +1,27 @@
-# Dynamic Match Patterns
+# Match Patterns
 
 ::: warning NOTE
 It's recommended that you go through the [5 Minute Quick Start](/quick-start.md) first to understand how to create and install your plugin.
+:::
+
+## Compact Form
+
+Instead of writing out potentially 100s of forms for a command's [match](/api-reference/command.md#match) property, you can use compact form syntax.
+
+eg. `'[delete/remove] [/the ]previous [word/# words]'` expands to:
+
+* delete previous word
+* remove previous word
+* delete the previous word
+* remove the previous word
+* delete previous # words
+* remove previous # words
+* delete the previous # words
+* remove the previous # words
+
+::: tip TIPS
+* You cannot nest brackets.
+* Priority is respected by the order in the brackets.
 :::
 
 ## Wildcard Matching

@@ -1,28 +1,39 @@
 # Contexts
 
-Contexts are states that LipSurf can enter, which limit the scope of commands that are valid. By default, if a command does not have a context, it is in the "Normal" context where most default commands live. LipSurf is always in <b>one or more</b> contexts. 
+Contexts are groups of commands that can be combined to determine which commands are relevant or valid for the page's current state. By default, if a command does not have a context, it is in the "Normal" context where most default commands live. LipSurf is always in <b>one or more</b> contexts. 
 
-Use cases include:
- * Making different commands available on different pages.
-    * eg. When we're watching a Netflix show, we want <span class="voice-cmd">play</span>, <span class="voice-cmd">pause</span> etc. available. When we're browsing the Netflix catalogue, we don't want player commands, but we do want things like <span class="voice-cmd">next page</span>.
+Example use cases:
  * Allowing certain commands only in certain situations.
-    * eg. <span class="voice-cmd">slower</span> and <span class="voice-cmd">faster</span> for <span class="voice-cmd">auto scroll</span> only makes sense after the user has said <span class="voice-cmd">auto scroll</span>.
- * Limiting which commands are valid.
-    * eg. In the "Dictation" context, we don't want "youtube" to take us to youtube.com, we want it to literally write "youtube" where we're composing our text.
+    * eg. When we're watching a Netflix show, we want <span class="voice-cmd">play</span>, <span class="voice-cmd">pause</span> etc. available. When we're browsing the Netflix catalogue, we don't want player commands, but we do want things like <span class="voice-cmd">next page</span>. To handle this, we could watch for URL changes, and if we're on a page to watch a show, we could use [`addContext('Player Controls')`](/api-reference/pluginbase.md#addContext) to add the context that the player controls are under. 
+    
+    ::: tip NOTE
+    Since we used [`addContext`](/api-reference/pluginbase.md#addContext) the default commands will still work.
+    :::
 
- To make a context, simply designate a context as a part of an [`Command`'s](/api-reference/command.md#command) `context` or `enterContext` property
- <br>
- <center>-or-</center>
- <br>
- for more advanced cases, declare the context in a [plugin's context's property](api-reference/pluginbase.md#pluginbase-2).
+ * Limiting which commands are valid.
+    * eg. In the "Dictation" context, we don't want <span class="voice-cmd">youtube</span> to take us to youtube.com, we want it to literally write "youtube" where we're composing our text. In this case we don't want the "Normal" context, so we would [`enterContext(["Dictation"])`](/api-reference/pluginbase.md#enterContext) to replace the current context with only "Dictation".
+
+
+Contexts are per-tab. So the user may be in "Dictation Mode" in one tab, and "Normal Mode" in another. 
+
+::: warning 
+* Make sure to remove a context if it's specific to the plugin in the plugin's [destroy](/api-reference/pluginbase.md#destroy) function.
+:::
+
+## Designating a Context
+A context is "created" by designating:
+- A command's [`context` property](/api-reference/command.md#context)
+- A command's [`enterContext` property](/api-reference/command.md#entercontext)
+- A plugin's [`contexts` property](api-reference/pluginbase.md#contexts)
 
 ---------------------
 
-You can use [`PluginBase.util.enterContext`](api-reference/pluginbase.md#pluginbase-util) to programmatically enter a context. To exit the context, simply enter the 'Normal' context.
+Context can be manipulated programmatically using:
+* [`PluginBase.util.enterContext`](api-reference/pluginbase.md#entercontext) 
+* [`PluginBase.util.addContext`](api-reference/pluginbase.md#addcontext)
+* [`PluginBase.util.removeContext`](api-reference/pluginbase.md#removecontext)
+* [`PluginBase.util.getContext`](api-reference/pluginbase.md#getcontext)
 
-::: tip NOTE
-The first use case has a context that _extends_ the Normal context, because in the "Auto Scroll" context, it is still valid to use other commands eg. for clicking links.
+## Commands Outside of Normal Mode
 
-On the other hand, the second use case involves a context that does
-not extend the Normal context, so only commands specified in the context will work.
-:::
+By default, a command is in the "Normal" (default) context unless [`normal: false`](api-reference/command.md#normal) is specified or a [`context`](api-reference/command.md#context) is specified that doesn't include "Normal".
