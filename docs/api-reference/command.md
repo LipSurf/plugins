@@ -53,13 +53,6 @@ Each command has the following properties:
 
  An async function that runs in the Chrome extension context when the command is called. First arg is the transcript that matched, rest of arguments are what's returned from the match command. <br><br>Resolve this promise when the command is done executing in order for chaining to work properly (if desired).<br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn).
 
-### context
-
-- Type: `string | string[]` 
-- Default: `"Normal"`
-
-What context(s) this command works in. <br><br> See [Contexts](/contexts.md) for details.
-
 ### enterContext
 
 - Optional

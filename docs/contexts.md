@@ -22,7 +22,6 @@ Contexts are per-tab. So the user may be in "Dictation Mode" in one tab, and "No
 
 ## Designating a Context
 A context is "created" by designating:
-- A command's [`context` property](/api-reference/command.md#context)
 - A command's [`enterContext` property](/api-reference/command.md#entercontext)
 - A plugin's [`contexts` property](api-reference/plugin.md#contexts)
 

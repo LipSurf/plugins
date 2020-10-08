@@ -56,7 +56,7 @@ Called in the context of the page when LipSurf is activated and the plugin match
 ### contexts
 
 - Optional
-- Type: [`Context`](/api-reference/plugin.md#context) 
+- Type: [`Context`](/api-reference/plugin.md#contexts-2) 
 
 For advanced use cases of [contexts](/contexts.md). 
 
@@ -133,7 +133,7 @@ Unregister watcher of LipSurf state.
 ### commands
 Can either be specified as a list of commands, or commands can be grouped (groups shown in the help) in a tuple where the first element is the group name, and the second element is the list of commands.
 
-Use format `[plugin id].[command name]` (eg. `LipSurf.Open Help`) if the command is not in this plugin, otherwise simply the command name for the list of commands.
+Use format `[plugin id].[command name]` (eg. `LipSurf.Open Help`) if the command is external, otherwise simply the command name for the list of commands in the order they should appear in the help.
 
 
 ### raw                             
