@@ -1,12 +1,24 @@
 // lipsurf-plugins/src/Netflix/Netflix.ts
+
+/**
+ * Limitations and gotchas:
+ * - This plugin relies on Netflix's `window.netflix` publicized object.
+ *   This plugin MAY fails if netflix introduce a change to that `window.netflix` object
+ * - Watch command relies on videos on cache. It only queries the show netflix has loaded from
+ *   their service and does not query it directly from the service.
+ *
+ * TODOs:
+ * - Remove ContextPatcher stuff when context duplication caused by PluginBase.util.addContext is fixed
+ */
+
 /// <reference types="lipsurf-types/extension"/>
 declare const PluginBase: IPluginBase;
 
 // Messaging
 
 const LIPSURF_BOOT_SCRIPT_ID = "lipsurf-netflix-script";
-const TO_PAGE_PROOF_KEY = String(Math.floor(Math.random() * 1000));
-const FROM_PAGE_PROOF_KEY = String(Math.floor(Math.random() * 1000));
+const TO_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr();
+const FROM_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr();
 
 type Message<T> = { proofKey: string; payload: T };
 
@@ -15,32 +27,26 @@ const sendMessage = (payload: Command) =>
     JSON.stringify({ proofKey: TO_PAGE_PROOF_KEY, payload } as Message<Command>)
   );
 
-/**
- * Receive Message
- */
-(() => {
-  window.addEventListener("message", ev => receiveMessage(ev.data));
-  const receiveMessage = (messageStr: string) => {
-    try {
-      const message = JSON.parse(messageStr) as Message<Command>;
-      if (message.proofKey === FROM_PAGE_PROOF_KEY) {
-        const command = message.payload;
-        switch (command.key) {
-          case "changeText":
-            return handleChangeTextAnswer(command);
-          case "changeAudio":
-            return handleChangeAudioAnswer(command);
-        }
-      }
-    } catch {
-      // Silent catch
-      // This try catch is used only to catch JSON.parse failure
-      // Which is impossible to happen within Netflix Plugin scope
-    }
-  };
-})();
-
 // Utilities
+
+const parseJsonOrNull = <T>(maybeJSONString: string): Message<T> | null => {
+  try {
+    return JSON.parse(maybeJSONString);
+  } catch {
+    return null;
+  }
+};
+
+const consumeMessageStringAsCommand = (
+  messageStr: string,
+  proofKey: string,
+  callback: (command: Command) => unknown
+) => {
+  const message = parseJsonOrNull<Command>(messageStr);
+  if (message && message.proofKey === proofKey) {
+    callback(message.payload);
+  }
+};
 
 const stripNonAlphaNumericAndTrim = (someString: string) =>
   someString
@@ -54,12 +60,11 @@ const navigateToSearch = (title: string) => {
   )}`;
 };
 
-// Context
+const navigateToWatch = (videoId: string) => {
+  window.location.href = `https://www.netflix.com/watch/${videoId}`;
+};
 
-/**
- * Context is currently disabled becacuse some weird behavior with non-normal
- * context
- */
+// Context
 
 enum NetflixPluginContextEnum {
   watch = "Netflix Video Player Controls",
@@ -115,6 +120,7 @@ const contextManager = (() => {
       case pathname.startsWith("/latest"):
       case pathname.startsWith("/browse"):
       case pathname.startsWith("/title"):
+      case pathname.startsWith("/search"):
         return NetflixPluginContextEnum.browse;
       default:
         return null;
@@ -198,7 +204,12 @@ type SeekCommand = {
     | { key: "ahead"; duration: number }
     | { key: "behind"; duration: number };
 };
-type WatchCommand = { key: "watch"; title: string };
+type WatchCommand = {
+  key: "watch";
+  sub:
+    | { key: "ask-videos"; query: string }
+    | { key: "answer-matches"; query: string; videos: VideoBase[] };
+};
 type ChangeTextCommand = {
   key: "changeText";
   sub:
@@ -224,6 +235,29 @@ type NetflixAudio = {
   displayName: string;
 };
 
+type VideoBase = {
+  title: string;
+  videoId: string;
+};
+
+/**
+ * Videos that are queried from anchor elements in the page
+ */
+type InPageVideo = VideoBase & {
+  anchorElement: HTMLAnchorElement;
+};
+
+/**
+ * Videos that are queried from NetflixCache
+ */
+type InCacheVideo = VideoBase & {
+  data: {
+    title?: {
+      value: string;
+    };
+  };
+};
+
 export default <IPluginBase & IPlugin>{
   ...PluginBase,
   ...{
@@ -234,82 +268,88 @@ export default <IPluginBase & IPlugin>{
     version: "1.0.0",
     init: () => contextManager.enable(),
     destroy: () => contextManager.disable(),
+    homophones: {
+      /**
+       * Override Google plugin's search homophones
+       */
+      search: "search"
+    },
     contexts: {
       [NetflixPluginContextEnum.watch]: {
         commands: [
-          "Watch::Pause",
-          "Watch::Play",
-          "Volume::Up",
-          "Volume::Down",
-          "Volume::Full",
-          "Volume::Zero",
-          "Volume::Half",
-          "Volume::SetPercent",
-          "ChangeAudio",
-          "ChangeText",
-          "Seek::To::Minute+Second",
-          "Seek::To::Second",
-          "Seek::Ahead::Minute+Second",
-          "Seek::Ahead::Second",
-          "Seek::Behind::Minute+Second",
-          "Seek::Behind::Second"
+          "Pause Video",
+          "Play Video",
+          "Volume Up",
+          "Volume Down",
+          "Volume Full",
+          "Volume Zero",
+          "Volume Half",
+          "Volume Set In Percentage",
+          "Change Audio",
+          "Change Text",
+          "Seek To By Minute and Second",
+          "Seek To By Second",
+          "Seek Ahead By Second",
+          "Seek Ahead By Second",
+          "Seek Behind By Second",
+          "Seek Behind By Second"
         ]
       },
       [NetflixPluginContextEnum.browse]: {
-        commands: ["Watch::Title", "Watch::Random", "Search"]
+        commands: ["Watch By Title", "Watch Random Show", "Search Show"]
       }
     },
     commands: [
       {
         name: "Override::Netflix",
         match: "netflix",
-        /* Empty to override netflix */
+        /* Empty to override global netflix command*/
         pageFn: () => {}
       },
       {
-        name: "Watch::Pause",
+        name: "Pause Video",
         match: ["pause", "stop"],
         pageFn: () => sendMessage({ key: "pause" }),
         normal: false
       },
       {
-        name: "Watch::Play",
+        name: "Play Video",
         match: "play",
         pageFn: () => sendMessage({ key: "play" }),
         normal: false
       },
       {
-        name: "Volume::Up",
+        name: "Volume Up",
         match: "[volume/sound level] up",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "up" } }),
         normal: false
       },
       {
-        name: "Volume::Down",
+        name: "Volume Down",
         match: "[volume/sound level] down",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "down" } }),
         normal: false
       },
       {
-        name: "Volume::Full",
+        name: "Volume Full",
         match: "[volume/sound level] full",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "full" } }),
         normal: false
       },
       {
-        name: "Volume::Zero",
+        name: "Volume Zero",
         match: "[volume/sound level] zero",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "zero" } }),
         normal: false
       },
       {
-        name: "Volume::Half",
+        name: "Volume Half",
         match: "[volume/sound level] half",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "half" } }),
         normal: false
       },
       {
-        name: "Volume::SetPercent",
+        name: "Volume Set In Percentage",
         match: "set [volume/sound level] to # percent",
         pageFn: (_: string, volumePercentage: number) =>
           sendMessage({
@@ -319,7 +359,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "ChangeAudio",
+        name: "Change Audio",
         match: ["[change/switch] audio to *", "audio to *"],
         pageFn: (_: string, audioName?: string) =>
           !!audioName &&
@@ -333,7 +373,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "ChangeText",
+        name: "Change Text",
         match: ["[change/switch] [text/subtitle] to *", "[text/subtitle] to *"],
         pageFn: (_: string, textName?: string) =>
           !!textName &&
@@ -347,7 +387,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Seek::To::Minute+Second",
+        name: "Seek To By Minute and Second",
         match: ["skip to minute #", "skip to minute # second #"],
         pageFn: (_: string, minute: number, second = 0) =>
           sendMessage({
@@ -357,7 +397,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Seek::To::Second",
+        name: "Seek To By Second",
         match: ["skip to second #"],
         pageFn: (_: string, second: number) =>
           sendMessage({
@@ -367,7 +407,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Seek::Ahead::Minute+Second",
+        name: "Seek Ahead By Second",
         match: [
           "skip ahead # [minute/minutes]",
           "skip ahead # [minute/minutes] # [second/seconds]"
@@ -380,7 +420,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Seek::Ahead::Second",
+        name: "Seek Ahead By Second",
         match: ["skip ahead # [second/seconds]"],
         pageFn: (_: string, second: number) =>
           sendMessage({
@@ -390,7 +430,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Seek::Behind::Minute+Second",
+        name: "Seek Behind By Second",
         match: [
           "skip behind # [minute/minutes]",
           "skip behind # [minute/minutes] # [second/seconds]"
@@ -403,7 +443,7 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Seek::Behind::Second",
+        name: "Seek Behind By Second",
         match: ["skip behind # [second/seconds]"],
         pageFn: (_: string, second: number) =>
           sendMessage({
@@ -414,26 +454,101 @@ export default <IPluginBase & IPlugin>{
       },
 
       {
-        name: "Watch::Title",
+        name: "Watch By Title",
         match: ["watch *"],
-        pageFn: (_: string, title: string) =>
-          sendMessage({ key: "watch", title: title.toLowerCase() }),
+        pageFn: (_: string, query: string) =>
+          sendMessage({
+            key: "watch",
+            sub: {
+              key: "ask-videos",
+              query
+            }
+          }),
         normal: false
       },
       {
-        name: "Watch::Random",
+        name: "Watch Random Show",
         match: ["random"],
         pageFn: (_: string) => sendMessage({ key: "watchRandom" }),
         normal: false
       },
       {
-        name: "Search",
+        name: "Search Show",
         match: ["search *"],
         pageFn: (_: string, title: string) => navigateToSearch(title),
         normal: false
       }
     ]
   }
+};
+
+/**
+ * Receive Message
+ */
+(() => {
+  window.addEventListener("message", ev => receiveMessage(ev.data));
+  const receiveMessage = (messageStr: string) =>
+    consumeMessageStringAsCommand(messageStr, FROM_PAGE_PROOF_KEY, command => {
+      switch (command.key) {
+        case "changeText":
+          return handleChangeTextAnswer(command);
+        case "changeAudio":
+          return handleChangeAudioAnswer(command);
+        case "watch":
+          return handleWatchAnswer(command);
+      }
+    });
+})();
+
+const handleWatchAnswer = async (command: WatchCommand) => {
+  const { sub } = command;
+  if (sub.key !== "answer-matches") return;
+  const videos = sub.videos;
+
+  // This exact title matching video works well because LipSurf scans for ariaLabel which
+  // actually matches the videos title queried
+  const exactVideo = videos.find(video => video.title === sub.query);
+  if (exactVideo) {
+    return navigateToWatch(exactVideo.videoId);
+  }
+
+  // Filter out videos which title are empty string
+  const filteredVideos = videos.filter(
+    video => !!stripNonAlphaNumericAndTrim(video.title)
+  );
+
+  const strippedQuery = stripNonAlphaNumericAndTrim(sub.query);
+
+  /**
+   * Sort descending. fuzzyHighScore somehow does not return the same value
+   * as these sequence below. If it turns out a bug, then
+   * TODO: replace these sequence with fuzzyHighScore
+   */
+  const results = (
+    await Promise.all(
+      filteredVideos.map(video =>
+        PluginBase.util.fuzzyHighScore(strippedQuery, [video.title], 0, true)
+      )
+    )
+  )
+    .map(([_, score], index) => ({
+      score,
+      index
+    }))
+    .sort(({ score: scoreA }, { score: scoreB }) => scoreB - scoreA);
+
+  const highScore = results[0];
+  if (highScore.score > 0.8) {
+    const fuzzyVideo = filteredVideos[highScore.index];
+    if (fuzzyVideo) {
+      return navigateToWatch(fuzzyVideo.videoId);
+    }
+  }
+
+  /**
+   * When no match comes up, watch will search the query instead
+   */
+  return navigateToSearch(sub.query);
 };
 
 const handleChangeTextAnswer = async (command: ChangeTextCommand) => {
@@ -487,41 +602,61 @@ export const injectables = (
   toPageProofKey: string,
   fromPageProofKey: string
 ) => {
+  // Utilities
+
+  const parseJsonOrNull = <T>(maybeJSONString: string): Message<T> | null => {
+    try {
+      return JSON.parse(maybeJSONString);
+    } catch {
+      return null;
+    }
+  };
+
+  const consumeMessageStringAsCommand = (
+    messageStr: string,
+    proofKey: string,
+    callback: (command: Command) => unknown
+  ) => {
+    const message = parseJsonOrNull<Command>(messageStr);
+    if (message && message.proofKey === proofKey) {
+      callback(message.payload);
+    }
+  };
+
+  const navigateToWatch = (videoId: string) => {
+    window.location.href = `https://www.netflix.com/watch/${videoId}`;
+  };
+
+  // Messaging
+
   const sendMessage = (payload: Command) =>
     (window as any).postMessage(
       JSON.stringify({ proofKey: fromPageProofKey, payload } as Message<
         Command
       >)
     );
+
   const receiveMessage = (messageStr: string) => {
-    try {
-      const message = JSON.parse(messageStr) as Message<Command>;
-      if (message.proofKey === toPageProofKey) {
-        const command = message.payload;
-        switch (command.key) {
-          case "play":
-            return withCurrentPlayer(player => player.play());
-          case "pause":
-            return withCurrentPlayer(player => player.pause());
-          case "volume":
-            return handleVolumeCommand(command);
-          case "skip":
-            return handleSeekCommand(command);
-          case "watch":
-            return handleWatch(command);
-          case "watchRandom":
-            return handleWatchRandom();
-          case "changeText":
-            return handleChangeText(command);
-          case "changeAudio":
-            return handleChangeAudio(command);
-        }
+    consumeMessageStringAsCommand(messageStr, toPageProofKey, command => {
+      switch (command.key) {
+        case "play":
+          return withCurrentPlayer(player => player.play());
+        case "pause":
+          return withCurrentPlayer(player => player.pause());
+        case "volume":
+          return handleVolumeCommand(command);
+        case "skip":
+          return handleSeekCommand(command);
+        case "watch":
+          return handleWatch(command);
+        case "watchRandom":
+          return handleWatchRandom();
+        case "changeText":
+          return handleChangeText(command);
+        case "changeAudio":
+          return handleChangeAudio(command);
       }
-    } catch {
-      // Silent catch
-      // This try catch is used only to catch JSON.parse failure
-      // Which is impossible to happen within Netflix Plugin scope
-    }
+    });
   };
 
   const handleChangeText = (command: ChangeTextCommand) => {
@@ -606,29 +741,23 @@ export const injectables = (
     });
 
   const handleWatch = (command: WatchCommand) => {
-    const videos = [...getInPageVideos(), ...getInCacheVideo()];
-    const anchors = videos.find(({ title }) => {
-      return title.toLowerCase().trim() === command.title.trim();
-    });
-
-    if (!anchors) return;
-    navigateToWatch(anchors.videoId);
-  };
-
-  type InPageVideo = {
-    anchorElement: HTMLAnchorElement;
-    title: string;
-    videoId: string;
-  };
-
-  type InCacheVideo = {
-    data: {
-      title?: {
-        value: string;
-      };
-    };
-    title: string;
-    videoId: string;
+    switch (command.sub.key) {
+      case "ask-videos": {
+        return sendMessage({
+          key: "watch",
+          sub: {
+            key: "answer-matches",
+            query: command.sub.query,
+            videos: [...getInPageVideos(), ...getInCacheVideo()].map(
+              ({ videoId, title }) => ({
+                videoId,
+                title
+              })
+            )
+          }
+        } as WatchCommand);
+      }
+    }
   };
 
   const getInCacheVideo = (): InCacheVideo[] =>
@@ -673,13 +802,11 @@ export const injectables = (
     navigateToWatch(videoId);
   };
 
-  const navigateToWatch = (videoId: string) => {
-    window.location.href = `https://www.netflix.com/watch/${videoId}`;
-  };
+  // Netflix specific
 
   const withCurrentPlayer = (fn: (player: any) => unknown) => {
     const currentPlayer = getCurrentPlayer();
-    if (currentPlayer) fn(currentPlayer);
+    if (currentPlayer) return fn(currentPlayer);
   };
 
   const getCurrentPlayer = () => {
@@ -695,53 +822,41 @@ export const injectables = (
     return playerElement || null;
   };
 
-  const getCurrentWatchSession = () => {
-    try {
-      const [session] = (window as any).netflix.appContext
+  const getCurrentWatchSession = () =>
+    withNetflix(netflix => {
+      const [session] = netflix.appContext
         .getPlayerApp()
         .getAPI()
         .getOpenPlaybackSessions();
       if (!session) return null;
       if (session.playbackInitiator !== "USER") return null;
       return session;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  };
+    });
 
-  const getVideoPlayerObject = () => {
-    try {
-      return (
-        (window as any).netflix.appContext.state.playerApp.getAPI()
-          .videoPlayer || null
-      );
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  };
-
-  const getCache = () =>
-    withNetflix(netflix =>
-      netflix.appContext.getState().pathEvaluator.getCache()
+  const getVideoPlayerObject = () =>
+    withNetflix(
+      netflix => netflix.appContext.state.playerApp.getAPI().videoPlayer
     );
 
-  const withCache = (fn: (cache: any) => any) => {
-    try {
-      const cache = getCache();
-      if (!cache) return null;
-      return fn(cache);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  /**
+   * Netflix cache stores cached netflix-related data
+   * cache.videos for example stores videos that are either loaded or are going
+   * to be loaded into the page
+   */
+  const withCache = (fn: (cache: any) => any) =>
+    withNetflix(netflix =>
+      fn(netflix.appContext.getState().pathEvaluator.getCache())
+    );
 
-  const withNetflix = (fn: (netflix: any) => any) => {
+  /**
+   * Netflix publicize its appContext via `window.netflix`
+   */
+  const withNetflix = (fn: (netflix: any) => any) =>
+    tryCatch(() => fn((window as any).netflix));
+
+  const tryCatch = <T>(fn: () => T) => {
     try {
-      const netflix = (window as any).netflix;
-      if (!netflix) return null;
-      return fn(netflix);
+      return fn();
     } catch (error) {
       console.error(error);
       return null;
