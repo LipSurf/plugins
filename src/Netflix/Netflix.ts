@@ -9,6 +9,8 @@
  *
  * TODOs:
  * - Remove ContextPatcher stuff when context duplication caused by PluginBase.util.addContext is fixed
+ * - Remove homophone `"search": "search"` after homophone priority issue is fixed on the Platform-land
+ *   https://discuss.lipsurf.com/t/homophones-must-be-a-lower-priority-than-other-plugins-command/297/3
  */
 
 /// <reference types="lipsurf-types/extension"/>
@@ -47,12 +49,6 @@ const consumeMessageStringAsCommand = (
     callback(message.payload);
   }
 };
-
-const stripNonAlphaNumericAndTrim = (someString: string) =>
-  someString
-    .split(" ")
-    .map(someString => someString.replace(/[^\w\s]/gi, "").trim())
-    .join(" ");
 
 const navigateToSearch = (title: string) => {
   window.location.href = `https://www.netflix.com/search?q=${encodeURIComponent(
@@ -271,6 +267,7 @@ export default <IPluginBase & IPlugin>{
     homophones: {
       /**
        * Override Google plugin's search homophones
+       * TODO: Remove once homophone priority issue is fixed
        */
       search: "search"
     },
@@ -286,7 +283,7 @@ export default <IPluginBase & IPlugin>{
           "Volume Half",
           "Volume Set In Percentage",
           "Change Audio",
-          "Change Text",
+          "Change Subtitle",
           "Seek To By Minute and Second",
           "Seek To By Second",
           "Seek Ahead By Second",
@@ -360,7 +357,7 @@ export default <IPluginBase & IPlugin>{
       },
       {
         name: "Change Audio",
-        match: ["[change/switch] audio to *", "audio to *"],
+        match: ["[/change/switch] audio to *"],
         pageFn: (_: string, audioName?: string) =>
           !!audioName &&
           sendMessage({
@@ -373,8 +370,8 @@ export default <IPluginBase & IPlugin>{
         normal: false
       },
       {
-        name: "Change Text",
-        match: ["[change/switch] [text/subtitle] to *", "[text/subtitle] to *"],
+        name: "Change Subtitle",
+        match: ["[/change/switch] [text/subtitle] to *"],
         pageFn: (_: string, textName?: string) =>
           !!textName &&
           sendMessage({
@@ -455,7 +452,7 @@ export default <IPluginBase & IPlugin>{
 
       {
         name: "Watch By Title",
-        match: ["watch *"],
+        match: ["[watch/play] *"],
         pageFn: (_: string, query: string) =>
           sendMessage({
             key: "watch",
@@ -513,11 +510,7 @@ const handleWatchAnswer = async (command: WatchCommand) => {
   }
 
   // Filter out videos which title are empty string
-  const filteredVideos = videos.filter(
-    video => !!stripNonAlphaNumericAndTrim(video.title)
-  );
-
-  const strippedQuery = stripNonAlphaNumericAndTrim(sub.query);
+  const filteredVideos = videos.filter(video => !!video.title.trim());
 
   /**
    * Sort descending. fuzzyHighScore somehow does not return the same value
@@ -527,7 +520,7 @@ const handleWatchAnswer = async (command: WatchCommand) => {
   const results = (
     await Promise.all(
       filteredVideos.map(video =>
-        PluginBase.util.fuzzyHighScore(strippedQuery, [video.title], 0, true)
+        PluginBase.util.fuzzyHighScore(sub.query, [video.title], 0, true)
       )
     )
   )
@@ -538,6 +531,7 @@ const handleWatchAnswer = async (command: WatchCommand) => {
     .sort(({ score: scoreA }, { score: scoreB }) => scoreB - scoreA);
 
   const highScore = results[0];
+
   if (highScore.score > 0.8) {
     const fuzzyVideo = filteredVideos[highScore.index];
     if (fuzzyVideo) {
@@ -557,7 +551,7 @@ const handleChangeTextAnswer = async (command: ChangeTextCommand) => {
   const tracks = sub.texts;
   const [index] = await PluginBase.util.fuzzyHighScore(
     sub.query,
-    tracks.map(track => track.displayName).map(stripNonAlphaNumericAndTrim),
+    tracks.map(track => track.displayName),
     undefined,
     true
   );
@@ -578,7 +572,7 @@ const handleChangeAudioAnswer = async (command: ChangeAudioCommand) => {
   const tracks = sub.audios;
   const [index] = await PluginBase.util.fuzzyHighScore(
     sub.query,
-    tracks.map(track => track.displayName).map(stripNonAlphaNumericAndTrim),
+    tracks.map(track => track.displayName),
     undefined,
     true
   );
