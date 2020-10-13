@@ -49,7 +49,7 @@ Pauses the speech recognizer, but leaves plugins and HUD un-destroyed. Shows a p
     - `contexts: string[]`
 - Returns: `void`
 
-Modifies the context to be exactly what is specified in the argument.
+Modifies the context to be exactly what is specified in the argument. The order here matters (commands with a context earlier in the list get priority).
 
 Also see: [Contexts](/contexts.md).
 

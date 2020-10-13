@@ -20,6 +20,9 @@ Contexts are per-tab. So the user may be in "Dictation Mode" in one tab, and "No
 * Make sure to remove a context if it's specific to the plugin in the plugin's [destroy](/api-reference/plugin.md#destroy) function.
 :::
 
+## Context Order
+Context order matters. If there are two <span class="voice-cmd">search *</span> commands, the one from the context earlier in the context list gets chosen. 
+
 ## Designating a Context
 A context is "created" by designating:
 - A command's [`enterContext` property](/api-reference/command.md#entercontext)
