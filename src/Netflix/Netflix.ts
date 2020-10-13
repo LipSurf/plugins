@@ -71,43 +71,6 @@ type NetflixPluginContext = NetflixPluginContextEnum | null;
 const contextManager = (() => {
   let enabled = true;
 
-  type ContextPatcher = {
-    add: (context: string) => void;
-    remove: (context: string) => void;
-  };
-
-  /**
-   * Patch context to avoid context duplication
-   * due to addContext being called multiple times causing duplicate
-   * context entry
-   *
-   * Usage:
-   *
-   * ```typescript
-   * patchContext((patcher) => {
-   *  patcher.add("ContextA")
-   *  patcher.add("ContextB")
-   *  patcher.add("ContextC")
-   * });
-   * ```
-   */
-  const patchContext = (fn: (patcher: ContextPatcher) => unknown) => {
-    const contextSet = new Set(PluginBase.util.getContext());
-    const contextPatcher = {
-      add: (context: string) => {
-        if (!contextSet.has(context)) {
-          PluginBase.util.addContext(context);
-        }
-      },
-      remove: (context: string) => {
-        if (contextSet.has(context)) {
-          PluginBase.util.removeContext(context);
-        }
-      }
-    } as ContextPatcher;
-    return fn(contextPatcher);
-  };
-
   const createContextFromUrl = (url: URL): NetflixPluginContext => {
     const { pathname } = url;
     switch (true) {
@@ -122,31 +85,34 @@ const contextManager = (() => {
         return null;
     }
   };
-  const setContext = (context: NetflixPluginContext) =>
-    patchContext(patcher => {
-      switch (true) {
-        case context === NetflixPluginContextEnum.browse: {
-          patcher.add(NetflixPluginContextEnum.browse);
-          patcher.add("Normal");
-          return;
-        }
-        case context === NetflixPluginContextEnum.watch: {
-          patcher.add(NetflixPluginContextEnum.watch);
-          patcher.remove("Normal");
-          return;
-        }
-        default: {
-          patcher.remove(NetflixPluginContextEnum.watch);
-          patcher.remove(NetflixPluginContextEnum.browse);
-          patcher.add("Normal");
-          return;
-        }
+
+  const setContext = (context: NetflixPluginContext) => {
+    switch (true) {
+      case context === NetflixPluginContextEnum.browse: {
+        PluginBase.util.removeContext(NetflixPluginContextEnum.watch);
+        PluginBase.util.addContext(NetflixPluginContextEnum.browse);
+        PluginBase.util.addContext("Normal");
+        return;
       }
-    });
+      case context === NetflixPluginContextEnum.watch: {
+        PluginBase.util.addContext(NetflixPluginContextEnum.watch);
+        PluginBase.util.removeContext(NetflixPluginContextEnum.browse);
+        PluginBase.util.removeContext("Normal");
+        return;
+      }
+      default: {
+        PluginBase.util.removeContext(NetflixPluginContextEnum.watch);
+        PluginBase.util.removeContext(NetflixPluginContextEnum.browse);
+        PluginBase.util.addContext("Normal");
+        return;
+      }
+    }
+  };
 
   const refreshCurrentContext = () => {
     try {
       setContext(createContextFromUrl(new URL(window.location.href)));
+      console.log(PluginBase.util.getContext());
     } catch (error) {
       console.error(error);
     }
