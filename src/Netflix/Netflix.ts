@@ -5,7 +5,8 @@
  * - This plugin relies on Netflix's `window.netflix` publicized object.
  *   This plugin MAY fails if netflix introduce a change to that `window.netflix` object
  * - Watch command relies on videos on cache. It only queries the show netflix has loaded from
- *   their service and does not query it directly from the service.
+ *   their service and does not query it directly from the service. If Netflix Plugin cannot a movie which
+ *   title matches in a confidence above 0.8 it will fallback to search page
  *
  * TODOs:
  * - Remove ContextPatcher stuff when context duplication caused by PluginBase.util.addContext is fixed
@@ -87,17 +88,24 @@ const contextManager = (() => {
   };
 
   const setContext = (context: NetflixPluginContext) => {
+    const currentContextSet = new Set(PluginBase.util.getContext());
+    currentContextSet.delete("Normal");
+    currentContextSet.delete(NetflixPluginContextEnum.watch);
+    currentContextSet.delete(NetflixPluginContextEnum.browse);
     switch (true) {
       case context === NetflixPluginContextEnum.browse: {
-        PluginBase.util.removeContext(NetflixPluginContextEnum.watch);
-        PluginBase.util.addContext(NetflixPluginContextEnum.browse);
-        PluginBase.util.addContext("Normal");
+        PluginBase.util.enterContext([
+          NetflixPluginContextEnum.browse,
+          "Normal",
+          ...Array.from(currentContextSet)
+        ]);
         return;
       }
       case context === NetflixPluginContextEnum.watch: {
-        PluginBase.util.addContext(NetflixPluginContextEnum.watch);
-        PluginBase.util.removeContext(NetflixPluginContextEnum.browse);
-        PluginBase.util.removeContext("Normal");
+        PluginBase.util.enterContext([
+          NetflixPluginContextEnum.watch,
+          ...Array.from(currentContextSet)
+        ]);
         return;
       }
       default: {
@@ -112,7 +120,6 @@ const contextManager = (() => {
   const refreshCurrentContext = () => {
     try {
       setContext(createContextFromUrl(new URL(window.location.href)));
-      console.log(PluginBase.util.getContext());
     } catch (error) {
       console.error(error);
     }
