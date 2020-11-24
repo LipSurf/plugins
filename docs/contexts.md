@@ -1,6 +1,6 @@
 # Contexts
 
-Contexts are groups of commands that can be combined to determine which commands are relevant or valid for the page's current state. By default, if a command does not have a context, it is in the "Normal" context where most default commands live. LipSurf is always in <b>one or more</b> contexts. 
+Contexts are groups of commands that can be combined to determine which commands are relevant or valid for the page's current state. By default, if a command does not have a context, it is in the `PluginBase.constants.contexts.Normal` context where most default commands live. LipSurf is always in <b>one or more</b> contexts. 
 
 Example use cases:
  * Allowing certain commands only in certain situations.
@@ -14,7 +14,7 @@ Example use cases:
     * eg. In the "Dictation" context, we don't want <span class="voice-cmd">youtube</span> to take us to youtube.com, we want it to literally write "youtube" where we're composing our text. In this case we don't want the "Normal" context, so we would [`enterContext(["Dictation"])`](/api-reference/pluginbase-util.md#enterContext) to replace the current context with only "Dictation".
 
 
-Contexts are per-tab. So the user may be in "Dictation Mode" in one tab, and "Normal Mode" in another. 
+Contexts are per-tab. So the user may be in a dictation mode in one tab, and normal mode in another. 
 
 ::: warning 
 * Make sure to remove a context if it's specific to the plugin in the plugin's [destroy](/api-reference/plugin.md#destroy) function.
@@ -38,4 +38,4 @@ Context can be manipulated programmatically using:
 
 ## Commands Outside of Normal Mode
 
-By default, a command is in the "Normal" (default) context unless [`normal: false`](api-reference/command.md#normal) is specified or a [`context`](api-reference/command.md#context) is specified that doesn't include "Normal".
+By default, a command is in the `PluginBase.constants.contexts.Normal` (default) context unless [`normal: false`](api-reference/command.md#normal) is specified or a [`context`](api-reference/command.md#context) is specified that doesn't include `PluginBase.constants.contexts.Normal`.

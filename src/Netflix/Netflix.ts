@@ -89,14 +89,14 @@ const contextManager = (() => {
 
   const setContext = (context: NetflixPluginContext) => {
     const currentContextSet = new Set(PluginBase.util.getContext());
-    currentContextSet.delete("Normal");
+    currentContextSet.delete(PluginBase.constants.contexts.Normal);
     currentContextSet.delete(NetflixPluginContextEnum.watch);
     currentContextSet.delete(NetflixPluginContextEnum.browse);
     switch (true) {
       case context === NetflixPluginContextEnum.browse: {
         PluginBase.util.enterContext([
           NetflixPluginContextEnum.browse,
-          "Normal",
+          PluginBase.constants.contexts.Normal,
           ...Array.from(currentContextSet)
         ]);
         return;
@@ -111,7 +111,7 @@ const contextManager = (() => {
       default: {
         PluginBase.util.removeContext(NetflixPluginContextEnum.watch);
         PluginBase.util.removeContext(NetflixPluginContextEnum.browse);
-        PluginBase.util.addContext("Normal");
+        PluginBase.util.addContext(PluginBase.constants.contexts.Normal);
         return;
       }
     }
@@ -135,7 +135,7 @@ const contextManager = (() => {
     },
     disable: () => {
       enabled = false;
-      PluginBase.util.enterContext(["Normal"]);
+      PluginBase.util.enterContext([PluginBase.constants.contexts.Normal]);
     }
   };
 })();
