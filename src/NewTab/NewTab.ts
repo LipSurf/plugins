@@ -4,26 +4,30 @@
 /// <reference types="lipsurf-types/extension"/>
 declare const PluginBase: IPluginBase;
 
-export default <IPluginBase & IPlugin> {...PluginBase, ...{
-  niceName: 'New tab',
-  description: 'Create a new empty tab.',
-  version: '3.10.0',
-  match: /.*/,
-  homophones: {
-    'open tab': 'new tab',
-  },
-  authors: 'Aparajita Fishman',
-
-  commands: [{
-    name: 'New tab',
+export default <IPluginBase & IPlugin>{
+  ...PluginBase,
+  ...{
+    niceName: "New tab",
     description: "Create a new empty tab.",
-    global: true,
-    match: 'new tab',
-    fn: async () => {
-      chrome.tabs.create({
-        active: true,
-      });
-    }
-  }
-  ],
-}};
+    version: "3.10.0",
+    match: /.*/,
+    homophones: {
+      "open tab": "new tab",
+    },
+    authors: "Aparajita Fishman",
+
+    commands: [
+      {
+        name: "New tab",
+        description: "Create a new empty tab.",
+        global: true,
+        match: "new tab",
+        fn: async () => {
+          chrome.tabs.create({
+            active: true,
+          });
+        },
+      },
+    ],
+  },
+};

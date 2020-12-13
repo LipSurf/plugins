@@ -3,12 +3,12 @@
 import HelloWorld from "./HelloWorld";
 
 HelloWorld.languages!.ja = {
-    niceName: "世界のご案内",
-    description: "非常に単純のプラグイン",
-    commands: {
-        "Hello World": {
-            name: "ハロー・ワールド",
-            match: "はろーわーるど"
-        }
-    }
+  niceName: "世界のご案内",
+  description: "非常に単純のプラグイン",
+  commands: {
+    "Hello World": {
+      name: "ハロー・ワールド",
+      match: "はろーわーるど",
+    },
+  },
 };

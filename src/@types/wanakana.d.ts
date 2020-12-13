@@ -1,1 +1,1 @@
-declare module 'wanakana';
+declare module "wanakana";

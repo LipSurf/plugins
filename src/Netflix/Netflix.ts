@@ -65,7 +65,7 @@ const navigateToWatch = (videoId: string) => {
 
 enum NetflixPluginContextEnum {
   watch = "Netflix Video Player Controls",
-  browse = "Browse Netflix"
+  browse = "Browse Netflix",
 }
 type NetflixPluginContext = NetflixPluginContextEnum | null;
 
@@ -97,14 +97,14 @@ const contextManager = (() => {
         PluginBase.util.enterContext([
           NetflixPluginContextEnum.browse,
           PluginBase.constants.contexts.Normal,
-          ...Array.from(currentContextSet)
+          ...Array.from(currentContextSet),
         ]);
         return;
       }
       case context === NetflixPluginContextEnum.watch: {
         PluginBase.util.enterContext([
           NetflixPluginContextEnum.watch,
-          ...Array.from(currentContextSet)
+          ...Array.from(currentContextSet),
         ]);
         return;
       }
@@ -130,13 +130,13 @@ const contextManager = (() => {
       enabled = true;
       while (enabled) {
         refreshCurrentContext();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     },
     disable: () => {
       enabled = false;
       PluginBase.util.enterContext([PluginBase.constants.contexts.Normal]);
-    }
+    },
   };
 })();
 
@@ -242,7 +242,7 @@ export default <IPluginBase & IPlugin>{
        * Override Google plugin's search homophones
        * TODO: Remove once homophone priority issue is fixed
        */
-      search: "search"
+      search: "search",
     },
     contexts: {
       [NetflixPluginContextEnum.watch]: {
@@ -262,61 +262,61 @@ export default <IPluginBase & IPlugin>{
           "Seek Ahead By Second",
           "Seek Ahead By Second",
           "Seek Behind By Second",
-          "Seek Behind By Second"
-        ]
+          "Seek Behind By Second",
+        ],
       },
       [NetflixPluginContextEnum.browse]: {
-        commands: ["Watch By Title", "Watch Random Show", "Search Show"]
-      }
+        commands: ["Watch By Title", "Watch Random Show", "Search Show"],
+      },
     },
     commands: [
       {
         name: "Override::Netflix",
         match: "netflix",
         /* Empty to override global netflix command*/
-        pageFn: () => {}
+        pageFn: () => {},
       },
       {
         name: "Pause Video",
         match: ["pause", "stop"],
         pageFn: () => sendMessage({ key: "pause" }),
-        normal: false
+        normal: false,
       },
       {
         name: "Play Video",
         match: "play",
         pageFn: () => sendMessage({ key: "play" }),
-        normal: false
+        normal: false,
       },
       {
         name: "Volume Up",
         match: "[volume/sound level] up",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "up" } }),
-        normal: false
+        normal: false,
       },
       {
         name: "Volume Down",
         match: "[volume/sound level] down",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "down" } }),
-        normal: false
+        normal: false,
       },
       {
         name: "Volume Full",
         match: "[volume/sound level] full",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "full" } }),
-        normal: false
+        normal: false,
       },
       {
         name: "Volume Zero",
         match: "[volume/sound level] zero",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "zero" } }),
-        normal: false
+        normal: false,
       },
       {
         name: "Volume Half",
         match: "[volume/sound level] half",
         pageFn: () => sendMessage({ key: "volume", sub: { key: "half" } }),
-        normal: false
+        normal: false,
       },
       {
         name: "Volume Set In Percentage",
@@ -324,9 +324,9 @@ export default <IPluginBase & IPlugin>{
         pageFn: (_: string, volumePercentage: number) =>
           sendMessage({
             key: "volume",
-            sub: { key: "setPercent", percentage: volumePercentage / 100 }
+            sub: { key: "setPercent", percentage: volumePercentage / 100 },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Change Audio",
@@ -337,10 +337,10 @@ export default <IPluginBase & IPlugin>{
             key: "changeAudio",
             sub: {
               key: "ask",
-              query: audioName
-            }
+              query: audioName,
+            },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Change Subtitle",
@@ -351,10 +351,10 @@ export default <IPluginBase & IPlugin>{
             key: "changeText",
             sub: {
               key: "ask",
-              query: textName
-            }
+              query: textName,
+            },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Seek To By Minute and Second",
@@ -362,9 +362,9 @@ export default <IPluginBase & IPlugin>{
         pageFn: (_: string, minute: number, second = 0) =>
           sendMessage({
             key: "skip",
-            sub: { key: "to", timestamp: (60 * minute + second) * 1000 }
+            sub: { key: "to", timestamp: (60 * minute + second) * 1000 },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Seek To By Second",
@@ -372,22 +372,22 @@ export default <IPluginBase & IPlugin>{
         pageFn: (_: string, second: number) =>
           sendMessage({
             key: "skip",
-            sub: { key: "to", timestamp: second * 1000 }
+            sub: { key: "to", timestamp: second * 1000 },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Seek Ahead By Second",
         match: [
           "skip ahead # [minute/minutes]",
-          "skip ahead # [minute/minutes] # [second/seconds]"
+          "skip ahead # [minute/minutes] # [second/seconds]",
         ],
         pageFn: (_: string, minute: number, second = 0) =>
           sendMessage({
             key: "skip",
-            sub: { key: "ahead", duration: (60 * minute + second) * 1000 }
+            sub: { key: "ahead", duration: (60 * minute + second) * 1000 },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Seek Ahead By Second",
@@ -395,22 +395,22 @@ export default <IPluginBase & IPlugin>{
         pageFn: (_: string, second: number) =>
           sendMessage({
             key: "skip",
-            sub: { key: "ahead", duration: second * 1000 }
+            sub: { key: "ahead", duration: second * 1000 },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Seek Behind By Second",
         match: [
           "skip behind # [minute/minutes]",
-          "skip behind # [minute/minutes] # [second/seconds]"
+          "skip behind # [minute/minutes] # [second/seconds]",
         ],
         pageFn: (_: string, minute: number, second = 0) =>
           sendMessage({
             key: "skip",
-            sub: { key: "behind", duration: (60 * minute + second) * 1000 }
+            sub: { key: "behind", duration: (60 * minute + second) * 1000 },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Seek Behind By Second",
@@ -418,9 +418,9 @@ export default <IPluginBase & IPlugin>{
         pageFn: (_: string, second: number) =>
           sendMessage({
             key: "skip",
-            sub: { key: "behind", duration: second * 1000 }
+            sub: { key: "behind", duration: second * 1000 },
           }),
-        normal: false
+        normal: false,
       },
 
       {
@@ -431,43 +431,47 @@ export default <IPluginBase & IPlugin>{
             key: "watch",
             sub: {
               key: "ask-videos",
-              query
-            }
+              query,
+            },
           }),
-        normal: false
+        normal: false,
       },
       {
         name: "Watch Random Show",
         match: ["random"],
         pageFn: (_: string) => sendMessage({ key: "watchRandom" }),
-        normal: false
+        normal: false,
       },
       {
         name: "Search Show",
         match: ["search *"],
         pageFn: (_: string, title: string) => navigateToSearch(title),
-        normal: false
-      }
-    ]
-  }
+        normal: false,
+      },
+    ],
+  },
 };
 
 /**
  * Receive Message
  */
 (() => {
-  window.addEventListener("message", ev => receiveMessage(ev.data));
+  window.addEventListener("message", (ev) => receiveMessage(ev.data));
   const receiveMessage = (messageStr: string) =>
-    consumeMessageStringAsCommand(messageStr, FROM_PAGE_PROOF_KEY, command => {
-      switch (command.key) {
-        case "changeText":
-          return handleChangeTextAnswer(command);
-        case "changeAudio":
-          return handleChangeAudioAnswer(command);
-        case "watch":
-          return handleWatchAnswer(command);
+    consumeMessageStringAsCommand(
+      messageStr,
+      FROM_PAGE_PROOF_KEY,
+      (command) => {
+        switch (command.key) {
+          case "changeText":
+            return handleChangeTextAnswer(command);
+          case "changeAudio":
+            return handleChangeAudioAnswer(command);
+          case "watch":
+            return handleWatchAnswer(command);
+        }
       }
-    });
+    );
 })();
 
 const handleWatchAnswer = async (command: WatchCommand) => {
@@ -477,13 +481,13 @@ const handleWatchAnswer = async (command: WatchCommand) => {
 
   // This exact title matching video works well because LipSurf scans for ariaLabel which
   // actually matches the videos title queried
-  const exactVideo = videos.find(video => video.title === sub.query);
+  const exactVideo = videos.find((video) => video.title === sub.query);
   if (exactVideo) {
     return navigateToWatch(exactVideo.videoId);
   }
 
   // Filter out videos which title are empty string
-  const filteredVideos = videos.filter(video => !!video.title.trim());
+  const filteredVideos = videos.filter((video) => !!video.title.trim());
 
   /**
    * Sort descending. fuzzyHighScore somehow does not return the same value
@@ -492,14 +496,14 @@ const handleWatchAnswer = async (command: WatchCommand) => {
    */
   const results = (
     await Promise.all(
-      filteredVideos.map(video =>
+      filteredVideos.map((video) =>
         PluginBase.util.fuzzyHighScore(sub.query, [video.title], 0, true)
       )
     )
   )
     .map(([_, score], index) => ({
       score,
-      index
+      index,
     }))
     .sort(({ score: scoreA }, { score: scoreB }) => scoreB - scoreA);
 
@@ -524,7 +528,7 @@ const handleChangeTextAnswer = async (command: ChangeTextCommand) => {
   const tracks = sub.texts;
   const [index] = await PluginBase.util.fuzzyHighScore(
     sub.query,
-    tracks.map(track => track.displayName),
+    tracks.map((track) => track.displayName),
     undefined,
     true
   );
@@ -534,8 +538,8 @@ const handleChangeTextAnswer = async (command: ChangeTextCommand) => {
     key: "changeText",
     sub: {
       key: "to",
-      trackId: track.trackId
-    }
+      trackId: track.trackId,
+    },
   });
 };
 
@@ -545,7 +549,7 @@ const handleChangeAudioAnswer = async (command: ChangeAudioCommand) => {
   const tracks = sub.audios;
   const [index] = await PluginBase.util.fuzzyHighScore(
     sub.query,
-    tracks.map(track => track.displayName),
+    tracks.map((track) => track.displayName),
     undefined,
     true
   );
@@ -555,8 +559,8 @@ const handleChangeAudioAnswer = async (command: ChangeAudioCommand) => {
     key: "changeAudio",
     sub: {
       key: "to",
-      trackId: track.trackId
-    }
+      trackId: track.trackId,
+    },
   });
 };
 
@@ -598,18 +602,19 @@ export const injectables = (
 
   const sendMessage = (payload: Command) =>
     (window as any).postMessage(
-      JSON.stringify({ proofKey: fromPageProofKey, payload } as Message<
-        Command
-      >)
+      JSON.stringify({
+        proofKey: fromPageProofKey,
+        payload,
+      } as Message<Command>)
     );
 
   const receiveMessage = (messageStr: string) => {
-    consumeMessageStringAsCommand(messageStr, toPageProofKey, command => {
+    consumeMessageStringAsCommand(messageStr, toPageProofKey, (command) => {
       switch (command.key) {
         case "play":
-          return withCurrentPlayer(player => player.play());
+          return withCurrentPlayer((player) => player.play());
         case "pause":
-          return withCurrentPlayer(player => player.pause());
+          return withCurrentPlayer((player) => player.pause());
         case "volume":
           return handleVolumeCommand(command);
         case "skip":
@@ -630,20 +635,20 @@ export const injectables = (
     const { sub } = command;
     switch (sub.key) {
       case "ask":
-        return withCurrentPlayer(player =>
+        return withCurrentPlayer((player) =>
           sendMessage({
             key: "changeText",
             sub: {
               key: "answer",
               texts: player.getTextTrackList() as NetflixText[],
-              query: sub.query
-            }
+              query: sub.query,
+            },
           } as ChangeTextCommand)
         );
       case "to":
-        return withCurrentPlayer(player => {
+        return withCurrentPlayer((player) => {
           const track = (player.getTextTrackList() as NetflixText[]).find(
-            track => track.trackId === sub.trackId
+            (track) => track.trackId === sub.trackId
           );
           if (!track) return;
           player.setTextTrack(track);
@@ -655,20 +660,20 @@ export const injectables = (
     const { sub } = command;
     switch (sub.key) {
       case "ask":
-        return withCurrentPlayer(player =>
+        return withCurrentPlayer((player) =>
           sendMessage({
             key: "changeAudio",
             sub: {
               key: "answer",
               audios: player.getAudioTrackList(),
-              query: sub.query
-            }
+              query: sub.query,
+            },
           } as ChangeAudioCommand)
         );
       case "to":
-        return withCurrentPlayer(player => {
+        return withCurrentPlayer((player) => {
           const track = (player.getAudioTrackList() as NetflixAudio[]).find(
-            track => track.trackId === sub.trackId
+            (track) => track.trackId === sub.trackId
           );
           if (!track) return;
           player.setAudioTrack(track);
@@ -677,7 +682,7 @@ export const injectables = (
   };
 
   const handleVolumeCommand = (command: VolumeCommand) =>
-    withCurrentPlayer(player => {
+    withCurrentPlayer((player) => {
       switch (command.sub.key) {
         case "up":
           return player.setVolume(Math.min(player.getVolume() + 0.1, 1));
@@ -696,7 +701,7 @@ export const injectables = (
     });
 
   const handleSeekCommand = (command: SeekCommand) =>
-    withCurrentPlayer(player => {
+    withCurrentPlayer((player) => {
       switch (command.sub.key) {
         case "to":
           return player.seek(command.sub.timestamp);
@@ -718,26 +723,26 @@ export const injectables = (
             videos: [...getInPageVideos(), ...getInCacheVideo()].map(
               ({ videoId, title }) => ({
                 videoId,
-                title
+                title,
               })
-            )
-          }
+            ),
+          },
         } as WatchCommand);
       }
     }
   };
 
   const getInCacheVideo = (): InCacheVideo[] =>
-    withCache(cache => {
+    withCache((cache) => {
       const videos = cache.videos as InCacheVideo["data"][] | null;
       if (!videos) return null;
       return Object.entries(videos)
         .map(([videoId, video]) => ({
           videoId,
           title: (video.title && video.title.value) || "",
-          data: video
+          data: video,
         }))
-        .filter(video => video.title !== "");
+        .filter((video) => video.title !== "");
     }) || [];
 
   const getInPageVideos = (): InPageVideo[] =>
@@ -750,7 +755,7 @@ export const injectables = (
           return {
             anchorElement,
             title: ariaLabel,
-            videoId: url.pathname.slice("/watch/".length)
+            videoId: url.pathname.slice("/watch/".length),
           };
         }
         return null;
@@ -761,7 +766,7 @@ export const injectables = (
     const videoIds = Array.from(
       new Set([
         ...getInCacheVideo().map(({ videoId }) => videoId),
-        ...getInPageVideos().map(({ videoId }) => videoId)
+        ...getInPageVideos().map(({ videoId }) => videoId),
       ])
     );
     const videoId = videoIds[Math.round(Math.random() * (videoIds.length - 1))];
@@ -790,11 +795,10 @@ export const injectables = (
   };
 
   const getCurrentWatchSession = () =>
-    withNetflix(netflix => {
-      const [session] = netflix.appContext
-        .getPlayerApp()
-        .getAPI()
-        .getOpenPlaybackSessions();
+    withNetflix((netflix) => {
+      const [
+        session,
+      ] = netflix.appContext.getPlayerApp().getAPI().getOpenPlaybackSessions();
       if (!session) return null;
       if (session.playbackInitiator !== "USER") return null;
       return session;
@@ -802,7 +806,7 @@ export const injectables = (
 
   const getVideoPlayerObject = () =>
     withNetflix(
-      netflix => netflix.appContext.state.playerApp.getAPI().videoPlayer
+      (netflix) => netflix.appContext.state.playerApp.getAPI().videoPlayer
     );
 
   /**
@@ -811,7 +815,7 @@ export const injectables = (
    * to be loaded into the page
    */
   const withCache = (fn: (cache: any) => any) =>
-    withNetflix(netflix =>
+    withNetflix((netflix) =>
       fn(netflix.appContext.getState().pathEvaluator.getCache())
     );
 
@@ -830,7 +834,7 @@ export const injectables = (
     }
   };
 
-  window.addEventListener("message", ev => receiveMessage(ev.data));
+  window.addEventListener("message", (ev) => receiveMessage(ev.data));
 };
 
 if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
