@@ -20,7 +20,7 @@ lipsurf.handleTranscript('hello world', 0.99, true, i++, +new Date())
 ```typescript
 var lipsurf = LipSurf({
   // default `true`
-  liveTranscript?: boolean,
+  liveTs?: boolean,
 });
 ```
 
