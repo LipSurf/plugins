@@ -126,12 +126,12 @@ export default <IPluginBase & IPlugin>{
               )
             );
 
-            if (mainItem && PluginBase.util.isInViewAndTakesSpace(mainItem)) {
+            if (mainItem && PluginBase.util.isVisible(mainItem)) {
               mainItem.click();
             } else {
               let el: HTMLElement;
               for (el of commentItems.reverse()) {
-                if (PluginBase.util.isInViewAndTakesSpace(el)) {
+                if (PluginBase.util.isVisible(el)) {
                   el.querySelector<HTMLAnchorElement>(
                     ".comment.collapsed a.expand"
                   )!.click();
@@ -173,7 +173,7 @@ export default <IPluginBase & IPlugin>{
             for (let el of document.querySelectorAll<HTMLElement>(
               `#siteTable .thing .expando-button.expanded, .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`
             )) {
-              if (PluginBase.util.isInViewAndTakesSpace(el)) {
+              if (PluginBase.util.isVisible(el)) {
                 el.click();
                 break;
               }
