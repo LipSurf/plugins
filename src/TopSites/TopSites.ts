@@ -9,7 +9,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Top Sites",
     description: "Shortcuts for going to popular websites.",
-    version: "3.10.0",
+    version: "3.11.0",
     match: /.*/,
     authors: "Miko",
 

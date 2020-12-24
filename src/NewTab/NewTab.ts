@@ -9,7 +9,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "New tab",
     description: "Create a new empty tab.",
-    version: "3.10.0",
+    version: "3.11.0",
     match: /.*/,
     homophones: {
       "open tab": "new tab",
