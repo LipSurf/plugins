@@ -9,7 +9,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Google",
     description: "Google Search, Calendar and other tools.",
-    version: "3.11.0",
+    version: "3.11.1",
     match: /.*\.google\.com/,
     homophones: {
       search: "google",

@@ -6,7 +6,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Dictionary for Japanese Language Learners",
     description: "Quickly lookup words in a English ⬌ Japanese dictionary.",
-    version: "3.11.0",
+    version: "3.11.1",
     match: /https?:\/\/\.jisho\.org/,
     authors: "Miko",
 
