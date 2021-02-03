@@ -454,6 +454,18 @@ export default <IPluginBase & IPlugin>{
               `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd}`
             );
           },
+          "wip pdf": async (t, say, client) => {
+            // TODO: getting scroll position not working
+            const getScrollPos = () =>
+              client.execute(() => {
+                return document.scrollingElement!.scrollTop;
+              });
+            const scrollStart = await getScrollPos();
+            await client.url(`${t.context.localPageDomain}/sample.pdf`);
+            await say();
+            const scrollEnd = await getScrollPos();
+            t.fail();
+          },
         },
       },
       {
