@@ -52,6 +52,8 @@ export default <IPlugin & IPluginBase>{
       // causes issues with "press tab"
       // 'preston': 'press down',
       pressed: "press",
+      dress: "press",
+      "present tab": "press tab",
     },
     commands: [
       {
@@ -61,6 +63,19 @@ export default <IPlugin & IPluginBase>{
         pageFn: () => {
           if (!pressKey("Tab", 9)) backendPressKey(9);
         },
+        test: {
+          "go to next form field": async (t, say, client) => {
+            await client.url(`${t.context.localPageDomain}/forms.html`);
+            await (await client.$("#simple input")).click();
+            await say();
+            t.is(
+              await (
+                await client.$(await client.getActiveElement())
+              ).getAttribute("type"),
+              "password"
+            );
+          },
+        },
       },
       {
         name: "Press Enter",
@@ -68,6 +83,34 @@ export default <IPlugin & IPluginBase>{
         match: "press enter",
         pageFn: () => {
           if (!pressKey("Enter", 13)) backendPressKey(13);
+        },
+        test: {
+          contenteditables: async (t, say, client) => {
+            await client.url(`${t.context.localPageDomain}/text-input.html`);
+            const editor = await client.$("#editor");
+            await editor.clearValue();
+            const [before, _] = await Promise.all([
+              t.context.getInnerText(client, "#editor"),
+              editor.click(),
+            ]);
+            await say();
+            const after = await t.context.getInnerText(client, "#editor");
+            t.true(
+              after.includes("\n"),
+              `before: "${before}" after: "${after}"`
+            );
+            t.not(before, after);
+          },
+          "google search": async (t, say, client) => {
+            await client.url("https://www.google.com");
+            await say("dictate lipsurf");
+            await say();
+            const newUrl = await client.getUrl();
+            t.true(
+              newUrl.includes("/search?"),
+              `seems search was not submitted`
+            );
+          },
         },
       },
       {
