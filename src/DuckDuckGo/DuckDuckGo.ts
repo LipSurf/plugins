@@ -22,9 +22,9 @@ export default <IPluginBase & IPlugin>{
         description: "Do a duckduckgo search.",
         global: true,
         match: "duck *",
-        fn: async (transcript: string, searchQuery: string) => {
+        fn: async (transcript, [rawTs, normTs]: DualTranscript) => {
           chrome.tabs.create({
-            url: `https://duckduckgo.com/?q=${searchQuery}`,
+            url: `https://duckduckgo.com/?q=${rawTs}`,
             active: true,
           });
         },

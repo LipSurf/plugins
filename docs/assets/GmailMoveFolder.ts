@@ -12,7 +12,7 @@ export default <IPluginBase & IPlugin>{
         description: "Move already selected emails to a spoken folder",
         match: {
           description: 'Say "move to [folder name]"',
-          fn: (transcript: string) => {
+          fn: (transcript) => {
             // exercise left to the reader...
           },
         },

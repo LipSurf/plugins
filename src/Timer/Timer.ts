@@ -22,7 +22,7 @@ export default <IPluginBase & IPlugin>{
           // does not handle decimals
           description:
             "set [timer name (optional)] timer for [n] [seconds/minutes/hours]",
-          fn: (transcript: string) => {
+          fn: (transcript) => {
             let match = transcript.match(SET_TIMER_REGX);
             if (match) {
               const endPos = match.index! + match[0].length;
@@ -34,7 +34,7 @@ export default <IPluginBase & IPlugin>{
           },
         },
         fn: async (
-          transcript: string,
+          [rawTs, normTs],
           fullMatch: string,
           timerName: string,
           quantity: string,
@@ -70,7 +70,7 @@ export default <IPluginBase & IPlugin>{
             chrome.notifications.create({
               type: "basic",
               title,
-              message: `"${transcript}"`,
+              message: `"${normTs}"`,
               iconUrl: "assets/icon-timer-48.png",
               requireInteraction: true,
             });

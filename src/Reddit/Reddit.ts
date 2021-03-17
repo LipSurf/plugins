@@ -84,7 +84,7 @@ export default <IPluginBase & IPlugin>{
         name: "View Comments",
         description: "View the comments of a reddit post.",
         match: "comments #",
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           clickIfExists(thingAtIndex(i) + " a.comments");
         },
       },
@@ -92,7 +92,7 @@ export default <IPluginBase & IPlugin>{
         name: "Visit Post",
         description: "Equivalent of clicking a reddit post.",
         match: ["visit[ #/]"],
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           // if we're on the post
           if (COMMENTS_REGX.test(window.location.href)) {
             clickIfExists("#siteTable p.title a.title");
@@ -106,7 +106,7 @@ export default <IPluginBase & IPlugin>{
         description:
           "Expand a preview of a post, or a comment by it's position (rank).",
         match: ["expand[ #/]", "# expand"], // in comments view
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           if (typeof i !== "undefined") {
             let el = <HTMLElement>(
               document.querySelector(
@@ -159,7 +159,7 @@ export default <IPluginBase & IPlugin>{
         description:
           "Collapse an expanded preview (or comment if viewing comments). Defaults to topmost in the view port.",
         match: ["collapse[ #/]", "close"],
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           let index = i === null || isNaN(Number(i)) ? null : Number(i);
           if (index !== null) {
             let el = <HTMLElement>(
@@ -234,10 +234,10 @@ export default <IPluginBase & IPlugin>{
           description: "go to/show r [subreddit name] (do not say slash)",
         },
         delay: 1200,
-        nice: (transcript: string, matchOutput: string) => {
+        nice: (transcript, matchOutput: string) => {
           return `go to r/${matchOutput}`;
         },
-        pageFn: async (transcript: string, subredditName: string) => {
+        pageFn: async (transcript, subredditName: string) => {
           window.location.href = `https://old.reddit.com/r/${subredditName}`;
         },
       },
@@ -254,7 +254,7 @@ export default <IPluginBase & IPlugin>{
         name: "Clear Vote",
         description: "Unsets the last vote so it's neither up or down.",
         match: ["[clear/reset] vote[ #/]"],
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           let index = i === null || isNaN(Number(i)) ? 1 : Number(i);
           clickIfExists(
             `${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(
@@ -268,7 +268,7 @@ export default <IPluginBase & IPlugin>{
         match: ["downvote[ #/]"],
         description:
           "Downvote the current post or a post # (doesn't work for comments yet)",
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           let index = i === null || isNaN(Number(i)) ? 1 : Number(i);
           clickIfExists(`${thingAtIndex(index)} .arrow.down:not(.downmod)`);
         },
@@ -278,7 +278,7 @@ export default <IPluginBase & IPlugin>{
         match: ["upvote[ #/]"],
         description:
           "Upvote the current post or a post # (doesn't work for comments yet)",
-        pageFn: async (transcript: string, i: number) => {
+        pageFn: async (transcript, i: number) => {
           let index = i === null || isNaN(Number(i)) ? 1 : Number(i);
           clickIfExists(`${thingAtIndex(index)} .arrow.up:not(.upmod)`);
         },

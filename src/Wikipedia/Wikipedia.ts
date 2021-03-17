@@ -22,7 +22,7 @@ export default <IPluginBase & IPlugin>{
         description: "Do a wikipedia search.",
         global: true,
         match: "wikipedia *",
-        fn: async (transcript: string, searchQuery: string) => {
+        fn: async (transcript, searchQuery: string) => {
           chrome.tabs.create({
             url: `https://wikipedia.org/w/index.php?search=${encodeURIComponent(
               searchQuery

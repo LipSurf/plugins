@@ -14,13 +14,13 @@ export default <IPluginBase & IPlugin>{
         // say it on any page (not just accuweather domain)
         global: true,
         match: "[weather/forecast] [for/in] *",
-        pageFn: async (transcript: string, q: string) => {
+        pageFn: async (transcript, [rawTs, normTs]: DualTranscript) => {
           // https://api.accuweather.com/locations/v1/cities/autocomplete?q=chiang%20mai&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value
           // ex resp: [{"Version":1,"Key":"317505","Type":"City","Rank":41,"LocalizedName":"Chiang Mai","Country":{"ID":"TH","LocalizedName":"Thailand"},"AdministrativeArea":{"ID":"50","LocalizedName":"Chiang Mai"}}]
           // https://www.accuweather.com/en/th/chiang-mai/317505/weather-forecast/317505
           const resp = await (
             await window.fetch(
-              `https://api.accuweather.com/locations/v1/cities/autocomplete?q=${q}&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value`
+              `https://api.accuweather.com/locations/v1/cities/autocomplete?q=${rawTs}&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value`
             )
           ).json();
           let cityId = resp[0].Key;

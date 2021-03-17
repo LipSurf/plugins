@@ -47,7 +47,7 @@ export default <IPluginBase & IPlugin>{
         name: "Upvote",
         description: "Upvote a post.",
         match: ["upvote[ #/]"],
-        pageFn: (transcript: string, index: number) => {
+        pageFn: (transcript, index: number) => {
           let parent: HTMLElement | Document | undefined = document;
           if (!isInComments()) {
             parent = getThingAtIndex(index);
@@ -62,7 +62,7 @@ export default <IPluginBase & IPlugin>{
         name: "Visit Comments",
         description: "See the comments for a given post.",
         match: ["[comments/discuss] #"],
-        pageFn: (transcript: string, index: number) => {
+        pageFn: (transcript, index: number) => {
           let thing = getThingAtIndex(index);
           if (thing)
             clickIfExists(
@@ -76,7 +76,7 @@ export default <IPluginBase & IPlugin>{
         name: "Visit Post",
         description: "Visit a post.",
         match: ["visit[ #/]"],
-        pageFn: (transcript: string, index: number) => {
+        pageFn: (transcript, index: number) => {
           let parent: HTMLElement | Document | undefined = document;
           if (!isInComments()) {
             parent = getThingAtIndex(index);
@@ -89,7 +89,7 @@ export default <IPluginBase & IPlugin>{
         name: "Next Page",
         description: "Show more Hacker News items.",
         match: ["next page", "[show /]more"],
-        pageFn: (transcript: string, index: number) => {
+        pageFn: (transcript, index: number) => {
           clickIfExists(document.querySelector<HTMLElement>("a.morelink"));
         },
       },

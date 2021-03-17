@@ -20,7 +20,7 @@ export default <IPluginBase & IPlugin>{
         global: true,
         match: {
           description: "open [website name] for [n] [seconds/minutes/hours]",
-          fn: (transcript: string) => {
+          fn: (transcript) => {
             const match = transcript.match(OPEN_X_FOR_Y_TIME_REGX);
             if (match) {
               const endPos = match.index! + match[0].length;
@@ -35,7 +35,7 @@ export default <IPluginBase & IPlugin>{
         // delay is needed to get more accurate site name
         delay: 600,
         fn: async (
-          transcript: string,
+          transcript,
           fullMatch: string,
           siteStr: string,
           secondsStr: string,

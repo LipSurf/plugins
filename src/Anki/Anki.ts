@@ -33,9 +33,8 @@ export default <IPluginBase & IPlugin>{
         description: "Select the ease level after seeing the answer.",
         // only works with the default ease levels...
         match: ["again", "hard", "good", "easy"],
-        pageFn: async (transcript: string) => {
-          let capitalized =
-            transcript.charAt(0).toUpperCase() + transcript.slice(1);
+        pageFn: async ([rawTs, normTs]) => {
+          let capitalized = normTs.charAt(0).toUpperCase() + normTs.slice(1);
           (<HTMLElement>(
             document.evaluate(
               `//*[@id='easebuts']//button[contains(text(), "${capitalized}")]`,

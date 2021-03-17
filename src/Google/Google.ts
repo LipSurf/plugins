@@ -22,8 +22,8 @@ export default <IPluginBase & IPlugin>{
         description: "Do a google search.",
         global: true,
         match: "google *",
-        pageFn: (transcript: string, searchQuery: string) => {
-          window.location.href = `https://www.google.com/search?q=${searchQuery}`;
+        pageFn: (transcript, [rawTs, normTs]: DualTranscript) => {
+          window.location.href = `https://www.google.com/search?q=${rawTs}`;
         },
       },
       {
@@ -32,8 +32,8 @@ export default <IPluginBase & IPlugin>{
           'Equivalent to hitting the "I\'m feeling lucky" button for a Google search. Goes to the first result of the search query if Google feels confident with the results.',
         global: true,
         match: "feeling lucky *",
-        pageFn: (transcript: string, searchQuery: string) => {
-          window.location.href = `https://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=${searchQuery}`;
+        pageFn: (transcript, [rawTs, normTs]: DualTranscript) => {
+          window.location.href = `https://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=${rawTs}`;
         },
       },
       {
