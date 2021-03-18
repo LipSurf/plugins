@@ -30,7 +30,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Weather",
     match: /.*accuweather\.com/,
-    version: "3.11.4",
+    version: "4.0.0",
     commands: [
       {
         name: "Check the Weather",

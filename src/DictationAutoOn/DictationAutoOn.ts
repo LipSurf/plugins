@@ -7,7 +7,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Dictation Auto On",
     description:
       "Automatically go into dictation mode when LipSurf is turned on.",
-    version: "3.11.4",
+    version: "4.0.0",
     match: /.*/,
     authors: "Miko",
 
