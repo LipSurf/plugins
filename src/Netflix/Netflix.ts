@@ -234,8 +234,20 @@ export default <IPluginBase & IPlugin>{
     description:
       "A Netflix plugin to assist audience in operating the video player and navigating through netflix web application",
     match: /.*\.netflix.com/,
-    version: "1.0.0",
-    init: () => contextManager.enable(),
+    version: "1.0.1",
+    authors: "Alan, Miko",
+    init: () => {
+      if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
+        const script = document.createElement("script");
+        script.id = LIPSURF_BOOT_SCRIPT_ID;
+        script.textContent = `(${injectables.toString()})("${TO_PAGE_PROOF_KEY}","${FROM_PAGE_PROOF_KEY}");`;
+        ((document.head || document.documentElement) as any).appendChild(
+          script
+        );
+        script.remove();
+      }
+      contextManager.enable();
+    },
     destroy: () => contextManager.disable(),
     homophones: {
       /**
@@ -836,11 +848,3 @@ export const injectables = (
 
   window.addEventListener("message", (ev) => receiveMessage(ev.data));
 };
-
-if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
-  const script = document.createElement("script");
-  script.id = LIPSURF_BOOT_SCRIPT_ID;
-  script.textContent = `(${injectables.toString()})("${TO_PAGE_PROOF_KEY}","${FROM_PAGE_PROOF_KEY}");`;
-  ((document.head || document.documentElement) as any).appendChild(script);
-  script.remove();
-}
