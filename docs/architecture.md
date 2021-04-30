@@ -41,3 +41,7 @@ All relevant examples will be given in TypeScript.
 Here is an example of a simple, complete plugin:
 
 <<< @/docs/assets/Gmail.ts
+
+## Gotchas
+
+enums may cause issues if they are referenced in top-level scope. This is a shortcoming of the current plugin builder. As a workaround, you can use plain JavaScript objects instead of TypeScript enums.

@@ -63,16 +63,18 @@ const navigateToWatch = (videoId: string) => {
 
 // Context
 
-enum NetflixPluginContextEnum {
-  watch = "Netflix Video Player Controls",
-  browse = "Browse Netflix",
-}
-type NetflixPluginContext = NetflixPluginContextEnum | null;
+// this was an enum before, but that caused issues with
+// plugin building
+type NetflixPluginContext = "Netflix Video Player Controls" | "Browse Netflix";
+const NetflixPluginContextEnum: { [key: string]: NetflixPluginContext } = {
+  watch: "Netflix Video Player Controls",
+  browse: "Browse Netflix",
+};
 
 const contextManager = (() => {
   let enabled = true;
 
-  const createContextFromUrl = (url: URL): NetflixPluginContext => {
+  const createContextFromUrl = (url: URL): NetflixPluginContext | null => {
     const { pathname } = url;
     switch (true) {
       case pathname.startsWith("/watch"):
@@ -87,7 +89,7 @@ const contextManager = (() => {
     }
   };
 
-  const setContext = (context: NetflixPluginContext) => {
+  const setContext = (context: NetflixPluginContext | null) => {
     const currentContextSet = new Set(PluginBase.util.getContext());
     currentContextSet.delete(PluginBase.constants.contexts.Normal);
     currentContextSet.delete(NetflixPluginContextEnum.watch);
