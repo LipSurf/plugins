@@ -1,9 +1,3 @@
-import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';var DictationAutoOn={...PluginBase,niceName:"Dictation Auto On",languages:{},description:"Automatically go into dictation mode when LipSurf is turned on.",version:"4.0.0",match:/.*/,authors:"Miko",init:()=>{PluginBase.util.enterContext(["Dictate"]);},commands:[]};
-
-export default DictationAutoOn;LS-SPLITallPlugins.DictationAutoOn = (() => { var DictationAutoOn={...PluginBase,init:()=>{PluginBase.util.enterContext(["Dictate"]);},commands:{}};
-
-return DictationAutoOn;
- })()LS-SPLITallPlugins.DictationAutoOn = (() => { var DictationAutoOn={...PluginBase,init:()=>{PluginBase.util.enterContext(["Dictate"]);},commands:{}};
-
-return DictationAutoOn;
- })()
+import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';var t={...PluginBase,languages:{},niceName:"Dictation Auto On",description:"Automatically go into dictation mode when LipSurf is turned on.",version:"4.0.0",match:/.*/,authors:"Miko",init:()=>{PluginBase.util.enterContext(["Dictate"])},commands:[]},a=t;export{a as default};
+LS-SPLITallPlugins.DictationAutoOn=(()=>({...PluginBase,init:()=>{PluginBase.util.enterContext(["Dictate"])},commands:{}}))();
+LS-SPLITallPlugins.DictationAutoOn=(()=>({...PluginBase,init:()=>{PluginBase.util.enterContext(["Dictate"])},commands:{}}))();
