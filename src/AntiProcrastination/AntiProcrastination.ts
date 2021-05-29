@@ -20,12 +20,12 @@ export default <IPluginBase & IPlugin>{
         global: true,
         match: {
           description: "open [website name] for [n] [seconds/minutes/hours]",
-          fn: (transcript) => {
-            const match = transcript.match(OPEN_X_FOR_Y_TIME_REGX);
+          fn: ([rawTs, normTs]) => {
+            const match = normTs.match(OPEN_X_FOR_Y_TIME_REGX);
             if (match) {
               const endPos = match.index! + match[0].length;
               return [match.index!, endPos, match];
-            } else if (OPEN_REGX.test(transcript)) {
+            } else if (OPEN_REGX.test(normTs)) {
               // ideally it would be smarter than just testing (open) but that functionality
               // should be built into the recognizer
               return false;

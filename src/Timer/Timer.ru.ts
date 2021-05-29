@@ -14,8 +14,8 @@ Timer.languages!.ru = {
         // does not handle decimals
         description:
           'Скажите "Установить таймер [имя таймера (не обязательно)] на x секунд/минут/часов"',
-        fn: (transcript) => {
-          const match = transcript.match(
+        fn: ([rawTs, normTs]) => {
+          const match = normTs.match(
             /\bустановить (?:(.*) )?таймер (?:на )?(полчаса|полтора часа|(\d+) ?(секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)(?:(?: и)? (?:(?:(\d+) (секунд(?:у|ы)?|минут(?:у|ы)?))))?)\b/
           );
           if (match) {
@@ -54,7 +54,7 @@ Timer.languages!.ru = {
               ],
             ];
           } else if (
-            /\bустановить (?:(.*) )?(?:таймер)? (?:на )?/.test(transcript)
+            /\bустановить (?:(.*) )?(?:таймер)? (?:на )?/.test(normTs)
           ) {
             // ideally it would be smarter. Smartness should be built into the recognizer
             return false;

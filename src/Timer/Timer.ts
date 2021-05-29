@@ -22,12 +22,12 @@ export default <IPluginBase & IPlugin>{
           // does not handle decimals
           description:
             "set [timer name (optional)] timer for [n] [seconds/minutes/hours]",
-          fn: (transcript) => {
-            let match = transcript.match(SET_TIMER_REGX);
+          fn: ([rawTs, normTs]) => {
+            let match = normTs.match(SET_TIMER_REGX);
             if (match) {
               const endPos = match.index! + match[0].length;
               return [match.index!, endPos, match];
-            } else if (PARTIAL_SET_TIMER_REGX.test(transcript)) {
+            } else if (PARTIAL_SET_TIMER_REGX.test(normTs)) {
               // ideally it would be smarter. Smartness should be built into the recognizer
               return false;
             }

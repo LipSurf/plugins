@@ -1,2 +1,22 @@
-import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';var e={...PluginBase,languages:{},niceName:"Period Fix",description:'Some recognizers do not put a period but literally write "period" (something to do with region or Chrome OS perhaps). This is a workaround for that.',version:"4.0.0",match:/.*/,authors:"Miko Borys",replacements:[{pattern:/ ?period/,replacement:".",context:"Dictate"}],commands:[]},r=e;export{r as default};
+import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';// dist/tmp/PeriodFix/PeriodFix.js
+var PeriodFix_default = {
+  ...PluginBase,
+  languages: {},
+  niceName: "Period Fix",
+  description: 'Some recognizers do not put a period but literally write "period" (something to do with region or Chrome OS perhaps). This is a workaround for that.',
+  version: "4.0.0",
+  match: /.*/,
+  authors: "Miko Borys",
+  replacements: [
+    {
+      pattern: / ?period/,
+      replacement: ".",
+      context: "Dictate"
+    }
+  ],
+  commands: []
+}, dumby_default = PeriodFix_default;
+export {
+  dumby_default as default
+};
 LS-SPLITLS-SPLIT

@@ -12,8 +12,8 @@ AntiProcrastination.languages!.ru = {
       match: {
         description:
           'Скажите "открыть [название сайта] на x секунд/минут/часов"',
-        fn: (transcript) => {
-          let match = transcript.match(
+        fn: ([rawTs, normTs]) => {
+          let match = normTs.match(
             /\bоткрыть (.*) на (\d+) (секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)\b/
           );
           if (match) {
@@ -24,7 +24,7 @@ AntiProcrastination.languages!.ru = {
               ? "hour"
               : "second";
             return [match.index!, endPos, match];
-          } else if (/\bоткрыть\b/.test(transcript)) {
+          } else if (/\bоткрыть\b/.test(normTs)) {
             // ideally it would be smarter than just testing (open) but that functionality
             // should be built into the recognizer
             return false;
