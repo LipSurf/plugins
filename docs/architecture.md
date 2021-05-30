@@ -44,4 +44,4 @@ Here is an example of a simple, complete plugin:
 
 ## Gotchas
 
-enums may cause issues if they are referenced in top-level scope. This is a shortcoming of the current plugin builder. As a workaround, you can use plain JavaScript objects instead of TypeScript enums.
+* enums may cause issues if they are referenced in top-level scope. This is a shortcoming of the current plugin builder. As a workaround, you can use plain JavaScript objects instead of TypeScript enums.
