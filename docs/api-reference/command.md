@@ -35,7 +35,7 @@ Each command has the following properties:
 ### pageFn 
 
 - Optional
-- Type:  `(transcript: DualTranscript, ...matchOutput: any) => Promise<void>` 
+- Type:  `(transcript: TsData, ...matchOutput: any) => Promise<void>` 
 
  An async function to run on the page when the command is called. Special matches (`*` and `#`) will be arguments after the transcript string argument, and will come in the order they are specified in the match property. `rawTranscript` is the transcript before trimming, lowercasing, removing hyphens, and other special characters. There will be a number argument if the match string accepts an ordinal (eg. has a `#`) in it, or a string argument if the match string accepts a wildcard (eg. has a `*` in it).<br><br>Optionally resolve the promise when this function is finished to help chaining work. Eg. we can use `return await PluginBase.util.sleep(500);` if we know a command will take no longer than 500ms to finish, and to only execute the next command in the chain after that 500ms delay.<br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn)
 
@@ -49,7 +49,7 @@ Each command has the following properties:
 ### fn 
 
 - Optional
-- Type:  `(transcript: DualTranscript, ...matchOutput: any) => Promise<void>` 
+- Type:  `(transcript: TsData, ...matchOutput: any) => Promise<void>` 
 
  An async function that runs in the Chrome extension context when the command is called. First arg is the transcript that matched, rest of arguments are what's returned from the match command. <br><br>Resolve this promise when the command is done executing in order for chaining to work properly (if desired).<br><br> Also see [fn vs. pageFn](/api-reference/command.md#fn-vs-pagefn).
 
@@ -190,7 +190,7 @@ Delays for a localized version of a command can be completely different from the
 ### nice
 
  - Optional
- - Type: `string | ((transcript: DualTranscript, ...matchOutput: any[]) => string)`
+ - Type: `string | ((transcript: TsData, ...matchOutput: any[]) => string)`
 
 Sometimes we want to adjust the transcript as it is shown on the live transcript. For example if the user says <span class="voice-cmd">go to are meal time videos</span> we would want to show that as <span class="voice-cmd">go to r/mealtimevideos</span>.
 

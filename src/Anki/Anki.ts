@@ -33,7 +33,7 @@ export default <IPluginBase & IPlugin>{
         description: "Select the ease level after seeing the answer.",
         // only works with the default ease levels...
         match: ["again", "hard", "good", "easy"],
-        pageFn: async ([rawTs, normTs]) => {
+        pageFn: async ({preTs, normTs}) => {
           let capitalized = normTs.charAt(0).toUpperCase() + normTs.slice(1);
           (<HTMLElement>(
             document.evaluate(

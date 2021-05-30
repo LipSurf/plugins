@@ -12,7 +12,7 @@ AntiProcrastination.languages!.ru = {
       match: {
         description:
           'Скажите "открыть [название сайта] на x секунд/минут/часов"',
-        fn: ([rawTs, normTs]) => {
+        fn: ({preTs, normTs}) => {
           let match = normTs.match(
             /\bоткрыть (.*) на (\d+) (секунд(?:у|ы)?|минут(?:у|ы)?|час(?:а|ов)?)\b/
           );

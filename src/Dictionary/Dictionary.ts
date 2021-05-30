@@ -20,12 +20,12 @@ export default <IPluginBase & IPlugin>{
         description: "Lookup a word in the dictionary.",
         global: true,
         match: "dictionary *",
-        pageFn: async (transcript, [rawTs, normTs]: DualTranscript) => {
+        pageFn: async (transcript, {preTs, normTs}: TsData) => {
           let selectedLang = PluginBase.util.getLanguage();
           if (selectedLang.startsWith("en")) {
-            window.location.href = `https://www.merriam-webster.com/dictionary/${rawTs}`;
+            window.location.href = `https://www.merriam-webster.com/dictionary/${normTs}`;
           } else {
-            window.location.href = `https://www.weblio.jp/content/${rawTs}`;
+            window.location.href = `https://www.weblio.jp/content/${normTs}`;
           }
         },
       },

@@ -17,8 +17,8 @@ export default <IPluginBase & IPlugin>{
           "Lookup an English word in an English ⬌ Japanese dictionary.",
         global: true,
         match: "japanese dictionary *",
-        pageFn: async (transcript, [rawTs, normTs]: DualTranscript) => {
-          window.location.href = `https://jisho.org/search/${rawTs}`;
+        pageFn: async (transcript, {preTs, normTs}: TsData) => {
+          window.location.href = `https://jisho.org/search/${preTs}`;
         },
       },
     ],

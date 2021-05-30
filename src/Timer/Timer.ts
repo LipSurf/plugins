@@ -22,7 +22,7 @@ export default <IPluginBase & IPlugin>{
           // does not handle decimals
           description:
             "set [timer name (optional)] timer for [n] [seconds/minutes/hours]",
-          fn: ([rawTs, normTs]) => {
+          fn: ({preTs, normTs}) => {
             let match = normTs.match(SET_TIMER_REGX);
             if (match) {
               const endPos = match.index! + match[0].length;
@@ -34,7 +34,7 @@ export default <IPluginBase & IPlugin>{
           },
         },
         fn: async (
-          [rawTs, normTs],
+          {preTs, normTs},
           fullMatch: string,
           timerName: string,
           quantity: string,

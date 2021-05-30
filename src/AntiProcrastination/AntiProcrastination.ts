@@ -20,7 +20,7 @@ export default <IPluginBase & IPlugin>{
         global: true,
         match: {
           description: "open [website name] for [n] [seconds/minutes/hours]",
-          fn: ([rawTs, normTs]) => {
+          fn: ({preTs, normTs}) => {
             const match = normTs.match(OPEN_X_FOR_Y_TIME_REGX);
             if (match) {
               const endPos = match.index! + match[0].length;
