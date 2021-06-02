@@ -222,9 +222,9 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Go to Subreddit",
         match: {
-          fn: (input: string) => {
+          fn: ({normTs, preTs}) => {
             const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
-            let match = input.match(SUBREDDIT_REGX);
+            let match = preTs.match(SUBREDDIT_REGX);
             // console.log(`navigate subreddit input: ${input} match: ${match}`);
             if (match) {
               const endPos = match.index! + match[0].length;
