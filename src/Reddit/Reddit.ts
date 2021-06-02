@@ -233,7 +233,7 @@ export default <IPluginBase & IPlugin>{
           },
           description: "go to/show r [subreddit name] (do not say slash)",
         },
-        delay: 1200,
+        isFinal: true,
         nice: (transcript, matchOutput: string) => {
           return `go to r/${matchOutput}`;
         },
