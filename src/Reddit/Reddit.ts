@@ -141,7 +141,7 @@ export default <IPluginBase & IPlugin>{
             }
           }
         },
-        test: async (t: ExecutionContext<ICommandTestContext>, say, client) => {
+        test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
             `${t.context.localPageDomain}/reddit-r-comics.html?fakeUrl=https://www.reddit.com/r/comics`
           );
@@ -180,7 +180,7 @@ export default <IPluginBase & IPlugin>{
             }
           }
         },
-        test: async (t: ExecutionContext<ICommandTestContext>, say, client) => {
+        test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
             "https://old.reddit.com/r/IAmA/comments/z1c9z/i_am_barack_obama_president_of_the_united_states/"
           );

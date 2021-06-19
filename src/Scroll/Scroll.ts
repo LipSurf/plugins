@@ -278,7 +278,7 @@ function queryScrollPos(querySelector?: string) {
 }
 
 async function testScroll(
-  t: ExecutionContext<ICommandTestContext>,
+  t: ExecutionContext<ICmdTestContext>,
   say: (phrase?: string) => Promise<void>,
   client: WebdriverIO.BrowserObject,
   url: string,
