@@ -14,7 +14,7 @@ export default <IPluginBase & IPlugin>{
           "Open a new tab with x website for y minutes. Useful for limiting the time-sucking power of sites like facebook, reddit, twitter etc.",
         global: true,
         match: "open * for # minutes",
-        pageFn: (transcript, siteStr: string, minutes: number) => {
+        pageFn: (transcript, siteStr: TsData, minutes: number) => {
           console.log(`site: ${siteStr}, minutes: ${minutes}`);
         },
       },

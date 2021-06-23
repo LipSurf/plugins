@@ -20,7 +20,7 @@ export default <IPluginBase & IPlugin>{
           // https://www.accuweather.com/en/th/chiang-mai/317505/weather-forecast/317505
           const resp = await (
             await window.fetch(
-              `https://api.accuweather.com/locations/v1/cities/autocomplete?q=${rawTs}&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value`
+              `https://api.accuweather.com/locations/v1/cities/autocomplete?q=${preTs}&apikey=d41dfd5e8a1748d0970cba6637647d96&language=en-us&get_param=value`
             )
           ).json();
           let cityId = resp[0].Key;
