@@ -22,6 +22,7 @@ export default <IPluginBase & IPlugin>{
     description:
       "Permissions must be granted with the mouse the first time this plugin is used.",
     version: "4.0.0",
+    apiVersion: 2,
     match: /.*/,
     homophones: {
       coffee: "copy",

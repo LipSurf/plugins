@@ -31,6 +31,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Weather",
     match: /.*accuweather\.com/,
     version: "4.0.0",
+    apiVersion: 2,
     commands: [
       {
         name: "Check the Weather",
@@ -38,7 +39,7 @@ export default <IPluginBase & IPlugin>{
         // say it on any page (not just accuweather domain)
         global: true,
         match: ["[weather/forecast] [for/in] *"],
-        pageFn: async (transcript, q: string) => {
+        pageFn: async (transcript, q: TsData) => {
           const curLang = PluginBase.util.getLanguage();
           const shortenedLang: LanguageCode = <LanguageCode>(
             curLang.substr(0, 2)
@@ -51,7 +52,7 @@ export default <IPluginBase & IPlugin>{
           } else {
             chosenLang = "en";
           }
-          return weatherForLang[chosenLang](q);
+          return weatherForLang[chosenLang](q.preTs);
         },
       },
     ],

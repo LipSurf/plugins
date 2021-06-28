@@ -60,6 +60,7 @@ export default <IPluginBase & IPlugin>{
     description: "An experimental plugin for spotify.com",
     match: SpotifyPlayerUrlRegexMatch,
     version: "0.0.9",
+    apiVersion: 2,
     authors: "Ahmed Kamal",
     init: function () {
       if (SpotifyPlayerUrlRegexMatch.test(window.location.origin)) {

@@ -11,6 +11,7 @@ export default <IPluginBase & IPlugin>{
     description: "Tools for curbing procrastination.",
     match: /.*/,
     version: "4.0.0",
+    apiVersion: 2,
     authors: "Miko",
     commands: [
       {

@@ -10,6 +10,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Top Sites",
     description: "Shortcuts for going to popular websites.",
     version: "4.0.0",
+    apiVersion: 2,
     match: /.*/,
     authors: "Miko",
 
@@ -20,7 +21,7 @@ export default <IPluginBase & IPlugin>{
         match: "youtube",
         nice: "YouTube",
         minConfidence: 0.5,
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.youtube.com/";
         },
       },
@@ -28,7 +29,7 @@ export default <IPluginBase & IPlugin>{
         name: "Wikipedia",
         global: true,
         match: "wikipedia",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.wikipedia.org/";
         },
       },
@@ -36,7 +37,7 @@ export default <IPluginBase & IPlugin>{
         name: "Facebook",
         global: true,
         match: "facebook",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.facebook.com/";
         },
       },
@@ -44,7 +45,7 @@ export default <IPluginBase & IPlugin>{
         name: "Twitter",
         global: true,
         match: "twitter",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://twitter.com/";
         },
       },
@@ -52,7 +53,7 @@ export default <IPluginBase & IPlugin>{
         name: "Instagram",
         global: true,
         match: "instagram",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.instagram.com/";
         },
       },
@@ -60,7 +61,7 @@ export default <IPluginBase & IPlugin>{
         name: "Amazon",
         global: true,
         match: "amazon",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.amazon.com/";
         },
       },
@@ -68,7 +69,7 @@ export default <IPluginBase & IPlugin>{
         name: "Ebay",
         global: true,
         match: "ebay",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.ebay.com/";
         },
       },
@@ -77,7 +78,7 @@ export default <IPluginBase & IPlugin>{
         global: true,
         match: "vk",
         minConfidence: 0.5,
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://vk.com";
         },
       },
@@ -86,7 +87,7 @@ export default <IPluginBase & IPlugin>{
         global: true,
         match: "netflix",
         minConfidence: 0.5,
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.netflix.com";
         },
       },
@@ -94,7 +95,7 @@ export default <IPluginBase & IPlugin>{
         name: "Twitch",
         global: true,
         match: "twitch",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://twitch.tv";
         },
       },
@@ -102,7 +103,7 @@ export default <IPluginBase & IPlugin>{
         name: "New York Times",
         global: true,
         match: "new york times",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.nytimes.com";
         },
       },
@@ -110,7 +111,7 @@ export default <IPluginBase & IPlugin>{
         name: "Github",
         global: true,
         match: "github",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://github.com/";
         },
       },
@@ -118,7 +119,7 @@ export default <IPluginBase & IPlugin>{
         name: "Product Hunt",
         global: true,
         match: "product hunt",
-        pageFn: async () => {
+        pageFn: () => {
           window.location.href = "https://www.producthunt.com";
         },
       },

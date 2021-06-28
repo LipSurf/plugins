@@ -10,6 +10,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Wikipedia",
     description: "The Wikipedia search engine.",
     version: "4.0.0",
+    apiVersion: 2,
     match: /.*/,
     homophones: {
       wiki: "wikipedia",

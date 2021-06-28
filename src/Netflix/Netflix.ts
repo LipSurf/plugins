@@ -237,6 +237,7 @@ export default <IPluginBase & IPlugin>{
       "A Netflix plugin to assist audience in operating the video player and navigating through netflix web application",
     match: /.*\.netflix.com/,
     version: "1.0.1",
+    apiVersion: 2,
     authors: "Alan, Miko",
     init: () => {
       if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
@@ -335,7 +336,7 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Volume Set In Percentage",
         match: "set [volume/sound level] to # percent",
-        pageFn: (_: string, volumePercentage: number) =>
+        pageFn: (transcript, volumePercentage: number) =>
           sendMessage({
             key: "volume",
             sub: { key: "setPercent", percentage: volumePercentage / 100 },
@@ -345,13 +346,12 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Change Audio",
         match: ["[/change/switch] audio to *"],
-        pageFn: (_: string, audioName?: string) =>
-          !!audioName &&
+        pageFn: (transcript, audioName: TsData) =>
           sendMessage({
             key: "changeAudio",
             sub: {
               key: "ask",
-              query: audioName,
+              query: audioName.normTs,
             },
           }),
         normal: false,
@@ -359,13 +359,12 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Change Subtitle",
         match: ["[/change/switch] [text/subtitle] to *"],
-        pageFn: (_: string, textName?: string) =>
-          !!textName &&
+        pageFn: (transcript, textName: TsData) =>
           sendMessage({
             key: "changeText",
             sub: {
               key: "ask",
-              query: textName,
+              query: textName.normTs,
             },
           }),
         normal: false,
@@ -373,7 +372,7 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Seek To By Minute and Second",
         match: ["skip to minute #", "skip to minute # second #"],
-        pageFn: (_: string, minute: number, second = 0) =>
+        pageFn: (transcript, minute: number, second = 0) =>
           sendMessage({
             key: "skip",
             sub: { key: "to", timestamp: (60 * minute + second) * 1000 },
@@ -383,7 +382,7 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Seek To By Second",
         match: ["skip to second #"],
-        pageFn: (_: string, second: number) =>
+        pageFn: (transcript, second: number) =>
           sendMessage({
             key: "skip",
             sub: { key: "to", timestamp: second * 1000 },
@@ -396,7 +395,7 @@ export default <IPluginBase & IPlugin>{
           "skip ahead # [minute/minutes]",
           "skip ahead # [minute/minutes] # [second/seconds]",
         ],
-        pageFn: (_: string, minute: number, second = 0) =>
+        pageFn: (transcript, minute: number, second = 0) =>
           sendMessage({
             key: "skip",
             sub: { key: "ahead", duration: (60 * minute + second) * 1000 },
@@ -406,7 +405,7 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Seek Ahead By Second",
         match: ["skip ahead # [second/seconds]"],
-        pageFn: (_: string, second: number) =>
+        pageFn: (transcript, second: number) =>
           sendMessage({
             key: "skip",
             sub: { key: "ahead", duration: second * 1000 },
@@ -419,7 +418,7 @@ export default <IPluginBase & IPlugin>{
           "skip behind # [minute/minutes]",
           "skip behind # [minute/minutes] # [second/seconds]",
         ],
-        pageFn: (_: string, minute: number, second = 0) =>
+        pageFn: (transcript, minute: number, second = 0) =>
           sendMessage({
             key: "skip",
             sub: { key: "behind", duration: (60 * minute + second) * 1000 },
@@ -429,7 +428,7 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Seek Behind By Second",
         match: ["skip behind # [second/seconds]"],
-        pageFn: (_: string, second: number) =>
+        pageFn: (transcript, second: number) =>
           sendMessage({
             key: "skip",
             sub: { key: "behind", duration: second * 1000 },
@@ -440,12 +439,12 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Watch By Title",
         match: ["[watch/play] *"],
-        pageFn: (_: string, query: string) =>
+        pageFn: (transcript, query: TsData) =>
           sendMessage({
             key: "watch",
             sub: {
               key: "ask-videos",
-              query,
+              query: query.normTs,
             },
           }),
         normal: false,
@@ -453,13 +452,13 @@ export default <IPluginBase & IPlugin>{
       {
         name: "Watch Random Show",
         match: ["random"],
-        pageFn: (_: string) => sendMessage({ key: "watchRandom" }),
+        pageFn: () => sendMessage({ key: "watchRandom" }),
         normal: false,
       },
       {
         name: "Search Show",
         match: ["search *"],
-        pageFn: (_: string, title: string) => navigateToSearch(title),
+        pageFn: (transcript, title: TsData) => navigateToSearch(title.normTs),
         normal: false,
       },
     ],
