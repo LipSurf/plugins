@@ -1,3 +1,365 @@
-import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';var b="lipsurf-netflix-script",S=PluginBase.util.getNoCollisionUniqueAttr(),x=PluginBase.util.getNoCollisionUniqueAttr(),i=a=>window.postMessage(JSON.stringify({proofKey:S,payload:a})),M=a=>{try{return JSON.parse(a)}catch(n){return null}},W=(a,n,r)=>{let c=M(a);c&&c.proofKey===n&&r(c.payload)},P=a=>{window.location.href=`https://www.netflix.com/search?q=${encodeURIComponent(a)}`},C=a=>{window.location.href=`https://www.netflix.com/watch/${a}`},h={watch:"Netflix Video Player Controls",browse:"Browse Netflix"},B=(()=>{let a=!0,n=u=>{let{pathname:o}=u;switch(!0){case o.startsWith("/watch"):return h.watch;case o.startsWith("/latest"):case o.startsWith("/browse"):case o.startsWith("/title"):case o.startsWith("/search"):return h.browse;default:return null}},r=u=>{let o=new Set(PluginBase.util.getContext());switch(o.delete(PluginBase.constants.contexts.Normal),o.delete(h.watch),o.delete(h.browse),!0){case u===h.browse:{PluginBase.util.enterContext([h.browse,PluginBase.constants.contexts.Normal,...Array.from(o)]);return}case u===h.watch:{PluginBase.util.enterContext([h.watch,...Array.from(o)]);return}default:{PluginBase.util.removeContext(h.watch),PluginBase.util.removeContext(h.browse),PluginBase.util.addContext(PluginBase.constants.contexts.Normal);return}}},c=()=>{try{r(n(new URL(window.location.href)))}catch(u){console.error(u)}};return{enable:async()=>{for(a=!0;a;)c(),await new Promise(u=>setTimeout(u,1e3))},disable:()=>{a=!1,PluginBase.util.enterContext([PluginBase.constants.contexts.Normal])}}})(),R={...PluginBase,languages:{},niceName:"Netflix",description:"A Netflix plugin to assist audience in operating the video player and navigating through netflix web application",match:/.*\.netflix.com/,version:"1.0.1",apiVersion:2,authors:"Alan, Miko",init:()=>{if(!document.getElementById(b)){let a=document.createElement("script");a.id=b,a.textContent=`(${L.toString()})("${S}","${x}");`,(document.head||document.documentElement).appendChild(a),a.remove()}B.enable()},destroy:()=>B.disable(),homophones:{search:"search"},contexts:{[h.watch]:{commands:["Pause Video","Play Video","Volume Up","Volume Down","Volume Full","Volume Zero","Volume Half","Volume Set In Percentage","Change Audio","Change Subtitle","Seek To By Minute and Second","Seek To By Second","Seek Ahead By Second","Seek Ahead By Second","Seek Behind By Second","Seek Behind By Second"]},[h.browse]:{commands:["Watch By Title","Watch Random Show","Search Show"]}},commands:[{name:"Override::Netflix",match:"netflix",pageFn:()=>{}},{name:"Pause Video",match:["pause","stop"],pageFn:()=>i({key:"pause"}),normal:!1},{name:"Play Video",match:"play",pageFn:()=>i({key:"play"}),normal:!1},{name:"Volume Up",match:"[volume/sound level] up",pageFn:()=>i({key:"volume",sub:{key:"up"}}),normal:!1},{name:"Volume Down",match:"[volume/sound level] down",pageFn:()=>i({key:"volume",sub:{key:"down"}}),normal:!1},{name:"Volume Full",match:"[volume/sound level] full",pageFn:()=>i({key:"volume",sub:{key:"full"}}),normal:!1},{name:"Volume Zero",match:"[volume/sound level] zero",pageFn:()=>i({key:"volume",sub:{key:"zero"}}),normal:!1},{name:"Volume Half",match:"[volume/sound level] half",pageFn:()=>i({key:"volume",sub:{key:"half"}}),normal:!1},{name:"Volume Set In Percentage",match:"set [volume/sound level] to # percent",pageFn:(a,n)=>i({key:"volume",sub:{key:"setPercent",percentage:n/100}}),normal:!1},{name:"Change Audio",match:["[/change/switch] audio to *"],pageFn:(a,n)=>i({key:"changeAudio",sub:{key:"ask",query:n.normTs}}),normal:!1},{name:"Change Subtitle",match:["[/change/switch] [text/subtitle] to *"],pageFn:(a,n)=>i({key:"changeText",sub:{key:"ask",query:n.normTs}}),normal:!1},{name:"Seek To By Minute and Second",match:["skip to minute #","skip to minute # second #"],pageFn:(a,n,r=0)=>i({key:"skip",sub:{key:"to",timestamp:(60*n+r)*1e3}}),normal:!1},{name:"Seek To By Second",match:["skip to second #"],pageFn:(a,n)=>i({key:"skip",sub:{key:"to",timestamp:n*1e3}}),normal:!1},{name:"Seek Ahead By Second",match:["skip ahead # [minute/minutes]","skip ahead # [minute/minutes] # [second/seconds]"],pageFn:(a,n,r=0)=>i({key:"skip",sub:{key:"ahead",duration:(60*n+r)*1e3}}),normal:!1},{name:"Seek Ahead By Second",match:["skip ahead # [second/seconds]"],pageFn:(a,n)=>i({key:"skip",sub:{key:"ahead",duration:n*1e3}}),normal:!1},{name:"Seek Behind By Second",match:["skip behind # [minute/minutes]","skip behind # [minute/minutes] # [second/seconds]"],pageFn:(a,n,r=0)=>i({key:"skip",sub:{key:"behind",duration:(60*n+r)*1e3}}),normal:!1},{name:"Seek Behind By Second",match:["skip behind # [second/seconds]"],pageFn:(a,n)=>i({key:"skip",sub:{key:"behind",duration:n*1e3}}),normal:!1},{name:"Watch By Title",match:["[watch/play] *"],pageFn:(a,n)=>i({key:"watch",sub:{key:"ask-videos",query:n.normTs}}),normal:!1},{name:"Watch Random Show",match:["random"],pageFn:()=>i({key:"watchRandom"}),normal:!1},{name:"Search Show",match:["search *"],pageFn:(a,n)=>P(n.normTs),normal:!1}]};(()=>{window.addEventListener("message",n=>a(n.data));let a=n=>W(n,x,r=>{switch(r.key){case"changeText":return z(r);case"changeAudio":return E(r);case"watch":return _(r)}})})();var _=async a=>{let{sub:n}=a;if(n.key!=="answer-matches")return;let r=n.videos,c=r.find(l=>l.title===n.query);if(c)return C(c.videoId);let u=r.filter(l=>!!l.title.trim()),y=(await Promise.all(u.map(l=>PluginBase.util.fuzzyHighScore(n.query,[l.title],0,!0)))).map(([l,g],p)=>({score:g,index:p})).sort(({score:l},{score:g})=>g-l)[0];if(y.score>.8){let l=u[y.index];if(l)return C(l.videoId)}return P(n.query)},z=async a=>{let{sub:n}=a;if(n.key!=="answer")return;let r=n.texts,[c]=await PluginBase.util.fuzzyHighScore(n.query,r.map(o=>o.displayName),void 0,!0),u=r[c];!u||i({key:"changeText",sub:{key:"to",trackId:u.trackId}})},E=async a=>{let{sub:n}=a;if(n.key!=="answer")return;let r=n.audios,[c]=await PluginBase.util.fuzzyHighScore(n.query,r.map(o=>o.displayName),void 0,!0),u=r[c];!u||i({key:"changeAudio",sub:{key:"to",trackId:u.trackId}})},L=(a,n)=>{let r=t=>{try{return JSON.parse(t)}catch(e){return null}},c=(t,e,s)=>{let d=r(t);d&&d.proofKey===e&&s(d.payload)},u=t=>{window.location.href=`https://www.netflix.com/watch/${t}`},o=t=>window.postMessage(JSON.stringify({proofKey:n,payload:t})),y=t=>{c(t,a,e=>{switch(e.key){case"play":return m(s=>s.play());case"pause":return m(s=>s.pause());case"volume":return p(e);case"skip":return A(e);case"watch":return T(e);case"watchRandom":return V();case"changeText":return l(e);case"changeAudio":return g(e)}})},l=t=>{let{sub:e}=t;switch(e.key){case"ask":return m(s=>o({key:"changeText",sub:{key:"answer",texts:s.getTextTrackList(),query:e.query}}));case"to":return m(s=>{let d=s.getTextTrackList().find(f=>f.trackId===e.trackId);!d||s.setTextTrack(d)})}},g=t=>{let{sub:e}=t;switch(e.key){case"ask":return m(s=>o({key:"changeAudio",sub:{key:"answer",audios:s.getAudioTrackList(),query:e.query}}));case"to":return m(s=>{let d=s.getAudioTrackList().find(f=>f.trackId===e.trackId);!d||s.setAudioTrack(d)})}},p=t=>m(e=>{switch(t.sub.key){case"up":return e.setVolume(Math.min(e.getVolume()+.1,1));case"down":return e.setVolume(Math.max(e.getVolume()-.1,0));case"full":return e.setVolume(1);case"zero":return e.setVolume(0);case"half":return e.setVolume(.5);case"setPercent":return e.setVolume(t.sub.percentage)}}),A=t=>m(e=>{switch(t.sub.key){case"to":return e.seek(t.sub.timestamp);case"ahead":return e.seek(e.getCurrentTime()+t.sub.duration);case"behind":return e.seek(e.getCurrentTime()-t.sub.duration)}}),T=t=>{switch(t.sub.key){case"ask-videos":return o({key:"watch",sub:{key:"answer-matches",query:t.sub.query,videos:[...v(),...w()].map(({videoId:e,title:s})=>({videoId:e,title:s}))}})}},w=()=>q(t=>{let e=t.videos;return e?Object.entries(e).map(([s,d])=>({videoId:s,title:d.title&&d.title.value||"",data:d})).filter(s=>s.title!==""):null})||[],v=()=>Array.from(document.querySelectorAll("a")).map(t=>{if(!t.href)return null;let e=new URL(t.href,window.location.origin);if(e.pathname.startsWith("/watch/")){let s=t.getAttribute("aria-label")||"";return{anchorElement:t,title:s,videoId:e.pathname.slice("/watch/".length)}}return null}).filter(t=>t!==null),V=()=>{let t=Array.from(new Set([...w().map(({videoId:s})=>s),...v().map(({videoId:s})=>s)])),e=t[Math.round(Math.random()*(t.length-1))];!e||u(e)},m=t=>{let e=I();if(e)return t(e)},I=()=>{let t=N();if(!t)return null;let e=F();return e&&t.getVideoPlayerBySessionId(e.sessionId)||null},F=()=>k(t=>{let[e]=t.appContext.getPlayerApp().getAPI().getOpenPlaybackSessions();return!e||e.playbackInitiator!=="USER"?null:e}),N=()=>k(t=>t.appContext.state.playerApp.getAPI().videoPlayer),q=t=>k(e=>t(e.appContext.getState().pathEvaluator.getCache())),k=t=>O(()=>t(window.netflix)),O=t=>{try{return t()}catch(e){return console.error(e),null}};window.addEventListener("message",t=>y(t.data))},U=R;export{U as default};
-LS-SPLITallPlugins.Netflix=(()=>{var f="lipsurf-netflix-script",b=PluginBase.util.getNoCollisionUniqueAttr(),v=PluginBase.util.getNoCollisionUniqueAttr(),u=r=>window.postMessage(JSON.stringify({proofKey:b,payload:r})),A=r=>{try{return JSON.parse(r)}catch(n){return null}},I=(r,n,a)=>{let c=A(r);c&&c.proofKey===n&&a(c.payload)},x=r=>{window.location.href=`https://www.netflix.com/search?q=${encodeURIComponent(r)}`},P=r=>{window.location.href=`https://www.netflix.com/watch/${r}`},h={watch:"Netflix Video Player Controls",browse:"Browse Netflix"},C=(()=>{let r=!0,n=i=>{let{pathname:o}=i;switch(!0){case o.startsWith("/watch"):return h.watch;case o.startsWith("/latest"):case o.startsWith("/browse"):case o.startsWith("/title"):case o.startsWith("/search"):return h.browse;default:return null}},a=i=>{let o=new Set(PluginBase.util.getContext());switch(o.delete(PluginBase.constants.contexts.Normal),o.delete(h.watch),o.delete(h.browse),!0){case i===h.browse:{PluginBase.util.enterContext([h.browse,PluginBase.constants.contexts.Normal,...Array.from(o)]);return}case i===h.watch:{PluginBase.util.enterContext([h.watch,...Array.from(o)]);return}default:{PluginBase.util.removeContext(h.watch),PluginBase.util.removeContext(h.browse),PluginBase.util.addContext(PluginBase.constants.contexts.Normal);return}}},c=()=>{try{a(n(new URL(window.location.href)))}catch(i){console.error(i)}};return{enable:async()=>{for(r=!0;r;)c(),await new Promise(i=>setTimeout(i,1e3))},disable:()=>{r=!1,PluginBase.util.enterContext([PluginBase.constants.contexts.Normal])}}})();return{...PluginBase,init:()=>{if(!document.getElementById(f)){let r=document.createElement("script");r.id=f,r.textContent=`(${N.toString()})("${b}","${v}");`,(document.head||document.documentElement).appendChild(r),r.remove()}C.enable()},destroy:()=>C.disable(),commands:{"Override::Netflix":{pageFn:()=>{}},"Pause Video":{pageFn:()=>u({key:"pause"})},"Play Video":{pageFn:()=>u({key:"play"})},"Volume Up":{pageFn:()=>u({key:"volume",sub:{key:"up"}})},"Volume Down":{pageFn:()=>u({key:"volume",sub:{key:"down"}})},"Volume Full":{pageFn:()=>u({key:"volume",sub:{key:"full"}})},"Volume Zero":{pageFn:()=>u({key:"volume",sub:{key:"zero"}})},"Volume Half":{pageFn:()=>u({key:"volume",sub:{key:"half"}})},"Volume Set In Percentage":{pageFn:(r,n)=>u({key:"volume",sub:{key:"setPercent",percentage:n/100}})},"Change Audio":{pageFn:(r,n)=>u({key:"changeAudio",sub:{key:"ask",query:n.normTs}})},"Change Subtitle":{pageFn:(r,n)=>u({key:"changeText",sub:{key:"ask",query:n.normTs}})},"Seek To By Minute and Second":{pageFn:(r,n,a=0)=>u({key:"skip",sub:{key:"to",timestamp:(60*n+a)*1e3}})},"Seek To By Second":{pageFn:(r,n)=>u({key:"skip",sub:{key:"to",timestamp:n*1e3}})},"Seek Ahead By Second":{pageFn:(r,n)=>u({key:"skip",sub:{key:"ahead",duration:n*1e3}})},"Seek Behind By Second":{pageFn:(r,n)=>u({key:"skip",sub:{key:"behind",duration:n*1e3}})},"Watch By Title":{pageFn:(r,n)=>u({key:"watch",sub:{key:"ask-videos",query:n.normTs}})},"Watch Random Show":{pageFn:()=>u({key:"watchRandom"})},"Search Show":{pageFn:(r,n)=>x(n.normTs)}}};var B,V,F,N})();
-LS-SPLITallPlugins.Netflix=(()=>{var k="lipsurf-netflix-script",p=PluginBase.util.getNoCollisionUniqueAttr(),x=PluginBase.util.getNoCollisionUniqueAttr(),v=r=>window.postMessage(JSON.stringify({proofKey:p,payload:r})),I=r=>{try{return JSON.parse(r)}catch(s){return null}},S=(r,s,o)=>{let c=I(r);c&&c.proofKey===s&&o(c.payload)},T=r=>{window.location.href=`https://www.netflix.com/search?q=${encodeURIComponent(r)}`},P=r=>{window.location.href=`https://www.netflix.com/watch/${r}`},d={watch:"Netflix Video Player Controls",browse:"Browse Netflix"},C=(()=>{let r=!0,s=i=>{let{pathname:a}=i;switch(!0){case a.startsWith("/watch"):return d.watch;case a.startsWith("/latest"):case a.startsWith("/browse"):case a.startsWith("/title"):case a.startsWith("/search"):return d.browse;default:return null}},o=i=>{let a=new Set(PluginBase.util.getContext());switch(a.delete(PluginBase.constants.contexts.Normal),a.delete(d.watch),a.delete(d.browse),!0){case i===d.browse:{PluginBase.util.enterContext([d.browse,PluginBase.constants.contexts.Normal,...Array.from(a)]);return}case i===d.watch:{PluginBase.util.enterContext([d.watch,...Array.from(a)]);return}default:{PluginBase.util.removeContext(d.watch),PluginBase.util.removeContext(d.browse),PluginBase.util.addContext(PluginBase.constants.contexts.Normal);return}}},c=()=>{try{o(s(new URL(window.location.href)))}catch(i){console.error(i)}};return{enable:async()=>{for(r=!0;r;)c(),await new Promise(i=>setTimeout(i,1e3))},disable:()=>{r=!1,PluginBase.util.enterContext([PluginBase.constants.contexts.Normal])}}})();return{...PluginBase,init:()=>{if(!document.getElementById(k)){let r=document.createElement("script");r.id=k,r.textContent=`(${V.toString()})("${p}","${x}");`,(document.head||document.documentElement).appendChild(r),r.remove()}C.enable()},destroy:()=>C.disable(),commands:{}};var B,N,O,V})();
+// dist/tmp/Netflix/Netflix.js
+var LIPSURF_BOOT_SCRIPT_ID = "lipsurf-netflix-script", TO_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr(), FROM_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr(), sendMessage = (payload) => window.postMessage(JSON.stringify({ proofKey: TO_PAGE_PROOF_KEY, payload })), parseJsonOrNull = (maybeJSONString) => {
+  try {
+    return JSON.parse(maybeJSONString);
+  } catch (e) {
+    return null;
+  }
+}, consumeMessageStringAsCommand = (messageStr, proofKey, callback) => {
+  let message = parseJsonOrNull(messageStr);
+  message && message.proofKey === proofKey && callback(message.payload);
+}, navigateToSearch = (title) => {
+  window.location.href = `https://www.netflix.com/search?q=${encodeURIComponent(title)}`;
+}, navigateToWatch = (videoId) => {
+  window.location.href = `https://www.netflix.com/watch/${videoId}`;
+}, NetflixPluginContextEnum = { watch: "Netflix Video Player Controls", browse: "Browse Netflix" }, contextManager = (() => {
+  let enabled = !0, createContextFromUrl = (url) => {
+    let { pathname } = url;
+    switch (!0) {
+      case pathname.startsWith("/watch"):
+        return NetflixPluginContextEnum.watch;
+      case pathname.startsWith("/latest"):
+      case pathname.startsWith("/browse"):
+      case pathname.startsWith("/title"):
+      case pathname.startsWith("/search"):
+        return NetflixPluginContextEnum.browse;
+      default:
+        return null;
+    }
+  }, setContext = (context) => {
+    let currentContextSet = new Set(PluginBase.util.getContext());
+    switch (currentContextSet.delete(PluginBase.constants.contexts.Normal), currentContextSet.delete(NetflixPluginContextEnum.watch), currentContextSet.delete(NetflixPluginContextEnum.browse), !0) {
+      case context === NetflixPluginContextEnum.browse: {
+        PluginBase.util.enterContext([NetflixPluginContextEnum.browse, PluginBase.constants.contexts.Normal, ...Array.from(currentContextSet)]);
+        return;
+      }
+      case context === NetflixPluginContextEnum.watch: {
+        PluginBase.util.enterContext([NetflixPluginContextEnum.watch, ...Array.from(currentContextSet)]);
+        return;
+      }
+      default: {
+        PluginBase.util.removeContext(NetflixPluginContextEnum.watch), PluginBase.util.removeContext(NetflixPluginContextEnum.browse), PluginBase.util.addContext(PluginBase.constants.contexts.Normal);
+        return;
+      }
+    }
+  }, refreshCurrentContext = () => {
+    try {
+      setContext(createContextFromUrl(new URL(window.location.href)));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  return { enable: async () => {
+    for (enabled = !0; enabled; )
+      refreshCurrentContext(), await new Promise((resolve) => setTimeout(resolve, 1e3));
+  }, disable: () => {
+    enabled = !1, PluginBase.util.enterContext([PluginBase.constants.contexts.Normal]);
+  } };
+})(), Netflix_default = { ...PluginBase, languages: {}, niceName: "Netflix", description: "A Netflix plugin to assist audience in operating the video player and navigating through netflix web application", match: /.*\.netflix.com/, version: "1.0.1", apiVersion: 2, authors: "Alan, Miko", init: () => {
+  if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
+    let script = document.createElement("script");
+    script.id = LIPSURF_BOOT_SCRIPT_ID, script.textContent = `(${injectables.toString()})("${TO_PAGE_PROOF_KEY}","${FROM_PAGE_PROOF_KEY}");`, (document.head || document.documentElement).appendChild(script), script.remove();
+  }
+  contextManager.enable();
+}, destroy: () => contextManager.disable(), homophones: { search: "search" }, contexts: { [NetflixPluginContextEnum.watch]: { commands: ["Pause Video", "Play Video", "Volume Up", "Volume Down", "Volume Full", "Volume Zero", "Volume Half", "Volume Set In Percentage", "Change Audio", "Change Subtitle", "Seek To By Minute and Second", "Seek To By Second", "Seek Ahead By Second", "Seek Ahead By Second", "Seek Behind By Second", "Seek Behind By Second"] }, [NetflixPluginContextEnum.browse]: { commands: ["Watch By Title", "Watch Random Show", "Search Show"] } }, commands: [{ name: "Override::Netflix", match: "netflix", pageFn: () => {
+} }, { name: "Pause Video", match: ["pause", "stop"], pageFn: () => sendMessage({ key: "pause" }), normal: !1 }, { name: "Play Video", match: "play", pageFn: () => sendMessage({ key: "play" }), normal: !1 }, { name: "Volume Up", match: "[volume/sound level] up", pageFn: () => sendMessage({ key: "volume", sub: { key: "up" } }), normal: !1 }, { name: "Volume Down", match: "[volume/sound level] down", pageFn: () => sendMessage({ key: "volume", sub: { key: "down" } }), normal: !1 }, { name: "Volume Full", match: "[volume/sound level] full", pageFn: () => sendMessage({ key: "volume", sub: { key: "full" } }), normal: !1 }, { name: "Volume Zero", match: "[volume/sound level] zero", pageFn: () => sendMessage({ key: "volume", sub: { key: "zero" } }), normal: !1 }, { name: "Volume Half", match: "[volume/sound level] half", pageFn: () => sendMessage({ key: "volume", sub: { key: "half" } }), normal: !1 }, { name: "Volume Set In Percentage", match: "set [volume/sound level] to # percent", pageFn: (transcript, volumePercentage) => sendMessage({ key: "volume", sub: { key: "setPercent", percentage: volumePercentage / 100 } }), normal: !1 }, { name: "Change Audio", match: ["[/change/switch] audio to *"], pageFn: (transcript, audioName) => sendMessage({ key: "changeAudio", sub: { key: "ask", query: audioName.normTs } }), normal: !1 }, { name: "Change Subtitle", match: ["[/change/switch] [text/subtitle] to *"], pageFn: (transcript, textName) => sendMessage({ key: "changeText", sub: { key: "ask", query: textName.normTs } }), normal: !1 }, { name: "Seek To By Minute and Second", match: ["skip to minute #", "skip to minute # second #"], pageFn: (transcript, minute, second = 0) => sendMessage({ key: "skip", sub: { key: "to", timestamp: (60 * minute + second) * 1e3 } }), normal: !1 }, { name: "Seek To By Second", match: ["skip to second #"], pageFn: (transcript, second) => sendMessage({ key: "skip", sub: { key: "to", timestamp: second * 1e3 } }), normal: !1 }, { name: "Seek Ahead By Second", match: ["skip ahead # [minute/minutes]", "skip ahead # [minute/minutes] # [second/seconds]"], pageFn: (transcript, minute, second = 0) => sendMessage({ key: "skip", sub: { key: "ahead", duration: (60 * minute + second) * 1e3 } }), normal: !1 }, { name: "Seek Ahead By Second", match: ["skip ahead # [second/seconds]"], pageFn: (transcript, second) => sendMessage({ key: "skip", sub: { key: "ahead", duration: second * 1e3 } }), normal: !1 }, { name: "Seek Behind By Second", match: ["skip behind # [minute/minutes]", "skip behind # [minute/minutes] # [second/seconds]"], pageFn: (transcript, minute, second = 0) => sendMessage({ key: "skip", sub: { key: "behind", duration: (60 * minute + second) * 1e3 } }), normal: !1 }, { name: "Seek Behind By Second", match: ["skip behind # [second/seconds]"], pageFn: (transcript, second) => sendMessage({ key: "skip", sub: { key: "behind", duration: second * 1e3 } }), normal: !1 }, { name: "Watch By Title", match: ["[watch/play] *"], pageFn: (transcript, query) => sendMessage({ key: "watch", sub: { key: "ask-videos", query: query.normTs } }), normal: !1 }, { name: "Watch Random Show", match: ["random"], pageFn: () => sendMessage({ key: "watchRandom" }), normal: !1 }, { name: "Search Show", match: ["search *"], pageFn: (transcript, title) => navigateToSearch(title.normTs), normal: !1 }] };
+(() => {
+  window.addEventListener("message", (ev) => receiveMessage(ev.data));
+  let receiveMessage = (messageStr) => consumeMessageStringAsCommand(messageStr, FROM_PAGE_PROOF_KEY, (command) => {
+    switch (command.key) {
+      case "changeText":
+        return handleChangeTextAnswer(command);
+      case "changeAudio":
+        return handleChangeAudioAnswer(command);
+      case "watch":
+        return handleWatchAnswer(command);
+    }
+  });
+})();
+var handleWatchAnswer = async (command) => {
+  let { sub } = command;
+  if (sub.key !== "answer-matches")
+    return;
+  let videos = sub.videos, exactVideo = videos.find((video) => video.title === sub.query);
+  if (exactVideo)
+    return navigateToWatch(exactVideo.videoId);
+  let filteredVideos = videos.filter((video) => !!video.title.trim()), highScore = (await Promise.all(filteredVideos.map((video) => PluginBase.util.fuzzyHighScore(sub.query, [video.title], 0, !0)))).map(([_, score], index) => ({ score, index })).sort(({ score: scoreA }, { score: scoreB }) => scoreB - scoreA)[0];
+  if (highScore.score > 0.8) {
+    let fuzzyVideo = filteredVideos[highScore.index];
+    if (fuzzyVideo)
+      return navigateToWatch(fuzzyVideo.videoId);
+  }
+  return navigateToSearch(sub.query);
+}, handleChangeTextAnswer = async (command) => {
+  let { sub } = command;
+  if (sub.key !== "answer")
+    return;
+  let tracks = sub.texts, [index] = await PluginBase.util.fuzzyHighScore(sub.query, tracks.map((track2) => track2.displayName), void 0, !0), track = tracks[index];
+  !track || sendMessage({ key: "changeText", sub: { key: "to", trackId: track.trackId } });
+}, handleChangeAudioAnswer = async (command) => {
+  let { sub } = command;
+  if (sub.key !== "answer")
+    return;
+  let tracks = sub.audios, [index] = await PluginBase.util.fuzzyHighScore(sub.query, tracks.map((track2) => track2.displayName), void 0, !0), track = tracks[index];
+  !track || sendMessage({ key: "changeAudio", sub: { key: "to", trackId: track.trackId } });
+}, injectables = (toPageProofKey, fromPageProofKey) => {
+  let parseJsonOrNull1 = (maybeJSONString) => {
+    try {
+      return JSON.parse(maybeJSONString);
+    } catch (e) {
+      return null;
+    }
+  }, consumeMessageStringAsCommand1 = (messageStr, proofKey, callback) => {
+    let message = parseJsonOrNull1(messageStr);
+    message && message.proofKey === proofKey && callback(message.payload);
+  }, navigateToWatch1 = (videoId) => {
+    window.location.href = `https://www.netflix.com/watch/${videoId}`;
+  }, sendMessage1 = (payload) => window.postMessage(JSON.stringify({ proofKey: fromPageProofKey, payload })), receiveMessage = (messageStr) => {
+    consumeMessageStringAsCommand1(messageStr, toPageProofKey, (command) => {
+      switch (command.key) {
+        case "play":
+          return withCurrentPlayer((player) => player.play());
+        case "pause":
+          return withCurrentPlayer((player) => player.pause());
+        case "volume":
+          return handleVolumeCommand(command);
+        case "skip":
+          return handleSeekCommand(command);
+        case "watch":
+          return handleWatch(command);
+        case "watchRandom":
+          return handleWatchRandom();
+        case "changeText":
+          return handleChangeText(command);
+        case "changeAudio":
+          return handleChangeAudio(command);
+      }
+    });
+  }, handleChangeText = (command) => {
+    let { sub } = command;
+    switch (sub.key) {
+      case "ask":
+        return withCurrentPlayer((player) => sendMessage1({ key: "changeText", sub: { key: "answer", texts: player.getTextTrackList(), query: sub.query } }));
+      case "to":
+        return withCurrentPlayer((player) => {
+          let track = player.getTextTrackList().find((track1) => track1.trackId === sub.trackId);
+          !track || player.setTextTrack(track);
+        });
+    }
+  }, handleChangeAudio = (command) => {
+    let { sub } = command;
+    switch (sub.key) {
+      case "ask":
+        return withCurrentPlayer((player) => sendMessage1({ key: "changeAudio", sub: { key: "answer", audios: player.getAudioTrackList(), query: sub.query } }));
+      case "to":
+        return withCurrentPlayer((player) => {
+          let track = player.getAudioTrackList().find((track1) => track1.trackId === sub.trackId);
+          !track || player.setAudioTrack(track);
+        });
+    }
+  }, handleVolumeCommand = (command) => withCurrentPlayer((player) => {
+    switch (command.sub.key) {
+      case "up":
+        return player.setVolume(Math.min(player.getVolume() + 0.1, 1));
+      case "down":
+        return player.setVolume(Math.max(player.getVolume() - 0.1, 0));
+      case "full":
+        return player.setVolume(1);
+      case "zero":
+        return player.setVolume(0);
+      case "half":
+        return player.setVolume(0.5);
+      case "setPercent":
+        return player.setVolume(command.sub.percentage);
+    }
+  }), handleSeekCommand = (command) => withCurrentPlayer((player) => {
+    switch (command.sub.key) {
+      case "to":
+        return player.seek(command.sub.timestamp);
+      case "ahead":
+        return player.seek(player.getCurrentTime() + command.sub.duration);
+      case "behind":
+        return player.seek(player.getCurrentTime() - command.sub.duration);
+    }
+  }), handleWatch = (command) => {
+    switch (command.sub.key) {
+      case "ask-videos":
+        return sendMessage1({ key: "watch", sub: { key: "answer-matches", query: command.sub.query, videos: [...getInPageVideos(), ...getInCacheVideo()].map(({ videoId, title }) => ({ videoId, title })) } });
+    }
+  }, getInCacheVideo = () => withCache((cache) => {
+    let videos = cache.videos;
+    return videos ? Object.entries(videos).map(([videoId, video]) => ({ videoId, title: video.title && video.title.value || "", data: video })).filter((video) => video.title !== "") : null;
+  }) || [], getInPageVideos = () => Array.from(document.querySelectorAll("a")).map((anchorElement) => {
+    if (!anchorElement.href)
+      return null;
+    let url = new URL(anchorElement.href, window.location.origin);
+    if (url.pathname.startsWith("/watch/")) {
+      let ariaLabel = anchorElement.getAttribute("aria-label") || "";
+      return { anchorElement, title: ariaLabel, videoId: url.pathname.slice("/watch/".length) };
+    }
+    return null;
+  }).filter((result) => result !== null), handleWatchRandom = () => {
+    let videoIds = Array.from(new Set([...getInCacheVideo().map(({ videoId: videoId2 }) => videoId2), ...getInPageVideos().map(({ videoId: videoId2 }) => videoId2)])), videoId = videoIds[Math.round(Math.random() * (videoIds.length - 1))];
+    !videoId || navigateToWatch1(videoId);
+  }, withCurrentPlayer = (fn) => {
+    let currentPlayer = getCurrentPlayer();
+    if (currentPlayer)
+      return fn(currentPlayer);
+  }, getCurrentPlayer = () => {
+    let videoPlayer = getVideoPlayerObject();
+    if (!videoPlayer)
+      return null;
+    let session = getCurrentWatchSession();
+    return session && videoPlayer.getVideoPlayerBySessionId(session.sessionId) || null;
+  }, getCurrentWatchSession = () => withNetflix((netflix) => {
+    let [session] = netflix.appContext.getPlayerApp().getAPI().getOpenPlaybackSessions();
+    return !session || session.playbackInitiator !== "USER" ? null : session;
+  }), getVideoPlayerObject = () => withNetflix((netflix) => netflix.appContext.state.playerApp.getAPI().videoPlayer), withCache = (fn) => withNetflix((netflix) => fn(netflix.appContext.getState().pathEvaluator.getCache())), withNetflix = (fn) => tryCatch(() => fn(window.netflix)), tryCatch = (fn) => {
+    try {
+      return fn();
+    } catch (error) {
+      return console.error(error), null;
+    }
+  };
+  window.addEventListener("message", (ev) => receiveMessage(ev.data));
+}, dumby_default = Netflix_default;
+export {
+  dumby_default as default
+};
+LS-SPLIT// dist/tmp/Netflix/Netflix.js
+allPlugins.Netflix = (() => {
+  var LIPSURF_BOOT_SCRIPT_ID = "lipsurf-netflix-script", TO_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr(), FROM_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr(), sendMessage = (payload) => window.postMessage(JSON.stringify({ proofKey: TO_PAGE_PROOF_KEY, payload })), parseJsonOrNull = (maybeJSONString) => {
+    try {
+      return JSON.parse(maybeJSONString);
+    } catch (e) {
+      return null;
+    }
+  }, consumeMessageStringAsCommand = (messageStr, proofKey, callback) => {
+    let message = parseJsonOrNull(messageStr);
+    message && message.proofKey === proofKey && callback(message.payload);
+  }, navigateToSearch = (title) => {
+    window.location.href = `https://www.netflix.com/search?q=${encodeURIComponent(title)}`;
+  }, navigateToWatch = (videoId) => {
+    window.location.href = `https://www.netflix.com/watch/${videoId}`;
+  }, NetflixPluginContextEnum = { watch: "Netflix Video Player Controls", browse: "Browse Netflix" }, contextManager = (() => {
+    let enabled = !0, createContextFromUrl = (url) => {
+      let { pathname } = url;
+      switch (!0) {
+        case pathname.startsWith("/watch"):
+          return NetflixPluginContextEnum.watch;
+        case pathname.startsWith("/latest"):
+        case pathname.startsWith("/browse"):
+        case pathname.startsWith("/title"):
+        case pathname.startsWith("/search"):
+          return NetflixPluginContextEnum.browse;
+        default:
+          return null;
+      }
+    }, setContext = (context) => {
+      let currentContextSet = new Set(PluginBase.util.getContext());
+      switch (currentContextSet.delete(PluginBase.constants.contexts.Normal), currentContextSet.delete(NetflixPluginContextEnum.watch), currentContextSet.delete(NetflixPluginContextEnum.browse), !0) {
+        case context === NetflixPluginContextEnum.browse: {
+          PluginBase.util.enterContext([NetflixPluginContextEnum.browse, PluginBase.constants.contexts.Normal, ...Array.from(currentContextSet)]);
+          return;
+        }
+        case context === NetflixPluginContextEnum.watch: {
+          PluginBase.util.enterContext([NetflixPluginContextEnum.watch, ...Array.from(currentContextSet)]);
+          return;
+        }
+        default: {
+          PluginBase.util.removeContext(NetflixPluginContextEnum.watch), PluginBase.util.removeContext(NetflixPluginContextEnum.browse), PluginBase.util.addContext(PluginBase.constants.contexts.Normal);
+          return;
+        }
+      }
+    }, refreshCurrentContext = () => {
+      try {
+        setContext(createContextFromUrl(new URL(window.location.href)));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    return { enable: async () => {
+      for (enabled = !0; enabled; )
+        refreshCurrentContext(), await new Promise((resolve) => setTimeout(resolve, 1e3));
+    }, disable: () => {
+      enabled = !1, PluginBase.util.enterContext([PluginBase.constants.contexts.Normal]);
+    } };
+  })();
+  return { ...PluginBase, init: () => {
+    if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
+      let script = document.createElement("script");
+      script.id = LIPSURF_BOOT_SCRIPT_ID, script.textContent = `(${injectables.toString()})("${TO_PAGE_PROOF_KEY}","${FROM_PAGE_PROOF_KEY}");`, (document.head || document.documentElement).appendChild(script), script.remove();
+    }
+    contextManager.enable();
+  }, destroy: () => contextManager.disable(), commands: { "Override::Netflix": { pageFn: () => {
+  } }, "Pause Video": { pageFn: () => sendMessage({ key: "pause" }) }, "Play Video": { pageFn: () => sendMessage({ key: "play" }) }, "Volume Up": { pageFn: () => sendMessage({ key: "volume", sub: { key: "up" } }) }, "Volume Down": { pageFn: () => sendMessage({ key: "volume", sub: { key: "down" } }) }, "Volume Full": { pageFn: () => sendMessage({ key: "volume", sub: { key: "full" } }) }, "Volume Zero": { pageFn: () => sendMessage({ key: "volume", sub: { key: "zero" } }) }, "Volume Half": { pageFn: () => sendMessage({ key: "volume", sub: { key: "half" } }) }, "Volume Set In Percentage": { pageFn: (transcript, volumePercentage) => sendMessage({ key: "volume", sub: { key: "setPercent", percentage: volumePercentage / 100 } }) }, "Change Audio": { pageFn: (transcript, audioName) => sendMessage({ key: "changeAudio", sub: { key: "ask", query: audioName.normTs } }) }, "Change Subtitle": { pageFn: (transcript, textName) => sendMessage({ key: "changeText", sub: { key: "ask", query: textName.normTs } }) }, "Seek To By Minute and Second": { pageFn: (transcript, minute, second = 0) => sendMessage({ key: "skip", sub: { key: "to", timestamp: (60 * minute + second) * 1e3 } }) }, "Seek To By Second": { pageFn: (transcript, second) => sendMessage({ key: "skip", sub: { key: "to", timestamp: second * 1e3 } }) }, "Seek Ahead By Second": { pageFn: (transcript, second) => sendMessage({ key: "skip", sub: { key: "ahead", duration: second * 1e3 } }) }, "Seek Behind By Second": { pageFn: (transcript, second) => sendMessage({ key: "skip", sub: { key: "behind", duration: second * 1e3 } }) }, "Watch By Title": { pageFn: (transcript, query) => sendMessage({ key: "watch", sub: { key: "ask-videos", query: query.normTs } }) }, "Watch Random Show": { pageFn: () => sendMessage({ key: "watchRandom" }) }, "Search Show": { pageFn: (transcript, title) => navigateToSearch(title.normTs) } } };
+  var handleWatchAnswer, handleChangeTextAnswer, handleChangeAudioAnswer, injectables;
+})();
+LS-SPLIT// dist/tmp/Netflix/Netflix.js
+allPlugins.Netflix = (() => {
+  var LIPSURF_BOOT_SCRIPT_ID = "lipsurf-netflix-script", TO_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr(), FROM_PAGE_PROOF_KEY = PluginBase.util.getNoCollisionUniqueAttr(), sendMessage = (payload) => window.postMessage(JSON.stringify({ proofKey: TO_PAGE_PROOF_KEY, payload })), parseJsonOrNull = (maybeJSONString) => {
+    try {
+      return JSON.parse(maybeJSONString);
+    } catch (e) {
+      return null;
+    }
+  }, consumeMessageStringAsCommand = (messageStr, proofKey, callback) => {
+    let message = parseJsonOrNull(messageStr);
+    message && message.proofKey === proofKey && callback(message.payload);
+  }, navigateToSearch = (title) => {
+    window.location.href = `https://www.netflix.com/search?q=${encodeURIComponent(title)}`;
+  }, navigateToWatch = (videoId) => {
+    window.location.href = `https://www.netflix.com/watch/${videoId}`;
+  }, NetflixPluginContextEnum = { watch: "Netflix Video Player Controls", browse: "Browse Netflix" }, contextManager = (() => {
+    let enabled = !0, createContextFromUrl = (url) => {
+      let { pathname } = url;
+      switch (!0) {
+        case pathname.startsWith("/watch"):
+          return NetflixPluginContextEnum.watch;
+        case pathname.startsWith("/latest"):
+        case pathname.startsWith("/browse"):
+        case pathname.startsWith("/title"):
+        case pathname.startsWith("/search"):
+          return NetflixPluginContextEnum.browse;
+        default:
+          return null;
+      }
+    }, setContext = (context) => {
+      let currentContextSet = new Set(PluginBase.util.getContext());
+      switch (currentContextSet.delete(PluginBase.constants.contexts.Normal), currentContextSet.delete(NetflixPluginContextEnum.watch), currentContextSet.delete(NetflixPluginContextEnum.browse), !0) {
+        case context === NetflixPluginContextEnum.browse: {
+          PluginBase.util.enterContext([NetflixPluginContextEnum.browse, PluginBase.constants.contexts.Normal, ...Array.from(currentContextSet)]);
+          return;
+        }
+        case context === NetflixPluginContextEnum.watch: {
+          PluginBase.util.enterContext([NetflixPluginContextEnum.watch, ...Array.from(currentContextSet)]);
+          return;
+        }
+        default: {
+          PluginBase.util.removeContext(NetflixPluginContextEnum.watch), PluginBase.util.removeContext(NetflixPluginContextEnum.browse), PluginBase.util.addContext(PluginBase.constants.contexts.Normal);
+          return;
+        }
+      }
+    }, refreshCurrentContext = () => {
+      try {
+        setContext(createContextFromUrl(new URL(window.location.href)));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    return { enable: async () => {
+      for (enabled = !0; enabled; )
+        refreshCurrentContext(), await new Promise((resolve) => setTimeout(resolve, 1e3));
+    }, disable: () => {
+      enabled = !1, PluginBase.util.enterContext([PluginBase.constants.contexts.Normal]);
+    } };
+  })();
+  return { ...PluginBase, init: () => {
+    if (!document.getElementById(LIPSURF_BOOT_SCRIPT_ID)) {
+      let script = document.createElement("script");
+      script.id = LIPSURF_BOOT_SCRIPT_ID, script.textContent = `(${injectables.toString()})("${TO_PAGE_PROOF_KEY}","${FROM_PAGE_PROOF_KEY}");`, (document.head || document.documentElement).appendChild(script), script.remove();
+    }
+    contextManager.enable();
+  }, destroy: () => contextManager.disable(), commands: {} };
+  var handleWatchAnswer, handleChangeTextAnswer, handleChangeAudioAnswer, injectables;
+})();
