@@ -35,7 +35,7 @@
   "devDependencies": {
     "@types/chrome": "0.0.66",
     "cross-env": "^7.0.2",
-    "lipsurf-cli": "../cli",
+    "lipsurf-cli": "https://github.com/lipsurf/cli",
     "lipsurf-types": "https://github.com/lipsurf/types",
     "rimraf": "^3.0.2",
     "vuepress": "^1.6.0"
