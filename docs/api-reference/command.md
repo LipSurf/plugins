@@ -114,7 +114,7 @@ How long to wait for additional input for before executing this command. Overrid
 ### test 
 
 - Optional
-- Type:  `(t: ExecutionContext<CommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIO.BrowserObject) => void` 
+- Type:  `(t: ExecutionContext<CommandTestContext>, say: (s?: string) => Promise<void>, client: WebdriverIO.Browser) => void` 
 
  <a href="https://github.com/avajs/ava">AVA</a> integration test for this command.
 
