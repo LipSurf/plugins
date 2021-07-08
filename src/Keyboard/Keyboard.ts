@@ -104,7 +104,7 @@ export default <IPlugin & IPluginBase>{
           },
           "google search": async (t, say, client) => {
             await client.url("https://www.google.com");
-            await say("dictate lipsurf");
+            await say("lipsurf");
             await say();
             const newUrl = await client.getUrl();
             t.true(

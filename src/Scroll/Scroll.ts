@@ -455,6 +455,15 @@ export default <IPluginBase & IPlugin>{
               `scrollStart: ${scrollStart} scrollEnd: ${scrollEnd}`
             );
           },
+          "when address bar is selected": async (t, say, client) => {
+            await t.context.focusAddressBar();
+            await testScroll(
+              t,
+              say,
+              client,
+              "https://www.google.com/search?q=lipsurf"
+            );
+          },
           "wip pdf": async (t, say, client) => {
             // TODO: getting scroll position not working
             const getScrollPos = () =>
