@@ -1,0 +1,10 @@
+{
+  "extends": "@lipsurf/cli/plugins-tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/tmp",
+    "tsBuildInfoFile": "dist/tmp/.tsbuildinfo"
+  },
+  "include": [
+    "src/*/*.ts"
+  ]
+}
