@@ -8,6 +8,7 @@
     "build": "lipsurf-cli build",
     "watch": "lipsurf-cli build --watch",
     "vup": "lipsurf-cli vup",
+    "preversion": "yarn build:prod",
     "build:prod": "cross-env NODE_ENV=production lipsurf-cli build",
     "watch:prod": "cross-env NODE_ENV=production lipsurf-cli build --watch",
     "clean": "rimraf -r dist/*"
