@@ -39,7 +39,7 @@
     "@types/chrome": "0.0.159",
     "cross-env": "^7.0.3",
     "rimraf": "^3.0.2",
-    "vuepress": "^1.6.0"
+    "vuepress-vite": "next"
   },
   "packageManager": "yarn@3.1.0"
 }
