@@ -11,7 +11,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Anti-procrastination",
     description: "Tools for curbing procrastination.",
     match: /.*/,
-    version: "4.2.1",
+    version: "4.2.2-alpha.0",
     apiVersion: 2,
     authors: "Miko",
     commands: [
