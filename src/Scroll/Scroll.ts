@@ -152,8 +152,11 @@ function getScrollEl(): HTMLElement | Window | undefined {
 
   if (helpBox && helpBox.scrollHeight > helpBox.clientHeight) {
     el = helpBox;
-  } else if (document.location.host === "docs.google.com") {
-    el = document.querySelector<HTMLElement>(".kix-appview-editor")!;
+  } else if (
+    // document.location might be about:blank on google docs (e.g. if we're in a frame)
+    top!.location.href.startsWith("https://docs.google.com/document/")
+  ) {
+    el = top!.document.querySelector<HTMLElement>(".kix-appview-editor")!;
   } else if (
     document.scrollingElement!.scrollHeight > window.innerHeight ||
     document.scrollingElement!.scrollWidth > window.innerWidth
@@ -196,6 +199,7 @@ type ScrollType = "u" | "d" | "l" | "r" | "t" | "b" | "hd" | "hu";
 
 function scroll(direction: ScrollType, little: boolean = false): Promise<void> {
   // pdf needs keypresses
+  console.log("scrolling...", direction);
   const needsKeyPressEvents = /\.pdf$/.test(document.location.pathname);
   let factor: number;
   // the key to press if we must scroll using the keyboard
@@ -264,7 +268,8 @@ function scroll(direction: ScrollType, little: boolean = false): Promise<void> {
         return scrollAmount({ top: document.documentElement.scrollHeight });
       }
       return scrollAmount(
-        { top: window.innerHeight * factor! * littleFactor },
+        // window.innerHeight returning 1 for docs.google.com
+        { top: top!.innerHeight! * factor! * littleFactor },
         relative
       );
     }
@@ -414,6 +419,14 @@ export default <IPluginBase & IPlugin>{
               client,
               "https://docs.google.com/document/d/1Tdfk2UvIXxwZOoluLh6o1kN1CrKHWbXcmUIsDKRHTEI/edit",
               ".kix-appview-editor"
+            );
+          },
+          gforms: async (t, say, client) => {
+            await testScroll(
+              t,
+              say,
+              client,
+              "https://docs.google.com/forms/d/e/1FAIpQLSe3_pOpyGtVkgk0D-Je0LWIzcNfR-ZusbGMKpnJ1g1ykdnF5A/viewform"
             );
           },
           gmail: async (t, say, client) => {
