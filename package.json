@@ -16,11 +16,18 @@
   },
   "keywords": [
     "voice",
+    "speech",
+    "STT",
     "recognition",
     "hands-free",
     "abilities",
-    "accessibility"
+    "disabilites",
+    "accessibility",
+    "a11y"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "author": "Miko Borys",
   "license": "UNLICENSED",
   "bugs": {
