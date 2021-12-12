@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.2.4-alpha.0](https://github.com/lipsurf/plugins/compare/@lipsurf/plugins@4.2.3...@lipsurf/plugins@4.2.4-alpha.0) (2021-12-12)
+
+**Note:** Version bump only for package @lipsurf/plugins
+
+
+
+
+
 ## [4.2.3](https://github.com/lipsurf/plugins/compare/@lipsurf/plugins@4.2.3-alpha.0...@lipsurf/plugins@4.2.3) (2021-11-24)
 
 **Note:** Version bump only for package @lipsurf/plugins
