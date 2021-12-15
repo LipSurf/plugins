@@ -121,7 +121,7 @@ export default <IPlugin & IPluginBase>{
   ...{
     niceName: "Keyboard",
     description: "For pressing individual keyboard buttons with your voice.",
-    version: "4.2.4",
+    version: "4.2.5-alpha.0",
     apiVersion: 2,
     match: /.*/,
     authors: "Miko",
