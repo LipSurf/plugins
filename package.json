@@ -40,7 +40,7 @@
   "devDependencies": {
     "@lipsurf/cli": "^2.2.0",
     "@lipsurf/types": "^2.1.0",
-    "@types/chrome": "0.0.159",
+    "@types/chrome": "^0.0.173",
     "cross-env": "^7.0.3",
     "rimraf": "^3.0.2",
     "vuepress-vite": "next"
