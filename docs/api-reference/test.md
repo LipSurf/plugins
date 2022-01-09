@@ -1,6 +1,6 @@
 # Test
 
-::: danger
+::: warning
 The testing API is not yet stable.
 :::
 

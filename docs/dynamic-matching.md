@@ -34,7 +34,7 @@ _Easy peasy._
 
 Use `*` in your `match` string to greedily match any words.
 
-<<< @/docs/assets/Weather.ts{13}
+@[code ts{17}](./assets/Weather.ts)
 
 ## Numeral Matching
 
@@ -44,7 +44,7 @@ Use `#` in your `match` string to match numerals or ordinals including ones that
 
 Let's write a plugin that opens a tab with URL x for y minutes so that we can limit it's time wasting-ness. This might be useful if we need to check Facebook but don't want to get sucked into the feed for too long.
 
-<<< @/docs/assets/AntiProcrastination.ts{13}
+@[code ts{18}](./assets/AntiProcrastination.ts)
 
 ## Match Function
 
@@ -65,7 +65,7 @@ How about a plugin for Gmail that moves the currently selected messages to a fol
 We could use the wildcard matching for this (eg. "move to *") but then we cant limit the user's choices to valid folders.
 :::
 
-<<< @/docs/assets/GmailMoveFolder.ts
+@[code ts](./assets/GmailMoveFolder.ts)
 
 
 ::: tip NOTE

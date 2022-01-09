@@ -1,11 +1,13 @@
 module.exports = {
+	lang: 'en-US',
 	title: 'LipSurf Plugin Developer Documentation',
 	description: 'Documentation for developers looking to extend LipSurf using the official API. Create voice commands and shortcuts for the browser.',
 	base: '/',
+	theme: '@vuepress/theme-default',
 	themeConfig: {
 		logo: '/icon-128.png',
 		repo: 'lipsurf/plugins',
-		footer: '© 2021 LipSurf',
+		footer: '© 2019-Present LipSurf, Inc.',
 		editLinks: true,
 		editLinkText: 'Improve this page',
 		docsDir: 'docs',
@@ -16,20 +18,17 @@ module.exports = {
 		},
 		sidebar: [
 			{
-				title: 'Basics',
-				collapsable: false,
+				text: 'Basics',
 				children: [
 					'/',
 					'/quick-start.md',
 					'/architecture.md',
-					'/glossary.md',
+					'/dynamic-matching.md',
 				],
 			},
 			{
-				title: 'Advanced',
-				collapsable: false,
+				text: 'Advanced',
 				children: [
-					'/dynamic-matching.md',
 					'/contexts.md',
 					'/langs.md',
 					'/plugin-level-settings.md',
@@ -38,31 +37,29 @@ module.exports = {
 				],
 			},
 			{
-				title: 'Support',
-				collapsable: false,
+				text: 'Help',
 				children: [
-					'help.md',
+					'/help.md',
+					'/glossary.md',
 				],
 			},
 			{
-				title: 'API Reference',
-				collapsable: false,
+				text: 'API Reference',
 				children: [
-					'api-reference/plugin.md',
-					'api-reference/command.md',
-					'api-reference/pluginbase-util.md',
-					'api-reference/test.md',
+					'/api-reference/plugin.md',
+					'/api-reference/command.md',
+					'/api-reference/pluginbase-util.md',
+					'/api-reference/test.md',
 				],
 			},
 			{
-				title: 'Enterprise',
-				collapsable: false,
+				text: 'Enterprise',
 				children: [
-					'api-reference/customstt.md',
-					'api-reference/script.md',
+					'/api-reference/customstt.md',
+					'/api-reference/script.md',
 				],
 			}
 		],
-		lastUpdated: 'Last updated',
+		lastUpdated: false
 	}
 }

@@ -7,6 +7,8 @@ export default <IPluginBase & IPlugin>{
     niceName: "Anti-procrastination",
     description: "Helpers for overcoming procrastination.",
     match: /.*/,
+    version: "1.0.0",
+    apiVersion: 2,
     commands: [
       {
         name: "Self Destructing Tab",

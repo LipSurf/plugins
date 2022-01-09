@@ -6,6 +6,8 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Gmail",
     match: /^https:\/\/mail\.google\.com/,
+    version: "1.0.0",
+    apiVersion: 2,
     commands: [
       {
         name: "Compose Mail",

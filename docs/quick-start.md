@@ -2,57 +2,53 @@
 
 ## Hello World Plugin
 
-Let's create a simple "Hello World" plugin that responds with a JavaScript alert "Hello, Developer!" when a user says <span class="voice-cmd">hello world</span> on a tab with a *.lipsurf.com domain.
+Let's create a simple "Hello World" plugin that responds with a JavaScript alert "Hello, Developer!" when a user says <span class="voice-cmd">hello world</span>.
 
- 1. Clone the community plugins repository and change into the directory.
-
- ```sh
- git clone https://github.com/LipSurf/plugins.git lipsurf-plugins
- cd lipsurf-plugins
- ```
-
- 2. Install the dependencies.
+ 1. Install the LipSurf CLI.
 
  ```sh
- yarn
+ yarn global add @lipsurf/cli
  ```
 
- 3. Create a folder named `HelloWorld` in `src` with a `HelloWorld.ts` file in it with the following contents:
+ 2. Scaffold a project.
 
-::: warning
-It's important to keep the folder name and plugin name the same. Please use PascalCasing.
-:::
-::: tip PROTIP
-Rather than copying and pasting, it's better to type out the code to better grasp its intuitive structure and contents.
-:::
+ ```sh
+ lipsurf-cli init HelloWorld && cd lipsurf-plugin-helloworld
+ ```
 
-<<< @/docs/assets/HelloWorld.ts
+ The most important bit is the plugin created in `src/HelloWorld/HelloWorld.ts`. It should be something like this:
+
+@[code ts](./assets/HelloWorld.ts)
 
   The meat of the plugin lives in the array of commands. Each [Command](/api-reference/command.md) object has a `match` property for what the user needs to say to run it, a `pageFn` property for the code that's actually run and a bunch of meta properties like `name`, `description` etc.
 
-  4. Since we're doing the example in TypeScript, we need to compile down to JavaScript.
+ ::: tip NOTE
+ If you change the plugin id, "HelloWorld" in this case, make sure to change the directory name as well so it matches.
+ :::
+
+  3. Compile our TypeScript file and make the LipSurf plugin.
 
   ```sh
   yarn watch
   ```
 
 ::: tip NOTE
-This will watch our *.ts files for changes and compile them to JavaScript whenever a change is detected :)
+This will watch our *.ts files for changes and compile them to JavaScript, and finally a LipSurf plugin whenever a change is detected :)
 :::
 
- 5. Time to _load 'er up_. Open up Google Chrome and right click the LipSurf icon then "Options".
+ 4. Time to _load 'er up_. Open up Google Chrome and right click the LipSurf icon then "Options".
 
- 6. Turn on "Developer mode" by checking its box.
+ 5. Turn on "Developer mode" by checking its box.
 
  ![Screenshot of developer mode setting](./assets/img/developer-mode.png)
 
- 7. Click "Add a Local Plugin" under "Plugins" and navigate to the compiled `.ls` file (eg. `plugins/dist/HelloWorld.1-0-0.0.ls`).
+ 6. Click "Load a Local Plugin" under "Plugins" and navigate to the compiled `.ls` file `dist/HelloWorld.1-0-0.0.ls`.
 
  ::: tip NOTE
  The `ls` extension is special for LipSurf extensions. It's basically 3 JavaScript files rolled into one.
  :::
 
- ![Screenshot of the "Add a local plugin" button.](./assets/img/add-a-local-plugin.png)
+ ![Screenshot of the "Load a local plugin" button.](./assets/img/add-a-local-plugin.png)
 
 <br>
 
@@ -72,7 +68,7 @@ Check the developer console (&lt;F12&gt;) for hints if there are installation is
 
   ![Screenshot of the HelloWorld plugin in the list of plugins](./assets/img/local-plugin-added.png)
 
-  Now try saying <span class="voice-cmd">hello world</span> on this tab (since this tab has a lipsurf.com domain it will match our url pattern).
+  Now try saying <span class="voice-cmd">hello world</span> in any tab (since this plugin has a catch-all `/.*/` regex for the `match` property it should run on any non-special URL).
 
   If everything went smoothly, you should see a JavaScript alert like this one:
 

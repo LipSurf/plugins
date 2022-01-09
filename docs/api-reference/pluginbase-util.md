@@ -159,7 +159,7 @@ Query all frames includes IFrames.
 - Returns: `Promise<[idx: number, score: number]>`
 
 
-### topFuzzyItemMatches<T>
+### topFuzzyItemMatches&lt;T&gt;
 
 - Arguments:
     - `query: string`

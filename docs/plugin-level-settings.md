@@ -9,7 +9,7 @@ Example use cases:
 
 A top-level plugin property determines settings:
 
-``` TypeScript
+```ts
     // page to load on new tab and new window
     ...
     settings: [
@@ -25,13 +25,13 @@ A top-level plugin property determines settings:
 
 Settings can be set or gotten within the plugin like so:
 
-``` TypeScript
+```ts
 await PluginBase.setPluginOption('TabsAndWindows', 'New Tab/Window URL', 'www.duckduckgo.com');
 PluginBase.getPluginOption('TabsAndWindows', 'New Tab/Window URL');
 ```
 
 See also:  
-    - [`setPluginOption`](api-reference/plugin.md#setpluginoption) 
-    - [`getPluginOption`](api-reference/plugin.md#getpluginoption).
+ * [`setPluginOption`](api-reference/plugin.md#setpluginoption) 
+ * [`getPluginOption`](api-reference/plugin.md#getpluginoption)
 
 

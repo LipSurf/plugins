@@ -4,8 +4,7 @@
 
 You can send a message to another tab/window using `chrome.runtime.sendMessage` and `init`.
 
-``` typescript
-...
+```ts
 export default <IPluginBase & IPlugin>{
     ...PluginBase, ...{
         niceName: 'Spotify',
@@ -48,7 +47,9 @@ export default <IPluginBase & IPlugin>{
                     });
                 }
             },
-    ...
+        ]
+    }
+}
 ```
 
 keywords: talking with another tab, inactive tab, message passing

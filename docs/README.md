@@ -24,5 +24,5 @@ If you were looking for the user manual, [see here](https://help.lipsurf.com).
 ### Quick Complete Example Plugin
 Writing your own plugins for LipSurf is *pleasurably* straightforward.
 
-<<< @/docs/assets/Gmail.ts
+@[code ts](./assets/Gmail.ts)
 

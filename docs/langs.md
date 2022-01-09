@@ -43,4 +43,4 @@ Let's localize the [hello world plugin](/quick-start.md#hello-world-plugin) from
 
   The `commands` property should be an object with keys of command names that map to the English command names they localize and of type [`ILocalizedCommand`](/api-reference/command.md#ilocalizedcommand)).
 
-<<< @/docs/assets/HelloWorld.ja.ts
+@[code ts](./assets/HelloWorld.ja.ts)
