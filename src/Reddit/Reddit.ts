@@ -17,6 +17,31 @@ function clickIfExists(selector: string) {
   if (el) el.click();
 }
 
+function vote(type: "up" | "down" | "clear", index?: number) {
+  console.log("voting", type, index);
+  let q: string;
+  switch (type) {
+    case "up":
+      if (index) q = `${thingAtIndex(index)} .arrow.up:not(.upmod)`;
+      else q = `#siteTable *[role="button"][aria-label="upvote"]:not(.upmod)`;
+      break;
+    case "down":
+      if (index) q = `${thingAtIndex(index)} .arrow.down:not(.downmod)`;
+      else
+        q = `#siteTable *[role="button"][aria-label="downvote"]:not(.downmod)`;
+      break;
+    default:
+      if (index)
+        q = `${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(
+          index
+        )} .arrow.upmod`;
+      else
+        q = `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`;
+      break;
+  }
+  clickIfExists(q);
+}
+
 export default <IPluginBase & IPlugin>{
   ...PluginBase,
   ...{
@@ -26,34 +51,6 @@ export default <IPluginBase & IPlugin>{
     apiVersion: 2,
     match: /^https?:\/\/.*\.reddit.com/,
     authors: "Miko",
-
-    // runs when page loads
-    init: async () => {
-      if (/^https?:\/\/www.reddit/.test(document.location.href)) {
-        document.location.href = document.location.href.replace(
-          /^https?:\/\/.*\.reddit.com/,
-          "http://old.reddit.com"
-        );
-      }
-      await PluginBase.util.ready();
-      let index = 0;
-      for (let el of document.querySelectorAll<HTMLElement>(
-        "#siteTable>div.thing"
-      )) {
-        index++;
-        el.setAttribute(thingAttr, "" + index);
-        const rank = <HTMLElement>el.querySelector(".rank");
-        rank.setAttribute(
-          "style",
-          `
-                display: block !important;
-                margin-right: 10px;
-                opacity: 1 !important';
-            `
-        );
-        rank.innerText = "" + index;
-      }
-    },
 
     // less common -> common
     homophones: {
@@ -78,69 +75,139 @@ export default <IPluginBase & IPlugin>{
       "read it": "reddit",
       shrink: "collapse",
       advert: "upvote",
+      download: "downvote",
+    },
+
+    contexts: {
+      "Post List": {
+        commands: [
+          "View Comments",
+          "Visit Post",
+          "Expand",
+          "Collapse",
+          "Upvote",
+          "Downvote",
+          "Clear Vote",
+        ],
+      },
+      Post: {
+        commands: [
+          "Upvote Current",
+          "Downvote Current",
+          "Clear Vote Current",
+          "Visit Current",
+          "Expand Current",
+          "Collapse Current",
+          "Expand All Comments",
+        ],
+      },
+    },
+
+    // runs when page loads
+    init: async () => {
+      console.log("init");
+
+      if (/^https?:\/\/www.reddit/.test(document.location.href)) {
+        document.location.href = document.location.href.replace(
+          /^https?:\/\/.*\.reddit.com/,
+          "http://old.reddit.com"
+        );
+      }
+
+      if (COMMENTS_REGX.test(document.location.href)) {
+        PluginBase.util.prependContext("Post");
+        PluginBase.util.removeContext("Post List");
+      } else {
+        PluginBase.util.prependContext("Post List");
+        PluginBase.util.removeContext("Post");
+      }
+
+      await PluginBase.util.ready();
+
+      // number the elements
+      let index = 0;
+      for (let el of document.querySelectorAll<HTMLElement>(
+        "#siteTable>div.thing"
+      )) {
+        index++;
+        el.setAttribute(thingAttr, "" + index);
+        const rank = <HTMLElement>el.querySelector(".rank");
+        rank.setAttribute(
+          "style",
+          `
+                display: block !important;
+                margin-right: 10px;
+                opacity: 1 !important';
+            `
+        );
+        rank.innerText = "" + index;
+      }
     },
 
     commands: [
       {
+        name: "Go to Reddit",
+        global: true,
+        match: ["[/go to ]reddit"],
+        minConfidence: 0.5,
+        pageFn: () => {
+          document.location.href = "https://old.reddit.com";
+        },
+      },
+      {
+        name: "Go to Subreddit",
+        match: {
+          fn: ({ normTs, preTs }) => {
+            const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
+            let match = preTs.match(SUBREDDIT_REGX);
+            // console.log(`navigate subreddit input: ${input} match: ${match}`);
+            if (match) {
+              const endPos = match.index! + match[0].length;
+              return [match.index, endPos, [match[1].replace(/\s/g, "")]];
+            }
+          },
+          description: "go to/show r [subreddit name] (do not say slash)",
+        },
+        isFinal: true,
+        nice: (transcript, matchOutput: string) => {
+          return `go to r/${matchOutput}`;
+        },
+        pageFn: (transcript, subredditName: string) => {
+          window.location.href = `https://old.reddit.com/r/${subredditName}`;
+        },
+      },
+      {
         name: "View Comments",
         description: "View the comments of a reddit post.",
-        match: "comments #",
-        pageFn: async (transcript, i: number) => {
-          clickIfExists(thingAtIndex(i) + " a.comments");
+        match: ["comments #", "# comments"],
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          clickIfExists(thingAtIndex(index) + " a.comments");
         },
       },
       {
         name: "Visit Post",
         description: "Equivalent of clicking a reddit post.",
-        match: ["visit[ #/]"],
-        pageFn: async (transcript, i: number) => {
-          // if we're on the post
-          if (COMMENTS_REGX.test(window.location.href)) {
-            clickIfExists("#siteTable p.title a.title");
-          } else {
-            clickIfExists(thingAtIndex(i) + " a.title");
-          }
+        match: ["visit #", "# visit"],
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          clickIfExists(thingAtIndex(index) + " a.title");
         },
       },
       {
         name: "Expand",
         description:
           "Expand a preview of a post, or a comment by it's position (rank).",
-        match: ["expand[ #/]", "# expand"], // in comments view
-        pageFn: async (transcript, i: number) => {
-          if (typeof i !== "undefined") {
-            let el = <HTMLElement>(
-              document.querySelector(
-                `${thingAtIndex(i)} .expando-button.collapsed`
-              )
-            );
-            el.click();
-            PluginBase.util.scrollToAnimated(el, -25);
-          } else {
-            // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-            const mainItem = document.querySelector<HTMLAnchorElement>(
-              `#siteTable .thing .expando-button.collapsed`
-            );
-            const commentItems = Array.from(
-              document.querySelectorAll<HTMLElement>(
-                `.commentarea > div > .thing.collapsed`
-              )
-            );
-
-            if (mainItem && PluginBase.util.isVisible(mainItem)) {
-              mainItem.click();
-            } else {
-              let el: HTMLElement;
-              for (el of commentItems.reverse()) {
-                if (PluginBase.util.isVisible(el)) {
-                  el.querySelector<HTMLAnchorElement>(
-                    ".comment.collapsed a.expand"
-                  )!.click();
-                  return;
-                }
-              }
-            }
-          }
+        match: ["expand #", "# expand"], // in comments view
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          const el = <HTMLElement>(
+            document.querySelector(
+              `${thingAtIndex(index)} .expando-button.collapsed`
+            )
+          );
+          el.click();
+          PluginBase.util.scrollToAnimated(el, -25);
         },
         test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
@@ -159,27 +226,15 @@ export default <IPluginBase & IPlugin>{
         name: "Collapse",
         description:
           "Collapse an expanded preview (or comment if viewing comments). Defaults to topmost in the view port.",
-        match: ["collapse[ #/]", "close"],
-        pageFn: async (transcript, i: number) => {
-          let index = i === null || isNaN(Number(i)) ? null : Number(i);
-          if (index !== null) {
-            let el = <HTMLElement>(
-              document.querySelector(
-                thingAtIndex(index) + " .expando-button:not(.collapsed)"
-              )
-            );
-            el.click();
-          } else {
-            // collapse first visible item (can be comment or post)
-            for (let el of document.querySelectorAll<HTMLElement>(
-              `#siteTable .thing .expando-button.expanded, .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`
-            )) {
-              if (PluginBase.util.isVisible(el)) {
-                el.click();
-                break;
-              }
-            }
-          }
+        match: ["collapse #", "# collapse"],
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          const el = <HTMLElement>(
+            document.querySelector(
+              thingAtIndex(index) + " .expando-button:not(.collapsed)"
+            )
+          );
+          el.click();
         },
         test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
@@ -221,73 +276,114 @@ export default <IPluginBase & IPlugin>{
         },
       },
       {
-        name: "Go to Subreddit",
-        match: {
-          fn: ({ normTs, preTs }) => {
-            const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
-            let match = preTs.match(SUBREDDIT_REGX);
-            // console.log(`navigate subreddit input: ${input} match: ${match}`);
-            if (match) {
-              const endPos = match.index! + match[0].length;
-              return [match.index, endPos, [match[1].replace(/\s/g, "")]];
-            }
-          },
-          description: "go to/show r [subreddit name] (do not say slash)",
-        },
-        isFinal: true,
-        nice: (transcript, matchOutput: string) => {
-          return `go to r/${matchOutput}`;
-        },
-        pageFn: async (transcript, subredditName: string) => {
-          window.location.href = `https://old.reddit.com/r/${subredditName}`;
-        },
-      },
-      {
-        name: "Go to Reddit",
-        global: true,
-        match: ["[/go to ]reddit"],
-        minConfidence: 0.5,
-        pageFn: async () => {
-          document.location.href = "https://old.reddit.com";
-        },
-      },
-      {
-        name: "Clear Vote",
-        description: "Unsets the last vote so it's neither up or down.",
-        match: ["[clear/reset] vote[ #/]"],
-        pageFn: async (transcript, i: number) => {
-          let index = i === null || isNaN(Number(i)) ? 1 : Number(i);
-          clickIfExists(
-            `${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(
-              index
-            )} .arrow.upmod`
-          );
+        name: "Upvote",
+        match: ["upvote #", "# upvote"],
+        description: "Upvote the post # (doesn't work for comments yet)",
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          vote("up", index);
         },
       },
       {
         name: "Downvote",
-        match: ["downvote[ #/]"],
-        description:
-          "Downvote the current post or a post # (doesn't work for comments yet)",
-        pageFn: async (transcript, i: number) => {
-          let index = i === null || isNaN(Number(i)) ? 1 : Number(i);
-          clickIfExists(`${thingAtIndex(index)} .arrow.down:not(.downmod)`);
+        match: ["downvote #", "# downvote"],
+        description: "Downvote the post # (doesn't work for comments yet)",
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          vote("down", index);
         },
       },
       {
-        name: "Upvote",
-        match: ["upvote[ #/]"],
-        description:
-          "Upvote the current post or a post # (doesn't work for comments yet)",
-        pageFn: async (transcript, i: number) => {
-          let index = i === null || isNaN(Number(i)) ? 1 : Number(i);
-          clickIfExists(`${thingAtIndex(index)} .arrow.up:not(.upmod)`);
+        name: "Clear Vote",
+        description: "Unsets the upvote/downvote so it's neither up or down.",
+        match: ["[clear/reset] vote #", "# [clear/reset] vote"],
+        normal: false,
+        pageFn: (transcript, index: number) => {
+          vote("clear", index);
+        },
+      },
+      /* Comments Page */
+      {
+        name: "Upvote Current",
+        match: "upvote",
+        description: "Upvote the current post.",
+        normal: false,
+        pageFn: () => vote("up"),
+      },
+      {
+        name: "Downvote Current",
+        match: "downvote",
+        description: "Downvote the post # (doesn't work for comments yet)",
+        normal: false,
+        pageFn: () => vote("down"),
+      },
+      {
+        name: "Clear Vote Current",
+        description: "Unsets the upvote/downvote so it's neither up or down.",
+        match: ["[clear/reset] vote"],
+        normal: false,
+        pageFn: () => vote("clear"),
+      },
+      {
+        name: "Visit Current",
+        description: "Click the link for the post that we're in.",
+        match: "visit",
+        normal: false,
+        pageFn: () => clickIfExists("#siteTable p.title a.title"),
+      },
+      {
+        name: "Expand Current",
+        description: "Expand the post that we're in.",
+        match: "expand",
+        normal: false,
+        pageFn: () => {
+          // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
+          const mainItem = document.querySelector<HTMLAnchorElement>(
+            `#siteTable .thing .expando-button.collapsed`
+          );
+          const commentItems = Array.from(
+            document.querySelectorAll<HTMLElement>(
+              `.commentarea > div > .thing.collapsed`
+            )
+          );
+
+          if (mainItem && PluginBase.util.isVisible(mainItem)) {
+            mainItem.click();
+          } else {
+            let el: HTMLElement;
+            for (el of commentItems.reverse()) {
+              if (PluginBase.util.isVisible(el)) {
+                el.querySelector<HTMLAnchorElement>(
+                  ".comment.collapsed a.expand"
+                )!.click();
+                return;
+              }
+            }
+          }
+        },
+      },
+      {
+        name: "Collapse Current",
+        description: "Collapse the current post that we're in.",
+        match: ["collapse", "close"],
+        normal: false,
+        pageFn: () => {
+          // collapse first visible item (can be comment or post)
+          for (const el of document.querySelectorAll<HTMLElement>(
+            `#siteTable .thing .expando-button.expanded, .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`
+          )) {
+            if (PluginBase.util.isVisible(el)) {
+              el.click();
+              break;
+            }
+          }
         },
       },
       {
         name: "Expand All Comments",
         description: "Expands all the comments.",
         match: ["expand all[/ comments]"],
+        normal: false,
         pageFn: async () => {
           for (let el of document.querySelectorAll<HTMLElement>(
             ".thing.comment.collapsed a.expand"
