@@ -7,7 +7,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Dictionary",
     description:
       "Quickly lookup words in an English dictionary. Switch to another language to lookup words in the language's respective dictionary.",
-    version: "4.3.1",
+    version: "4.4.0-alpha.0",
     apiVersion: 2,
     match: [
       /https?:\/\/www\.merriam-webster\.com/,
