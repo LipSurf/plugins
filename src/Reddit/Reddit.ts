@@ -8,6 +8,7 @@ declare const PluginBase: IPluginBase;
 
 const thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
 const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
+
 function thingAtIndex(i: number) {
   return `#siteTable>div.thing[${thingAttr}="${i}"]`;
 }
@@ -103,45 +104,51 @@ export default <IPluginBase & IPlugin>{
       },
     },
 
-    // runs when page loads
     init: async () => {
-      console.log("init");
+      // there is a global command, so init runs everywhere
+      if (document.location.hostname.endsWith("reddit.com")) {
+        console.log("init");
 
-      if (/^https?:\/\/www.reddit/.test(document.location.href)) {
-        document.location.href = document.location.href.replace(
-          /^https?:\/\/.*\.reddit.com/,
-          "http://old.reddit.com"
-        );
-      }
+        if (/^https?:\/\/www.reddit/.test(document.location.href)) {
+          document.location.href = document.location.href.replace(
+            /^https?:\/\/.*\.reddit.com/,
+            "http://old.reddit.com"
+          );
+        }
 
-      if (COMMENTS_REGX.test(document.location.href)) {
-        PluginBase.util.prependContext("Post");
-        PluginBase.util.removeContext("Post List");
-      } else {
-        PluginBase.util.prependContext("Post List");
-        PluginBase.util.removeContext("Post");
-      }
+        if (COMMENTS_REGX.test(document.location.href)) {
+          PluginBase.util.prependContext("Post");
+          PluginBase.util.removeContext("Post List");
+        } else {
+          PluginBase.util.prependContext("Post List");
+          PluginBase.util.removeContext("Post");
+        }
 
-      await PluginBase.util.ready();
+        await PluginBase.util.ready();
 
-      // number the elements
-      let index = 0;
-      for (let el of document.querySelectorAll<HTMLElement>(
-        "#siteTable>div.thing"
-      )) {
-        index++;
-        el.setAttribute(thingAttr, "" + index);
-        const rank = <HTMLElement>el.querySelector(".rank");
-        rank.setAttribute(
-          "style",
-          `
-                display: block !important;
-                margin-right: 10px;
-                opacity: 1 !important';
+        // number the elements
+        let index = 0;
+        for (let el of document.querySelectorAll<HTMLElement>(
+          "#siteTable>div.thing"
+        )) {
+          index++;
+          el.setAttribute(thingAttr, "" + index);
+          const rank = <HTMLElement>el.querySelector(".rank");
+          rank.setAttribute(
+            "style",
             `
-        );
-        rank.innerText = "" + index;
+                  display: block !important;
+                  margin-right: 10px;
+                  opacity: 1 !important';
+              `
+          );
+          rank.innerText = "" + index;
+        }
       }
+    },
+
+    destroy: () => {
+      PluginBase.util.removeContext("Post List", "Post");
     },
 
     commands: [
