@@ -5,16 +5,16 @@
 /// <reference types="@lipsurf/types/extension"/>
 declare const PluginBase: IPluginBase;
 
-type KeyCodeAndModifier = { code: number; modifier?: number };
+type KeyCodeAndModifiers = { code: number; modifiers?: number };
 
-export function backendPressKey(...codesWModifiers: KeyCodeAndModifier[]) {
+export function backendPressKey(...codesWModifiers: KeyCodeAndModifiers[]) {
   chrome.runtime.sendMessage({
     type: "pressKeys",
     payload: { codesWModifiers, nonChar: true },
   });
 }
 
-function pressKey(name: string, x: KeyCodeAndModifier): boolean {
+function pressKey(name: string, x: KeyCodeAndModifiers): boolean {
   backendPressKey(x);
   return true;
   // const activeEle = document.activeElement;
@@ -40,56 +40,122 @@ function pressKey(name: string, x: KeyCodeAndModifier): boolean {
   // return false;
 }
 
+/**
+ * console.log(['Ctrl+P', 'ctrl++', 'ctrl+home+end', 'ctrl+shift+t', '+++', '++Ctrl'].map(x => splitByPlusses(x)))
+ */
+function splitBySingleCharSeparator(s: string, separator = "+") {
+  const parts: string[] = [];
+  let indexOfSplitter = -1;
+  do {
+    const prevIndex = indexOfSplitter + 1;
+    indexOfSplitter = s.indexOf(separator, prevIndex + 1);
+    let part: string;
+    if (indexOfSplitter !== -1) {
+      part = s.substring(prevIndex, indexOfSplitter);
+    } else {
+      part = s.substring(prevIndex);
+    }
+    parts.push(part);
+  } while (indexOfSplitter !== -1);
+  return parts;
+}
+
+const FKEY_REGX = /f\d{1,2}/;
+
 function keyStrSeqToCodeAndMod(keysStrSeq: string) {
-  const keysSplit = keysStrSeq.toLowerCase().split("+");
+  const keysSplit = splitBySingleCharSeparator(keysStrSeq.toLowerCase());
   let code: number;
-  let modifier: number = 0;
+  let modifiers: number = 0;
   let mainKey: string;
   // modifiers: shift +8, alt +1, ctrl +2, cmd +4
   for (const key of keysSplit) {
+    mainKey = key;
+    // WARNING: Not all of these have passed tests (some don't seem to work)
     switch (key) {
       case "shift":
-        modifier += 8;
+        modifiers += 8;
         break;
       case "cmd":
-        modifier += 4;
+        modifiers += 4;
         break;
       case "ctrl":
-        modifier += 2;
+        modifiers += 2;
         break;
       case "alt":
-        modifier += 1;
+        modifiers += 1;
         break;
-      case "arrowdown":
-        mainKey = key;
+      case "down arrow":
+        mainKey = "arrowdown";
         code = 40;
         break;
-      case "arrowup":
-        mainKey = key;
+      case "up arrow":
+        mainKey = "arrowup";
         code = 38;
         break;
-      case "arrowleft":
-        mainKey = key;
+      case "left arrow":
+        mainKey = "arrowleft";
         code = 37;
         break;
-      case "arrowright":
-        mainKey = key;
+      case "right arrow":
+        mainKey = "arrowright";
         code = 39;
         break;
       case "tab":
-        mainKey = key;
         code = 9;
         break;
+      case "pause":
+      case "break":
+      case "pause/break":
+        mainKey = "pause/break";
+        code = 19;
+        break;
+      case "home":
+        code = 36;
+        break;
+      case "end":
+        code = 35;
+        break;
+      case "insert":
+        code = 45;
+        break;
+      case "caps lock":
+        code = 20;
+        break;
+      case "enter":
+        code = 13;
+        break;
+      case "page up":
+        code = 33;
+        break;
+      case "page down":
+        code = 34;
+        break;
+      case "delete":
+        code = 46;
+        break;
+      case "backspace":
+        code = 8;
+        break;
+      case "print screen":
+        code = 44;
+        break;
+      case "escape":
+        code = 27;
+        break;
       default:
-        mainKey = key;
-        code = key.charCodeAt(0);
+        // f keys
+        if (FKEY_REGX.test(key)) {
+          code = 111 + +key.substring(1);
+        } else {
+          code = key.toUpperCase().charCodeAt(0);
+        }
         break;
     }
   }
   return {
     key: mainKey!,
     code: code!,
-    modifier,
+    modifiers,
   };
 }
 
@@ -135,17 +201,25 @@ export default <IPlugin & IPluginBase>{
     commands: [
       {
         name: "Press Key Combination",
-        description: "E.g. press Ctrl+P",
+        description:
+          'Simulate pressing keyboard keys. Keys should separated by the "+" symbol (e.g. "press ctrl+p" or "press alt+shift+tab"). Examples of special keys: left arrow, enter, tab, home, end, page down, ctrl, alt, shift, f1, backspace, delete.',
         match: "press *",
         pageFn: (transcript, { preTs, normTs }: TsData) => {
+          console.log("pressing", preTs);
           const codeAndMod = keyStrSeqToCodeAndMod(preTs);
           // debugger
           backendPressKey(codeAndMod);
         },
         test: {
+          // manually tested:
+          // passed:
+          //    ctrl+shift+tab, all arrows, home, end, enter, page up, page down,
+          //    backspace, delete, ctrl+shift+a, f keys
+          // failed:
+          //    alt+tab, escape, print screen
           "Ctrl+P": keyComboTest.bind(null, "Ctrl+P"),
           "Cmd+J": keyComboTest.bind(null, "Cmd+J"),
-          ArrowDown: keyComboTest.bind(null, "ArrowDown"),
+          "Down Arrow": keyComboTest.bind(null, "ArrowDown"),
         },
       },
       {
