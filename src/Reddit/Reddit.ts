@@ -6,9 +6,15 @@ import { ExecutionContext } from 'ava'
 /// <reference types="@lipsurf/types/extension"/>
 declare const PluginBase: IPluginBase
 
+type Maybe<T> = T | null
+
 const thingAttr = `${ PluginBase.util.getNoCollisionUniqueAttr() }-thing`
 const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//
 const isOldReddit = /https:\/\/old/.test(window.location.href)
+
+let observer: Maybe<IntersectionObserver> = null
+let options: Maybe<IntersectionObserverInit> = null
+let index = 0
 
 function thingAtIndex(i: number) {
   alert(thingAttr)
@@ -25,6 +31,30 @@ function genPostNumberElement(number) {
   span.textContent = number
   span.style.cssText = 'position: absolute; bottom: 2px; right: 2px; font-weight: 700; opacity: .3'
   return span
+}
+
+function addOldRedditPostsAttributes(posts) {
+  posts.forEach((el) => {
+    index += 1
+    el.setAttribute(thingAttr, `${ index }`)
+    const rank = <HTMLElement> el.querySelector('.rank')
+    rank.style.cssText = 'display:block;margin-right:10px;opacity:1 !important;'
+  })
+}
+
+function addNewRedditPostsAttributes(posts) {
+  posts.forEach((el) => {
+    if (getComputedStyle(el).display !== 'none') {
+      index += 1
+      el.setAttribute(thingAttr, `${ index }`)
+    }
+
+    el.style.position = 'relative'
+
+    setTimeout((i) => {
+      el.appendChild(genPostNumberElement(i))
+    }, 1000, index)
+  })
 }
 
 function vote(type: 'up' | 'down' | 'clear', index?: number) {
@@ -117,14 +147,7 @@ export default <IPluginBase & IPlugin> {
       // there is a global command, so init runs everywhere
       if (document.location.hostname.endsWith('reddit.com')) {
         console.log('init')
-
         console.log('is old version', isOldReddit)
-        // if (/^https?:\/\/www.reddit/.test(document.location.href)) {
-        //   document.location.href = document.location.href.replace(
-        //     /^https?:\/\/.*\.reddit.com/,
-        //     "http://old.reddit.com"
-        //   );
-        // }
 
         if (COMMENTS_REGX.test(document.location.href)) {
           PluginBase.util.prependContext('Post')
@@ -139,21 +162,9 @@ export default <IPluginBase & IPlugin> {
         // number the elements
         const selector = isOldReddit ? '#siteTable>div.thing' : '.Post'
         const posts = document.querySelectorAll<HTMLElement>(selector)
-        let index = 0
 
-        posts.forEach((el) => {
-          if (getComputedStyle(el).display !== 'none') {
-            index += 1
-            el.setAttribute(thingAttr, `${ index }`)
-            el.style.position = 'relative'
-            !isOldReddit && el.appendChild(genPostNumberElement(index))
-          }
-          if (isOldReddit) {
-            const rank = <HTMLElement> el.querySelector('.rank')
-            rank.style.cssText = 'display:block;margin-right: 10px;opacity: 1 !important;'
-            // rank.innerText = '' + index
-          }
-        })
+        isOldReddit && addOldRedditPostsAttributes(posts)
+        !isOldReddit && addNewRedditPostsAttributes(posts)
       }
     },
 

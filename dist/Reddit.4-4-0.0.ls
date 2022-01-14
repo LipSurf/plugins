@@ -13,6 +13,7 @@ allPlugins.Reddit = (() => {
   var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
   var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
   var isOldReddit = /https:\/\/old/.test(window.location.href);
+  var index = 0;
   function thingAtIndex(i) {
     alert(thingAttr);
     return `#siteTable>div.thing[${thingAttr}="${i}"]`;
@@ -28,25 +29,45 @@ allPlugins.Reddit = (() => {
     span.style.cssText = "position: absolute; bottom: 2px; right: 2px; font-weight: 700; opacity: .3";
     return span;
   }
-  function vote(type, index) {
-    console.log("voting", type, index);
+  function addOldRedditPostsAttributes(posts) {
+    posts.forEach((el) => {
+      index += 1;
+      el.setAttribute(thingAttr, `${index}`);
+      const rank = el.querySelector(".rank");
+      rank.style.cssText = "display:block;margin-right:10px;opacity:1 !important;";
+    });
+  }
+  function addNewRedditPostsAttributes(posts) {
+    posts.forEach((el) => {
+      if (getComputedStyle(el).display !== "none") {
+        index += 1;
+        el.setAttribute(thingAttr, `${index}`);
+      }
+      el.style.position = "relative";
+      setTimeout((i) => {
+        el.appendChild(genPostNumberElement(i));
+      }, 1e3, index);
+    });
+  }
+  function vote(type, index1) {
+    console.log("voting", type, index1);
     let q;
     switch (type) {
       case "up":
-        if (index)
-          q = `${thingAtIndex(index)} .arrow.up:not(.upmod)`;
+        if (index1)
+          q = `${thingAtIndex(index1)} .arrow.up:not(.upmod)`;
         else
           q = `#siteTable *[role="button"][aria-label="upvote"]:not(.upmod)`;
         break;
       case "down":
-        if (index)
-          q = `${thingAtIndex(index)} .arrow.down:not(.downmod)`;
+        if (index1)
+          q = `${thingAtIndex(index1)} .arrow.down:not(.downmod)`;
         else
           q = `#siteTable *[role="button"][aria-label="downvote"]:not(.downmod)`;
         break;
       default:
-        if (index)
-          q = `${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(index)} .arrow.upmod`;
+        if (index1)
+          q = `${thingAtIndex(index1)} .arrow.downmod,${thingAtIndex(index1)} .arrow.upmod`;
         else
           q = `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`;
         break;
@@ -67,19 +88,8 @@ allPlugins.Reddit = (() => {
       await PluginBase.util.ready();
       const selector = isOldReddit ? "#siteTable>div.thing" : ".Post";
       const posts = document.querySelectorAll(selector);
-      let index = 0;
-      posts.forEach((el) => {
-        if (getComputedStyle(el).display !== "none") {
-          index += 1;
-          el.setAttribute(thingAttr, `${index}`);
-          el.style.position = "relative";
-          !isOldReddit && el.appendChild(genPostNumberElement(index));
-        }
-        if (isOldReddit) {
-          const rank = el.querySelector(".rank");
-          rank.style.cssText = "display:block;margin-right: 10px;opacity: 1 !important;";
-        }
-      });
+      isOldReddit && addOldRedditPostsAttributes(posts);
+      !isOldReddit && addNewRedditPostsAttributes(posts);
     }
   }, "destroy": () => {
     PluginBase.util.removeContext("Post List", "Post");
@@ -96,27 +106,27 @@ allPlugins.Reddit = (() => {
     return `go to r/${matchOutput}`;
   }, "pageFn": (transcript, subredditName) => {
     window.location.href = `https://old.reddit.com/r/${subredditName}`;
-  } }, "View Comments": { "pageFn": (transcript, index) => {
+  } }, "View Comments": { "pageFn": (transcript, index2) => {
     if (isOldReddit) {
-      clickIfExists(thingAtIndex(index) + " a.comments");
+      clickIfExists(thingAtIndex(index2) + " a.comments");
     } else {
       console.log("its not all version");
     }
-  } }, "Visit Post": { "pageFn": (transcript, index) => {
-    clickIfExists(thingAtIndex(index) + " a.title");
-  } }, "Expand": { "pageFn": (transcript, index) => {
-    const el = document.querySelector(`${thingAtIndex(index)} .expando-button.collapsed`);
+  } }, "Visit Post": { "pageFn": (transcript, index3) => {
+    clickIfExists(thingAtIndex(index3) + " a.title");
+  } }, "Expand": { "pageFn": (transcript, index4) => {
+    const el = document.querySelector(`${thingAtIndex(index4)} .expando-button.collapsed`);
     el.click();
     PluginBase.util.scrollToAnimated(el, -25);
-  } }, "Collapse": { "pageFn": (transcript, index) => {
-    const el = document.querySelector(thingAtIndex(index) + " .expando-button:not(.collapsed)");
+  } }, "Collapse": { "pageFn": (transcript, index5) => {
+    const el = document.querySelector(thingAtIndex(index5) + " .expando-button:not(.collapsed)");
     el.click();
-  } }, "Upvote": { "pageFn": (transcript, index) => {
-    vote("up", index);
-  } }, "Downvote": { "pageFn": (transcript, index) => {
-    vote("down", index);
-  } }, "Clear Vote": { "pageFn": (transcript, index) => {
-    vote("clear", index);
+  } }, "Upvote": { "pageFn": (transcript, index6) => {
+    vote("up", index6);
+  } }, "Downvote": { "pageFn": (transcript, index7) => {
+    vote("down", index7);
+  } }, "Clear Vote": { "pageFn": (transcript, index8) => {
+    vote("clear", index8);
   } }, "Upvote Current": { "pageFn": () => vote("up") }, "Downvote Current": { "pageFn": () => vote("down") }, "Clear Vote Current": { "pageFn": () => vote("clear") }, "Visit Current": { "pageFn": () => clickIfExists("#siteTable p.title a.title") }, "Expand Current": { "pageFn": () => {
     const mainItem = document.querySelector(`#siteTable .thing .expando-button.collapsed`);
     const commentItems = Array.from(document.querySelectorAll(`.commentarea > div > .thing.collapsed`));
@@ -150,6 +160,7 @@ allPlugins.Reddit = (() => {
   var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
   var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
   var isOldReddit = /https:\/\/old/.test(window.location.href);
+  var index = 0;
   function thingAtIndex(i) {
     alert(thingAttr);
     return `#siteTable>div.thing[${thingAttr}="${i}"]`;
@@ -165,25 +176,45 @@ allPlugins.Reddit = (() => {
     span.style.cssText = "position: absolute; bottom: 2px; right: 2px; font-weight: 700; opacity: .3";
     return span;
   }
-  function vote(type, index) {
-    console.log("voting", type, index);
+  function addOldRedditPostsAttributes(posts) {
+    posts.forEach((el) => {
+      index += 1;
+      el.setAttribute(thingAttr, `${index}`);
+      const rank = el.querySelector(".rank");
+      rank.style.cssText = "display:block;margin-right:10px;opacity:1 !important;";
+    });
+  }
+  function addNewRedditPostsAttributes(posts) {
+    posts.forEach((el) => {
+      if (getComputedStyle(el).display !== "none") {
+        index += 1;
+        el.setAttribute(thingAttr, `${index}`);
+      }
+      el.style.position = "relative";
+      setTimeout((i) => {
+        el.appendChild(genPostNumberElement(i));
+      }, 1e3, index);
+    });
+  }
+  function vote(type, index1) {
+    console.log("voting", type, index1);
     let q;
     switch (type) {
       case "up":
-        if (index)
-          q = `${thingAtIndex(index)} .arrow.up:not(.upmod)`;
+        if (index1)
+          q = `${thingAtIndex(index1)} .arrow.up:not(.upmod)`;
         else
           q = `#siteTable *[role="button"][aria-label="upvote"]:not(.upmod)`;
         break;
       case "down":
-        if (index)
-          q = `${thingAtIndex(index)} .arrow.down:not(.downmod)`;
+        if (index1)
+          q = `${thingAtIndex(index1)} .arrow.down:not(.downmod)`;
         else
           q = `#siteTable *[role="button"][aria-label="downvote"]:not(.downmod)`;
         break;
       default:
-        if (index)
-          q = `${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(index)} .arrow.upmod`;
+        if (index1)
+          q = `${thingAtIndex(index1)} .arrow.downmod,${thingAtIndex(index1)} .arrow.upmod`;
         else
           q = `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`;
         break;
@@ -204,19 +235,8 @@ allPlugins.Reddit = (() => {
       await PluginBase.util.ready();
       const selector = isOldReddit ? "#siteTable>div.thing" : ".Post";
       const posts = document.querySelectorAll(selector);
-      let index = 0;
-      posts.forEach((el) => {
-        if (getComputedStyle(el).display !== "none") {
-          index += 1;
-          el.setAttribute(thingAttr, `${index}`);
-          el.style.position = "relative";
-          !isOldReddit && el.appendChild(genPostNumberElement(index));
-        }
-        if (isOldReddit) {
-          const rank = el.querySelector(".rank");
-          rank.style.cssText = "display:block;margin-right: 10px;opacity: 1 !important;";
-        }
-      });
+      isOldReddit && addOldRedditPostsAttributes(posts);
+      !isOldReddit && addNewRedditPostsAttributes(posts);
     }
   }, "destroy": () => {
     PluginBase.util.removeContext("Post List", "Post");
