@@ -251,7 +251,7 @@ export default <IPluginBase & IPlugin>{
       }
       contextManager.enable();
     },
-    destroy: () => contextManager.disable(),
+    destroy: contextManager.disable,
     homophones: {
       /**
        * Override Google plugin's search homophones

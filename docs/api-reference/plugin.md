@@ -51,7 +51,7 @@ Shown in the plugin list in options.
 - Optional
 - Type: `() => void` 
 
-Called in the context of the page when LipSurf is activated and the plugin matches the current URL. Useful for setting up custom styling on the page that all the commands use, or initializing data that commands share. Also called each time the page is brought back into focus while LipSurf is activated.
+Called in the context of the page when LipSurf is activated and the plugin matches the current URL (or any URL if there is at least 1 [`global`](/api-reference/command.md#global) command). Useful for setting up custom styling on the page that all the commands use, or initializing data that commands share. Also called each time the page is brought back into focus while LipSurf is activated, or a new page is loaded.
 
 ### contexts
 
@@ -65,7 +65,11 @@ For advanced use cases of [contexts](/contexts.md).
 - Optional
 - Type: `() => void` 
 
-Clean-up after things potentially created in [`init`](#init). Called when LipSurf is turned off.
+Clean-up after things potentially created in [`init`](#init). Useful for exiting contexts that a plugin has entered. Called in these cases:
+  * Before calling init (see when [init](#init) is called)
+  * LipSurf is turned off
+  * Plugins are reloaded (e.g. user changes a plugin setting)
+  * Navigation to a different URL (regardless of whether the plugin will still be active on the new URL)
 
 ### deactivatedHook
 
@@ -78,9 +82,10 @@ Called after destroy.
 ### apiVersion 
 
 - Optional
-- Type: `string` 
+- Default: `1`
+- Type: `number` 
 
-Not being used yet.
+Set to 2 for LipSurf versions > 4.
 
 ### getPluginOption
 
