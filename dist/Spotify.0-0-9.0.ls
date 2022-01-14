@@ -1,3 +1,194 @@
-import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';var r="https://play.spotify.com/",c="*://*.spotify.com/*";var o;(function(t){t.Next='button[data-testid="control-button-skip-forward"]',t.Play='button[data-testid="control-button-play"]',t.Previous='button[data-testid="control-button-skip-back"]',t.Pause='button[data-testid="control-button-pause"]'})(o||(o={}));async function s(){return new Promise(t=>chrome.tabs.query({url:c},e=>{t(e.length?e[0]:null)}))}async function p(){return new Promise(t=>chrome.tabs.create({url:r},e=>t(e)))}async function a(t,e=null){let n=e||await s();return new Promise(i=>{if(n&&n.id)return chrome.tabs.sendMessage(n.id,{type:"postMessage",control:t},()=>{i(!0)});i(!1)})}var y={languages:{},niceName:"Spotify",description:"An experimental plugin for spotify.com",match:/.*\.spotify\.com/,version:"0.0.9",apiVersion:2,authors:"Ahmed Kamal",commands:[{name:"spotify play",description:"Play the Spotify web player.",global:!0,match:"spotify play",fn:async function(){let t=await s();t||prompt("Spotify player seems to be closed, do you want me to open it?","yes")==="yes"&&(t=await p()),await a(o.Play,t)}},{name:"spotify pause",description:"Pause the Spotify web player.",global:!0,match:"spotify pause",fn:async function(){await a(o.Pause)}},{name:"spotify next",description:"Moves to the next song on the Spotify web player.",global:!0,match:"spotify next",fn:async function(){await a(o.Next)}},{name:"spotify previous",description:"Moves to the previous song on the Spotify web player.",global:!0,match:"spotify previous",fn:async function(){await a(o.Previous)}}]};export{y as default};
-LS-SPLITallPlugins.Spotify=(()=>{var s="https://play.spotify.com/",i="*://*.spotify.com/*",c=/.*\.spotify\.com/,e;(function(t){t.Next='button[data-testid="control-button-skip-forward"]',t.Play='button[data-testid="control-button-play"]',t.Previous='button[data-testid="control-button-skip-back"]',t.Pause='button[data-testid="control-button-pause"]'})(e||(e={}));function r(t){let a=document.querySelector(t);a&&a.click()}async function u(){return new Promise(t=>chrome.tabs.query({url:i},a=>{t(a.length?a[0]:null)}))}async function y(){return new Promise(t=>chrome.tabs.create({url:s},a=>t(a)))}async function f(t,a=null){let n=a||await u();return new Promise(o=>{if(n&&n.id)return chrome.tabs.sendMessage(n.id,{type:"postMessage",control:t},()=>{o(!0)});o(!1)})}var l={...PluginBase,init:function(){c.test(window.location.origin)&&chrome.runtime.onMessage.addListener((t,a,n)=>{if(t.type==="postMessage"){switch(t.control){case e.Play:{r(e.Play);break}case e.Pause:r(e.Pause);break;case e.Next:r(e.Next);break;case e.Previous:r(e.Previous);break;default:break}n(null)}})},commands:{}};return l})();
-LS-SPLITallPlugins.Spotify=(()=>{var s="https://play.spotify.com/",i="*://*.spotify.com/*",c=/.*\.spotify\.com/,e;(function(t){t.Next='button[data-testid="control-button-skip-forward"]',t.Play='button[data-testid="control-button-play"]',t.Previous='button[data-testid="control-button-skip-back"]',t.Pause='button[data-testid="control-button-pause"]'})(e||(e={}));function r(t){let a=document.querySelector(t);a&&a.click()}async function u(){return new Promise(t=>chrome.tabs.query({url:i},a=>{t(a.length?a[0]:null)}))}async function y(){return new Promise(t=>chrome.tabs.create({url:s},a=>t(a)))}async function f(t,a=null){let n=a||await u();return new Promise(o=>{if(n&&n.id)return chrome.tabs.sendMessage(n.id,{type:"postMessage",control:t},()=>{o(!0)});o(!1)})}var l={...PluginBase,init:function(){c.test(window.location.origin)&&chrome.runtime.onMessage.addListener((t,a,n)=>{if(t.type==="postMessage"){switch(t.control){case e.Play:{r(e.Play);break}case e.Pause:r(e.Pause);break;case e.Next:r(e.Next);break;case e.Previous:r(e.Previous);break;default:break}n(null)}})},commands:{}};return l})();
+import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';// dist/tmp/Spotify/Spotify.js
+var SpotifyPlayerUrl = "https://play.spotify.com/";
+var SpotifyPlayerUrlMatch = "*://*.spotify.com/*";
+var SpotifyControlButtons;
+(function(SpotifyControlButtons2) {
+  SpotifyControlButtons2["Next"] = 'button[data-testid="control-button-skip-forward"]';
+  SpotifyControlButtons2["Play"] = 'button[data-testid="control-button-play"]';
+  SpotifyControlButtons2["Previous"] = 'button[data-testid="control-button-skip-back"]';
+  SpotifyControlButtons2["Pause"] = 'button[data-testid="control-button-pause"]';
+})(SpotifyControlButtons || (SpotifyControlButtons = {}));
+async function findSpotifyPlayerTabAsync() {
+  return new Promise((res) => {
+    return chrome.tabs.query({ url: SpotifyPlayerUrlMatch }, (tabs) => {
+      res(tabs.length ? tabs[0] : null);
+    });
+  });
+}
+async function createSpotifyPlayerTabAsync() {
+  return new Promise((res) => {
+    return chrome.tabs.create({ url: SpotifyPlayerUrl }, (tab) => {
+      return res(tab);
+    });
+  });
+}
+async function sendSpotifyControlMessage(control, _tab = null) {
+  const tab = _tab || await findSpotifyPlayerTabAsync();
+  return new Promise((resolve) => {
+    if (tab && tab.id) {
+      return chrome.tabs.sendMessage(tab.id, { type: "postMessage", control }, () => {
+        resolve(true);
+      });
+    }
+    resolve(false);
+  });
+}
+var Spotify_default = { "languages": {}, "niceName": "Spotify", "description": "An experimental plugin for spotify.com", "match": /.*\.spotify\.com/, "version": "0.0.9", "apiVersion": 2, "authors": "Ahmed Kamal", "commands": [{ "name": "spotify play", "description": "Play the Spotify web player.", "global": true, "match": "spotify play", "fn": async function() {
+  let tab = await findSpotifyPlayerTabAsync();
+  if (!tab) {
+    const msg = "Spotify player seems to be closed, do you want me to open it?";
+    if (prompt(msg, "yes") === "yes") {
+      tab = await createSpotifyPlayerTabAsync();
+    }
+  }
+  await sendSpotifyControlMessage(SpotifyControlButtons.Play, tab);
+} }, { "name": "spotify pause", "description": "Pause the Spotify web player.", "global": true, "match": "spotify pause", "fn": async function() {
+  await sendSpotifyControlMessage(SpotifyControlButtons.Pause);
+} }, { "name": "spotify next", "description": "Moves to the next song on the Spotify web player.", "global": true, "match": "spotify next", "fn": async function() {
+  await sendSpotifyControlMessage(SpotifyControlButtons.Next);
+} }, { "name": "spotify previous", "description": "Moves to the previous song on the Spotify web player.", "global": true, "match": "spotify previous", "fn": async function() {
+  await sendSpotifyControlMessage(SpotifyControlButtons.Previous);
+} }] };
+export {
+  Spotify_default as default
+};
+LS-SPLIT// dist/tmp/Spotify/Spotify.js
+allPlugins.Spotify = (() => {
+  var SpotifyPlayerUrl = "https://play.spotify.com/";
+  var SpotifyPlayerUrlMatch = "*://*.spotify.com/*";
+  var SpotifyPlayerUrlRegexMatch = /.*\.spotify\.com/;
+  var SpotifyControlButtons;
+  (function(SpotifyControlButtons2) {
+    SpotifyControlButtons2["Next"] = 'button[data-testid="control-button-skip-forward"]';
+    SpotifyControlButtons2["Play"] = 'button[data-testid="control-button-play"]';
+    SpotifyControlButtons2["Previous"] = 'button[data-testid="control-button-skip-back"]';
+    SpotifyControlButtons2["Pause"] = 'button[data-testid="control-button-pause"]';
+  })(SpotifyControlButtons || (SpotifyControlButtons = {}));
+  function clickButton(selector) {
+    const btn = document.querySelector(selector);
+    if (btn)
+      btn.click();
+  }
+  async function findSpotifyPlayerTabAsync() {
+    return new Promise((res) => {
+      return chrome.tabs.query({ url: SpotifyPlayerUrlMatch }, (tabs) => {
+        res(tabs.length ? tabs[0] : null);
+      });
+    });
+  }
+  async function createSpotifyPlayerTabAsync() {
+    return new Promise((res) => {
+      return chrome.tabs.create({ url: SpotifyPlayerUrl }, (tab) => {
+        return res(tab);
+      });
+    });
+  }
+  async function sendSpotifyControlMessage(control, _tab = null) {
+    const tab = _tab || await findSpotifyPlayerTabAsync();
+    return new Promise((resolve) => {
+      if (tab && tab.id) {
+        return chrome.tabs.sendMessage(tab.id, { type: "postMessage", control }, () => {
+          resolve(true);
+        });
+      }
+      resolve(false);
+    });
+  }
+  var Spotify_default = { ...PluginBase, ...{ "init": function() {
+    if (SpotifyPlayerUrlRegexMatch.test(window.location.origin)) {
+      chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
+        if (msg.type === "postMessage") {
+          switch (msg.control) {
+            case SpotifyControlButtons.Play: {
+              clickButton(SpotifyControlButtons.Play);
+              break;
+            }
+            case SpotifyControlButtons.Pause:
+              clickButton(SpotifyControlButtons.Pause);
+              break;
+            case SpotifyControlButtons.Next:
+              clickButton(SpotifyControlButtons.Next);
+              break;
+            case SpotifyControlButtons.Previous:
+              clickButton(SpotifyControlButtons.Previous);
+              break;
+            default:
+              break;
+          }
+          sendResponse(null);
+        }
+      });
+    }
+  }, "commands": {} } };
+  return Spotify_default;
+})();
+LS-SPLIT// dist/tmp/Spotify/Spotify.js
+allPlugins.Spotify = (() => {
+  var SpotifyPlayerUrl = "https://play.spotify.com/";
+  var SpotifyPlayerUrlMatch = "*://*.spotify.com/*";
+  var SpotifyPlayerUrlRegexMatch = /.*\.spotify\.com/;
+  var SpotifyControlButtons;
+  (function(SpotifyControlButtons2) {
+    SpotifyControlButtons2["Next"] = 'button[data-testid="control-button-skip-forward"]';
+    SpotifyControlButtons2["Play"] = 'button[data-testid="control-button-play"]';
+    SpotifyControlButtons2["Previous"] = 'button[data-testid="control-button-skip-back"]';
+    SpotifyControlButtons2["Pause"] = 'button[data-testid="control-button-pause"]';
+  })(SpotifyControlButtons || (SpotifyControlButtons = {}));
+  function clickButton(selector) {
+    const btn = document.querySelector(selector);
+    if (btn)
+      btn.click();
+  }
+  async function findSpotifyPlayerTabAsync() {
+    return new Promise((res) => {
+      return chrome.tabs.query({ url: SpotifyPlayerUrlMatch }, (tabs) => {
+        res(tabs.length ? tabs[0] : null);
+      });
+    });
+  }
+  async function createSpotifyPlayerTabAsync() {
+    return new Promise((res) => {
+      return chrome.tabs.create({ url: SpotifyPlayerUrl }, (tab) => {
+        return res(tab);
+      });
+    });
+  }
+  async function sendSpotifyControlMessage(control, _tab = null) {
+    const tab = _tab || await findSpotifyPlayerTabAsync();
+    return new Promise((resolve) => {
+      if (tab && tab.id) {
+        return chrome.tabs.sendMessage(tab.id, { type: "postMessage", control }, () => {
+          resolve(true);
+        });
+      }
+      resolve(false);
+    });
+  }
+  var Spotify_default = { ...PluginBase, ...{ "init": function() {
+    if (SpotifyPlayerUrlRegexMatch.test(window.location.origin)) {
+      chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
+        if (msg.type === "postMessage") {
+          switch (msg.control) {
+            case SpotifyControlButtons.Play: {
+              clickButton(SpotifyControlButtons.Play);
+              break;
+            }
+            case SpotifyControlButtons.Pause:
+              clickButton(SpotifyControlButtons.Pause);
+              break;
+            case SpotifyControlButtons.Next:
+              clickButton(SpotifyControlButtons.Next);
+              break;
+            case SpotifyControlButtons.Previous:
+              clickButton(SpotifyControlButtons.Previous);
+              break;
+            default:
+              break;
+          }
+          sendResponse(null);
+        }
+      });
+    }
+  }, "commands": {} } };
+  return Spotify_default;
+})();
