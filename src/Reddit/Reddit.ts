@@ -11,13 +11,15 @@ type Maybe<T> = T | null
 const thingAttr = `${ PluginBase.util.getNoCollisionUniqueAttr() }-thing`
 const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//
 const isOldReddit = /https:\/\/old/.test(window.location.href)
+const postSelector = isOldReddit ? '#siteTable>div.thing' : '.Post'
 
-let observer: Maybe<IntersectionObserver> = null
-let options: Maybe<IntersectionObserverInit> = null
+
+let scrollContainer: Maybe<ParentNode> = null
+let observer: Maybe<MutationObserver> = null
+let posts: Maybe<NodeList> = null
 let index = 0
 
 function thingAtIndex(i: number) {
-  alert(thingAttr)
   return `#siteTable>div.thing[${ thingAttr }="${ i }"]`
 }
 
@@ -33,6 +35,16 @@ function genPostNumberElement(number) {
   return span
 }
 
+function setAttributes(el) {
+  if (el && getComputedStyle(el).display !== 'none') {
+    index += 1
+    el.setAttribute(thingAttr, `${ index }`)
+    el.style.position = 'relative'
+
+    el.appendChild(genPostNumberElement(index))
+  }
+}
+
 function addOldRedditPostsAttributes(posts) {
   posts.forEach((el) => {
     index += 1
@@ -43,18 +55,25 @@ function addOldRedditPostsAttributes(posts) {
 }
 
 function addNewRedditPostsAttributes(posts) {
-  posts.forEach((el) => {
-    if (getComputedStyle(el).display !== 'none') {
-      index += 1
-      el.setAttribute(thingAttr, `${ index }`)
-    }
+  posts.forEach(setAttributes)
+}
 
-    el.style.position = 'relative'
-
-    setTimeout((i) => {
-      el.appendChild(genPostNumberElement(i))
-    }, 1000, index)
+function observerCallback(mutationList) {
+  mutationList.forEach(it => {
+    it.addedNodes.forEach(node => setAttributes(node.querySelector(postSelector)))
   })
+}
+
+function onLoad() {
+  posts = document.querySelectorAll<HTMLElement>(postSelector)
+  if (isOldReddit) {
+    addOldRedditPostsAttributes(posts)
+  } else {
+    observer = new MutationObserver(observerCallback)
+    scrollContainer = posts![0].parentNode!.parentNode!.parentNode
+    observer.observe(scrollContainer!, { childList: true })
+    addNewRedditPostsAttributes(posts)
+  }
 }
 
 function vote(type: 'up' | 'down' | 'clear', index?: number) {
@@ -144,10 +163,8 @@ export default <IPluginBase & IPlugin> {
     },
 
     init: async () => {
-      // there is a global command, so init runs everywhere
       if (document.location.hostname.endsWith('reddit.com')) {
         console.log('init')
-        console.log('is old version', isOldReddit)
 
         if (COMMENTS_REGX.test(document.location.href)) {
           PluginBase.util.prependContext('Post')
@@ -159,17 +176,14 @@ export default <IPluginBase & IPlugin> {
 
         await PluginBase.util.ready()
 
-        // number the elements
-        const selector = isOldReddit ? '#siteTable>div.thing' : '.Post'
-        const posts = document.querySelectorAll<HTMLElement>(selector)
-
-        isOldReddit && addOldRedditPostsAttributes(posts)
-        !isOldReddit && addNewRedditPostsAttributes(posts)
+        window.addEventListener('load', onLoad)
       }
     },
 
     destroy: () => {
       PluginBase.util.removeContext('Post List', 'Post')
+      observer && observer!.disconnect()
+      window.removeEventListener('load', onLoad)
     },
 
     commands: [
