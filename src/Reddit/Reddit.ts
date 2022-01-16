@@ -1,4 +1,5 @@
 import { ExecutionContext } from 'ava'
+import { setStyles } from '../helpers'
 
 /*
  * LipSurf plugin for Reddit.com
@@ -13,14 +14,17 @@ const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//
 const isOldReddit = /https:\/\/old/.test(window.location.href)
 const postSelector = isOldReddit ? '#siteTable>div.thing' : '.Post'
 
-
 let scrollContainer: Maybe<ParentNode> = null
 let observer: Maybe<MutationObserver> = null
 let posts: Maybe<NodeList> = null
 let index = 0
 
 function thingAtIndex(i: number) {
-  return `#siteTable>div.thing[${ thingAttr }="${ i }"]`
+  if (isOldReddit) {
+    return `#siteTable>div.thing[${ thingAttr }="${ i }"]`
+  } else {
+    return `.Post[${ thingAttr }="${ i }"]`
+  }
 }
 
 function clickIfExists(selector: string) {
@@ -28,21 +32,19 @@ function clickIfExists(selector: string) {
   if (el) el.click()
 }
 
-function genPostNumberElement(number) {
+function genPostNumberElement(number): HTMLElement {
   const span = document.createElement('span')
   span.textContent = number
-  span.style.cssText = 'position: absolute; bottom: 2px; right: 2px; font-weight: 700; opacity: .3'
+
+  setStyles({
+    position: 'absolute',
+    bottom: '2px',
+    right: '2px',
+    fontWeight: 700,
+    opacity: .3
+  }, span)
+
   return span
-}
-
-function setAttributes(el) {
-  if (el && getComputedStyle(el).display !== 'none') {
-    index += 1
-    el.setAttribute(thingAttr, `${ index }`)
-    el.style.position = 'relative'
-
-    el.appendChild(genPostNumberElement(index))
-  }
 }
 
 function addOldRedditPostsAttributes(posts) {
@@ -50,8 +52,23 @@ function addOldRedditPostsAttributes(posts) {
     index += 1
     el.setAttribute(thingAttr, `${ index }`)
     const rank = <HTMLElement> el.querySelector('.rank')
-    rank.style.cssText = 'display:block;margin-right:10px;opacity:1 !important;'
+
+    setStyles({
+      display: 'block',
+      marginRight: '10px',
+      opacity: '1 !important'
+    }, rank)
   })
+}
+
+function setAttributes(post: HTMLElement) {
+  if (post && getComputedStyle(post).display !== 'none') {
+    index += 1
+    post.setAttribute(thingAttr, `${ index }`)
+    post.style.position = 'relative'
+
+    post.appendChild(genPostNumberElement(index))
+  }
 }
 
 function addNewRedditPostsAttributes(posts) {
@@ -60,11 +77,14 @@ function addNewRedditPostsAttributes(posts) {
 
 function observerCallback(mutationList) {
   mutationList.forEach(it => {
-    it.addedNodes.forEach(node => setAttributes(node.querySelector(postSelector)))
+    it.addedNodes.forEach(node => {
+      const post = node.querySelector(postSelector)
+      setAttributes(post)
+    })
   })
 }
 
-function onLoad() {
+function detectPosts() {
   posts = document.querySelectorAll<HTMLElement>(postSelector)
   if (isOldReddit) {
     addOldRedditPostsAttributes(posts)
@@ -76,19 +96,30 @@ function onLoad() {
   }
 }
 
+function composeVoteSelector(index, cmd) {
+  if (index) {
+    const selector = isOldReddit ? `.arrow.${ cmd }:not(.upmod)` : `.voteButton[aria-label="${ cmd }vote"]`
+    return `${ thingAtIndex(index) } ${ selector }`
+  } else {
+    const startWith = isOldReddit ? '#siteTable *[role="button"]' : '.voteButton'
+    const endWith = isOldReddit ? `:not(.${ cmd }mod)` : ''
+    return `${ startWith }[aria-label="${ cmd }vote"]${ endWith }`
+  }
+}
+
+
 function vote(type: 'up' | 'down' | 'clear', index?: number) {
-  console.log('voting', type, index)
+  console.log(document.querySelector('.downmod'))
+  // console.log('voting', type, index)
   let q: string
   switch (type) {
     case 'up':
-      if (index) q = `${ thingAtIndex(index) } .arrow.up:not(.upmod)`
-      else q = `#siteTable *[role="button"][aria-label="upvote"]:not(.upmod)`
+      q = composeVoteSelector(index, 'up')
       break
     case 'down':
-      if (index) q = `${ thingAtIndex(index) } .arrow.down:not(.downmod)`
-      else
-        q = `#siteTable *[role="button"][aria-label="downvote"]:not(.downmod)`
+      q = composeVoteSelector(index, 'down')
       break
+    // there is no one element in DOM with downmod or upmod class name
     default:
       if (index)
         q = `${ thingAtIndex(index) } .arrow.downmod,${ thingAtIndex(
@@ -135,6 +166,11 @@ export default <IPluginBase & IPlugin> {
       shrink: 'collapse',
       advert: 'upvote',
       download: 'downvote',
+      commence: 'comments',
+      what: 'upvote',
+      'up what': 'upvote',
+      'at what': 'upvote',
+      'apple watch': 'upvote',
     },
 
     contexts: {
@@ -176,14 +212,16 @@ export default <IPluginBase & IPlugin> {
 
         await PluginBase.util.ready()
 
-        window.addEventListener('load', onLoad)
+        // waiting for DOM loading in timeout
+        // we can't use "load" event listener, because
+        // the extension can be enabled after DOM loading
+        setTimeout(detectPosts, 1000)
       }
     },
 
     destroy: () => {
       PluginBase.util.removeContext('Post List', 'Post')
       observer && observer!.disconnect()
-      window.removeEventListener('load', onLoad)
     },
 
     commands: [
@@ -224,11 +262,8 @@ export default <IPluginBase & IPlugin> {
         match: [ 'comments #', '# comments' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          if (isOldReddit) {
-            clickIfExists(thingAtIndex(index) + ' a.comments')
-          } else {
-            console.log('its not all version')
-          }
+          const selector = isOldReddit ? ' a.comments' : ' a[data-click-id="comments"]'
+          clickIfExists(thingAtIndex(index) + selector)
         },
       },
       {
@@ -237,7 +272,8 @@ export default <IPluginBase & IPlugin> {
         match: [ 'visit #', '# visit' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          clickIfExists(thingAtIndex(index) + ' a.title')
+          const selector = isOldReddit ? ' a.title' : '.Post'
+          clickIfExists(thingAtIndex(index) + selector)
         },
       },
       {
