@@ -7,7 +7,7 @@ Keyboard.languages!.ru = {
   commands: {
     "Press Enter": {
       name: "нажмите ввод",
-      match: "ввод",
+      match: ["ввод", "войти"],
     },
     "Press Left": {
       name: "нажмите влево",
