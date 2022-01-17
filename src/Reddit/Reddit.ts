@@ -84,14 +84,21 @@ function observerCallback(mutationList) {
   })
 }
 
+function createObserver(el: ParentNode) {
+  observer = new MutationObserver(observerCallback)
+  observer.observe(el!, { childList: true })
+}
+
 function detectPosts() {
   posts = document.querySelectorAll<HTMLElement>(postSelector)
+
   if (isOldReddit) {
     addOldRedditPostsAttributes(posts)
   } else {
-    observer = new MutationObserver(observerCallback)
+    // hard way to posts container
     scrollContainer = posts![0].parentNode!.parentNode!.parentNode
-    observer.observe(scrollContainer!, { childList: true })
+
+    createObserver(scrollContainer!)
     addNewRedditPostsAttributes(posts)
   }
 }
@@ -107,28 +114,27 @@ function composeVoteSelector(index, cmd) {
   }
 }
 
+function composeClearVoteSelector(index): string {
+  if (index && isOldReddit) {
+    return `${ thingAtIndex(index) } .arrow.downmod,${ thingAtIndex(index) } .arrow.upmod`
+  }
+  if (!index && isOldReddit) {
+    return `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`
+  }
+  if (index && !isOldReddit) {
+    return `${ thingAtIndex(index) } .voteButton[aria-pressed="true"]`
+  }
+
+  return '.voteButton[aria-pressed="true"]'
+}
 
 function vote(type: 'up' | 'down' | 'clear', index?: number) {
-  console.log(document.querySelector('.downmod'))
-  // console.log('voting', type, index)
-  let q: string
-  switch (type) {
-    case 'up':
-      q = composeVoteSelector(index, 'up')
-      break
-    case 'down':
-      q = composeVoteSelector(index, 'down')
-      break
-    // there is no one element in DOM with downmod or upmod class name
-    default:
-      if (index)
-        q = `${ thingAtIndex(index) } .arrow.downmod,${ thingAtIndex(
-          index
-        ) } .arrow.upmod`
-      else
-        q = `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`
-      break
-  }
+  let q = ''
+
+  if (type === 'up') q = composeVoteSelector(index, 'up')
+  if (type === 'down') q = composeVoteSelector(index, 'down')
+  if (type === 'clear') q = composeClearVoteSelector(index)
+
   clickIfExists(q)
 }
 
@@ -168,9 +174,6 @@ export default <IPluginBase & IPlugin> {
       download: 'downvote',
       commence: 'comments',
       what: 'upvote',
-      'up what': 'upvote',
-      'at what': 'upvote',
-      'apple watch': 'upvote',
     },
 
     contexts: {
@@ -215,7 +218,13 @@ export default <IPluginBase & IPlugin> {
         // waiting for DOM loading in timeout
         // we can't use "load" event listener, because
         // the extension can be enabled after DOM loading
-        setTimeout(detectPosts, 1000)
+        // window.addEventListener('load', detectPosts)
+        // detectPosts()
+
+        setTimeout(() => {
+          console.log('timer')
+          detectPosts()
+        }, 2000)
       }
     },
 
