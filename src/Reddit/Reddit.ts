@@ -12,18 +12,47 @@ type Maybe<T> = T | null
 const thingAttr = `${ PluginBase.util.getNoCollisionUniqueAttr() }-thing`
 const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//
 const isOldReddit = /https:\/\/old/.test(window.location.href)
-const postSelector = isOldReddit ? '#siteTable>div.thing' : '.Post'
 
 let scrollContainer: Maybe<ParentNode> = null
 let observer: Maybe<MutationObserver> = null
 let posts: Maybe<NodeList> = null
 let index = 0
 
-function thingAtIndex(i: number) {
+const reddit = {
+  old: {
+    post: {
+      thing: '#siteTable>div.thing',
+      title: 'a.title',
+      comments: 'a.comments'
+    },
+    vote: {
+      btn: '#siteTable *[role="button"]',
+      up: '.arrow.up:not(.upmod)',
+      down: '.arrow.down:not(.downmod)',
+      upmod: '.arrow.upmod',
+      downmod: '.arrow.downmod',
+    }
+  },
+  last: {
+    post: {
+      thing: '.Post',
+      comments: 'a[data-click-id="comments"]'
+    },
+    vote: {
+      btn: '.voteButton',
+      up: '.voteButton[aria-label="upvote"]',
+      down: '.voteButton[aria-label="downvote"]',
+      pressed: '.voteButton[aria-pressed="true"]',
+      unpressed: '.voteButton[aria-pressed="false"]',
+    }
+  }
+}
+
+function thingAtIndex(i: number): string {
   if (isOldReddit) {
-    return `#siteTable>div.thing[${ thingAttr }="${ i }"]`
+    return `${ reddit.old.post.thing }[${ thingAttr }="${ i }"]`
   } else {
-    return `.Post[${ thingAttr }="${ i }"]`
+    return `${ reddit.last.post.thing }[${ thingAttr }="${ i }"]`
   }
 }
 
@@ -66,7 +95,6 @@ function setAttributes(post: HTMLElement) {
     index += 1
     post.setAttribute(thingAttr, `${ index }`)
     post.style.position = 'relative'
-
     post.appendChild(genPostNumberElement(index))
   }
 }
@@ -76,6 +104,9 @@ function addNewRedditPostsAttributes(posts) {
 }
 
 function observerCallback(mutationList) {
+  const { old, last } = reddit
+  const postSelector = isOldReddit ? old.post : last.post
+
   mutationList.forEach(it => {
     it.addedNodes.forEach(node => {
       const post = node.querySelector(postSelector)
@@ -89,43 +120,52 @@ function createObserver(el: ParentNode) {
   observer.observe(el!, { childList: true })
 }
 
+function setParentContainer(posts) {
+  // hard way to posts container
+  return posts![0].parentNode!.parentNode!.parentNode
+}
+
 function detectPosts() {
+  const { old, last } = reddit
+  const postSelector = isOldReddit ? old.post.thing : last.post.thing
+
   posts = document.querySelectorAll<HTMLElement>(postSelector)
 
   if (isOldReddit) {
     addOldRedditPostsAttributes(posts)
   } else {
-    // hard way to posts container
-    scrollContainer = posts![0].parentNode!.parentNode!.parentNode
-
+    scrollContainer = setParentContainer(posts)
     createObserver(scrollContainer!)
     addNewRedditPostsAttributes(posts)
   }
 }
 
 function composeVoteSelector(index, cmd) {
-  if (index) {
-    const selector = isOldReddit ? `.arrow.${ cmd }:not(.upmod)` : `.voteButton[aria-label="${ cmd }vote"]`
-    return `${ thingAtIndex(index) } ${ selector }`
-  } else {
-    const startWith = isOldReddit ? '#siteTable *[role="button"]' : '.voteButton'
-    const endWith = isOldReddit ? `:not(.${ cmd }mod)` : ''
-    return `${ startWith }[aria-label="${ cmd }vote"]${ endWith }`
-  }
+  const { old, last } = reddit
+  const selector = isOldReddit ? old.vote[cmd] : last.vote[cmd]
+
+  if (index) return `${ thingAtIndex(index) } ${ selector }`
+
+  return selector
 }
 
 function composeClearVoteSelector(index): string {
+  const { old, last } = reddit
+  const thing = thingAtIndex(index)
+
   if (index && isOldReddit) {
-    return `${ thingAtIndex(index) } .arrow.downmod,${ thingAtIndex(index) } .arrow.upmod`
-  }
-  if (!index && isOldReddit) {
-    return `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`
-  }
-  if (index && !isOldReddit) {
-    return `${ thingAtIndex(index) } .voteButton[aria-pressed="true"]`
+    return `${ thing } ${ old.vote.downmod }, ${ thing } ${ old.vote.upmod }`
   }
 
-  return '.voteButton[aria-pressed="true"]'
+  if (!index && isOldReddit) {
+    return `${ old.vote.downmod },${ old.vote.upmod }`
+  }
+
+  if (index && !isOldReddit) {
+    return `${ thing } ${ last.vote.pressed }`
+  }
+
+  return last.vote.pressed
 }
 
 function vote(type: 'up' | 'down' | 'clear', index?: number) {
@@ -271,7 +311,7 @@ export default <IPluginBase & IPlugin> {
         match: [ 'comments #', '# comments' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const selector = isOldReddit ? ' a.comments' : ' a[data-click-id="comments"]'
+          const selector = isOldReddit ? ` ${ reddit.old.post.comments }` : ` ${ reddit.last.post.comments }`
           clickIfExists(thingAtIndex(index) + selector)
         },
       },
@@ -281,7 +321,7 @@ export default <IPluginBase & IPlugin> {
         match: [ 'visit #', '# visit' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const selector = isOldReddit ? ' a.title' : '.Post'
+          const selector = isOldReddit ? ` ${ reddit.old.post.title }` : reddit.last.post.thing
           clickIfExists(thingAtIndex(index) + selector)
         },
       },

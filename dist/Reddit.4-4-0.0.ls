@@ -18,16 +18,16 @@ allPlugins.Reddit = (() => {
   var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
   var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
   var isOldReddit = /https:\/\/old/.test(window.location.href);
-  var postSelector = isOldReddit ? "#siteTable>div.thing" : ".Post";
   var scrollContainer = null;
   var observer = null;
   var posts = null;
   var index = 0;
+  var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: "a.comments" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: 'a[data-click-id="comments"]' }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
-      return `#siteTable>div.thing[${thingAttr}="${i}"]`;
+      return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
     } else {
-      return `.Post[${thingAttr}="${i}"]`;
+      return `${reddit.last.post.thing}[${thingAttr}="${i}"]`;
     }
   }
   function clickIfExists(selector) {
@@ -61,6 +61,8 @@ allPlugins.Reddit = (() => {
     posts2.forEach(setAttributes);
   }
   function observerCallback(mutationList) {
+    const { old, last } = reddit;
+    const postSelector = isOldReddit ? old.post : last.post;
     mutationList.forEach((it) => {
       it.addedNodes.forEach((node) => {
         const post = node.querySelector(postSelector);
@@ -72,38 +74,41 @@ allPlugins.Reddit = (() => {
     observer = new MutationObserver(observerCallback);
     observer.observe(el, { childList: true });
   }
+  function setParentContainer(posts3) {
+    return posts3[0].parentNode.parentNode.parentNode;
+  }
   function detectPosts() {
+    const { old, last } = reddit;
+    const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     posts = document.querySelectorAll(postSelector);
     if (isOldReddit) {
       addOldRedditPostsAttributes(posts);
     } else {
-      var ref;
-      scrollContainer = (ref = posts[0]) === null || ref === void 0 ? void 0 : ref.parentNode.parentNode.parentNode;
+      scrollContainer = setParentContainer(posts);
       createObserver(scrollContainer);
       addNewRedditPostsAttributes(posts);
     }
   }
   function composeVoteSelector(index1, cmd) {
-    if (index1) {
-      const selector = isOldReddit ? `.arrow.${cmd}:not(.upmod)` : `.voteButton[aria-label="${cmd}vote"]`;
+    const { old, last } = reddit;
+    const selector = isOldReddit ? old.vote[cmd] : last.vote[cmd];
+    if (index1)
       return `${thingAtIndex(index1)} ${selector}`;
-    } else {
-      const startWith = isOldReddit ? '#siteTable *[role="button"]' : ".voteButton";
-      const endWith = isOldReddit ? `:not(.${cmd}mod)` : "";
-      return `${startWith}[aria-label="${cmd}vote"]${endWith}`;
-    }
+    return selector;
   }
   function composeClearVoteSelector(index2) {
+    const { old, last } = reddit;
+    const thing = thingAtIndex(index2);
     if (index2 && isOldReddit) {
-      return `${thingAtIndex(index2)} .arrow.downmod,${thingAtIndex(index2)} .arrow.upmod`;
+      return `${thing} ${old.vote.downmod}, ${thing} ${old.vote.upmod}`;
     }
     if (!index2 && isOldReddit) {
-      return `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`;
+      return `${old.vote.downmod},${old.vote.upmod}`;
     }
     if (index2 && !isOldReddit) {
-      return `${thingAtIndex(index2)} .voteButton[aria-pressed="true"]`;
+      return `${thing} ${last.vote.pressed}`;
     }
-    return '.voteButton[aria-pressed="true"]';
+    return last.vote.pressed;
   }
   function vote(type, index3) {
     let q = "";
@@ -148,10 +153,10 @@ allPlugins.Reddit = (() => {
   }, "pageFn": (transcript, subredditName) => {
     window.location.href = `https://old.reddit.com/r/${subredditName}`;
   } }, "View Comments": { "pageFn": (transcript, index4) => {
-    const selector = isOldReddit ? " a.comments" : ' a[data-click-id="comments"]';
+    const selector = isOldReddit ? ` ${reddit.old.post.comments}` : ` ${reddit.last.post.comments}`;
     clickIfExists(thingAtIndex(index4) + selector);
   } }, "Visit Post": { "pageFn": (transcript, index5) => {
-    const selector = isOldReddit ? " a.title" : ".Post";
+    const selector = isOldReddit ? ` ${reddit.old.post.title}` : reddit.last.post.thing;
     clickIfExists(thingAtIndex(index5) + selector);
   } }, "Expand": { "pageFn": (transcript, index6) => {
     const el = document.querySelector(`${thingAtIndex(index6)} .expando-button.collapsed`);
@@ -204,16 +209,16 @@ allPlugins.Reddit = (() => {
   var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
   var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
   var isOldReddit = /https:\/\/old/.test(window.location.href);
-  var postSelector = isOldReddit ? "#siteTable>div.thing" : ".Post";
   var scrollContainer = null;
   var observer = null;
   var posts = null;
   var index = 0;
+  var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: "a.comments" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: 'a[data-click-id="comments"]' }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
-      return `#siteTable>div.thing[${thingAttr}="${i}"]`;
+      return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
     } else {
-      return `.Post[${thingAttr}="${i}"]`;
+      return `${reddit.last.post.thing}[${thingAttr}="${i}"]`;
     }
   }
   function clickIfExists(selector) {
@@ -247,6 +252,8 @@ allPlugins.Reddit = (() => {
     posts2.forEach(setAttributes);
   }
   function observerCallback(mutationList) {
+    const { old, last } = reddit;
+    const postSelector = isOldReddit ? old.post : last.post;
     mutationList.forEach((it) => {
       it.addedNodes.forEach((node) => {
         const post = node.querySelector(postSelector);
@@ -258,38 +265,41 @@ allPlugins.Reddit = (() => {
     observer = new MutationObserver(observerCallback);
     observer.observe(el, { childList: true });
   }
+  function setParentContainer(posts3) {
+    return posts3[0].parentNode.parentNode.parentNode;
+  }
   function detectPosts() {
+    const { old, last } = reddit;
+    const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     posts = document.querySelectorAll(postSelector);
     if (isOldReddit) {
       addOldRedditPostsAttributes(posts);
     } else {
-      var ref;
-      scrollContainer = (ref = posts[0]) === null || ref === void 0 ? void 0 : ref.parentNode.parentNode.parentNode;
+      scrollContainer = setParentContainer(posts);
       createObserver(scrollContainer);
       addNewRedditPostsAttributes(posts);
     }
   }
   function composeVoteSelector(index1, cmd) {
-    if (index1) {
-      const selector = isOldReddit ? `.arrow.${cmd}:not(.upmod)` : `.voteButton[aria-label="${cmd}vote"]`;
+    const { old, last } = reddit;
+    const selector = isOldReddit ? old.vote[cmd] : last.vote[cmd];
+    if (index1)
       return `${thingAtIndex(index1)} ${selector}`;
-    } else {
-      const startWith = isOldReddit ? '#siteTable *[role="button"]' : ".voteButton";
-      const endWith = isOldReddit ? `:not(.${cmd}mod)` : "";
-      return `${startWith}[aria-label="${cmd}vote"]${endWith}`;
-    }
+    return selector;
   }
   function composeClearVoteSelector(index2) {
+    const { old, last } = reddit;
+    const thing = thingAtIndex(index2);
     if (index2 && isOldReddit) {
-      return `${thingAtIndex(index2)} .arrow.downmod,${thingAtIndex(index2)} .arrow.upmod`;
+      return `${thing} ${old.vote.downmod}, ${thing} ${old.vote.upmod}`;
     }
     if (!index2 && isOldReddit) {
-      return `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`;
+      return `${old.vote.downmod},${old.vote.upmod}`;
     }
     if (index2 && !isOldReddit) {
-      return `${thingAtIndex(index2)} .voteButton[aria-pressed="true"]`;
+      return `${thing} ${last.vote.pressed}`;
     }
-    return '.voteButton[aria-pressed="true"]';
+    return last.vote.pressed;
   }
   function vote(type, index3) {
     let q = "";
