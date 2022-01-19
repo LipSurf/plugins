@@ -1,5 +1,5 @@
 import { ExecutionContext } from 'ava'
-import { setStyles } from '../helpers'
+import { setStyles, selectAll, select } from '../helpers'
 
 /*
  * LipSurf plugin for Reddit.com
@@ -24,7 +24,16 @@ const reddit = {
     post: {
       thing: '#siteTable>div.thing',
       title: 'a.title',
-      comments: 'a.comments'
+      comments: {
+        select: 'a.comments',
+        expandBtn: '.expando-button',
+        collapsed: '.collapsed',
+        expanded: '.expanded',
+        comment: {
+          select: '.comment',
+          expandBtn: 'a.expand'
+        }
+      }
     },
     vote: {
       btn: '#siteTable *[role="button"]',
@@ -37,7 +46,10 @@ const reddit = {
   last: {
     post: {
       thing: '.Post',
-      comments: 'a[data-click-id="comments"]'
+      comments: {
+        select: 'a[data-click-id="comments"]',
+        expandBtn: '.icon-expand'
+      }
     },
     vote: {
       btn: '.voteButton',
@@ -58,7 +70,7 @@ function thingAtIndex(i: number): string {
 }
 
 function clickIfExists(selector: string) {
-  const el = document.querySelector<HTMLElement>(selector)
+  const el = select<HTMLElement>(selector)
   if (el) el.click()
 }
 
@@ -81,13 +93,13 @@ function addOldRedditPostsAttributes(posts) {
   posts.forEach((el) => {
     index += 1
     el.setAttribute(thingAttr, `${ index }`)
-    const rank = <HTMLElement> el.querySelector('.rank')
+    const rank = select<HTMLElement>('.rank', el)
 
     setStyles({
       display: 'block',
       marginRight: '10px',
       opacity: '1 !important'
-    }, rank)
+    }, rank!)
   })
 }
 
@@ -110,9 +122,9 @@ function observerCallback(mutationList) {
   const postSelector = isOldReddit ? old.post.thing : last.post.thing
 
   mutationList.forEach(it => {
-    it.addedNodes.forEach((node: any) => {
-      const post = node.querySelector(postSelector)
-      setAttributes(post)
+    it.addedNodes.forEach(node => {
+      const post = select<HTMLElement>(postSelector, node)
+      setAttributes(post!)
     })
   })
 }
@@ -123,7 +135,6 @@ function createObserver(el: ParentNode) {
 }
 
 function setParentContainer(posts) {
-  // hard way to posts container
   return posts![0].parentNode!.parentNode!.parentNode
 }
 
@@ -133,7 +144,7 @@ function detectPosts() {
   const { old, last } = reddit
   const postSelector = isOldReddit ? old.post.thing : last.post.thing
 
-  posts = document.querySelectorAll<HTMLElement>(postSelector)
+  posts = selectAll<HTMLElement>(postSelector)
   isDOMLoaded = true
 
   if (isOldReddit) {
@@ -272,9 +283,10 @@ export default <IPluginBase & IPlugin> {
     },
 
     destroy: () => {
+      isDOMLoaded = false
       PluginBase.util.removeContext('Post List', 'Post')
       observer && observer!.disconnect()
-      isDOMLoaded = false
+      window.removeEventListener('load', detectPosts)
     },
 
     commands: [
@@ -293,7 +305,6 @@ export default <IPluginBase & IPlugin> {
           fn: ({ normTs, preTs }) => {
             const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/
             let match = preTs.match(SUBREDDIT_REGX)
-            // console.log(`navigate subreddit input: ${input} match: ${match}`);
             if (match) {
               const endPos = match.index! + match[0].length
               return [ match.index, endPos, [ match[1].replace(/\s/g, '') ] ]
@@ -315,7 +326,11 @@ export default <IPluginBase & IPlugin> {
         match: [ 'comments #', '# comments' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const selector = isOldReddit ? ` ${ reddit.old.post.comments }` : ` ${ reddit.last.post.comments }`
+
+          const selector = isOldReddit ?
+            ` ${ reddit.old.post.comments.select }` :
+            ` ${ reddit.last.post.comments.select }`
+
           clickIfExists(thingAtIndex(index) + selector)
         },
       },
@@ -325,7 +340,10 @@ export default <IPluginBase & IPlugin> {
         match: [ 'visit #', '# visit' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const selector = isOldReddit ? ` ${ reddit.old.post.title }` : reddit.last.post.thing
+          const selector = isOldReddit ?
+            ` ${ reddit.old.post.title }` :
+            reddit.last.post.thing
+
           clickIfExists(thingAtIndex(index) + selector)
         },
       },
@@ -336,13 +354,10 @@ export default <IPluginBase & IPlugin> {
         match: [ 'expand #', '# expand' ], // in comments view
         normal: false,
         pageFn: (transcript, index: number) => {
-          const el = <HTMLElement> (
-            document.querySelector(
-              `${ thingAtIndex(index) } .expando-button.collapsed`
-            )
-          )
-          el.click()
-          PluginBase.util.scrollToAnimated(el, -25)
+          const { comments } = reddit.old.post
+          const el = select<HTMLElement>(`${ thingAtIndex(index) } ${ comments.expandBtn }${ comments.collapsed }`)
+          el!.click()
+          PluginBase.util.scrollToAnimated(el!, -25)
         },
         test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
@@ -352,9 +367,7 @@ export default <IPluginBase & IPlugin> {
           const item = await client.$(selector)
           t.true(await item.isExisting())
           await say('expand for')
-          t.true(
-            (await item.getAttribute('class')).split(' ').includes('expanded')
-          )
+          t.true((await item.getAttribute('class')).split(' ').includes('expanded'))
         },
       },
       {
@@ -364,12 +377,13 @@ export default <IPluginBase & IPlugin> {
         match: [ 'collapse #', '# collapse' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const el = <HTMLElement> (
-            document.querySelector(
-              thingAtIndex(index) + ' .expando-button:not(.collapsed)'
-            )
+          const { comments } = reddit.old.post
+          const el = select<HTMLElement>(
+            // thingAtIndex(index) + ' .expando-button:not(.collapsed)'
+            thingAtIndex(index) + ` ${ comments.expandBtn }${ comments.expanded }`
           )
-          el.click()
+
+          el?.click()
         },
         test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
@@ -378,7 +392,7 @@ export default <IPluginBase & IPlugin> {
 
           // await client.driver.wait(client.until.elementIsVisible(client.driver.findElement(client.By.css('.commentarea'))), 1000);
           await client.execute(() => {
-            document.querySelector('.commentarea')!.scrollIntoView()
+            select('.commentarea')!.scrollIntoView()
           })
           // make sure it's expanded
           //<div class=" thing id-t1_c60o0iw noncollapsed   comment " id="thing_t1_c60o0iw" onclick="click_thing(this)" data-fullname="t1_c60o0iw" data-type="comment" data-subreddit="IAmA" data-subreddit-fullname="t5_2qzb6" data-author="Biinaryy" data-author-fullname="t2_76bmi"><p class="parent"><a name="c60o0iw"></a></p><div class="midcol unvoted"><div class="arrow up login-required archived access-required" data-event-action="upvote" role="button" aria-label="upvote" tabindex="0"></div><div class="arrow down login-required archived access-required" data-event-action="downvote" role="button" aria-label="downvote" tabindex="0"></div></div><div class="entry unvoted"><p class="tagline"><a href="javascript:void(0)" class="expand" onclick="return togglecomment(this)">[–]</a><a href="https://old.reddit.com/user/Biinaryy" class="author may-blank id-t2_76bmi">Bi
@@ -464,7 +478,7 @@ export default <IPluginBase & IPlugin> {
         description: 'Click the link for the post that we\'re in.',
         match: 'visit',
         normal: false,
-        pageFn: () => clickIfExists('#siteTable p.title a.title'),
+        pageFn: () => clickIfExists('#siteTable a.title'),
       },
       {
         name: 'Expand Current',
@@ -472,25 +486,19 @@ export default <IPluginBase & IPlugin> {
         match: 'expand',
         normal: false,
         pageFn: () => {
+          const { comments } = reddit.old.post
           // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-          const mainItem = document.querySelector<HTMLAnchorElement>(
-            `#siteTable .thing .expando-button.collapsed`
-          )
-          const commentItems = Array.from(
-            document.querySelectorAll<HTMLElement>(
-              `.commentarea > div > .thing.collapsed`
-            )
-          )
+          const mainItem = select<HTMLAnchorElement>(`#siteTable .thing ${ comments.expandBtn }`)
 
           if (mainItem && PluginBase.util.isVisible(mainItem)) {
             mainItem.click()
           } else {
+            const selector = `${ comments.comment.select }${ comments.collapsed }`
+            const commentItems = Array.from(selectAll<HTMLElement>(selector))
             let el: HTMLElement
             for (el of commentItems.reverse()) {
               if (PluginBase.util.isVisible(el)) {
-                el.querySelector<HTMLAnchorElement>(
-                  '.comment.collapsed a.expand'
-                )!.click()
+                select<HTMLAnchorElement>(comments.comment.expandBtn, el)!.click()
                 return
               }
             }
@@ -504,7 +512,7 @@ export default <IPluginBase & IPlugin> {
         normal: false,
         pageFn: () => {
           // collapse first visible item (can be comment or post)
-          for (const el of document.querySelectorAll<HTMLElement>(
+          for (const el of selectAll<HTMLElement>(
             `#siteTable .thing .expando-button.expanded, .commentarea > div > div.thing:not(.collapsed) > div > p > a.expand`
           )) {
             if (PluginBase.util.isVisible(el)) {
@@ -520,7 +528,7 @@ export default <IPluginBase & IPlugin> {
         match: [ 'expand all[/ comments]' ],
         normal: false,
         pageFn: async () => {
-          for (let el of document.querySelectorAll<HTMLElement>(
+          for (let el of selectAll<HTMLElement>(
             '.thing.comment.collapsed a.expand'
           )) {
             el.click()

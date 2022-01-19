@@ -10,11 +10,19 @@ export {
 };
 LS-SPLIT// dist/tmp/Reddit/Reddit.js
 allPlugins.Reddit = (() => {
-  function setStyles(stylesObject, el) {
+  var setStyles = (stylesObject, el) => {
     Object.keys(stylesObject).forEach((key) => {
       el.style[key] = stylesObject[key];
     });
-  }
+  };
+  var select = (selector, el) => {
+    const element = el || document;
+    return element.querySelector(selector);
+  };
+  var selectAll = (selector, el) => {
+    const element = el || document;
+    return element.querySelectorAll(selector);
+  };
   var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
   var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
   var isOldReddit = /https:\/\/old/.test(window.location.href);
@@ -23,7 +31,7 @@ allPlugins.Reddit = (() => {
   var posts = null;
   var index = 0;
   var isDOMLoaded = false;
-  var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: "a.comments" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: 'a[data-click-id="comments"]' }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
+  var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: { select: "a.comments", expandBtn: ".expando-button", collapsed: ".collapsed", expanded: ".expanded", comment: { select: ".comment", expandBtn: "a.expand" } } }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: { select: 'a[data-click-id="comments"]', expandBtn: ".icon-expand" } }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
       return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
@@ -32,7 +40,7 @@ allPlugins.Reddit = (() => {
     }
   }
   function clickIfExists(selector) {
-    const el = document.querySelector(selector);
+    const el = select(selector);
     if (el)
       el.click();
   }
@@ -46,7 +54,7 @@ allPlugins.Reddit = (() => {
     posts1.forEach((el) => {
       index += 1;
       el.setAttribute(thingAttr, `${index}`);
-      const rank = el.querySelector(".rank");
+      const rank = select(".rank", el);
       setStyles({ display: "block", marginRight: "10px", opacity: "1 !important" }, rank);
     });
   }
@@ -66,7 +74,7 @@ allPlugins.Reddit = (() => {
     const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     mutationList.forEach((it) => {
       it.addedNodes.forEach((node) => {
-        const post = node.querySelector(postSelector);
+        const post = select(postSelector, node);
         setAttributes(post);
       });
     });
@@ -83,7 +91,7 @@ allPlugins.Reddit = (() => {
       return;
     const { old, last } = reddit;
     const postSelector = isOldReddit ? old.post.thing : last.post.thing;
-    posts = document.querySelectorAll(postSelector);
+    posts = selectAll(postSelector);
     isDOMLoaded = true;
     if (isOldReddit) {
       addOldRedditPostsAttributes(posts);
@@ -144,9 +152,10 @@ allPlugins.Reddit = (() => {
       }, 2e3);
     }
   }, "destroy": () => {
+    isDOMLoaded = false;
     PluginBase.util.removeContext("Post List", "Post");
     observer && observer.disconnect();
-    isDOMLoaded = false;
+    window.removeEventListener("load", detectPosts);
   }, "commands": { "Go to Reddit": { "pageFn": () => {
     document.location.href = "https://reddit.com";
   } }, "Go to Subreddit": { "match": { "en": ({ normTs, preTs }) => {
@@ -161,47 +170,51 @@ allPlugins.Reddit = (() => {
   }, "pageFn": (transcript, subredditName) => {
     window.location.href = `https://reddit.com/r/${subredditName}`;
   } }, "View Comments": { "pageFn": (transcript, index4) => {
-    const selector = isOldReddit ? ` ${reddit.old.post.comments}` : ` ${reddit.last.post.comments}`;
+    const selector = isOldReddit ? ` ${reddit.old.post.comments.select}` : ` ${reddit.last.post.comments.select}`;
     clickIfExists(thingAtIndex(index4) + selector);
   } }, "Visit Post": { "pageFn": (transcript, index5) => {
     const selector = isOldReddit ? ` ${reddit.old.post.title}` : reddit.last.post.thing;
     clickIfExists(thingAtIndex(index5) + selector);
   } }, "Expand": { "pageFn": (transcript, index6) => {
-    const el = document.querySelector(`${thingAtIndex(index6)} .expando-button.collapsed`);
+    const { comments } = reddit.old.post;
+    const el = select(`${thingAtIndex(index6)} ${comments.expandBtn}${comments.collapsed}`);
     el.click();
     PluginBase.util.scrollToAnimated(el, -25);
   } }, "Collapse": { "pageFn": (transcript, index7) => {
-    const el = document.querySelector(thingAtIndex(index7) + " .expando-button:not(.collapsed)");
-    el.click();
+    const { comments } = reddit.old.post;
+    const el = select(thingAtIndex(index7) + ` ${comments.expandBtn}${comments.expanded}`);
+    el === null || el === void 0 ? void 0 : el.click();
   } }, "Upvote": { "pageFn": (transcript, index8) => {
     vote("up", index8);
   } }, "Downvote": { "pageFn": (transcript, index9) => {
     vote("down", index9);
   } }, "Clear Vote": { "pageFn": (transcript, index10) => {
     vote("clear", index10);
-  } }, "Upvote Current": { "pageFn": () => vote("up") }, "Downvote Current": { "pageFn": () => vote("down") }, "Clear Vote Current": { "pageFn": () => vote("clear") }, "Visit Current": { "pageFn": () => clickIfExists("#siteTable p.title a.title") }, "Expand Current": { "pageFn": () => {
-    const mainItem = document.querySelector(`#siteTable .thing .expando-button.collapsed`);
-    const commentItems = Array.from(document.querySelectorAll(`.commentarea > div > .thing.collapsed`));
+  } }, "Upvote Current": { "pageFn": () => vote("up") }, "Downvote Current": { "pageFn": () => vote("down") }, "Clear Vote Current": { "pageFn": () => vote("clear") }, "Visit Current": { "pageFn": () => clickIfExists("#siteTable a.title") }, "Expand Current": { "pageFn": () => {
+    const { comments } = reddit.old.post;
+    const mainItem = select(`#siteTable .thing ${comments.expandBtn}`);
     if (mainItem && PluginBase.util.isVisible(mainItem)) {
       mainItem.click();
     } else {
+      const selector = `${comments.comment.select}${comments.collapsed}`;
+      const commentItems = Array.from(selectAll(selector));
       let el;
       for (el of commentItems.reverse()) {
         if (PluginBase.util.isVisible(el)) {
-          el.querySelector(".comment.collapsed a.expand").click();
+          select(comments.comment.expandBtn, el).click();
           return;
         }
       }
     }
   } }, "Collapse Current": { "pageFn": () => {
-    for (const el of document.querySelectorAll(`#siteTable .thing .expando-button.expanded, .commentarea > div > div.thing:not(.collapsed) > div > p > a.expand`)) {
+    for (const el of selectAll(`#siteTable .thing .expando-button.expanded, .commentarea > div > div.thing:not(.collapsed) > div > p > a.expand`)) {
       if (PluginBase.util.isVisible(el)) {
         el.click();
         break;
       }
     }
   } }, "Expand All Comments": { "pageFn": async () => {
-    for (let el of document.querySelectorAll(".thing.comment.collapsed a.expand")) {
+    for (let el of selectAll(".thing.comment.collapsed a.expand")) {
       el.click();
     }
   } } } } };
@@ -209,11 +222,19 @@ allPlugins.Reddit = (() => {
 })();
 LS-SPLIT// dist/tmp/Reddit/Reddit.js
 allPlugins.Reddit = (() => {
-  function setStyles(stylesObject, el) {
+  var setStyles = (stylesObject, el) => {
     Object.keys(stylesObject).forEach((key) => {
       el.style[key] = stylesObject[key];
     });
-  }
+  };
+  var select = (selector, el) => {
+    const element = el || document;
+    return element.querySelector(selector);
+  };
+  var selectAll = (selector, el) => {
+    const element = el || document;
+    return element.querySelectorAll(selector);
+  };
   var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
   var COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
   var isOldReddit = /https:\/\/old/.test(window.location.href);
@@ -222,7 +243,7 @@ allPlugins.Reddit = (() => {
   var posts = null;
   var index = 0;
   var isDOMLoaded = false;
-  var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: "a.comments" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: 'a[data-click-id="comments"]' }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
+  var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: { select: "a.comments", expandBtn: ".expando-button", collapsed: ".collapsed", expanded: ".expanded", comment: { select: ".comment", expandBtn: "a.expand" } } }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: { select: 'a[data-click-id="comments"]', expandBtn: ".icon-expand" } }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
       return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
@@ -231,7 +252,7 @@ allPlugins.Reddit = (() => {
     }
   }
   function clickIfExists(selector) {
-    const el = document.querySelector(selector);
+    const el = select(selector);
     if (el)
       el.click();
   }
@@ -245,7 +266,7 @@ allPlugins.Reddit = (() => {
     posts1.forEach((el) => {
       index += 1;
       el.setAttribute(thingAttr, `${index}`);
-      const rank = el.querySelector(".rank");
+      const rank = select(".rank", el);
       setStyles({ display: "block", marginRight: "10px", opacity: "1 !important" }, rank);
     });
   }
@@ -265,7 +286,7 @@ allPlugins.Reddit = (() => {
     const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     mutationList.forEach((it) => {
       it.addedNodes.forEach((node) => {
-        const post = node.querySelector(postSelector);
+        const post = select(postSelector, node);
         setAttributes(post);
       });
     });
@@ -282,7 +303,7 @@ allPlugins.Reddit = (() => {
       return;
     const { old, last } = reddit;
     const postSelector = isOldReddit ? old.post.thing : last.post.thing;
-    posts = document.querySelectorAll(postSelector);
+    posts = selectAll(postSelector);
     isDOMLoaded = true;
     if (isOldReddit) {
       addOldRedditPostsAttributes(posts);
@@ -343,9 +364,10 @@ allPlugins.Reddit = (() => {
       }, 2e3);
     }
   }, "destroy": () => {
+    isDOMLoaded = false;
     PluginBase.util.removeContext("Post List", "Post");
     observer && observer.disconnect();
-    isDOMLoaded = false;
+    window.removeEventListener("load", detectPosts);
   }, "commands": { "Go to Reddit": { "pageFn": () => {
     document.location.href = "https://reddit.com";
   } } } } };
