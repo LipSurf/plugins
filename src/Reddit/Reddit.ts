@@ -17,6 +17,7 @@ let scrollContainer: Maybe<ParentNode> = null
 let observer: Maybe<MutationObserver> = null
 let posts: Maybe<NodeList> = null
 let index = 0
+let isDOMLoaded = false
 
 const reddit = {
   old: {
@@ -93,6 +94,7 @@ function addOldRedditPostsAttributes(posts) {
 function setAttributes(post: HTMLElement) {
   if (post && getComputedStyle(post).display !== 'none') {
     index += 1
+
     post.setAttribute(thingAttr, `${ index }`)
     post.style.position = 'relative'
     post.appendChild(genPostNumberElement(index))
@@ -105,10 +107,10 @@ function addNewRedditPostsAttributes(posts) {
 
 function observerCallback(mutationList) {
   const { old, last } = reddit
-  const postSelector = isOldReddit ? old.post : last.post
+  const postSelector = isOldReddit ? old.post.thing : last.post.thing
 
   mutationList.forEach(it => {
-    it.addedNodes.forEach(node => {
+    it.addedNodes.forEach((node: any) => {
       const post = node.querySelector(postSelector)
       setAttributes(post)
     })
@@ -126,10 +128,13 @@ function setParentContainer(posts) {
 }
 
 function detectPosts() {
+  if (isDOMLoaded) return
+
   const { old, last } = reddit
   const postSelector = isOldReddit ? old.post.thing : last.post.thing
 
   posts = document.querySelectorAll<HTMLElement>(postSelector)
+  isDOMLoaded = true
 
   if (isOldReddit) {
     addOldRedditPostsAttributes(posts)
@@ -255,15 +260,13 @@ export default <IPluginBase & IPlugin> {
 
         await PluginBase.util.ready()
 
-        // waiting for DOM loading in timeout
-        // we can't use "load" event listener, because
-        // the extension can be enabled after DOM loading
-        // window.addEventListener('load', detectPosts)
-        // detectPosts()
+        window.addEventListener('load', detectPosts)
 
         setTimeout(() => {
-          console.log('timer')
-          detectPosts()
+          if (!isDOMLoaded) {
+            const event = new Event('load', { bubbles: true })
+            window.dispatchEvent(event)
+          }
         }, 2000)
       }
     },
@@ -271,6 +274,7 @@ export default <IPluginBase & IPlugin> {
     destroy: () => {
       PluginBase.util.removeContext('Post List', 'Post')
       observer && observer!.disconnect()
+      isDOMLoaded = false
     },
 
     commands: [
@@ -280,7 +284,7 @@ export default <IPluginBase & IPlugin> {
         match: [ '[/go to ]reddit' ],
         minConfidence: 0.5,
         pageFn: () => {
-          document.location.href = 'https://old.reddit.com'
+          document.location.href = 'https://reddit.com'
         },
       },
       {
@@ -302,7 +306,7 @@ export default <IPluginBase & IPlugin> {
           return `go to r/${ matchOutput }`
         },
         pageFn: (transcript, subredditName: string) => {
-          window.location.href = `https://old.reddit.com/r/${ subredditName }`
+          window.location.href = `https://reddit.com/r/${ subredditName }`
         },
       },
       {

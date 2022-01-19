@@ -22,6 +22,7 @@ allPlugins.Reddit = (() => {
   var observer = null;
   var posts = null;
   var index = 0;
+  var isDOMLoaded = false;
   var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: "a.comments" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: 'a[data-click-id="comments"]' }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
@@ -62,7 +63,7 @@ allPlugins.Reddit = (() => {
   }
   function observerCallback(mutationList) {
     const { old, last } = reddit;
-    const postSelector = isOldReddit ? old.post : last.post;
+    const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     mutationList.forEach((it) => {
       it.addedNodes.forEach((node) => {
         const post = node.querySelector(postSelector);
@@ -78,9 +79,12 @@ allPlugins.Reddit = (() => {
     return posts3[0].parentNode.parentNode.parentNode;
   }
   function detectPosts() {
+    if (isDOMLoaded)
+      return;
     const { old, last } = reddit;
     const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     posts = document.querySelectorAll(postSelector);
+    isDOMLoaded = true;
     if (isOldReddit) {
       addOldRedditPostsAttributes(posts);
     } else {
@@ -131,16 +135,20 @@ allPlugins.Reddit = (() => {
         PluginBase.util.removeContext("Post");
       }
       await PluginBase.util.ready();
+      window.addEventListener("load", detectPosts);
       setTimeout(() => {
-        console.log("timer");
-        detectPosts();
+        if (!isDOMLoaded) {
+          const event = new Event("load", { bubbles: true });
+          window.dispatchEvent(event);
+        }
       }, 2e3);
     }
   }, "destroy": () => {
     PluginBase.util.removeContext("Post List", "Post");
     observer && observer.disconnect();
+    isDOMLoaded = false;
   }, "commands": { "Go to Reddit": { "pageFn": () => {
-    document.location.href = "https://old.reddit.com";
+    document.location.href = "https://reddit.com";
   } }, "Go to Subreddit": { "match": { "en": ({ normTs, preTs }) => {
     const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
     let match = preTs.match(SUBREDDIT_REGX);
@@ -151,7 +159,7 @@ allPlugins.Reddit = (() => {
   } }, "isFinal": true, "nice": (transcript, matchOutput) => {
     return `go to r/${matchOutput}`;
   }, "pageFn": (transcript, subredditName) => {
-    window.location.href = `https://old.reddit.com/r/${subredditName}`;
+    window.location.href = `https://reddit.com/r/${subredditName}`;
   } }, "View Comments": { "pageFn": (transcript, index4) => {
     const selector = isOldReddit ? ` ${reddit.old.post.comments}` : ` ${reddit.last.post.comments}`;
     clickIfExists(thingAtIndex(index4) + selector);
@@ -213,6 +221,7 @@ allPlugins.Reddit = (() => {
   var observer = null;
   var posts = null;
   var index = 0;
+  var isDOMLoaded = false;
   var reddit = { old: { post: { thing: "#siteTable>div.thing", title: "a.title", comments: "a.comments" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post", comments: 'a[data-click-id="comments"]' }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
@@ -253,7 +262,7 @@ allPlugins.Reddit = (() => {
   }
   function observerCallback(mutationList) {
     const { old, last } = reddit;
-    const postSelector = isOldReddit ? old.post : last.post;
+    const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     mutationList.forEach((it) => {
       it.addedNodes.forEach((node) => {
         const post = node.querySelector(postSelector);
@@ -269,9 +278,12 @@ allPlugins.Reddit = (() => {
     return posts3[0].parentNode.parentNode.parentNode;
   }
   function detectPosts() {
+    if (isDOMLoaded)
+      return;
     const { old, last } = reddit;
     const postSelector = isOldReddit ? old.post.thing : last.post.thing;
     posts = document.querySelectorAll(postSelector);
+    isDOMLoaded = true;
     if (isOldReddit) {
       addOldRedditPostsAttributes(posts);
     } else {
@@ -322,16 +334,20 @@ allPlugins.Reddit = (() => {
         PluginBase.util.removeContext("Post");
       }
       await PluginBase.util.ready();
+      window.addEventListener("load", detectPosts);
       setTimeout(() => {
-        console.log("timer");
-        detectPosts();
+        if (!isDOMLoaded) {
+          const event = new Event("load", { bubbles: true });
+          window.dispatchEvent(event);
+        }
       }, 2e3);
     }
   }, "destroy": () => {
     PluginBase.util.removeContext("Post List", "Post");
     observer && observer.disconnect();
+    isDOMLoaded = false;
   }, "commands": { "Go to Reddit": { "pageFn": () => {
-    document.location.href = "https://old.reddit.com";
+    document.location.href = "https://reddit.com";
   } } } } };
   return Reddit_default;
 })();
