@@ -22,18 +22,23 @@ let isDOMLoaded = false
 const reddit = {
   old: {
     post: {
-      thing: '#siteTable>div.thing',
+      thing: '#siteTable>.thing',
       title: 'a.title',
-      comments: {
-        select: 'a.comments',
-        expandBtn: '.expando-button',
-        collapsed: '.collapsed',
-        expanded: '.expanded',
-        comment: {
-          select: '.comment',
-          expandBtn: 'a.expand'
-        }
+      expandBtn: '.expando-button',
+      commentarea: '.commentarea'
+    },
+    comments: {
+      select: 'a.comments',
+      expandBtn: '.expando-button',
+      comment: {
+        select: '.comment',
+        expandBtn: 'a.expand',
       }
+    },
+    special: {
+      collapsed: '.collapsed',
+      expanded: '.expanded',
+      notCollapsed: ':not(.collapsed)'
     },
     vote: {
       btn: '#siteTable *[role="button"]',
@@ -46,10 +51,10 @@ const reddit = {
   last: {
     post: {
       thing: '.Post',
-      comments: {
-        select: 'a[data-click-id="comments"]',
-        expandBtn: '.icon-expand'
-      }
+    },
+    comments: {
+      select: 'a[data-click-id="comments"]',
+      expandBtn: '.icon-expand'
     },
     vote: {
       btn: '.voteButton',
@@ -194,6 +199,29 @@ function vote(type: 'up' | 'down' | 'clear', index?: number) {
   clickIfExists(q)
 }
 
+function collapseCurrent() {
+  const { post, special, comments } = reddit.old
+
+  const postExpBtnSelector = `${ post.expandBtn }${ special.expanded }`
+  const comExpBtnSelector = `${ comments.comment.select }${ special.notCollapsed } ${ comments.comment.expandBtn }`
+
+  const postExpBtn = select<HTMLElement>(postExpBtnSelector)
+  const expandedComments = selectAll<HTMLElement>(comExpBtnSelector)
+
+  postExpBtn && PluginBase.util.isVisible(postExpBtn!) && postExpBtn!.click()
+
+  for (const el of expandedComments) {
+    if (PluginBase.util.isVisible(el)) {
+      el.click()
+      break
+    }
+  }
+}
+
+function expand() {
+
+}
+
 export default <IPluginBase & IPlugin> {
   ...PluginBase,
   ...{
@@ -328,8 +356,8 @@ export default <IPluginBase & IPlugin> {
         pageFn: (transcript, index: number) => {
 
           const selector = isOldReddit ?
-            ` ${ reddit.old.post.comments.select }` :
-            ` ${ reddit.last.post.comments.select }`
+            ` ${ reddit.old.comments.select }` :
+            ` ${ reddit.last.comments.select }`
 
           clickIfExists(thingAtIndex(index) + selector)
         },
@@ -354,8 +382,8 @@ export default <IPluginBase & IPlugin> {
         match: [ 'expand #', '# expand' ], // in comments view
         normal: false,
         pageFn: (transcript, index: number) => {
-          const { comments } = reddit.old.post
-          const el = select<HTMLElement>(`${ thingAtIndex(index) } ${ comments.expandBtn }${ comments.collapsed }`)
+          const { comments, special } = reddit.old
+          const el = select<HTMLElement>(`${ thingAtIndex(index) } ${ comments.expandBtn }${ special.collapsed }`)
           el!.click()
           PluginBase.util.scrollToAnimated(el!, -25)
         },
@@ -377,10 +405,10 @@ export default <IPluginBase & IPlugin> {
         match: [ 'collapse #', '# collapse' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const { comments } = reddit.old.post
+          const { comments, special } = reddit.old
           const el = select<HTMLElement>(
             // thingAtIndex(index) + ' .expando-button:not(.collapsed)'
-            thingAtIndex(index) + ` ${ comments.expandBtn }${ comments.expanded }`
+            thingAtIndex(index) + ` ${ comments.expandBtn }${ special.expanded }`
           )
 
           el?.click()
@@ -486,15 +514,16 @@ export default <IPluginBase & IPlugin> {
         match: 'expand',
         normal: false,
         pageFn: () => {
-          const { comments } = reddit.old.post
+          const { comments, special, post } = reddit.old
           // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-          const mainItem = select<HTMLAnchorElement>(`#siteTable .thing ${ comments.expandBtn }`)
+          const mainItem = select<HTMLAnchorElement>(`${ post.thing } ${ comments.expandBtn }`)
 
           if (mainItem && PluginBase.util.isVisible(mainItem)) {
             mainItem.click()
           } else {
-            const selector = `${ comments.comment.select }${ comments.collapsed }`
+            const selector = `${ comments.comment.select }${ special.collapsed }`
             const commentItems = Array.from(selectAll<HTMLElement>(selector))
+
             let el: HTMLElement
             for (el of commentItems.reverse()) {
               if (PluginBase.util.isVisible(el)) {
@@ -510,17 +539,7 @@ export default <IPluginBase & IPlugin> {
         description: 'Collapse the current post that we\'re in.',
         match: [ 'collapse', 'close' ],
         normal: false,
-        pageFn: () => {
-          // collapse first visible item (can be comment or post)
-          for (const el of selectAll<HTMLElement>(
-            `#siteTable .thing .expando-button.expanded, .commentarea > div > div.thing:not(.collapsed) > div > p > a.expand`
-          )) {
-            if (PluginBase.util.isVisible(el)) {
-              el.click()
-              break
-            }
-          }
-        },
+        pageFn: collapseCurrent
       },
       {
         name: 'Expand All Comments',
