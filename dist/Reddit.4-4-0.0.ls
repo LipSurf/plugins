@@ -31,7 +31,7 @@ allPlugins.Reddit = (() => {
   var posts = null;
   var index = 0;
   var isDOMLoaded = false;
-  var reddit = { old: { post: { thing: "#siteTable>.thing", title: "a.title", expandBtn: ".expando-button", commentarea: ".commentarea" }, comments: { select: "a.comments", expandBtn: ".expando-button", comment: { select: ".comment", expandBtn: "a.expand" } }, special: { collapsed: ".collapsed", expanded: ".expanded", notCollapsed: ":not(.collapsed)" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post" }, comments: { select: 'a[data-click-id="comments"]', expandBtn: ".icon-expand" }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
+  var reddit = { old: { post: { thing: "#siteTable>.thing", title: "a.title", expandBtn: ".expando-button", commentarea: ".commentarea" }, comments: { select: "a.comments", expandBtn: ".expando-button", comment: { select: ".comment", expandBtn: "a.expand" } }, special: { collapsed: ".collapsed", expanded: ".expanded", notCollapsed: ":not(.collapsed)" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post" }, comments: { select: 'a[data-click-id="comments"]', threadline: ".threadline", comment: { select: ".Comment", expandBtn: ".icon-expand" } }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
       return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
@@ -132,14 +132,68 @@ allPlugins.Reddit = (() => {
       q = composeClearVoteSelector(index3);
     clickIfExists(q);
   }
-  function collapseCurrent() {
+  function composeCollapseBtnSelector() {
     const { post, special, comments } = reddit.old;
-    const postExpBtnSelector = `${post.expandBtn}${special.expanded}`;
-    const comExpBtnSelector = `${comments.comment.select}${special.notCollapsed} ${comments.comment.expandBtn}`;
-    const postExpBtn = select(postExpBtnSelector);
-    const expandedComments = selectAll(comExpBtnSelector);
-    postExpBtn && PluginBase.util.isVisible(postExpBtn) && postExpBtn.click();
-    for (const el of expandedComments) {
+    const { comment } = comments;
+    const oldCommentBtnSelector = `${comment.select}${special.notCollapsed} ${comment.expandBtn}`;
+    const newCommentBtnSelector = reddit.last.comments.threadline;
+    return { postExpBtn: isOldReddit ? `${post.expandBtn}${special.expanded}` : "", comExpBtn: isOldReddit ? oldCommentBtnSelector : newCommentBtnSelector };
+  }
+  function composeExpandBtnSelector() {
+    const { comments, special, post } = reddit.old;
+    const selectors = { comExpBtn: "", postExpBtn: "", comment: "" };
+    if (isOldReddit) {
+      selectors.comExpBtn = comments.comment.expandBtn;
+      selectors.postExpBtn = `${post.thing} ${comments.expandBtn}`;
+      selectors.comment = `${comments.comment.select}${special.collapsed}`;
+    } else {
+      selectors.comment = reddit.last.comments.comment.select;
+      selectors.comExpBtn = reddit.last.comments.comment.expandBtn;
+    }
+    return selectors;
+  }
+  async function expandCurrent() {
+    const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector();
+    const mainItem = !!postExpBtn && select(postExpBtn) || null;
+    if (mainItem && PluginBase.util.isVisible(mainItem))
+      mainItem.click();
+    else {
+      const itemsSelector = isOldReddit ? comment : comExpBtn;
+      let el;
+      const items = Array.from(selectAll(itemsSelector));
+      for (el of items.reverse()) {
+        if (PluginBase.util.isVisible(el)) {
+          if (isOldReddit) {
+            let btn = select(comExpBtn, el);
+            return btn.click();
+          } else {
+            if (parseFloat(getComputedStyle(el.parentNode).width)) {
+              return el.parentNode.click();
+            }
+          }
+        }
+      }
+    }
+  }
+  async function expandAll() {
+    const { comment, comExpBtn } = composeExpandBtnSelector();
+    const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
+    for (let el of selectAll(selector)) {
+      if (isOldReddit) {
+        el.click();
+      } else {
+        if (parseFloat(getComputedStyle(el.parentNode).width)) {
+          el.parentNode.click();
+        }
+      }
+    }
+  }
+  function collapseCurrent() {
+    const { postExpBtn, comExpBtn } = composeCollapseBtnSelector();
+    const postBtn = !!postExpBtn && select(postExpBtn) || null;
+    const commentBtns = selectAll(comExpBtn);
+    postBtn && PluginBase.util.isVisible(postBtn) && postBtn.click();
+    for (const el of commentBtns) {
       if (PluginBase.util.isVisible(el)) {
         el.click();
         break;
@@ -204,38 +258,50 @@ allPlugins.Reddit = (() => {
     vote("down", index9);
   } }, "Clear Vote": { "pageFn": (transcript, index10) => {
     vote("clear", index10);
-  } }, "Upvote Current": { "pageFn": () => vote("up") }, "Downvote Current": { "pageFn": () => vote("down") }, "Clear Vote Current": { "pageFn": () => vote("clear") }, "Visit Current": { "pageFn": () => clickIfExists("#siteTable a.title") }, "Expand Current": { "pageFn": () => {
-    const { comments, special, post } = reddit.old;
-    const mainItem = select(`${post.thing} ${comments.expandBtn}`);
-    if (mainItem && PluginBase.util.isVisible(mainItem)) {
+  } }, "Upvote Current": { "pageFn": () => vote("up") }, "Downvote Current": { "pageFn": () => vote("down") }, "Clear Vote Current": { "pageFn": () => vote("clear") }, "Visit Current": { "pageFn": () => clickIfExists("#siteTable a.title") }, "Expand Current": { "pageFn": async function expandCurrent2() {
+    const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector();
+    const mainItem = !!postExpBtn && select(postExpBtn) || null;
+    if (mainItem && PluginBase.util.isVisible(mainItem))
       mainItem.click();
-    } else {
-      const selector = `${comments.comment.select}${special.collapsed}`;
-      const commentItems = Array.from(selectAll(selector));
+    else {
+      const itemsSelector = isOldReddit ? comment : comExpBtn;
       let el;
-      for (el of commentItems.reverse()) {
+      const items = Array.from(selectAll(itemsSelector));
+      for (el of items.reverse()) {
         if (PluginBase.util.isVisible(el)) {
-          select(comments.comment.expandBtn, el).click();
-          return;
+          if (isOldReddit) {
+            let btn = select(comExpBtn, el);
+            return btn.click();
+          } else {
+            if (parseFloat(getComputedStyle(el.parentNode).width)) {
+              return el.parentNode.click();
+            }
+          }
         }
       }
     }
   } }, "Collapse Current": { "pageFn": function collapseCurrent2() {
-    const { post, special, comments } = reddit.old;
-    const postExpBtnSelector = `${post.expandBtn}${special.expanded}`;
-    const comExpBtnSelector = `${comments.comment.select}${special.notCollapsed} ${comments.comment.expandBtn}`;
-    const postExpBtn = select(postExpBtnSelector);
-    const expandedComments = selectAll(comExpBtnSelector);
-    postExpBtn && PluginBase.util.isVisible(postExpBtn) && postExpBtn.click();
-    for (const el of expandedComments) {
+    const { postExpBtn, comExpBtn } = composeCollapseBtnSelector();
+    const postBtn = !!postExpBtn && select(postExpBtn) || null;
+    const commentBtns = selectAll(comExpBtn);
+    postBtn && PluginBase.util.isVisible(postBtn) && postBtn.click();
+    for (const el of commentBtns) {
       if (PluginBase.util.isVisible(el)) {
         el.click();
         break;
       }
     }
-  } }, "Expand All Comments": { "pageFn": async () => {
-    for (let el of selectAll(".thing.comment.collapsed a.expand")) {
-      el.click();
+  } }, "Expand All Comments": { "pageFn": async function expandAll2() {
+    const { comment, comExpBtn } = composeExpandBtnSelector();
+    const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
+    for (let el of selectAll(selector)) {
+      if (isOldReddit) {
+        el.click();
+      } else {
+        if (parseFloat(getComputedStyle(el.parentNode).width)) {
+          el.parentNode.click();
+        }
+      }
     }
   } } } } };
   return Reddit_default;
@@ -263,7 +329,7 @@ allPlugins.Reddit = (() => {
   var posts = null;
   var index = 0;
   var isDOMLoaded = false;
-  var reddit = { old: { post: { thing: "#siteTable>.thing", title: "a.title", expandBtn: ".expando-button", commentarea: ".commentarea" }, comments: { select: "a.comments", expandBtn: ".expando-button", comment: { select: ".comment", expandBtn: "a.expand" } }, special: { collapsed: ".collapsed", expanded: ".expanded", notCollapsed: ":not(.collapsed)" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post" }, comments: { select: 'a[data-click-id="comments"]', expandBtn: ".icon-expand" }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
+  var reddit = { old: { post: { thing: "#siteTable>.thing", title: "a.title", expandBtn: ".expando-button", commentarea: ".commentarea" }, comments: { select: "a.comments", expandBtn: ".expando-button", comment: { select: ".comment", expandBtn: "a.expand" } }, special: { collapsed: ".collapsed", expanded: ".expanded", notCollapsed: ":not(.collapsed)" }, vote: { btn: '#siteTable *[role="button"]', up: ".arrow.up:not(.upmod)", down: ".arrow.down:not(.downmod)", upmod: ".arrow.upmod", downmod: ".arrow.downmod" } }, last: { post: { thing: ".Post" }, comments: { select: 'a[data-click-id="comments"]', threadline: ".threadline", comment: { select: ".Comment", expandBtn: ".icon-expand" } }, vote: { btn: ".voteButton", up: '.voteButton[aria-label="upvote"]', down: '.voteButton[aria-label="downvote"]', pressed: '.voteButton[aria-pressed="true"]', unpressed: '.voteButton[aria-pressed="false"]' } } };
   function thingAtIndex(i) {
     if (isOldReddit) {
       return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
@@ -364,14 +430,68 @@ allPlugins.Reddit = (() => {
       q = composeClearVoteSelector(index3);
     clickIfExists(q);
   }
-  function collapseCurrent() {
+  function composeCollapseBtnSelector() {
     const { post, special, comments } = reddit.old;
-    const postExpBtnSelector = `${post.expandBtn}${special.expanded}`;
-    const comExpBtnSelector = `${comments.comment.select}${special.notCollapsed} ${comments.comment.expandBtn}`;
-    const postExpBtn = select(postExpBtnSelector);
-    const expandedComments = selectAll(comExpBtnSelector);
-    postExpBtn && PluginBase.util.isVisible(postExpBtn) && postExpBtn.click();
-    for (const el of expandedComments) {
+    const { comment } = comments;
+    const oldCommentBtnSelector = `${comment.select}${special.notCollapsed} ${comment.expandBtn}`;
+    const newCommentBtnSelector = reddit.last.comments.threadline;
+    return { postExpBtn: isOldReddit ? `${post.expandBtn}${special.expanded}` : "", comExpBtn: isOldReddit ? oldCommentBtnSelector : newCommentBtnSelector };
+  }
+  function composeExpandBtnSelector() {
+    const { comments, special, post } = reddit.old;
+    const selectors = { comExpBtn: "", postExpBtn: "", comment: "" };
+    if (isOldReddit) {
+      selectors.comExpBtn = comments.comment.expandBtn;
+      selectors.postExpBtn = `${post.thing} ${comments.expandBtn}`;
+      selectors.comment = `${comments.comment.select}${special.collapsed}`;
+    } else {
+      selectors.comment = reddit.last.comments.comment.select;
+      selectors.comExpBtn = reddit.last.comments.comment.expandBtn;
+    }
+    return selectors;
+  }
+  async function expandCurrent() {
+    const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector();
+    const mainItem = !!postExpBtn && select(postExpBtn) || null;
+    if (mainItem && PluginBase.util.isVisible(mainItem))
+      mainItem.click();
+    else {
+      const itemsSelector = isOldReddit ? comment : comExpBtn;
+      let el;
+      const items = Array.from(selectAll(itemsSelector));
+      for (el of items.reverse()) {
+        if (PluginBase.util.isVisible(el)) {
+          if (isOldReddit) {
+            let btn = select(comExpBtn, el);
+            return btn.click();
+          } else {
+            if (parseFloat(getComputedStyle(el.parentNode).width)) {
+              return el.parentNode.click();
+            }
+          }
+        }
+      }
+    }
+  }
+  async function expandAll() {
+    const { comment, comExpBtn } = composeExpandBtnSelector();
+    const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
+    for (let el of selectAll(selector)) {
+      if (isOldReddit) {
+        el.click();
+      } else {
+        if (parseFloat(getComputedStyle(el.parentNode).width)) {
+          el.parentNode.click();
+        }
+      }
+    }
+  }
+  function collapseCurrent() {
+    const { postExpBtn, comExpBtn } = composeCollapseBtnSelector();
+    const postBtn = !!postExpBtn && select(postExpBtn) || null;
+    const commentBtns = selectAll(comExpBtn);
+    postBtn && PluginBase.util.isVisible(postBtn) && postBtn.click();
+    for (const el of commentBtns) {
       if (PluginBase.util.isVisible(el)) {
         el.click();
         break;

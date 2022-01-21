@@ -54,7 +54,11 @@ const reddit = {
     },
     comments: {
       select: 'a[data-click-id="comments"]',
-      expandBtn: '.icon-expand'
+      threadline: '.threadline',
+      comment: {
+        select: '.Comment',
+        expandBtn: '.icon-expand',
+      }
     },
     vote: {
       btn: '.voteButton',
@@ -177,11 +181,9 @@ function composeClearVoteSelector(index): string {
   if (index && isOldReddit) {
     return `${ thing } ${ old.vote.downmod }, ${ thing } ${ old.vote.upmod }`
   }
-
   if (!index && isOldReddit) {
     return `${ old.vote.downmod },${ old.vote.upmod }`
   }
-
   if (index && !isOldReddit) {
     return `${ thing } ${ last.vote.pressed }`
   }
@@ -199,27 +201,95 @@ function vote(type: 'up' | 'down' | 'clear', index?: number) {
   clickIfExists(q)
 }
 
-function collapseCurrent() {
+function composeCollapseBtnSelector() {
   const { post, special, comments } = reddit.old
+  const { comment } = comments
 
-  const postExpBtnSelector = `${ post.expandBtn }${ special.expanded }`
-  const comExpBtnSelector = `${ comments.comment.select }${ special.notCollapsed } ${ comments.comment.expandBtn }`
+  const oldCommentBtnSelector = `${ comment.select }${ special.notCollapsed } ${ comment.expandBtn }`
+  const newCommentBtnSelector = reddit.last.comments.threadline
 
-  const postExpBtn = select<HTMLElement>(postExpBtnSelector)
-  const expandedComments = selectAll<HTMLElement>(comExpBtnSelector)
+  return {
+    postExpBtn: isOldReddit ? `${ post.expandBtn }${ special.expanded }` : '',
+    comExpBtn: isOldReddit ? oldCommentBtnSelector : newCommentBtnSelector
+  }
+}
 
-  postExpBtn && PluginBase.util.isVisible(postExpBtn!) && postExpBtn!.click()
+function composeExpandBtnSelector() {
+  const { comments, special, post } = reddit.old
+  const selectors = {
+    comExpBtn: '',
+    postExpBtn: '',
+    comment: ''
+  }
 
-  for (const el of expandedComments) {
+  if (isOldReddit) {
+    selectors.comExpBtn = comments.comment.expandBtn
+    selectors.postExpBtn = `${ post.thing } ${ comments.expandBtn }`
+    selectors.comment = `${ comments.comment.select }${ special.collapsed }`
+  } else {
+    selectors.comment = reddit.last.comments.comment.select
+    selectors.comExpBtn = reddit.last.comments.comment.expandBtn
+  }
+
+  return selectors
+}
+
+async function expandCurrent() {
+  // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
+  const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector()
+  const mainItem = !!postExpBtn && select<HTMLAnchorElement>(postExpBtn) || null
+
+  if (mainItem && PluginBase.util.isVisible(mainItem)) mainItem.click()
+  else {
+    const itemsSelector = isOldReddit ? comment : comExpBtn
+    let el: HTMLElement
+
+    const items = Array.from(selectAll<HTMLElement>(itemsSelector))
+
+    for (el of items.reverse()) {
+      if (PluginBase.util.isVisible(el)) {
+        if (isOldReddit) {
+          let btn = select<HTMLElement>(comExpBtn, el)
+          return btn!.click()
+        } else {
+          if (parseFloat(getComputedStyle(el.parentNode as Element).width)) {
+            return (el.parentNode as HTMLElement)!.click()
+          }
+        }
+      }
+    }
+  }
+}
+
+async function expandAll() {
+  const { comment, comExpBtn } = composeExpandBtnSelector()
+  const selector = isOldReddit ? `${ comment } ${ comExpBtn }` : comExpBtn
+
+  for (let el of selectAll<HTMLElement>(selector)) {
+    if (isOldReddit) {
+      el.click()
+    } else {
+      if (parseFloat(getComputedStyle(el.parentNode as Element).width)) {
+        (el.parentNode as HTMLElement).click()
+      }
+    }
+  }
+}
+
+function collapseCurrent() {
+  const { postExpBtn, comExpBtn } = composeCollapseBtnSelector()
+
+  const postBtn = !!postExpBtn && select<HTMLElement>(postExpBtn!) || null
+  const commentBtns = selectAll<HTMLElement>(comExpBtn)
+
+  postBtn && PluginBase.util.isVisible(postBtn!) && postBtn!.click()
+
+  for (const el of commentBtns) {
     if (PluginBase.util.isVisible(el)) {
       el.click()
       break
     }
   }
-}
-
-function expand() {
-
 }
 
 export default <IPluginBase & IPlugin> {
@@ -513,26 +583,7 @@ export default <IPluginBase & IPlugin> {
         description: 'Expand the post that we\'re in.',
         match: 'expand',
         normal: false,
-        pageFn: () => {
-          const { comments, special, post } = reddit.old
-          // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-          const mainItem = select<HTMLAnchorElement>(`${ post.thing } ${ comments.expandBtn }`)
-
-          if (mainItem && PluginBase.util.isVisible(mainItem)) {
-            mainItem.click()
-          } else {
-            const selector = `${ comments.comment.select }${ special.collapsed }`
-            const commentItems = Array.from(selectAll<HTMLElement>(selector))
-
-            let el: HTMLElement
-            for (el of commentItems.reverse()) {
-              if (PluginBase.util.isVisible(el)) {
-                select<HTMLAnchorElement>(comments.comment.expandBtn, el)!.click()
-                return
-              }
-            }
-          }
-        },
+        pageFn: expandCurrent
       },
       {
         name: 'Collapse Current',
@@ -546,13 +597,7 @@ export default <IPluginBase & IPlugin> {
         description: 'Expands all the comments.',
         match: [ 'expand all[/ comments]' ],
         normal: false,
-        pageFn: async () => {
-          for (let el of selectAll<HTMLElement>(
-            '.thing.comment.collapsed a.expand'
-          )) {
-            el.click()
-          }
-        },
+        pageFn: expandAll,
         test: async (t, say, client) => {
           // Only checks to see that more than 5 comments are collapsed.
           await client.url(
