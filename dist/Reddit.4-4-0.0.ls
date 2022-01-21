@@ -1,7 +1,7 @@
 import PluginBase from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/plugin-base.js';import ExtensionUtil from 'chrome-extension://lnnmjmalakahagblkkcnjkoaihlfglon/dist/modules/extension-util.js';// dist/tmp/Reddit/Reddit.js
 var thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
 var isOldReddit = /https:\/\/old/.test(window.location.href);
-var Reddit_default = { "languages": { "ja": { "niceName": "レディット", "description": "Redditで操作します", "authors": "Miko", "commands": { "View Comments": { "name": "コメントを診ます", "match": ["こめんと#"] } } }, "ru": { "niceName": "Реддит", "description": "Команды для сайта Reddit.com", "authors": "Hanna, Miko", "homophones": { "reddit": "реддит", "голоса": "голос за" }, "commands": { "View Comments": { "name": "Открыть комментарии", "description": "Открывает комментарии к посту названного номера.", "match": ["[комментарии/комменты] к #"] }, "Visit Post": { "name": "Открыть пост", "description": "Кликает пост названного номера.", "match": ["открыть пост[/ #]"] }, "Visit Current": { "name": "Открыть пост", "description": "Кликает пост.", "match": ["открыть пост"] }, "Expand": { "name": "Развернуть", "description": "Развернуть превью поста или комментария названного номера.", "match": ["развернуть #", "# развернуть"] }, "Expand Current": { "name": "Развернуть", "description": "Развернуть превью поста или комментария.", "match": "развернуть" }, "Collapse": { "name": "Свернуть", "description": "Свернуть развернутый пост или комментарий. Если не назван номер, автоматически сворачивает самый верхний пост/ комментарий в пределах экрана.", "match": ["[свернуть/закрыть] #"] }, "Collapse Current": { "name": "Свернуть", "description": "Свернуть развернутый пост или комментарий. Если не назван номер, автоматически сворачивает самый верхний пост/ комментарий в пределах экрана.", "match": ["свернуть", "закрыть"] }, "Go to Reddit": { "name": "Открыть реддит", "description": "Переходит на сайт reddit.com", "match": "реддит" }, "Clear Vote": { "name": "Убрать голос", "description": "Убирает последний голос за или против последнего поста или поста названного номера", "match": "убрать голос #" }, "Clear Vote Current": { "name": "Убрать голос", "description": "Убирает последний голос за или против последнего поста или поста", "match": "убрать голос" }, "Downvote": { "name": "Голос против", "description": "Голосует поста названного # (пока нет поддержки комментариев)", "match": "голос против #" }, "Downvote Current": { "name": "Голос против", "description": "Голосует против данного поста (пока нет поддержки комментариев)", "match": "голос против" }, "Upvote": { "name": "Голос за", "description": "Голосует за пост названного # (пока нет поддержки комментариев)", "match": "голос за #" }, "Upvote Current": { "name": "Голос за", "description": "Голосует за данный пост (пока нет поддержки комментариев)", "match": "голос за" }, "Expand All Comments": { "name": "Показать все комментарии", "description": "Открывает все комментарии к данному посту", "match": ["[показать/открыть] все комментарии"] } } } }, "niceName": "Reddit", "description": "Commands for Reddit.com", "version": "4.4.0", "apiVersion": 2, "match": /^https?:\/\/.*\.reddit.com/, "authors": "Miko", "homophones": { "navigate": "go", "contract": "collapse", "claps": "collapse", "expense": "expand", "explain": "expand", "expanding": "expand", "expand noun": "expand 9", "it's been": "expand", "expanse": "expand", "expanded": "expand", "stand": "expand", "xpand": "expand", "xmen": "expand", "spend": "expand", "span": "expand", "spell": "expand", "spent": "expand", "reddit dot com": "reddit", "read it": "reddit", "shrink": "collapse", "advert": "upvote", "download": "downvote", "commence": "comments", "what": "upvote" }, "contexts": { "Post List": { "commands": ["View Comments", "Visit Post", "Expand", "Collapse", "Upvote", "Downvote", "Clear Vote"] }, "Post": { "commands": ["Upvote Current", "Downvote Current", "Clear Vote Current", "Visit Current", "Expand Current", "Collapse Current", "Expand All Comments"] } }, "commands": [{ "name": "Go to Reddit", "global": true, "match": ["[/go to ]reddit"], "minConfidence": 0.5 }, { "name": "Go to Subreddit", "match": { "fn": () => {
+var Reddit_default = { "languages": { "ja": { "niceName": "レディット", "description": "Redditで操作します", "authors": "Miko", "commands": { "View Comments": { "name": "コメントを診ます", "match": ["こめんと#"] } } }, "ru": { "niceName": "Реддит", "description": "Команды для сайта Reddit.com", "authors": "Hanna, Miko", "homophones": { "reddit": "реддит", "голоса": "голос за" }, "commands": { "View Comments": { "name": "Открыть комментарии", "description": "Открывает комментарии к посту названного номера.", "match": ["[комментарии/комменты] к #"] }, "Visit Post": { "name": "Открыть пост", "description": "Кликает пост названного номера.", "match": ["открыть пост[/ #]"] }, "Visit Current": { "name": "Открыть пост", "description": "Кликает пост.", "match": ["открыть пост"] }, "Expand": { "name": "Развернуть", "description": "Развернуть превью поста или комментария названного номера.", "match": ["развернуть #", "# развернуть"] }, "Expand Current": { "name": "Развернуть", "description": "Развернуть превью поста или комментария.", "match": "развернуть" }, "Collapse": { "name": "Свернуть", "description": "Свернуть развернутый пост или комментарий. Если не назван номер, автоматически сворачивает самый верхний пост/ комментарий в пределах экрана.", "match": ["[свернуть/закрыть] #"] }, "Collapse Current": { "name": "Свернуть", "description": "Свернуть развернутый пост или комментарий. Если не назван номер, автоматически сворачивает самый верхний пост/ комментарий в пределах экрана.", "match": ["свернуть", "закрыть"] }, "Go to Reddit": { "name": "Открыть реддит", "description": "Переходит на сайт reddit.com", "match": "реддит" }, "Clear Vote": { "name": "Убрать голос", "description": "Убирает последний голос за или против последнего поста или поста названного номера", "match": "убрать голос #" }, "Clear Vote Current": { "name": "Убрать голос", "description": "Убирает последний голос за или против последнего поста или поста", "match": "убрать голос" }, "Downvote": { "name": "Голос против", "description": "Голосует поста названного # (пока нет поддержки комментариев)", "match": "голос против #" }, "Downvote Current": { "name": "Голос против", "description": "Голосует против данного поста (пока нет поддержки комментариев)", "match": "голос против" }, "Upvote": { "name": "Голос за", "description": "Голосует за пост названного # (пока нет поддержки комментариев)", "match": "голос за #" }, "Upvote Current": { "name": "Голос за", "description": "Голосует за данный пост (пока нет поддержки комментариев)", "match": "голос за" }, "Expand All Comments": { "name": "Показать все комментарии", "description": "Открывает все комментарии к данному посту", "match": ["[показать/открыть] все комментарии"] } } } }, "niceName": "Reddit", "description": "Commands for Reddit.com", "version": "4.4.0", "apiVersion": 2, "match": /^https?:\/\/.*\.reddit.com/, "authors": "Miko", "homophones": { "navigate": "go", "contract": "collapse", "claps": "collapse", "expense": "expand", "explain": "expand", "expanding": "expand", "expand noun": "expand 9", "it's been": "expand", "expanse": "expand", "expanded": "expand", "stand": "expand", "xpand": "expand", "xmen": "expand", "spend": "expand", "span": "expand", "spell": "expand", "spent": "expand", "reddit dot com": "reddit", "read it": "reddit", "shrink": "collapse", "advert": "upvote", "download": "downvote", "commence": "comments", "what": "upvote" }, "contexts": { "Post List": { "commands": ["View Comments", "Visit Post", "Expand", "Collapse", "Upvote", "Downvote", "Clear Vote"] }, "Post": { "commands": ["Upvote Current", "Downvote Current", "Clear Vote Current", "Visit Current", "Expand Current", "Collapse Current", "Expand All Comments"] } }, "commands": [{ "name": "Back", "global": true, "match": ["back"], "minConfidence": 0.5 }, { "name": "Go to Reddit", "global": true, "match": ["[/go to ]reddit"], "minConfidence": 0.5 }, { "name": "Go to Subreddit", "match": { "fn": () => {
 }, "description": "go to/show r [subreddit name] (do not say slash)" }, "isFinal": true, "nice": (transcript, matchOutput) => {
   return `go to r/${matchOutput}`;
 } }, { "name": "View Comments", "description": "View the comments of a reddit post.", "match": ["comments #", "# comments"], "normal": false }, { "name": "Visit Post", "description": "Equivalent of clicking a reddit post.", "match": ["visit #", "# visit"], "normal": false }, { "name": "Expand", "description": "Expand a preview of a post, or a comment by it's position (rank).", "match": ["expand #", "# expand"], "normal": false }, { "name": "Collapse", "description": "Collapse an expanded preview (or comment if viewing comments). Defaults to topmost in the view port.", "match": ["collapse #", "# collapse"], "normal": false }, { "name": "Upvote", "match": ["upvote #", "# upvote"], "description": "Upvote the post # (doesn't work for comments yet)", "normal": false }, { "name": "Downvote", "match": ["downvote #", "# downvote"], "description": "Downvote the post # (doesn't work for comments yet)", "normal": false }, { "name": "Clear Vote", "description": "Unsets the upvote/downvote so it's neither up or down.", "match": ["[clear/reset] vote #", "# [clear/reset] vote"], "normal": false }, { "name": "Upvote Current", "match": "upvote", "description": "Upvote the current post.", "normal": false }, { "name": "Downvote Current", "match": "downvote", "description": "Downvote the post # (doesn't work for comments yet)", "normal": false }, { "name": "Clear Vote Current", "description": "Unsets the upvote/downvote so it's neither up or down.", "match": ["[clear/reset] vote"], "normal": false }, { "name": "Visit Current", "description": "Click the link for the post that we're in.", "match": "visit", "normal": false }, { "name": "Expand Current", "description": "Expand the post that we're in.", "match": "expand", "normal": false }, { "name": "Collapse Current", "description": "Collapse the current post that we're in.", "match": ["collapse", "close"], "normal": false }, { "name": "Expand All Comments", "description": "Expands all the comments.", "match": ["expand all[/ comments]"], "normal": false }] };
@@ -44,9 +44,15 @@ allPlugins.Reddit = (() => {
     if (el)
       el.click();
   }
+  function clickIfDisplayed(el) {
+    if (parseFloat(getComputedStyle(el).width)) {
+      el.click();
+    }
+  }
   function genPostNumberElement(number) {
     const span = document.createElement("span");
     span.textContent = number;
+    span.className = "post-number";
     setStyles({ position: "absolute", bottom: "2px", right: "2px", fontWeight: 700, opacity: 0.3 }, span);
     return span;
   }
@@ -59,7 +65,7 @@ allPlugins.Reddit = (() => {
     });
   }
   function setAttributes(post) {
-    if (post && getComputedStyle(post).display !== "none") {
+    if (post && getComputedStyle(post).display !== "none" && !post.querySelector(".post-number")) {
       index += 1;
       post.setAttribute(thingAttr, `${index}`);
       post.style.position = "relative";
@@ -86,7 +92,7 @@ allPlugins.Reddit = (() => {
   function setParentContainer(posts3) {
     return posts3[0].parentNode.parentNode.parentNode;
   }
-  function detectPosts() {
+  function onLoad() {
     if (isDOMLoaded)
       return;
     const { old, last } = reddit;
@@ -139,7 +145,7 @@ allPlugins.Reddit = (() => {
     const newCommentBtnSelector = reddit.last.comments.threadline;
     return { postExpBtn: isOldReddit ? `${post.expandBtn}${special.expanded}` : "", comExpBtn: isOldReddit ? oldCommentBtnSelector : newCommentBtnSelector };
   }
-  function composeExpandBtnSelector() {
+  function composeExpandableElementsSelectors() {
     const { comments, special, post } = reddit.old;
     const selectors = { comExpBtn: "", postExpBtn: "", comment: "" };
     if (isOldReddit) {
@@ -153,7 +159,7 @@ allPlugins.Reddit = (() => {
     return selectors;
   }
   async function expandCurrent() {
-    const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector();
+    const { postExpBtn, comExpBtn, comment } = composeExpandableElementsSelectors();
     const mainItem = !!postExpBtn && select(postExpBtn) || null;
     if (mainItem && PluginBase.util.isVisible(mainItem))
       mainItem.click();
@@ -164,27 +170,22 @@ allPlugins.Reddit = (() => {
       for (el of items.reverse()) {
         if (PluginBase.util.isVisible(el)) {
           if (isOldReddit) {
-            let btn = select(comExpBtn, el);
-            return btn.click();
+            return select(comExpBtn, el).click();
           } else {
-            if (parseFloat(getComputedStyle(el.parentNode).width)) {
-              return el.parentNode.click();
-            }
+            return clickIfDisplayed(el.parentNode);
           }
         }
       }
     }
   }
   async function expandAll() {
-    const { comment, comExpBtn } = composeExpandBtnSelector();
+    const { comment, comExpBtn } = composeExpandableElementsSelectors();
     const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
     for (let el of selectAll(selector)) {
       if (isOldReddit) {
         el.click();
       } else {
-        if (parseFloat(getComputedStyle(el.parentNode).width)) {
-          el.parentNode.click();
-        }
+        clickIfDisplayed(el.parentNode);
       }
     }
   }
@@ -200,21 +201,24 @@ allPlugins.Reddit = (() => {
       }
     }
   }
+  function toggleContext(isPostContext = false) {
+    if (isPostContext) {
+      PluginBase.util.prependContext("Post");
+      PluginBase.util.removeContext("Post List");
+    } else {
+      PluginBase.util.prependContext("Post List");
+      PluginBase.util.removeContext("Post");
+    }
+  }
   var Reddit_default = { ...PluginBase, ...{ "init": async () => {
     if (document.location.hostname.endsWith("reddit.com")) {
       console.log("init");
-      if (COMMENTS_REGX.test(document.location.href)) {
-        PluginBase.util.prependContext("Post");
-        PluginBase.util.removeContext("Post List");
-      } else {
-        PluginBase.util.prependContext("Post List");
-        PluginBase.util.removeContext("Post");
-      }
+      toggleContext(COMMENTS_REGX.test(document.location.href));
       await PluginBase.util.ready();
-      window.addEventListener("load", detectPosts);
+      window.addEventListener("load", onLoad);
       setTimeout(() => {
         if (!isDOMLoaded) {
-          const event = new Event("load", { bubbles: true });
+          const event = new Event("load");
           window.dispatchEvent(event);
         }
       }, 2e3);
@@ -223,8 +227,11 @@ allPlugins.Reddit = (() => {
     isDOMLoaded = false;
     PluginBase.util.removeContext("Post List", "Post");
     observer && observer.disconnect();
-    window.removeEventListener("load", detectPosts);
-  }, "commands": { "Go to Reddit": { "pageFn": () => {
+    window.removeEventListener("load", onLoad);
+  }, "commands": { "Back": { "pageFn": () => {
+    history.back();
+    toggleContext(!document.location.hostname.endsWith("reddit.com"));
+  } }, "Go to Reddit": { "pageFn": () => {
     document.location.href = "https://reddit.com";
   } }, "Go to Subreddit": { "match": { "en": ({ normTs, preTs }) => {
     const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
@@ -238,10 +245,12 @@ allPlugins.Reddit = (() => {
   }, "pageFn": (transcript, subredditName) => {
     window.location.href = `https://reddit.com/r/${subredditName}`;
   } }, "View Comments": { "pageFn": (transcript, index4) => {
+    toggleContext(true);
     const selector = isOldReddit ? ` ${reddit.old.comments.select}` : ` ${reddit.last.comments.select}`;
     clickIfExists(thingAtIndex(index4) + selector);
   } }, "Visit Post": { "pageFn": (transcript, index5) => {
     const selector = isOldReddit ? ` ${reddit.old.post.title}` : reddit.last.post.thing;
+    toggleContext(true);
     clickIfExists(thingAtIndex(index5) + selector);
   } }, "Expand": { "pageFn": (transcript, index6) => {
     const { comments, special } = reddit.old;
@@ -259,7 +268,7 @@ allPlugins.Reddit = (() => {
   } }, "Clear Vote": { "pageFn": (transcript, index10) => {
     vote("clear", index10);
   } }, "Upvote Current": { "pageFn": () => vote("up") }, "Downvote Current": { "pageFn": () => vote("down") }, "Clear Vote Current": { "pageFn": () => vote("clear") }, "Visit Current": { "pageFn": () => clickIfExists("#siteTable a.title") }, "Expand Current": { "pageFn": async function expandCurrent2() {
-    const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector();
+    const { postExpBtn, comExpBtn, comment } = composeExpandableElementsSelectors();
     const mainItem = !!postExpBtn && select(postExpBtn) || null;
     if (mainItem && PluginBase.util.isVisible(mainItem))
       mainItem.click();
@@ -270,12 +279,9 @@ allPlugins.Reddit = (() => {
       for (el of items.reverse()) {
         if (PluginBase.util.isVisible(el)) {
           if (isOldReddit) {
-            let btn = select(comExpBtn, el);
-            return btn.click();
+            return select(comExpBtn, el).click();
           } else {
-            if (parseFloat(getComputedStyle(el.parentNode).width)) {
-              return el.parentNode.click();
-            }
+            return clickIfDisplayed(el.parentNode);
           }
         }
       }
@@ -292,15 +298,13 @@ allPlugins.Reddit = (() => {
       }
     }
   } }, "Expand All Comments": { "pageFn": async function expandAll2() {
-    const { comment, comExpBtn } = composeExpandBtnSelector();
+    const { comment, comExpBtn } = composeExpandableElementsSelectors();
     const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
     for (let el of selectAll(selector)) {
       if (isOldReddit) {
         el.click();
       } else {
-        if (parseFloat(getComputedStyle(el.parentNode).width)) {
-          el.parentNode.click();
-        }
+        clickIfDisplayed(el.parentNode);
       }
     }
   } } } } };
@@ -342,9 +346,15 @@ allPlugins.Reddit = (() => {
     if (el)
       el.click();
   }
+  function clickIfDisplayed(el) {
+    if (parseFloat(getComputedStyle(el).width)) {
+      el.click();
+    }
+  }
   function genPostNumberElement(number) {
     const span = document.createElement("span");
     span.textContent = number;
+    span.className = "post-number";
     setStyles({ position: "absolute", bottom: "2px", right: "2px", fontWeight: 700, opacity: 0.3 }, span);
     return span;
   }
@@ -357,7 +367,7 @@ allPlugins.Reddit = (() => {
     });
   }
   function setAttributes(post) {
-    if (post && getComputedStyle(post).display !== "none") {
+    if (post && getComputedStyle(post).display !== "none" && !post.querySelector(".post-number")) {
       index += 1;
       post.setAttribute(thingAttr, `${index}`);
       post.style.position = "relative";
@@ -384,7 +394,7 @@ allPlugins.Reddit = (() => {
   function setParentContainer(posts3) {
     return posts3[0].parentNode.parentNode.parentNode;
   }
-  function detectPosts() {
+  function onLoad() {
     if (isDOMLoaded)
       return;
     const { old, last } = reddit;
@@ -437,7 +447,7 @@ allPlugins.Reddit = (() => {
     const newCommentBtnSelector = reddit.last.comments.threadline;
     return { postExpBtn: isOldReddit ? `${post.expandBtn}${special.expanded}` : "", comExpBtn: isOldReddit ? oldCommentBtnSelector : newCommentBtnSelector };
   }
-  function composeExpandBtnSelector() {
+  function composeExpandableElementsSelectors() {
     const { comments, special, post } = reddit.old;
     const selectors = { comExpBtn: "", postExpBtn: "", comment: "" };
     if (isOldReddit) {
@@ -451,7 +461,7 @@ allPlugins.Reddit = (() => {
     return selectors;
   }
   async function expandCurrent() {
-    const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector();
+    const { postExpBtn, comExpBtn, comment } = composeExpandableElementsSelectors();
     const mainItem = !!postExpBtn && select(postExpBtn) || null;
     if (mainItem && PluginBase.util.isVisible(mainItem))
       mainItem.click();
@@ -462,27 +472,22 @@ allPlugins.Reddit = (() => {
       for (el of items.reverse()) {
         if (PluginBase.util.isVisible(el)) {
           if (isOldReddit) {
-            let btn = select(comExpBtn, el);
-            return btn.click();
+            return select(comExpBtn, el).click();
           } else {
-            if (parseFloat(getComputedStyle(el.parentNode).width)) {
-              return el.parentNode.click();
-            }
+            return clickIfDisplayed(el.parentNode);
           }
         }
       }
     }
   }
   async function expandAll() {
-    const { comment, comExpBtn } = composeExpandBtnSelector();
+    const { comment, comExpBtn } = composeExpandableElementsSelectors();
     const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
     for (let el of selectAll(selector)) {
       if (isOldReddit) {
         el.click();
       } else {
-        if (parseFloat(getComputedStyle(el.parentNode).width)) {
-          el.parentNode.click();
-        }
+        clickIfDisplayed(el.parentNode);
       }
     }
   }
@@ -498,21 +503,24 @@ allPlugins.Reddit = (() => {
       }
     }
   }
+  function toggleContext(isPostContext = false) {
+    if (isPostContext) {
+      PluginBase.util.prependContext("Post");
+      PluginBase.util.removeContext("Post List");
+    } else {
+      PluginBase.util.prependContext("Post List");
+      PluginBase.util.removeContext("Post");
+    }
+  }
   var Reddit_default = { ...PluginBase, ...{ "init": async () => {
     if (document.location.hostname.endsWith("reddit.com")) {
       console.log("init");
-      if (COMMENTS_REGX.test(document.location.href)) {
-        PluginBase.util.prependContext("Post");
-        PluginBase.util.removeContext("Post List");
-      } else {
-        PluginBase.util.prependContext("Post List");
-        PluginBase.util.removeContext("Post");
-      }
+      toggleContext(COMMENTS_REGX.test(document.location.href));
       await PluginBase.util.ready();
-      window.addEventListener("load", detectPosts);
+      window.addEventListener("load", onLoad);
       setTimeout(() => {
         if (!isDOMLoaded) {
-          const event = new Event("load", { bubbles: true });
+          const event = new Event("load");
           window.dispatchEvent(event);
         }
       }, 2e3);
@@ -521,8 +529,11 @@ allPlugins.Reddit = (() => {
     isDOMLoaded = false;
     PluginBase.util.removeContext("Post List", "Post");
     observer && observer.disconnect();
-    window.removeEventListener("load", detectPosts);
-  }, "commands": { "Go to Reddit": { "pageFn": () => {
+    window.removeEventListener("load", onLoad);
+  }, "commands": { "Back": { "pageFn": () => {
+    history.back();
+    toggleContext(!document.location.hostname.endsWith("reddit.com"));
+  } }, "Go to Reddit": { "pageFn": () => {
     document.location.href = "https://reddit.com";
   } } } } };
   return Reddit_default;

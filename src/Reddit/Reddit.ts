@@ -83,9 +83,16 @@ function clickIfExists(selector: string) {
   if (el) el.click()
 }
 
+function clickIfDisplayed(el: HTMLElement) {
+  if (parseFloat(getComputedStyle(el).width)) {
+    el.click()
+  }
+}
+
 function genPostNumberElement(number): HTMLElement {
   const span = document.createElement('span')
   span.textContent = number
+  span.className = 'post-number'
 
   setStyles({
     position: 'absolute',
@@ -113,7 +120,11 @@ function addOldRedditPostsAttributes(posts) {
 }
 
 function setAttributes(post: HTMLElement) {
-  if (post && getComputedStyle(post).display !== 'none') {
+  if (
+    post
+    && getComputedStyle(post).display !== 'none'
+    && !post!.querySelector('.post-number')
+  ) {
     index += 1
 
     post.setAttribute(thingAttr, `${ index }`)
@@ -147,7 +158,7 @@ function setParentContainer(posts) {
   return posts![0].parentNode!.parentNode!.parentNode
 }
 
-function detectPosts() {
+function onLoad() {
   if (isDOMLoaded) return
 
   const { old, last } = reddit
@@ -214,7 +225,7 @@ function composeCollapseBtnSelector() {
   }
 }
 
-function composeExpandBtnSelector() {
+function composeExpandableElementsSelectors() {
   const { comments, special, post } = reddit.old
   const selectors = {
     comExpBtn: '',
@@ -236,7 +247,7 @@ function composeExpandBtnSelector() {
 
 async function expandCurrent() {
   // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-  const { postExpBtn, comExpBtn, comment } = composeExpandBtnSelector()
+  const { postExpBtn, comExpBtn, comment } = composeExpandableElementsSelectors()
   const mainItem = !!postExpBtn && select<HTMLAnchorElement>(postExpBtn) || null
 
   if (mainItem && PluginBase.util.isVisible(mainItem)) mainItem.click()
@@ -249,12 +260,9 @@ async function expandCurrent() {
     for (el of items.reverse()) {
       if (PluginBase.util.isVisible(el)) {
         if (isOldReddit) {
-          let btn = select<HTMLElement>(comExpBtn, el)
-          return btn!.click()
+          return select<HTMLElement>(comExpBtn, el)!.click()
         } else {
-          if (parseFloat(getComputedStyle(el.parentNode as Element).width)) {
-            return (el.parentNode as HTMLElement)!.click()
-          }
+          return clickIfDisplayed(el.parentNode as HTMLElement)
         }
       }
     }
@@ -262,16 +270,14 @@ async function expandCurrent() {
 }
 
 async function expandAll() {
-  const { comment, comExpBtn } = composeExpandBtnSelector()
+  const { comment, comExpBtn } = composeExpandableElementsSelectors()
   const selector = isOldReddit ? `${ comment } ${ comExpBtn }` : comExpBtn
 
   for (let el of selectAll<HTMLElement>(selector)) {
     if (isOldReddit) {
       el.click()
     } else {
-      if (parseFloat(getComputedStyle(el.parentNode as Element).width)) {
-        (el.parentNode as HTMLElement).click()
-      }
+      clickIfDisplayed(el.parentNode as HTMLElement)
     }
   }
 }
@@ -289,6 +295,16 @@ function collapseCurrent() {
       el.click()
       break
     }
+  }
+}
+
+function toggleContext(isPostContext = false) {
+  if (isPostContext) {
+    PluginBase.util.prependContext('Post')
+    PluginBase.util.removeContext('Post List')
+  } else {
+    PluginBase.util.prependContext('Post List')
+    PluginBase.util.removeContext('Post')
   }
 }
 
@@ -358,22 +374,15 @@ export default <IPluginBase & IPlugin> {
     init: async () => {
       if (document.location.hostname.endsWith('reddit.com')) {
         console.log('init')
-
-        if (COMMENTS_REGX.test(document.location.href)) {
-          PluginBase.util.prependContext('Post')
-          PluginBase.util.removeContext('Post List')
-        } else {
-          PluginBase.util.prependContext('Post List')
-          PluginBase.util.removeContext('Post')
-        }
+        toggleContext(COMMENTS_REGX.test(document.location.href))
 
         await PluginBase.util.ready()
 
-        window.addEventListener('load', detectPosts)
+        window.addEventListener('load', onLoad)
 
         setTimeout(() => {
           if (!isDOMLoaded) {
-            const event = new Event('load', { bubbles: true })
+            const event = new Event('load')
             window.dispatchEvent(event)
           }
         }, 2000)
@@ -384,10 +393,20 @@ export default <IPluginBase & IPlugin> {
       isDOMLoaded = false
       PluginBase.util.removeContext('Post List', 'Post')
       observer && observer!.disconnect()
-      window.removeEventListener('load', detectPosts)
+      window.removeEventListener('load', onLoad)
     },
 
     commands: [
+      {
+        name: 'Back',
+        global: true,
+        match: [ 'back' ],
+        minConfidence: 0.5,
+        pageFn: () => {
+          history.back()
+          toggleContext(!document.location.hostname.endsWith('reddit.com'))
+        },
+      },
       {
         name: 'Go to Reddit',
         global: true,
@@ -424,7 +443,7 @@ export default <IPluginBase & IPlugin> {
         match: [ 'comments #', '# comments' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-
+          toggleContext(true)
           const selector = isOldReddit ?
             ` ${ reddit.old.comments.select }` :
             ` ${ reddit.last.comments.select }`
@@ -438,10 +457,8 @@ export default <IPluginBase & IPlugin> {
         match: [ 'visit #', '# visit' ],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const selector = isOldReddit ?
-            ` ${ reddit.old.post.title }` :
-            reddit.last.post.thing
-
+          const selector = isOldReddit ? ` ${ reddit.old.post.title }` : reddit.last.post.thing
+          toggleContext(true)
           clickIfExists(thingAtIndex(index) + selector)
         },
       },
