@@ -25,7 +25,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Hacker News",
     description: "Basic controls for news.ycombinator.com.",
-    version: "4.4.1-alpha.1",
+    version: "4.4.1",
     apiVersion: 2,
     match: /^https?:\/\/news\.ycombinator\.com/,
     homophones: {
