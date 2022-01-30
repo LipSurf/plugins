@@ -11,7 +11,6 @@ type Maybe<T> = T | null
 
 const thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
 const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
-const REDDIT_REGX = /(old\.)?reddit\.com(\/)?$/;
 
 let isOldReddit = false;
 let scrollContainer: Maybe<ParentNode> = null;
@@ -19,6 +18,7 @@ let observer: Maybe<MutationObserver> = null;
 let posts: Maybe<NodeListOf<HTMLElement>> = null;
 let index = 0;
 let isDOMLoaded = false;
+let currentRoute;
 
 const reddit = {
   old: {
@@ -50,6 +50,7 @@ const reddit = {
     }
   },
   latest: {
+    home: "a[aria-label='Home']",
     post: {
       thing: ".Post",
     },
@@ -100,7 +101,7 @@ function genPostNumberElement(number): HTMLElement {
     bottom: "2px",
     right: "2px",
     fontWeight: 700,
-    opacity: .3
+    opacity: .7
   }, span);
 
   return span;
@@ -157,35 +158,6 @@ function createObserver(el: Element) {
 
 function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode> {
   return posts![0].parentNode!.parentNode!.parentNode;
-}
-
-function onLoad() {
-  if (isDOMLoaded) return;
-
-  const {old, latest} = reddit;
-  const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
-
-  posts = selectAll<HTMLElement>(postSelector);
-
-  isDOMLoaded = true;
-
-  addRedditAPostsAttributes(posts, isOldReddit);
-
-  if (!isOldReddit) {
-    scrollContainer = setParentContainer(posts);
-    createObserver(scrollContainer! as Element);
-  }
-}
-
-function onPopState() {
-  // Here we are waiting for the posts to load,
-  // if the load event occurred on another
-  // screen and the user goes to the screen with the posts
-
-  setTimeout(() => {
-    if (REDDIT_REGX.test(location.href)) onLoad();
-    toggleContext(COMMENTS_REGX.test(location.href));
-  }, 3000);
 }
 
 function getVoteSelector(cmd: string, index?: number) {
@@ -310,7 +282,59 @@ function collapseCurrent() {
   }
 }
 
+function resetDomState() {
+  isDOMLoaded = false;
+  index = 0;
+}
+
+function onLoad() {
+  currentRoute = location.href;
+
+  if (isDOMLoaded) return;
+
+  const {old, latest} = reddit;
+  const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
+
+  posts = selectAll<HTMLElement>(postSelector);
+
+  isDOMLoaded = true;
+
+  addRedditAPostsAttributes(posts, isOldReddit);
+
+  if (!isOldReddit) {
+    window.addEventListener("click", onClick);
+
+    scrollContainer = setParentContainer(posts);
+    createObserver(scrollContainer! as Element);
+  }
+}
+
+function onPopState() {
+  // Here we are waiting for the posts to load,
+  // if the load event occurred on another
+  // screen and the user goes to the screen with the posts
+
+  setTimeout(() => {
+    if (location.hostname.endsWith("reddit.com")) {
+      resetDomState();
+      onLoad();
+      toggleContext(COMMENTS_REGX.test(location.href));
+    } else {
+      PluginBase.util.removeContext("Post List", "Post");
+    }
+  }, 3000);
+}
+
+function onClick() {
+  setTimeout(() => {
+    if (currentRoute === location.href) return;
+    dispatchEvent("popstate");
+  });
+}
+
 function toggleContext(isPostContext = false) {
+  console.log(isPostContext, "post context");
+
   if (isPostContext) {
     PluginBase.util.prependContext("Post");
     PluginBase.util.removeContext("Post List");
@@ -320,12 +344,12 @@ function toggleContext(isPostContext = false) {
   }
 }
 
-function dispatchLoadEvent() {
-  const event = new Event("load");
+function dispatchEvent(eventName: string) {
+  const event = new Event(eventName);
   window.dispatchEvent(event);
 }
 
-export default <IPluginBase & IPlugin>{
+export default <IPluginBase & IPlugin> {
   ...PluginBase,
   ...{
     niceName: "Reddit",
@@ -387,7 +411,7 @@ export default <IPluginBase & IPlugin>{
     },
 
     init: async () => {
-      if (REDDIT_REGX.test(location.href)) {
+      if (location.hostname.endsWith("reddit.com")) {
         console.log("init");
 
         isOldReddit = /https:\/\/old/.test(location.href);
@@ -395,22 +419,25 @@ export default <IPluginBase & IPlugin>{
         await PluginBase.util.ready();
 
         window.addEventListener("load", onLoad);
+        window.addEventListener("popstate", onPopState);
 
         setTimeout(() => {
-          if (!isDOMLoaded) dispatchLoadEvent();
+          if (!isDOMLoaded) dispatchEvent("load");
         }, 2000);
+
+        toggleContext(COMMENTS_REGX.test(location.href));
       }
-
-      window.addEventListener("popstate", onPopState);
-
-      toggleContext(COMMENTS_REGX.test(location.href));
     },
 
     destroy: () => {
-      isDOMLoaded = false;
+      resetDomState();
+
       PluginBase.util.removeContext("Post List", "Post");
-      observer && observer!.disconnect();
       window.removeEventListener("load", onLoad);
+
+      !isOldReddit && observer!.disconnect();
+      !isOldReddit && window.removeEventListener("popstate", onPopState);
+      !isOldReddit && window.removeEventListener("click", onClick);
     },
 
     commands: [
@@ -450,6 +477,11 @@ export default <IPluginBase & IPlugin>{
         match: ["comments #", "# comments"],
         normal: false,
         pageFn: (transcript, index: number) => {
+          // here we have to dispatch popstate event
+          // because switching to the post page does
+          // not cause any location change event
+          dispatchEvent("popstate");
+
           const selector = isOldReddit ?
             ` ${reddit.old.comments.select}` :
             ` ${reddit.latest.comments.select}`;
@@ -463,6 +495,11 @@ export default <IPluginBase & IPlugin>{
         match: ["visit #", "# visit"],
         normal: false,
         pageFn: (transcript, index: number) => {
+          // here we have to dispatch popstate event
+          // because switching to the post page does
+          // not cause location popstate event
+          dispatchEvent("popstate");
+
           const selector = isOldReddit ? ` ${reddit.old.post.title}` : reddit.latest.post.thing;
           clickIfExists(thingAtIndex(index) + selector);
         },
@@ -598,7 +635,13 @@ export default <IPluginBase & IPlugin>{
         description: "Click the link for the post that we're in.",
         match: "visit",
         normal: false,
-        pageFn: () => clickIfExists("#siteTable a.title"),
+        pageFn: () => {
+          // here we have to dispatch popstate event
+          // because switching to the post page does
+          // not cause location popstate event
+          dispatchEvent("popstate");
+          clickIfExists("#siteTable a.title");
+        },
       },
       {
         name: "Expand Current",
