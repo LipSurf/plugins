@@ -23,7 +23,7 @@ let currentRoute;
 const reddit = {
   old: {
     post: {
-      thing: "#siteTable>.thing",
+      thing: ".thing",
       title: "a.title",
       expandBtn: ".expando-button",
       commentarea: ".commentarea"
@@ -271,6 +271,8 @@ function collapseCurrent() {
   const postBtn = !!postExpBtn && select<HTMLElement>(postExpBtn!) || null;
   const commentBtns = selectAll<HTMLElement>(comExpBtn);
 
+  console.log('collapse', getCollapseBtnSelector());
+
   postBtn && PluginBase.util.isVisible(postBtn!) && postBtn!.click();
 
   for (const el of commentBtns) {
@@ -292,9 +294,14 @@ function resetDomState() {
 function onLoad() {
   currentRoute = location.href;
 
+  const {old, latest} = reddit;
+  isOldReddit = !!select<HTMLElement>(old.post.thing);
+
   if (isDOMLoaded) return;
 
-  const {old, latest} = reddit;
+  console.log('dom not loaded');
+
+
   const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
 
   posts = selectAll<HTMLElement>(postSelector);
@@ -352,7 +359,7 @@ function dispatchEvent(eventName: string) {
   window.dispatchEvent(event);
 }
 
-export default <IPluginBase & IPlugin> {
+export default <IPluginBase & IPlugin>{
   ...PluginBase,
   ...{
     niceName: "Reddit",
