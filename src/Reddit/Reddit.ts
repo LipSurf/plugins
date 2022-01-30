@@ -50,7 +50,6 @@ const reddit = {
     }
   },
   latest: {
-    home: "a[aria-label='Home']",
     post: {
       thing: ".Post",
     },
@@ -157,7 +156,7 @@ function createObserver(el: Element) {
 }
 
 function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode> {
-  return posts![0].parentNode!.parentNode!.parentNode;
+  return posts?.[0]?.parentNode?.parentNode?.parentNode || null;
 }
 
 function getVoteSelector(cmd: string, index?: number) {
@@ -285,6 +284,9 @@ function collapseCurrent() {
 function resetDomState() {
   isDOMLoaded = false;
   index = 0;
+  scrollContainer = null;
+  observer?.disconnect();
+  observer = null;
 }
 
 function onLoad() {
@@ -305,7 +307,7 @@ function onLoad() {
     window.addEventListener("click", onClick);
 
     scrollContainer = setParentContainer(posts);
-    createObserver(scrollContainer! as Element);
+    scrollContainer && createObserver(scrollContainer! as Element);
   }
 }
 
@@ -316,13 +318,14 @@ function onPopState() {
 
   setTimeout(() => {
     if (location.hostname.endsWith("reddit.com")) {
-      resetDomState();
+      isDOMLoaded = false;
+      index = 0;
       onLoad();
       toggleContext(COMMENTS_REGX.test(location.href));
     } else {
       PluginBase.util.removeContext("Post List", "Post");
     }
-  }, 3000);
+  }, 4000);
 }
 
 function onClick() {
@@ -435,7 +438,6 @@ export default <IPluginBase & IPlugin> {
       PluginBase.util.removeContext("Post List", "Post");
       window.removeEventListener("load", onLoad);
 
-      !isOldReddit && observer!.disconnect();
       !isOldReddit && window.removeEventListener("popstate", onPopState);
       !isOldReddit && window.removeEventListener("click", onClick);
     },
@@ -447,7 +449,7 @@ export default <IPluginBase & IPlugin> {
         match: ["[/go to ]reddit"],
         minConfidence: 0.5,
         pageFn: () => {
-          document.location.href = "https://reddit.com";
+          document.location.href = "https://www.reddit.com";
         },
       },
       {
@@ -468,7 +470,7 @@ export default <IPluginBase & IPlugin> {
           return `go to r/${matchOutput}`;
         },
         pageFn: (transcript, subredditName: string) => {
-          window.location.href = `https://reddit.com/r/${subredditName}`;
+          window.location.href = `https://www.reddit.com/r/${subredditName}`;
         },
       },
       {
@@ -497,7 +499,7 @@ export default <IPluginBase & IPlugin> {
         pageFn: (transcript, index: number) => {
           // here we have to dispatch popstate event
           // because switching to the post page does
-          // not cause location popstate event
+          // not cause any location change event
           dispatchEvent("popstate");
 
           const selector = isOldReddit ? ` ${reddit.old.post.title}` : reddit.latest.post.thing;
