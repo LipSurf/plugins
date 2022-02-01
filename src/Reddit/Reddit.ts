@@ -97,10 +97,10 @@ function genPostNumberElement(number): HTMLElement {
 
   setStyles({
     position: "absolute",
-    bottom: "2px",
-    right: "2px",
+    top: "0",
+    right: "102%",
     fontWeight: 700,
-    opacity: .7
+    opacity: .8
   }, span);
 
   return span;
@@ -125,15 +125,20 @@ function addRedditAPostsAttributes(posts: NodeListOf<HTMLElement>, isOld: boolea
 }
 
 function setAttributes(post: HTMLElement) {
+  const postNum = select(".post-number", post)?.textContent;
+
+  if (postNum) index = +postNum;
+
   if (
     post
     && getComputedStyle(post).display !== "none"
-    && !post!.querySelector(".post-number")
+    && !postNum
   ) {
     index += 1;
 
     post.setAttribute(thingAttr, `${index}`);
     post.style.position = "relative";
+    post.style.overflow = "visible";
     post.appendChild(genPostNumberElement(index));
   }
 }
@@ -271,8 +276,6 @@ function collapseCurrent() {
   const postBtn = !!postExpBtn && select<HTMLElement>(postExpBtn!) || null;
   const commentBtns = selectAll<HTMLElement>(comExpBtn);
 
-  console.log('collapse', getCollapseBtnSelector());
-
   postBtn && PluginBase.util.isVisible(postBtn!) && postBtn!.click();
 
   for (const el of commentBtns) {
@@ -284,8 +287,8 @@ function collapseCurrent() {
 }
 
 function resetDomState() {
+  index = 0
   isDOMLoaded = false;
-  index = 0;
   scrollContainer = null;
   observer?.disconnect();
   observer = null;
@@ -299,7 +302,7 @@ function onLoad() {
 
   if (isDOMLoaded) return;
 
-  console.log('dom not loaded');
+  console.log("dom not loaded");
 
 
   const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
@@ -359,7 +362,7 @@ function dispatchEvent(eventName: string) {
   window.dispatchEvent(event);
 }
 
-export default <IPluginBase & IPlugin>{
+export default <IPluginBase & IPlugin> {
   ...PluginBase,
   ...{
     niceName: "Reddit",
@@ -424,7 +427,7 @@ export default <IPluginBase & IPlugin>{
       if (location.hostname.endsWith("reddit.com")) {
         console.log("init");
 
-        isOldReddit = /https:\/\/old/.test(location.href);
+        // isOldReddit = /https:\/\/old/.test(location.href);
 
         await PluginBase.util.ready();
 
