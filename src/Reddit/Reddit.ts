@@ -71,7 +71,7 @@ const reddit = {
   }
 };
 
-function thingAtIndex(i: number): string {
+function thingAtIndex(i: number): string{
   if (isOldReddit) {
     return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
   } else {
@@ -79,52 +79,54 @@ function thingAtIndex(i: number): string {
   }
 }
 
-function clickIfExists(selector: string) {
+function clickIfExists(selector: string){
   const el = select<HTMLElement>(selector);
   if (el) el.click();
 }
 
-function clickIfDisplayed(el: HTMLElement) {
+function clickIfDisplayed(el: HTMLElement){
   if (parseFloat(getComputedStyle(el).width)) {
     el.click();
   }
 }
 
-function genPostNumberElement(number): HTMLElement {
+function genPostNumberElement(number): HTMLElement{
   const span = document.createElement("span");
   span.textContent = number;
   span.className = "post-number";
 
-  setStyles({
-    position: "absolute",
-    top: "0",
-    right: "102%",
-    fontWeight: 700,
-    opacity: .8
-  }, span);
-
   return span;
 }
 
-function addRedditAPostsAttributes(posts: NodeListOf<HTMLElement>, isOld: boolean) {
+function addRedditAPostsAttributes(posts: NodeListOf<HTMLElement>, isOld: boolean){
   if (isOld) {
-    return posts.forEach((el) => {
-      index += 1;
-      el.setAttribute(thingAttr, `${index}`);
-      const rank = select<HTMLElement>(".rank", el);
 
+    return posts.forEach((post) => {
+      index += 1;
+      post.setAttribute(thingAttr, `${index}`);
+      const oldRank = select<HTMLElement>(".rank", post);
+      const newRank = genPostNumberElement(index);
+
+      setStyles({position: "relative"}, post);
+      setStyles({visibility: "hidden"}, oldRank!);
       setStyles({
-        display: "block",
-        marginRight: "10px",
-        opacity: "1 !important"
-      }, rank!);
+        position: "absolute",
+        top: "20px",
+        left: "10px",
+        fontWeight: 700,
+        fontSize: "1rem",
+        color: "#999999",
+        transform: "translateY(-50%)"
+      }, newRank);
+
+      post.appendChild(newRank);
     });
   }
 
   posts.forEach(setAttributes);
 }
 
-function setAttributes(post: HTMLElement) {
+function setAttributes(post: HTMLElement){
   const postNum = select(".post-number", post)?.textContent;
 
   if (postNum) index = +postNum;
@@ -136,14 +138,27 @@ function setAttributes(post: HTMLElement) {
   ) {
     index += 1;
 
+    const span = genPostNumberElement(index);
     post.setAttribute(thingAttr, `${index}`);
-    post.style.position = "relative";
-    post.style.overflow = "visible";
-    post.appendChild(genPostNumberElement(index));
+
+    setStyles({
+      position: "relative",
+      overflow: "visible"
+    }, post);
+
+    setStyles({
+      position: "absolute",
+      top: "0",
+      right: "102%",
+      fontWeight: 700,
+      opacity: .8
+    }, span);
+
+    post.appendChild(span);
   }
 }
 
-function observerCallback(mutationList) {
+function observerCallback(mutationList){
   const {old, latest} = reddit;
   const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
 
@@ -155,16 +170,16 @@ function observerCallback(mutationList) {
   });
 }
 
-function createObserver(el: Element) {
+function createObserver(el: Element){
   observer = new MutationObserver(observerCallback);
   observer.observe(el!, {childList: true});
 }
 
-function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode> {
+function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode>{
   return posts?.[0]?.parentNode?.parentNode?.parentNode || null;
 }
 
-function getVoteSelector(cmd: string, index?: number) {
+function getVoteSelector(cmd: string, index?: number){
   const {old, latest} = reddit;
   const selector = isOldReddit ? old.vote[cmd] : latest.vote[cmd];
 
@@ -173,7 +188,7 @@ function getVoteSelector(cmd: string, index?: number) {
   return selector;
 }
 
-function getClearVoteSelector(index?: number): string {
+function getClearVoteSelector(index?: number): string{
   const {old, latest} = reddit;
   const thing = index && thingAtIndex(index);
 
@@ -190,7 +205,7 @@ function getClearVoteSelector(index?: number): string {
   return latest.vote.pressed;
 }
 
-function vote(type: "up" | "down" | "clear", index?: number) {
+function vote(type: "up" | "down" | "clear", index?: number){
   let q = "";
 
   if (type === "up") q = getVoteSelector("up", index);
@@ -200,7 +215,7 @@ function vote(type: "up" | "down" | "clear", index?: number) {
   clickIfExists(q);
 }
 
-function getCollapseBtnSelector() {
+function getCollapseBtnSelector(){
   const {post, special, comments} = reddit.old;
   const {comment} = comments;
 
@@ -213,7 +228,7 @@ function getCollapseBtnSelector() {
   };
 }
 
-function getExpandableElementsSelectors() {
+function getExpandableElementsSelectors(){
   const {comments, special, post} = reddit.old;
   const selectors = {
     comExpBtn: "",
@@ -233,7 +248,7 @@ function getExpandableElementsSelectors() {
   return selectors;
 }
 
-async function expandCurrent() {
+async function expandCurrent(){
   // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
   const {postExpBtn, comExpBtn, comment} = getExpandableElementsSelectors();
   const mainItem = !!postExpBtn && select<HTMLAnchorElement>(postExpBtn) || null;
@@ -257,7 +272,7 @@ async function expandCurrent() {
   }
 }
 
-async function expandAll() {
+async function expandAll(){
   const {comment, comExpBtn} = getExpandableElementsSelectors();
   const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
 
@@ -270,7 +285,7 @@ async function expandAll() {
   }
 }
 
-function collapseCurrent() {
+function collapseCurrent(){
   const {postExpBtn, comExpBtn} = getCollapseBtnSelector();
 
   const postBtn = !!postExpBtn && select<HTMLElement>(postExpBtn!) || null;
@@ -286,15 +301,15 @@ function collapseCurrent() {
   }
 }
 
-function resetDomState() {
-  index = 0
+function resetDomState(){
+  index = 0;
   isDOMLoaded = false;
   scrollContainer = null;
   observer?.disconnect();
   observer = null;
 }
 
-function onLoad() {
+function onLoad(){
   currentRoute = location.href;
 
   const {old, latest} = reddit;
@@ -321,7 +336,7 @@ function onLoad() {
   }
 }
 
-function onPopState() {
+function onPopState(){
   // Here we are waiting for the posts to load,
   // if the load event occurred on another
   // screen and the user goes to the screen with the posts
@@ -338,14 +353,14 @@ function onPopState() {
   }, 4000);
 }
 
-function onClick() {
+function onClick(){
   setTimeout(() => {
     if (currentRoute === location.href) return;
     dispatchEvent("popstate");
   });
 }
 
-function toggleContext(isPostContext = false) {
+function toggleContext(isPostContext = false){
   console.log(isPostContext, "post context");
 
   if (isPostContext) {
@@ -357,7 +372,7 @@ function toggleContext(isPostContext = false) {
   }
 }
 
-function dispatchEvent(eventName: string) {
+function dispatchEvent(eventName: string){
   const event = new Event(eventName);
   window.dispatchEvent(event);
 }
