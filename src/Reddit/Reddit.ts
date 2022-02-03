@@ -71,7 +71,7 @@ const reddit = {
   }
 };
 
-function thingAtIndex(i: number): string {
+function thingAtIndex(i: number): string{
   if (isOldReddit) {
     return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
   } else {
@@ -80,35 +80,36 @@ function thingAtIndex(i: number): string {
 }
 
 
-function waitPostsLoading(fn, timeout) {
-  let timer: Maybe<any> = null;
-
+function waitPosts(fn, timeout){
+  let timer: Maybe<ReturnType<typeof setTimeout>> = null;
   let posts;
 
-  posts = selectAll(".Post");
+  setTimeout(() => {
+    posts = selectAll(reddit.latest.post.thing);
 
-  if (posts && posts.length > 5) {
-    clearTimeout(timer);
-    fn();
-  } else {
-    timer = setTimeout(() => {
-      waitPostsLoading(fn, timeout);
-    }, timeout);
-  }
+    if (posts && posts.length) {
+      clearTimeout(timer!);
+      fn();
+    } else {
+      timer = setTimeout(() => {
+        waitPosts(fn, timeout);
+      }, timeout);
+    }
+  });
 }
 
-function clickIfExists(selector: string) {
+function clickIfExists(selector: string){
   const el = select<HTMLElement>(selector);
   if (el) el.click();
 }
 
-function clickIfDisplayed(el: HTMLElement) {
+function clickIfDisplayed(el: HTMLElement){
   if (parseFloat(getComputedStyle(el).width)) {
     el.click();
   }
 }
 
-function genPostNumberElement(number): HTMLElement {
+function genPostNumberElement(number): HTMLElement{
   const span = document.createElement("span");
   span.textContent = number;
   span.className = "post-number";
@@ -117,7 +118,7 @@ function genPostNumberElement(number): HTMLElement {
 }
 
 
-function addRedditAPostsAttributes(posts: NodeListOf<HTMLElement>, isOld: boolean) {
+function addRedditAPostsAttributes(posts: NodeListOf<HTMLElement>, isOld: boolean){
   if (isOld) {
 
     return posts.forEach((post) => {
@@ -145,7 +146,8 @@ function addRedditAPostsAttributes(posts: NodeListOf<HTMLElement>, isOld: boolea
   posts.forEach(setAttributes);
 }
 
-function setAttributes(post: HTMLElement) {
+function setAttributes(post: HTMLElement){
+  if (!post) return;
   const postNum = select(".post-number", post)?.textContent;
 
   if (postNum) index = +postNum;
@@ -177,7 +179,7 @@ function setAttributes(post: HTMLElement) {
   }
 }
 
-function observerCallback(mutationList) {
+function observerCallback(mutationList){
   const {old, latest} = reddit;
   const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
 
@@ -189,16 +191,16 @@ function observerCallback(mutationList) {
   });
 }
 
-function createObserver(el: Element) {
+function createObserver(el: Element){
   observer = new MutationObserver(observerCallback);
   observer.observe(el!, {childList: true});
 }
 
-function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode> {
+function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode>{
   return posts?.[0]?.parentNode?.parentNode?.parentNode || null;
 }
 
-function getVoteSelector(cmd: string, index?: number) {
+function getVoteSelector(cmd: string, index?: number){
   const {old, latest} = reddit;
   const selector = isOldReddit ? old.vote[cmd] : latest.vote[cmd];
 
@@ -207,7 +209,7 @@ function getVoteSelector(cmd: string, index?: number) {
   return selector;
 }
 
-function getClearVoteSelector(index?: number): string {
+function getClearVoteSelector(index?: number): string{
   const {old, latest} = reddit;
   const thing = index && thingAtIndex(index);
 
@@ -224,7 +226,7 @@ function getClearVoteSelector(index?: number): string {
   return latest.vote.pressed;
 }
 
-function vote(type: "up" | "down" | "clear", index?: number) {
+function vote(type: "up" | "down" | "clear", index?: number){
   let q = "";
 
   if (type === "up") q = getVoteSelector("up", index);
@@ -234,7 +236,7 @@ function vote(type: "up" | "down" | "clear", index?: number) {
   clickIfExists(q);
 }
 
-function getCollapseBtnSelector() {
+function getCollapseBtnSelector(){
   const {post, special, comments} = reddit.old;
   const {comment} = comments;
 
@@ -247,7 +249,7 @@ function getCollapseBtnSelector() {
   };
 }
 
-function getExpandableElementsSelectors() {
+function getExpandableElementsSelectors(){
   const {comments, special, post} = reddit.old;
   const selectors = {
     comExpBtn: "",
@@ -267,7 +269,7 @@ function getExpandableElementsSelectors() {
   return selectors;
 }
 
-async function expandCurrent() {
+async function expandCurrent(){
   // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
   const {postExpBtn, comExpBtn, comment} = getExpandableElementsSelectors();
   const mainItem = !!postExpBtn && select<HTMLAnchorElement>(postExpBtn) || null;
@@ -291,7 +293,7 @@ async function expandCurrent() {
   }
 }
 
-async function expandAll() {
+async function expandAll(){
   const {comment, comExpBtn} = getExpandableElementsSelectors();
   const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
 
@@ -304,7 +306,7 @@ async function expandAll() {
   }
 }
 
-function collapseCurrent() {
+function collapseCurrent(){
   const {postExpBtn, comExpBtn} = getCollapseBtnSelector();
 
   const postBtn = !!postExpBtn && select<HTMLElement>(postExpBtn!) || null;
@@ -320,7 +322,7 @@ function collapseCurrent() {
   }
 }
 
-function resetDomState() {
+function resetDomState(){
   index = 0;
   isDOMLoaded = false;
   scrollContainer = null;
@@ -328,7 +330,7 @@ function resetDomState() {
   observer = null;
 }
 
-function onLoad() {
+function onLoad(){
   currentRoute = location.href;
 
   const {old, latest} = reddit;
@@ -351,47 +353,36 @@ function onLoad() {
   }
 }
 
-function onPopState() {
-  // Here we are waiting for the posts to load,
-  // if the load event occurred on another
-  // screen and the user goes to the screen with the posts
-
-  console.log('pop state event handler called');
-
-  waitPostsLoading(
+function reloadPosts(){
+  waitPosts(
     () => {
       if (location.hostname.endsWith("reddit.com")) {
         isDOMLoaded = false;
         index = 0;
         onLoad();
-        // console.log(index, 'posts in on pop');
         toggleContext(COMMENTS_REGX.test(location.href));
       } else {
         PluginBase.util.removeContext("Post List", "Post");
       }
     }, 200
   );
-
-  // setTimeout(() => {
-  //   if (location.hostname.endsWith("reddit.com")) {
-  //     isDOMLoaded = false;
-  //     index = 0;
-  //     onLoad();
-  //     toggleContext(COMMENTS_REGX.test(location.href));
-  //   } else {
-  //     PluginBase.util.removeContext("Post List", "Post");
-  //   }
-  // }, 4000);
 }
 
-function onClick() {
+function onPopState(){
+  reloadPosts();
+}
+
+function onClick(e: Event){
+  if (currentRoute === location.href) {
+    return reloadPosts();
+  }
+
   setTimeout(() => {
-    if (currentRoute === location.href) return;
     dispatchEvent("popstate");
   });
 }
 
-function toggleContext(isPostContext = false) {
+function toggleContext(isPostContext = false){
   console.log(isPostContext, "post context");
 
   if (isPostContext) {
@@ -403,12 +394,12 @@ function toggleContext(isPostContext = false) {
   }
 }
 
-function dispatchEvent(eventName: string) {
+function dispatchEvent(eventName: string){
   const event = new Event(eventName);
   window.dispatchEvent(event);
 }
 
-export default <IPluginBase & IPlugin>{
+export default <IPluginBase & IPlugin> {
   ...PluginBase,
   ...{
     niceName: "Reddit",
