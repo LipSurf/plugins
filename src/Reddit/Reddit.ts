@@ -1,7 +1,5 @@
 import {ExecutionContext} from "ava";
 import {setStyles, selectAll, select} from "./utils";
-import location = chrome.contentSettings.location;
-
 /*
  * LipSurf plugin for Reddit.com
  */
@@ -168,7 +166,7 @@ function setAttributes(post: HTMLElement) {
       overflow: "visible"
     }, post);
 
-    if (!COMMENTS_REGX.test(window.location.href)) {
+    if (!COMMENTS_REGX.test(location.href)) {
       const el = genPostNumberElement(index);
 
       setStyles({
@@ -336,7 +334,7 @@ function resetDomState() {
 }
 
 function onLoad() {
-  currentRoute = window.location.href;
+  currentRoute = location.href;
 
   const {old, latest} = reddit;
   isOldReddit = !!select<HTMLElement>(old.post.thing);
@@ -363,11 +361,11 @@ function onLoad() {
 function redefinePosts() {
   waitPosts(
     () => {
-      if (window.location.hostname.endsWith("reddit.com")) {
+      if (location.hostname.endsWith("reddit.com")) {
         isDOMLoaded = false;
         index = 0;
         onLoad();
-        toggleContext(COMMENTS_REGX.test(window.location.href));
+        toggleContext(COMMENTS_REGX.test(location.href));
       } else {
         PluginBase.util.removeContext("Post List", "Post");
       }
@@ -380,12 +378,12 @@ function onPopState() {
 }
 
 function onClick() {
-  if (!isHomeBtnClicked && (currentRoute === window.location.href)) return;
+  if (!isHomeBtnClicked && (currentRoute === location.href)) return;
 
   setTimeout(() => {
     if (isHomeBtnClicked) isHomeBtnClicked = false;
     redefinePosts();
-    currentRoute = window.location.href;
+    currentRoute = location.href;
   });
 }
 
@@ -472,9 +470,9 @@ export default <IPluginBase & IPlugin>{
     },
 
     init: async () => {
-      if (window.location.hostname.endsWith("reddit.com")) {
+      if (location.hostname.endsWith("reddit.com")) {
         console.log("init");
-        toggleContext(COMMENTS_REGX.test(window.location.href));
+        toggleContext(COMMENTS_REGX.test(location.href));
         window.addEventListener("load", onLoad);
         window.addEventListener("popstate", onPopState);
 
