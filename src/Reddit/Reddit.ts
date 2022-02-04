@@ -1,4 +1,6 @@
 import { ExecutionContext } from "ava";
+import { setStyles, selectAll, select } from "./util";
+import location = chrome.contentSettings.location;
 
 /*
  * LipSurf plugin for Reddit.com
@@ -6,41 +8,410 @@ import { ExecutionContext } from "ava";
 /// <reference types="@lipsurf/types/extension"/>
 declare const PluginBase: IPluginBase;
 
+type Maybe<T> = T | null;
+
 const thingAttr = `${PluginBase.util.getNoCollisionUniqueAttr()}-thing`;
 const COMMENTS_REGX = /reddit.com\/r\/[^\/]*\/comments\//;
 
-function thingAtIndex(i: number) {
-  return `#siteTable>div.thing[${thingAttr}="${i}"]`;
+let isOldReddit = false;
+let scrollContainer: Maybe<ParentNode> = null;
+let observer: Maybe<MutationObserver> = null;
+let posts: Maybe<NodeListOf<HTMLElement>> = null;
+let index = 0;
+let isDOMLoaded = false;
+let isHomeBtnClicked = false;
+let currentRoute;
+
+const reddit = {
+  old: {
+    post: {
+      thing: ".thing",
+      title: "a.title",
+      expandBtn: ".expando-button",
+      commentarea: ".commentarea",
+    },
+    comments: {
+      select: "a.comments",
+      expandBtn: ".expando-button",
+      comment: {
+        select: ".comment",
+        expandBtn: "a.expand",
+      },
+    },
+    special: {
+      collapsed: ".collapsed",
+      expanded: ".expanded",
+      notCollapsed: ":not(.collapsed)",
+    },
+    vote: {
+      btn: "#siteTable *[role='button']",
+      up: ".arrow.up:not(.upmod)",
+      down: ".arrow.down:not(.downmod)",
+      upmod: ".arrow.upmod",
+      downmod: ".arrow.downmod",
+    },
+  },
+  latest: {
+    home: "a[aria-label='Home']",
+    post: {
+      thing: ".Post",
+    },
+    comments: {
+      select: "a[data-click-id='comments']",
+      threadline: ".threadline",
+      comment: {
+        select: ".Comment",
+        expandBtn: ".icon-expand",
+      },
+    },
+    vote: {
+      btn: ".voteButton",
+      up: ".voteButton[aria-label='upvote']",
+      down: ".voteButton[aria-label='downvote']",
+      pressed: ".voteButton[aria-pressed='true']",
+      unpressed: ".voteButton[aria-pressed='false']",
+    },
+  },
+};
+
+function thingAtIndex(i: number): string {
+  if (isOldReddit) {
+    return `${reddit.old.post.thing}[${thingAttr}="${i}"]`;
+  } else {
+    return `${reddit.latest.post.thing}[${thingAttr}="${i}"]`;
+  }
+}
+
+function waitPosts(fn, timeout) {
+  let timer: Maybe<ReturnType<typeof setTimeout>> = null;
+
+  setTimeout(() => {
+    posts = selectAll(reddit.latest.post.thing);
+
+    if (posts && posts.length) {
+      clearTimeout(timer!);
+      setTimeout(fn);
+    } else {
+      timer = setTimeout(() => {
+        waitPosts(fn, timeout);
+      }, timeout);
+    }
+  });
 }
 
 function clickIfExists(selector: string) {
-  const el = document.querySelector<HTMLElement>(selector);
+  const el = select<HTMLElement>(selector);
   if (el) el.click();
 }
 
-function vote(type: "up" | "down" | "clear", index?: number) {
-  console.log("voting", type, index);
-  let q: string;
-  switch (type) {
-    case "up":
-      if (index) q = `${thingAtIndex(index)} .arrow.up:not(.upmod)`;
-      else q = `#siteTable *[role="button"][aria-label="upvote"]:not(.upmod)`;
-      break;
-    case "down":
-      if (index) q = `${thingAtIndex(index)} .arrow.down:not(.downmod)`;
-      else
-        q = `#siteTable *[role="button"][aria-label="downvote"]:not(.downmod)`;
-      break;
-    default:
-      if (index)
-        q = `${thingAtIndex(index)} .arrow.downmod,${thingAtIndex(
-          index
-        )} .arrow.upmod`;
-      else
-        q = `#siteTable *[role="button"][aria-label="downvote"].arrow.downmod,#siteTable *[role="button"][aria-label="upvote"].arrow.upmod`;
-      break;
+function clickIfDisplayed(el: HTMLElement) {
+  if (parseFloat(getComputedStyle(el).width)) {
+    el.click();
   }
+}
+
+function genPostNumberElement(number): HTMLElement {
+  const span = document.createElement("span");
+  span.textContent = number;
+  span.className = "post-number";
+
+  return span;
+}
+
+function addRedditAPostsAttributes(
+  posts: NodeListOf<HTMLElement>,
+  isOld: boolean
+) {
+  if (isOld) {
+    return posts.forEach((post) => {
+      index += 1;
+      post.setAttribute(thingAttr, `${index}`);
+      const oldRank = select<HTMLElement>(".rank", post);
+      const newRank = genPostNumberElement(index);
+
+      setStyles({ position: "relative" }, post);
+      setStyles({ visibility: "hidden" }, oldRank!);
+      setStyles(
+        {
+          position: "absolute",
+          top: "20px",
+          left: "10px",
+          fontWeight: 700,
+          fontSize: "1rem",
+          color: "#999999",
+          transform: "translateY(-50%)",
+        },
+        newRank
+      );
+
+      post.appendChild(newRank);
+    });
+  }
+
+  posts.forEach(setAttributes);
+}
+
+function setAttributes(post: HTMLElement) {
+  if (!post) return;
+  const postNum = select(".post-number", post)?.textContent;
+
+  if (postNum) index = +postNum;
+
+  if (post && getComputedStyle(post).display !== "none" && !postNum) {
+    index += 1;
+
+    post.setAttribute(thingAttr, `${index}`);
+
+    setStyles(
+      {
+        position: "relative",
+        overflow: "visible",
+      },
+      post
+    );
+
+    if (!COMMENTS_REGX.test(window.location.href)) {
+      const el = genPostNumberElement(index);
+
+      setStyles(
+        {
+          position: "absolute",
+          top: "0",
+          right: "102%",
+          fontWeight: 700,
+          opacity: 0.8,
+        },
+        el
+      );
+
+      post.appendChild(el);
+    }
+  }
+}
+
+function observerCallback(mutationList) {
+  const { old, latest } = reddit;
+  const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
+
+  mutationList.forEach((it) => {
+    it.addedNodes.forEach((node) => {
+      const post = select<HTMLElement>(postSelector, node);
+      setAttributes(post!);
+    });
+  });
+}
+
+function createObserver(el: Element) {
+  observer = new MutationObserver(observerCallback);
+  observer.observe(el!, { childList: true });
+}
+
+function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode> {
+  return posts?.[0]?.parentNode?.parentNode?.parentNode || null;
+}
+
+function getVoteSelector(cmd: string, index?: number) {
+  const { old, latest } = reddit;
+  const selector = isOldReddit ? old.vote[cmd] : latest.vote[cmd];
+
+  if (index) return `${thingAtIndex(index)} ${selector}`;
+
+  return selector;
+}
+
+function getClearVoteSelector(index?: number): string {
+  const { old, latest } = reddit;
+  const thing = index && thingAtIndex(index);
+
+  if (index && isOldReddit) {
+    return `${thing} ${old.vote.downmod}, ${thing} ${old.vote.upmod}`;
+  }
+  if (!index && isOldReddit) {
+    return `${old.vote.downmod},${old.vote.upmod}`;
+  }
+  if (index && !isOldReddit) {
+    return `${thing} ${latest.vote.pressed}`;
+  }
+
+  return latest.vote.pressed;
+}
+
+function vote(type: "up" | "down" | "clear", index?: number) {
+  let q = "";
+
+  if (type === "up") q = getVoteSelector("up", index);
+  if (type === "down") q = getVoteSelector("down", index);
+  if (type === "clear") q = getClearVoteSelector(index);
+
   clickIfExists(q);
+}
+
+function getCollapseBtnSelector() {
+  const { post, special, comments } = reddit.old;
+  const { comment } = comments;
+
+  const oldCommentBtnSelector = `${comment.select}${special.notCollapsed} ${comment.expandBtn}`;
+  const newCommentBtnSelector = reddit.latest.comments.threadline;
+
+  return {
+    postExpBtn: isOldReddit ? `${post.expandBtn}${special.expanded}` : "",
+    comExpBtn: isOldReddit ? oldCommentBtnSelector : newCommentBtnSelector,
+  };
+}
+
+function getExpandableElementsSelectors() {
+  const { comments, special, post } = reddit.old;
+  const selectors = {
+    comExpBtn: "",
+    postExpBtn: "",
+    comment: "",
+  };
+
+  if (isOldReddit) {
+    selectors.comExpBtn = comments.comment.expandBtn;
+    selectors.postExpBtn = `${post.thing} ${comments.expandBtn}`;
+    selectors.comment = `${comments.comment.select}${special.collapsed}`;
+  } else {
+    selectors.comment = reddit.latest.comments.comment.select;
+    selectors.comExpBtn = reddit.latest.comments.comment.expandBtn;
+  }
+
+  return selectors;
+}
+
+async function expandCurrent() {
+  // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
+  const { postExpBtn, comExpBtn, comment } = getExpandableElementsSelectors();
+  const mainItem =
+    (!!postExpBtn && select<HTMLAnchorElement>(postExpBtn)) || null;
+
+  if (mainItem && PluginBase.util.isVisible(mainItem)) mainItem.click();
+  else {
+    const itemsSelector = isOldReddit ? comment : comExpBtn;
+    let el: HTMLElement;
+
+    const items = Array.from(selectAll<HTMLElement>(itemsSelector));
+
+    for (el of items.reverse()) {
+      if (PluginBase.util.isVisible(el)) {
+        if (isOldReddit) {
+          return select<HTMLElement>(comExpBtn, el)!.click();
+        } else {
+          return clickIfDisplayed(el.parentNode as HTMLElement);
+        }
+      }
+    }
+  }
+}
+
+async function expandAll() {
+  const { comment, comExpBtn } = getExpandableElementsSelectors();
+  const selector = isOldReddit ? `${comment} ${comExpBtn}` : comExpBtn;
+
+  for (let el of selectAll<HTMLElement>(selector)) {
+    if (isOldReddit) {
+      el.click();
+    } else {
+      clickIfDisplayed(el.parentNode as HTMLElement);
+    }
+  }
+}
+
+function collapseCurrent() {
+  const { postExpBtn, comExpBtn } = getCollapseBtnSelector();
+
+  const postBtn = (!!postExpBtn && select<HTMLElement>(postExpBtn!)) || null;
+  const commentBtns = selectAll<HTMLElement>(comExpBtn);
+
+  postBtn && PluginBase.util.isVisible(postBtn!) && postBtn!.click();
+
+  for (const el of commentBtns) {
+    if (PluginBase.util.isVisible(el)) {
+      el.click();
+      break;
+    }
+  }
+}
+
+function resetDomState() {
+  index = 0;
+  isDOMLoaded = false;
+  scrollContainer = null;
+  observer?.disconnect();
+  observer = null;
+}
+
+function onLoad() {
+  currentRoute = window.location.href;
+
+  const { old, latest } = reddit;
+  isOldReddit = !!select<HTMLElement>(old.post.thing);
+
+  if (isDOMLoaded) return;
+
+  const postSelector = isOldReddit ? old.post.thing : latest.post.thing;
+  posts = selectAll<HTMLElement>(postSelector);
+
+  isDOMLoaded = true;
+
+  addRedditAPostsAttributes(posts, isOldReddit);
+
+  if (!isOldReddit) {
+    const home = select(reddit.latest.home);
+    window.addEventListener("click", onClick);
+    home?.addEventListener("click", homeClickHandler);
+
+    scrollContainer = setParentContainer(posts);
+    scrollContainer && createObserver(scrollContainer! as Element);
+  }
+}
+
+function redefinePosts() {
+  waitPosts(() => {
+    if (window.location.hostname.endsWith("reddit.com")) {
+      isDOMLoaded = false;
+      index = 0;
+      onLoad();
+      toggleContext(COMMENTS_REGX.test(window.location.href));
+    } else {
+      PluginBase.util.removeContext("Post List", "Post");
+    }
+  }, 200);
+}
+
+function onPopState() {
+  setTimeout(redefinePosts);
+}
+
+function onClick() {
+  if (!isHomeBtnClicked && currentRoute === window.location.href) return;
+
+  setTimeout(() => {
+    if (isHomeBtnClicked) isHomeBtnClicked = false;
+    redefinePosts();
+    currentRoute = window.location.href;
+  });
+}
+
+function homeClickHandler() {
+  isHomeBtnClicked = true;
+}
+
+function toggleContext(isPostContext = false) {
+  console.log(isPostContext, "post context");
+
+  if (isPostContext) {
+    PluginBase.util.prependContext("Post");
+    PluginBase.util.removeContext("Post List");
+  } else {
+    PluginBase.util.prependContext("Post List");
+    PluginBase.util.removeContext("Post");
+  }
+}
+
+function dispatchEvent(eventName: string) {
+  const event = new Event(eventName);
+  window.dispatchEvent(event);
 }
 
 export default <IPluginBase & IPlugin>{
@@ -48,7 +419,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Reddit",
     description: "Commands for Reddit.com",
-    version: "4.4.1",
+    version: "4.4.0",
     apiVersion: 2,
     match: /^https?:\/\/.*\.reddit.com/,
     authors: "Miko",
@@ -105,50 +476,28 @@ export default <IPluginBase & IPlugin>{
     },
 
     init: async () => {
-      // there is a global command, so init runs everywhere
-      if (document.location.hostname.endsWith("reddit.com")) {
+      if (window.location.hostname.endsWith("reddit.com")) {
         console.log("init");
-
-        if (/^https?:\/\/www.reddit/.test(document.location.href)) {
-          document.location.href = document.location.href.replace(
-            /^https?:\/\/.*\.reddit.com/,
-            "http://old.reddit.com"
-          );
-        }
-
-        if (COMMENTS_REGX.test(document.location.href)) {
-          PluginBase.util.prependContext("Post");
-          PluginBase.util.removeContext("Post List");
-        } else {
-          PluginBase.util.prependContext("Post List");
-          PluginBase.util.removeContext("Post");
-        }
+        toggleContext(COMMENTS_REGX.test(window.location.href));
+        window.addEventListener("load", onLoad);
+        window.addEventListener("popstate", onPopState);
 
         await PluginBase.util.ready();
 
-        // number the elements
-        let index = 0;
-        for (let el of document.querySelectorAll<HTMLElement>(
-          "#siteTable>div.thing"
-        )) {
-          index++;
-          el.setAttribute(thingAttr, "" + index);
-          const rank = <HTMLElement>el.querySelector(".rank");
-          rank.setAttribute(
-            "style",
-            `
-                  display: block !important;
-                  margin-right: 10px;
-                  opacity: 1 !important';
-              `
-          );
-          rank.innerText = "" + index;
-        }
+        setTimeout(() => {
+          if (!isDOMLoaded) dispatchEvent("load");
+        }, 2000);
       }
     },
 
     destroy: () => {
+      resetDomState();
+
       PluginBase.util.removeContext("Post List", "Post");
+      window.removeEventListener("load", onLoad);
+
+      !isOldReddit && window.removeEventListener("popstate", onPopState);
+      !isOldReddit && window.removeEventListener("click", onClick);
     },
 
     commands: [
@@ -158,7 +507,7 @@ export default <IPluginBase & IPlugin>{
         match: ["[/go to ]reddit"],
         minConfidence: 0.5,
         pageFn: () => {
-          document.location.href = "https://old.reddit.com";
+          document.location.href = "https://www.reddit.com";
         },
       },
       {
@@ -167,7 +516,6 @@ export default <IPluginBase & IPlugin>{
           fn: ({ normTs, preTs }) => {
             const SUBREDDIT_REGX = /\b(?:go to |show )?(?:are|our|r) (.*)/;
             let match = preTs.match(SUBREDDIT_REGX);
-            // console.log(`navigate subreddit input: ${input} match: ${match}`);
             if (match) {
               const endPos = match.index! + match[0].length;
               return [match.index, endPos, [match[1].replace(/\s/g, "")]];
@@ -180,7 +528,7 @@ export default <IPluginBase & IPlugin>{
           return `go to r/${matchOutput}`;
         },
         pageFn: (transcript, subredditName: string) => {
-          window.location.href = `https://old.reddit.com/r/${subredditName}`;
+          window.location.href = `https://www.reddit.com/r/${subredditName}`;
         },
       },
       {
@@ -189,7 +537,16 @@ export default <IPluginBase & IPlugin>{
         match: ["comments #", "# comments"],
         normal: false,
         pageFn: (transcript, index: number) => {
-          clickIfExists(thingAtIndex(index) + " a.comments");
+          // here we have to dispatch popstate event
+          // because switching to the post page does
+          // not cause any location change event
+          // dispatchEvent("popstate");
+
+          const selector = isOldReddit
+            ? ` ${reddit.old.comments.select}`
+            : ` ${reddit.latest.comments.select}`;
+
+          clickIfExists(thingAtIndex(index) + selector);
         },
       },
       {
@@ -198,7 +555,15 @@ export default <IPluginBase & IPlugin>{
         match: ["visit #", "# visit"],
         normal: false,
         pageFn: (transcript, index: number) => {
-          clickIfExists(thingAtIndex(index) + " a.title");
+          // here we have to dispatch popstate event
+          // because switching to the post page does
+          // not cause any location change event
+          // dispatchEvent("popstate");
+
+          const selector = isOldReddit
+            ? ` ${reddit.old.post.title}`
+            : reddit.latest.post.thing;
+          clickIfExists(thingAtIndex(index) + selector);
         },
       },
       {
@@ -208,13 +573,12 @@ export default <IPluginBase & IPlugin>{
         match: ["expand #", "# expand"], // in comments view
         normal: false,
         pageFn: (transcript, index: number) => {
-          const el = <HTMLElement>(
-            document.querySelector(
-              `${thingAtIndex(index)} .expando-button.collapsed`
-            )
+          const { comments, special } = reddit.old;
+          const el = select<HTMLElement>(
+            `${thingAtIndex(index)} ${comments.expandBtn}${special.collapsed}`
           );
-          el.click();
-          PluginBase.util.scrollToAnimated(el, -25);
+          el!.click();
+          PluginBase.util.scrollToAnimated(el!, -25);
         },
         test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
@@ -236,12 +600,13 @@ export default <IPluginBase & IPlugin>{
         match: ["collapse #", "# collapse"],
         normal: false,
         pageFn: (transcript, index: number) => {
-          const el = <HTMLElement>(
-            document.querySelector(
-              thingAtIndex(index) + " .expando-button:not(.collapsed)"
-            )
+          const { comments, special } = reddit.old;
+          const el = select<HTMLElement>(
+            // thingAtIndex(index) + ' .expando-button:not(.collapsed)'
+            thingAtIndex(index) + ` ${comments.expandBtn}${special.expanded}`
           );
-          el.click();
+
+          el?.click();
         },
         test: async (t: ExecutionContext<ICmdTestContext>, say, client) => {
           await client.url(
@@ -250,7 +615,7 @@ export default <IPluginBase & IPlugin>{
 
           // await client.driver.wait(client.until.elementIsVisible(client.driver.findElement(client.By.css('.commentarea'))), 1000);
           await client.execute(() => {
-            document.querySelector(".commentarea")!.scrollIntoView();
+            select(".commentarea")!.scrollIntoView();
           });
           // make sure it's expanded
           //<div class=" thing id-t1_c60o0iw noncollapsed   comment " id="thing_t1_c60o0iw" onclick="click_thing(this)" data-fullname="t1_c60o0iw" data-type="comment" data-subreddit="IAmA" data-subreddit-fullname="t5_2qzb6" data-author="Biinaryy" data-author-fullname="t2_76bmi"><p class="parent"><a name="c60o0iw"></a></p><div class="midcol unvoted"><div class="arrow up login-required archived access-required" data-event-action="upvote" role="button" aria-label="upvote" tabindex="0"></div><div class="arrow down login-required archived access-required" data-event-action="downvote" role="button" aria-label="downvote" tabindex="0"></div></div><div class="entry unvoted"><p class="tagline"><a href="javascript:void(0)" class="expand" onclick="return togglecomment(this)">[–]</a><a href="https://old.reddit.com/user/Biinaryy" class="author may-blank id-t2_76bmi">Bi
@@ -336,68 +701,34 @@ export default <IPluginBase & IPlugin>{
         description: "Click the link for the post that we're in.",
         match: "visit",
         normal: false,
-        pageFn: () => clickIfExists("#siteTable p.title a.title"),
+        pageFn: () => {
+          // here we have to dispatch popstate event
+          // because switching to the post page does
+          // not cause location popstate event
+          dispatchEvent("popstate");
+          clickIfExists("#siteTable a.title");
+        },
       },
       {
         name: "Expand Current",
         description: "Expand the post that we're in.",
         match: "expand",
         normal: false,
-        pageFn: () => {
-          // if expando-button is in frame expand that, otherwise expand first (furthest up) visible comment
-          const mainItem = document.querySelector<HTMLAnchorElement>(
-            `#siteTable .thing .expando-button.collapsed`
-          );
-          const commentItems = Array.from(
-            document.querySelectorAll<HTMLElement>(
-              `.commentarea > div > .thing.collapsed`
-            )
-          );
-
-          if (mainItem && PluginBase.util.isVisible(mainItem)) {
-            mainItem.click();
-          } else {
-            let el: HTMLElement;
-            for (el of commentItems.reverse()) {
-              if (PluginBase.util.isVisible(el)) {
-                el.querySelector<HTMLAnchorElement>(
-                  ".comment.collapsed a.expand"
-                )!.click();
-                return;
-              }
-            }
-          }
-        },
+        pageFn: expandCurrent,
       },
       {
         name: "Collapse Current",
         description: "Collapse the current post that we're in.",
         match: ["collapse", "close"],
         normal: false,
-        pageFn: () => {
-          // collapse first visible item (can be comment or post)
-          for (const el of document.querySelectorAll<HTMLElement>(
-            `#siteTable .thing .expando-button.expanded, .commentarea>div>div.thing:not(.collapsed)>div>p>a.expand`
-          )) {
-            if (PluginBase.util.isVisible(el)) {
-              el.click();
-              break;
-            }
-          }
-        },
+        pageFn: collapseCurrent,
       },
       {
         name: "Expand All Comments",
         description: "Expands all the comments.",
         match: ["expand all[/ comments]"],
         normal: false,
-        pageFn: async () => {
-          for (let el of document.querySelectorAll<HTMLElement>(
-            ".thing.comment.collapsed a.expand"
-          )) {
-            el.click();
-          }
-        },
+        pageFn: expandAll,
         test: async (t, say, client) => {
           // Only checks to see that more than 5 comments are collapsed.
           await client.url(
