@@ -1,6 +1,5 @@
 import { ExecutionContext } from "ava";
 import { setStyles, selectAll, select } from "./util";
-import location = chrome.contentSettings.location;
 
 /*
  * LipSurf plugin for Reddit.com
@@ -21,6 +20,14 @@ let index = 0;
 let isDOMLoaded = false;
 let isHomeBtnClicked = false;
 let currentRoute;
+
+/**
+ * On new reddit we sometimes get an overlay when clicking the comments of a post,
+ * this ensures that we give priority to the selector on the overlayed post.
+ */
+function prioritizeCurPost(u: string): string[] {
+  return ["[data-test-id='post-content'] ", ""].map((s) => `${s}${u}`);
+}
 
 const reddit = {
   old: {
@@ -44,7 +51,6 @@ const reddit = {
       notCollapsed: ":not(.collapsed)",
     },
     vote: {
-      btn: "#siteTable *[role='button']",
       up: ".arrow.up:not(.upmod)",
       down: ".arrow.down:not(.downmod)",
       upmod: ".arrow.upmod",
@@ -65,11 +71,10 @@ const reddit = {
       },
     },
     vote: {
-      btn: ".voteButton",
-      up: ".voteButton[aria-label='upvote']",
-      down: ".voteButton[aria-label='downvote']",
-      pressed: ".voteButton[aria-pressed='true']",
-      unpressed: ".voteButton[aria-pressed='false']",
+      up: prioritizeCurPost(`.voteButton[aria-label='upvote']`),
+      down: prioritizeCurPost(`.voteButton[aria-label='downvote']`),
+      pressed: prioritizeCurPost(`.voteButton[aria-pressed='true']`),
+      unpressed: prioritizeCurPost(`.voteButton[aria-pressed='false']`),
     },
   },
 };
@@ -99,9 +104,14 @@ function waitPosts(fn, timeout) {
   });
 }
 
-function clickIfExists(selector: string) {
-  const el = select<HTMLElement>(selector);
-  if (el) el.click();
+function clickIfExists(...selectors: string[]) {
+  for (const sel of selectors) {
+    const el = select<HTMLElement>(sel);
+    if (el) {
+      el.click();
+      break;
+    }
+  }
 }
 
 function clickIfDisplayed(el: HTMLElement) {
@@ -110,9 +120,9 @@ function clickIfDisplayed(el: HTMLElement) {
   }
 }
 
-function genPostNumberElement(number): HTMLElement {
+function genPostNumberElement(n: number): HTMLElement {
   const span = document.createElement("span");
-  span.textContent = number;
+  span.textContent = "" + n;
   span.className = "post-number";
 
   return span;
@@ -126,11 +136,11 @@ function addRedditAPostsAttributes(
     return posts.forEach((post) => {
       index += 1;
       post.setAttribute(thingAttr, `${index}`);
-      const oldRank = select<HTMLElement>(".rank", post);
+      const oldRank = select<HTMLElement>(".rank", post)!;
       const newRank = genPostNumberElement(index);
 
       setStyles({ position: "relative" }, post);
-      setStyles({ visibility: "hidden" }, oldRank!);
+      setStyles({ visibility: "hidden" }, oldRank);
       setStyles(
         {
           position: "absolute",
@@ -146,9 +156,9 @@ function addRedditAPostsAttributes(
 
       post.appendChild(newRank);
     });
+  } else {
+    posts.forEach(setAttributes);
   }
-
-  posts.forEach(setAttributes);
 }
 
 function setAttributes(post: HTMLElement) {
@@ -210,40 +220,32 @@ function setParentContainer(posts: NodeListOf<HTMLElement>): Maybe<ParentNode> {
   return posts?.[0]?.parentNode?.parentNode?.parentNode || null;
 }
 
-function getVoteSelector(cmd: string, index?: number) {
+type VoteType = "up" | "down" | "clear";
+
+function vote(type: VoteType, index?: number) {
   const { old, latest } = reddit;
-  const selector = isOldReddit ? old.vote[cmd] : latest.vote[cmd];
+  let selectors: string[] = [];
+  console.log("voting", type);
 
-  if (index) return `${thingAtIndex(index)} ${selector}`;
+  if (type === "clear") {
+    const thing = index && thingAtIndex(index);
 
-  return selector;
-}
+    if (index && isOldReddit) {
+      selectors = [`${thing} ${old.vote.downmod}, ${thing} ${old.vote.upmod}`];
+    } else if (!index && isOldReddit) {
+      selectors = [`${old.vote.downmod},${old.vote.upmod}`];
+    } else if (index && !isOldReddit) {
+      selectors = latest.vote.pressed.map((s) => `${thing} ${s}`);
+    } else {
+      selectors = latest.vote.pressed;
+    }
+  } else {
+    selectors = isOldReddit ? [old.vote[type]] : latest.vote[type];
 
-function getClearVoteSelector(index?: number): string {
-  const { old, latest } = reddit;
-  const thing = index && thingAtIndex(index);
-
-  if (index && isOldReddit) {
-    return `${thing} ${old.vote.downmod}, ${thing} ${old.vote.upmod}`;
+    if (index) selectors = selectors.map((s) => `${thingAtIndex(index)} ${s}`);
   }
-  if (!index && isOldReddit) {
-    return `${old.vote.downmod},${old.vote.upmod}`;
-  }
-  if (index && !isOldReddit) {
-    return `${thing} ${latest.vote.pressed}`;
-  }
 
-  return latest.vote.pressed;
-}
-
-function vote(type: "up" | "down" | "clear", index?: number) {
-  let q = "";
-
-  if (type === "up") q = getVoteSelector("up", index);
-  if (type === "down") q = getVoteSelector("down", index);
-  if (type === "clear") q = getClearVoteSelector(index);
-
-  clickIfExists(q);
+  clickIfExists(...selectors);
 }
 
 function getCollapseBtnSelector() {
@@ -419,10 +421,10 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Reddit",
     description: "Commands for Reddit.com",
-    version: "4.4.0",
+    version: "4.4.1",
     apiVersion: 2,
     match: /^https?:\/\/.*\.reddit.com/,
-    authors: "Miko",
+    authors: "Miko, Anar",
 
     // less common -> common
     homophones: {
@@ -537,11 +539,6 @@ export default <IPluginBase & IPlugin>{
         match: ["comments #", "# comments"],
         normal: false,
         pageFn: (transcript, index: number) => {
-          // here we have to dispatch popstate event
-          // because switching to the post page does
-          // not cause any location change event
-          // dispatchEvent("popstate");
-
           const selector = isOldReddit
             ? ` ${reddit.old.comments.select}`
             : ` ${reddit.latest.comments.select}`;
@@ -555,11 +552,6 @@ export default <IPluginBase & IPlugin>{
         match: ["visit #", "# visit"],
         normal: false,
         pageFn: (transcript, index: number) => {
-          // here we have to dispatch popstate event
-          // because switching to the post page does
-          // not cause any location change event
-          // dispatchEvent("popstate");
-
           const selector = isOldReddit
             ? ` ${reddit.old.post.title}`
             : reddit.latest.post.thing;
@@ -652,27 +644,21 @@ export default <IPluginBase & IPlugin>{
         match: ["upvote #", "# upvote"],
         description: "Upvote the post # (doesn't work for comments yet)",
         normal: false,
-        pageFn: (transcript, index: number) => {
-          vote("up", index);
-        },
+        pageFn: (transcript, index: number) => vote("up", index),
       },
       {
         name: "Downvote",
         match: ["downvote #", "# downvote"],
         description: "Downvote the post # (doesn't work for comments yet)",
         normal: false,
-        pageFn: (transcript, index: number) => {
-          vote("down", index);
-        },
+        pageFn: (transcript, index: number) => vote("down", index),
       },
       {
         name: "Clear Vote",
         description: "Unsets the upvote/downvote so it's neither up or down.",
         match: ["[clear/reset] vote #", "# [clear/reset] vote"],
         normal: false,
-        pageFn: (transcript, index: number) => {
-          vote("clear", index);
-        },
+        pageFn: (transcript, index: number) => vote("clear", index),
       },
       /* Comments Page */
       {
