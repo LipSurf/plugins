@@ -34,7 +34,9 @@ export default <IPluginBase & IPlugin>{
         global: true,
         match: "feeling lucky *",
         pageFn: (transcript, { preTs, normTs }: TsData) => {
-          window.location.href = `https://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=${preTs}`;
+          // this URL asks for a redirect click as of 2021/02
+          // window.location.href = `https://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=${preTs}`;
+          window.location.href = `https://www.google.com/search?gfns=1&sourceid=navclient&q=${preTs}`;
         },
       },
       {
