@@ -450,6 +450,7 @@ export default <IPluginBase & IPlugin>{
       shrink: "collapse",
       advert: "upvote",
       download: "downvote",
+      commence: "comments",
     },
 
     contexts: {
