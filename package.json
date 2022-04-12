@@ -5,8 +5,8 @@
   "scripts": {
     "docs:watch": "vuepress dev docs",
     "docs:build": "cross-env NODE_ENV=production vuepress build docs",
-    "build": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' lipsurf-cli build",
-    "watch": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' lipsurf-cli build --watch",
+    "build": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' yarn lipsurf-cli build",
+    "watch": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' yarn lipsurf-cli build --watch",
     "version": "yarn clean && lipsurf-cli vup && cross-env NODE_ENV=production yarn build",
     "clean": "rimraf -r dist/*"
   },
