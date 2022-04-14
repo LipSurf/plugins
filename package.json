@@ -3,11 +3,11 @@
   "version": "4.5.0",
   "description": "Plugins for the LipSurf Chrome extension. Each plugin adds a set of commands to LipSurf.",
   "scripts": {
-    "docs:watch": "vuepress dev docs",
-    "docs:build": "cross-env NODE_ENV=production vuepress build docs",
+    "docs:watch": "yarn vuepress dev docs",
+    "docs:build": "cross-env NODE_ENV=production yarn vuepress build docs",
     "build": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' yarn lipsurf-cli build",
     "watch": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' yarn lipsurf-cli build --watch",
-    "version": "yarn clean && lipsurf-cli vup && cross-env NODE_ENV=production yarn build",
+    "version": "yarn clean && yarn lipsurf-cli vup && cross-env NODE_ENV=production yarn build",
     "clean": "rimraf -r dist/*"
   },
   "repository": {
