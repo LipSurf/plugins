@@ -1,6 +1,6 @@
 {
   "name": "@lipsurf/plugins",
-  "version": "4.5.0",
+  "version": "4.5.1-alpha.0",
   "description": "Plugins for the LipSurf Chrome extension. Each plugin adds a set of commands to LipSurf.",
   "scripts": {
     "docs:watch": "yarn vuepress dev docs",
@@ -38,8 +38,8 @@
     "typescript": "4.x"
   },
   "devDependencies": {
-    "@lipsurf/cli": "^2.4.2",
-    "@lipsurf/types": "^2.2.0",
+    "@lipsurf/cli": "^2.4.3-alpha.0",
+    "@lipsurf/types": "^2.2.1-alpha.0",
     "@types/chrome": "^0.0.173",
     "cross-env": "^7.0.3",
     "rimraf": "^3.0.2",
