@@ -4,7 +4,11 @@ import Scroll from "./Scroll";
 Scroll.languages!.uk = {
   niceName: "браузер",
   description: "",
-  homophones: {},
+  homophones: {
+    прокрутить: "прокрутити",
+    довідкових: "довідку",
+    "стрижки вниз": "трохи вниз",
+  },
   authors: "Tanya Kunica",
   commands: {
     "Scroll Down": {
