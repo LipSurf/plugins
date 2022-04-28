@@ -7,7 +7,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Period Fix",
     description:
       'Some recognizers do not put a period but literally write "period" (something to do with region or Chrome OS perhaps). This is a workaround for that.',
-    version: "4.5.1-alpha.2",
+    version: "4.5.1-alpha.3",
     apiVersion: 2,
     match: /.*/,
     authors: "Miko Borys",

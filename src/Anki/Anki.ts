@@ -6,7 +6,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Anki",
     description: "Anki web flashcard functionality.",
-    version: "4.5.1-alpha.2",
+    version: "4.5.1-alpha.3",
     apiVersion: 2,
     match: [/^https:\/\/ankiweb\.net/, /^https:\/\/ankiuser\.net/],
     homophones: {
