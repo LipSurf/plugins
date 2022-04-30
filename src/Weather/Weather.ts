@@ -30,7 +30,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Weather",
     match: /.*accuweather\.com/,
-    version: "4.5.1-alpha.3",
+    version: "4.5.1-alpha.4",
     apiVersion: 2,
     commands: [
       {
