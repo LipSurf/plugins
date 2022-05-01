@@ -338,7 +338,7 @@ export default <IPluginBase & IPlugin>{
         <path d="M0 8l3 3v-6z"></path>
         <path d="M8 16l3-3h-6z"></path>
     </g></svg>`,
-    version: "4.5.1-alpha.4",
+    version: "4.5.1",
     apiVersion: 2,
     match: /.*/,
     authors: "Miko",
