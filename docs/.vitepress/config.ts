@@ -7,7 +7,7 @@ export default defineConfig({
 	base: '/',
 	theme: '@vuepress/theme-default',
 	themeConfig: {
-		logo: 'assets/img/sticker-style-shadow-256.png',
+		logo: '/assets/img/icon-128.png',
 		repo: 'lipsurf/plugins',
 		footer: '© 2019-Present LipSurf, Inc.',
 		editLinks: true,
