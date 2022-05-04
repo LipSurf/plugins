@@ -3,8 +3,8 @@
   "version": "4.5.1",
   "description": "Plugins for the LipSurf Chrome extension. Each plugin adds a set of commands to LipSurf.",
   "scripts": {
-    "docs:watch": "pnpm vuepress dev docs",
-    "docs:build": "cross-env NODE_ENV=production pnpm vuepress build docs",
+    "docs:watch": "vitepress dev docs",
+    "docs:build": "cross-env NODE_ENV=production vitepress build docs",
     "build": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' pnpm lipsurf-cli build",
     "watch": "cross-env NODE_OPTIONS='--experimental-vm-modules --no-warnings' pnpm lipsurf-cli build --watch",
     "version": "pnpm clean && pnpm lipsurf-cli vup && cross-env NODE_ENV=production pnpm build",
@@ -43,6 +43,6 @@
     "@types/chrome": "^0.0.173",
     "cross-env": "^7.0.3",
     "rimraf": "^3.0.2",
-    "vuepress-vite": "^2.0.0-beta.32"
+    "vitepress": "^0.22.3"
   }
 }

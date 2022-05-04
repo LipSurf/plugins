@@ -1,6 +1,6 @@
 # PluginBase.util
 
-The following API exists on `PluginBase.util` for interacting with the extension and convenience. It can be used within plugins - some utilities are only available in the context of the page (will only work in [`init`](#init), [`destroy`](#destroy), [`commands::pageFn`](/command.md#pagefn)) others only in the context of the extension ([`fn`](/command.md#fn)).
+The following API exists on `PluginBase.util` for interacting with the extension and convenience. It can be used within plugins - some utilities are only available in the context of the page (will only work in [`init`](#init), [`destroy`](#destroy), [`commands::pageFn`](/api-reference/command.md#pagefn)) others only in the context of the extension ([`fn`](/api-reference/command.md#fn)).
 
 -------------------------------------------------------------
 

@@ -40,7 +40,7 @@ All relevant examples will be given in TypeScript.
 
 Here is an example of a simple, complete plugin:
 
-@[code ts](./assets/Gmail.ts)
+<<< @/assets/Gmail.ts
 
 ## Gotchas
 

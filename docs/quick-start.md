@@ -6,19 +6,19 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
 
  1. Install the LipSurf CLI.
 
- ```sh
+ ```shell
  yarn global add @lipsurf/cli
  ```
 
  2. Scaffold a project.
 
- ```sh
+ ```shell
  lipsurf-cli init HelloWorld && cd lipsurf-plugin-helloworld
  ```
 
  The most important bit is the plugin created in `src/HelloWorld/HelloWorld.ts`. It should be something like this:
 
-@[code ts](./assets/HelloWorld.ts)
+<<< @/assets/HelloWorld.ts
 
   The meat of the plugin lives in the array of commands. Each [Command](/api-reference/command.md) object has a `match` property for what the user needs to say to run it, a `pageFn` property for the code that's actually run and a bunch of meta properties like `name`, `description` etc.
 
@@ -28,7 +28,7 @@ Let's create a simple "Hello World" plugin that responds with a JavaScript alert
 
   3. Compile our TypeScript file and make the LipSurf plugin.
 
-  ```sh
+  ```shell
   yarn watch
   ```
 
