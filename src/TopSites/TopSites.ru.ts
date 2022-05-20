@@ -8,7 +8,7 @@ TopSitesPlugin.languages!.ru = {
   authors: "Hanna",
 
   commands: {
-    Youtube: {
+    YouTube: {
       name: "Youtube",
       match: ["ютюб", "youtube"],
     },
