@@ -421,7 +421,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Reddit",
     description: "Commands for Reddit.com",
-    version: "4.6.0",
+    version: "4.5.1",
     apiVersion: 2,
     match: /^https?:\/\/.*\.reddit.com/,
     authors: "Miko, Anar",
