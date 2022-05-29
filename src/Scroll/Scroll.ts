@@ -203,33 +203,33 @@ function scroll(direction: ScrollType, little: boolean = false): Promise<void> {
   const needsKeyPressEvents = /\.pdf$/.test(document.location.pathname);
   let factor: number;
   // the key to press if we must scroll using the keyboard
-  let key: number;
+  let key: string;
   switch (direction) {
     case "u":
     case "hu":
       factor = -0.85;
-      key = 38;
+      key = "up";
       break;
     case "d":
     case "hd":
       factor = 0.85;
-      key = 40;
+      key = "down";
       break;
     case "l":
       factor = -0.7;
-      key = 37;
+      key = "left";
       break;
     case "r":
       factor = 0.7;
-      key = 39;
+      key = "right";
       break;
     case "t":
       factor = 0;
-      key = 36;
+      key = "home";
       break;
     case "b":
       factor = 10000;
-      key = 35;
+      key = "end";
       break;
   }
   const littleFactor = little ? 0.5 : 1;
@@ -242,16 +242,16 @@ function scroll(direction: ScrollType, little: boolean = false): Promise<void> {
       helpContents
     );
   } else if (needsKeyPressEvents) {
-    let codes: number[];
+    let keys: string[][];
     if (direction === "t" || direction === "b") {
-      codes = [key!];
+      keys = [[key!]];
     } else {
-      codes = new Array(14 * littleFactor).fill(key!);
+      keys = new Array(14 * littleFactor).fill([key!]);
     }
     chrome.runtime.sendMessage({
       type: "pressKeys",
       payload: {
-        codesWModifiers: codes.map((code) => ({ code })),
+        keyWModifiers: keys,
         nonChar: true,
       },
     });

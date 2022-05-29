@@ -5,17 +5,15 @@
 /// <reference types="@lipsurf/types/extension"/>
 declare const PluginBase: IPluginBase;
 
-type KeyCodeAndModifiers = { code: number; modifiers?: number };
-
-export function backendPressKey(...codesWModifiers: KeyCodeAndModifiers[]) {
+export function backendPressKey(...keyWModifiers: string[][]) {
   chrome.runtime.sendMessage({
     type: "pressKeys",
-    payload: { codesWModifiers, nonChar: true },
+    payload: { keyWModifiers, nonChar: true },
   });
 }
 
-function pressKey(name: string, x: KeyCodeAndModifiers): boolean {
-  backendPressKey(x);
+function pressKey(name: string): boolean {
+  backendPressKey([name]);
   return true;
   // const activeEle = document.activeElement;
   // console.log(activeEle);
@@ -60,105 +58,6 @@ function splitBySingleCharSeparator(s: string, separator = "+") {
   return parts;
 }
 
-const FKEY_REGX = /f\d{1,2}/;
-
-function keyStrSeqToCodeAndMod(keysStrSeq: string) {
-  const keysSplit = splitBySingleCharSeparator(keysStrSeq.toLowerCase());
-  let code: number;
-  let modifiers: number = 0;
-  let mainKey: string;
-  // modifiers: shift +8, alt +1, ctrl +2, cmd +4
-  for (const key of keysSplit) {
-    mainKey = key;
-    // WARNING: Not all of these have passed tests (some don't seem to work)
-    switch (key) {
-      case "shift":
-        modifiers += 8;
-        break;
-      case "cmd":
-        modifiers += 4;
-        break;
-      case "ctrl":
-        modifiers += 2;
-        break;
-      case "alt":
-        modifiers += 1;
-        break;
-      case "down arrow":
-        mainKey = "arrowdown";
-        code = 40;
-        break;
-      case "up arrow":
-        mainKey = "arrowup";
-        code = 38;
-        break;
-      case "left arrow":
-        mainKey = "arrowleft";
-        code = 37;
-        break;
-      case "right arrow":
-        mainKey = "arrowright";
-        code = 39;
-        break;
-      case "tab":
-        code = 9;
-        break;
-      case "pause":
-      case "break":
-      case "pause/break":
-        mainKey = "pause/break";
-        code = 19;
-        break;
-      case "home":
-        code = 36;
-        break;
-      case "end":
-        code = 35;
-        break;
-      case "insert":
-        code = 45;
-        break;
-      case "caps lock":
-        code = 20;
-        break;
-      case "enter":
-        code = 13;
-        break;
-      case "page up":
-        code = 33;
-        break;
-      case "page down":
-        code = 34;
-        break;
-      case "delete":
-        code = 46;
-        break;
-      case "backspace":
-        code = 8;
-        break;
-      case "print screen":
-        code = 44;
-        break;
-      case "escape":
-        code = 27;
-        break;
-      default:
-        // f keys
-        if (FKEY_REGX.test(key)) {
-          code = 111 + +key.substring(1);
-        } else {
-          code = key.toUpperCase().charCodeAt(0);
-        }
-        break;
-    }
-  }
-  return {
-    key: mainKey!,
-    code: code!,
-    modifiers,
-  };
-}
-
 /**
  * Showing modifier keys is coming soon:
  *  * https://github.com/wesbos/keycodes/issues/290
@@ -176,10 +75,10 @@ async function keyComboTest(keysStrSeq: string, t, say, client) {
     .trim()
     .toLowerCase();
 
-  const keyCodeAndMod = keyStrSeqToCodeAndMod(keysStrSeq);
-  // console.log("keyCodeAndMod", keyCodeAndMod, "key", key, "code", code);
-  t.is(keyCodeAndMod.key, key);
-  t.is(keyCodeAndMod.code, code);
+  // const keyCodeAndMod = keyStrSeqToCodeAndMod(keysStrSeq);
+  // // console.log("keyCodeAndMod", keyCodeAndMod, "key", key, "code", code);
+  // t.is(keyCodeAndMod.key, key);
+  // t.is(keyCodeAndMod.code, code);
 }
 
 export default <IPlugin & IPluginBase>{
@@ -206,9 +105,9 @@ export default <IPlugin & IPluginBase>{
         match: "press *",
         pageFn: (transcript, { preTs, normTs }: TsData) => {
           console.log("pressing", preTs);
-          const codeAndMod = keyStrSeqToCodeAndMod(preTs);
+          const keys = splitBySingleCharSeparator(preTs);
           // debugger
-          backendPressKey(codeAndMod);
+          backendPressKey(keys);
         },
         test: {
           // manually tested:
@@ -227,7 +126,7 @@ export default <IPlugin & IPluginBase>{
         description: "Equivalent of hitting the tab key.",
         match: "press tab",
         pageFn: () => {
-          if (!pressKey("Tab", { code: 9 })) backendPressKey({ code: 9 });
+          if (!pressKey("tab")) backendPressKey(["tab"]);
         },
         test: {
           "go to next form field": async (t, say, client) => {
@@ -248,7 +147,7 @@ export default <IPlugin & IPluginBase>{
         description: "Equivalent of hitting the enter key.",
         match: "press enter",
         pageFn: () => {
-          if (!pressKey("Enter", { code: 13 })) backendPressKey({ code: 13 });
+          if (!pressKey("enter")) backendPressKey(["enter"]);
         },
         test: {
           contenteditables: async (t, say, client) => {
@@ -285,9 +184,9 @@ export default <IPlugin & IPluginBase>{
         match: "press down",
         pageFn: () => {
           // gmail down arrow needs forcus when selecting recipient
-          if (!pressKey("ArrowDown", { code: 40 }))
+          if (!pressKey("down"))
             // not sure of the use case for this
-            backendPressKey({ code: 40 });
+            backendPressKey(["down"]);
         },
         test: {
           "press down": keyComboTest.bind(null, "press down"),
@@ -298,7 +197,7 @@ export default <IPlugin & IPluginBase>{
         description: "Equivalent of hitting the up arrow key.",
         match: "press up",
         pageFn: () => {
-          if (!pressKey("ArrowUp", { code: 38 })) backendPressKey({ code: 38 });
+          if (!pressKey("up")) backendPressKey(["up"]);
         },
       },
       {
@@ -306,8 +205,7 @@ export default <IPlugin & IPluginBase>{
         description: "Equivalent of hitting the left arrow key.",
         match: "press left",
         pageFn: () => {
-          if (!pressKey("ArrowLeft", { code: 37 }))
-            backendPressKey({ code: 37 });
+          if (!pressKey("left")) backendPressKey(["left"]);
         },
       },
       {
@@ -315,8 +213,7 @@ export default <IPlugin & IPluginBase>{
         description: "Equivalent of hitting the right arrow key.",
         match: "press right",
         pageFn: () => {
-          if (!pressKey("ArrowRight", { code: 39 }))
-            backendPressKey({ code: 39 });
+          if (!pressKey("right")) backendPressKey(["right"]);
         },
       },
     ],
