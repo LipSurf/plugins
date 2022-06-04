@@ -3,7 +3,7 @@
 /**
  * Limitations and gotchas:
  * - This plugin relies on Netflix's `window.netflix` publicized object.
- *   This plugin MAY fails if netflix introduce a change to that `window.netflix` object
+ *   This plugin may fail if netflix introduce a change to that `window.netflix` object
  * - Watch command relies on videos on cache. It only queries the show netflix has loaded from
  *   their service and does not query it directly from the service. If Netflix Plugin cannot a movie which
  *   title matches in a confidence above 0.8 it will fallback to search page
