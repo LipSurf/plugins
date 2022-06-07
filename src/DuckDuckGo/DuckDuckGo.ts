@@ -9,7 +9,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "DuckDuckGo",
     description: "The duckduckgo search engine.",
-    version: "4.7.0-alpha.2",
+    version: "4.7.0-alpha.3",
     apiVersion: 2,
     match: /.*/,
     homophones: {

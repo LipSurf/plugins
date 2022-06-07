@@ -10,7 +10,7 @@ export default <IPluginBase & IPlugin>{
   ...{
     niceName: "Timer",
     description: "Tools for setting timers.",
-    version: "4.7.0-alpha.2",
+    version: "4.7.0-alpha.3",
     apiVersion: 2,
     match: /.*/,
     authors: "Miko",
