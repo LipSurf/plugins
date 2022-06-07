@@ -1,5 +1,7 @@
 # Change Log
 
+## 4.7.0
+
 ## 4.7.0-alpha.3
 
 ## 4.7.0-alpha.2

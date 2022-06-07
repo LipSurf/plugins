@@ -21,7 +21,7 @@ export default <IPluginBase & IPlugin>{
     niceName: "Copy, Cut and Paste",
     description:
       "Permissions must be granted with the mouse the first time this plugin is used.",
-    version: "4.7.0-alpha.3",
+    version: "4.7.0",
     apiVersion: 2,
     match: /.*/,
     homophones: {
