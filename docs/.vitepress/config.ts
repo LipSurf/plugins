@@ -15,7 +15,8 @@ export default defineConfig({
 		docsDir: 'docs',
 		searchPlaceholder: 'Search...',
 		algolia: {
-		    apiKey: '813bcf2a81a839cbea24b7899885d1b6',
+			appId: '8GIGW0DB20',
+		    apiKey: 'eccd1a83d674c1c2e5d706cf9a26786b',
 		    indexName: 'lipsurf'
 		},
 		sidebar: [
