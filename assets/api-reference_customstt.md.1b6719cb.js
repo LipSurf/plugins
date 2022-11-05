@@ -1,0 +1,26 @@
+import{_ as n,c as a,o as s,a as t}from"./app.1ef87986.js";const f='{"title":"Custom STT API","description":"","frontmatter":{},"headers":[{"level":2,"title":"Quick Start","slug":"quick-start"},{"level":2,"title":"Methods","slug":"methods"},{"level":3,"title":"handleTranscript","slug":"handletranscript"},{"level":3,"title":"start","slug":"start"},{"level":3,"title":"pause","slug":"pause"},{"level":3,"title":"shutdown","slug":"shutdown"}],"relativePath":"api-reference/customstt.md"}',e={},p=t(`<h1 id="custom-stt-api" tabindex="-1">Custom STT API <a class="header-anchor" href="#custom-stt-api" aria-hidden="true">#</a></h1><p><strong>v1.0.0</strong></p><p><em>Last Updated May 21, 2020</em></p><p>This API is used for overriding the built-in STT in LipSurf for an external one. It is only available in LipSurf Enterprise builds.</p><h2 id="quick-start" tabindex="-1">Quick Start <a class="header-anchor" href="#quick-start" aria-hidden="true">#</a></h2><div class="language-js"><pre><code><span class="token keyword">var</span> i <span class="token operator">=</span> i <span class="token operator">||</span> <span class="token number">0</span><span class="token punctuation">;</span>
+top<span class="token punctuation">.</span><span class="token function">postMessage</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+		<span class="token literal-property property">forLipSurf</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> 
+		<span class="token literal-property property">method</span><span class="token operator">:</span> <span class="token string">&#39;handleTranscript&#39;</span><span class="token punctuation">,</span> 
+		<span class="token literal-property property">args</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">&quot;hello world&quot;</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">,</span> i<span class="token operator">++</span><span class="token punctuation">,</span> <span class="token operator">+</span><span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token string">&#39;*&#39;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre></div><h2 id="methods" tabindex="-1">Methods <a class="header-anchor" href="#methods" aria-hidden="true">#</a></h2><h3 id="handletranscript" tabindex="-1"><code>handleTranscript</code> <a class="header-anchor" href="#handletranscript" aria-hidden="true">#</a></h3><p>Sends STT generated transcript to LipSurf for processing and command execution.</p><div class="language-typescript"><pre><code><span class="token comment">/**
+  * 
+  * @param transcript
+  * @param confidence between 0 and 1, 1 being the highest level of confidence
+  * @param isFinal set to true if there will not be any subsequent adjustments 
+  *     to this transcript
+  * @param segmentId so we can identify if we&#39;re updating a previous 
+  *     transcript (eg. with a higher confidence, or if we&#39;re adding newly said 
+  *     things)
+  * @param recgTime when the transcript was generated in milliseconds since 
+  *     UNIX epoch
+  */</span>
+<span class="token function">handleTranscript</span><span class="token punctuation">(</span>
+		transcript<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span>
+		confidence<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">,</span>
+		isFinal<span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">,</span> 
+		segmentId<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">,</span>
+		recgTime<span class="token operator">:</span> <span class="token builtin">number</span>
+	<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">void</span><span class="token punctuation">;</span>
+</code></pre></div><h3 id="start" tabindex="-1"><code>start</code> <a class="header-anchor" href="#start" aria-hidden="true">#</a></h3><p>Start listening.</p><h3 id="pause" tabindex="-1"><code>pause</code> <a class="header-anchor" href="#pause" aria-hidden="true">#</a></h3><p>Pauses LipSurf from listening, but does not turn it completely off (useful for keeping LipSurf generated UI on the screen).</p><h3 id="shutdown" tabindex="-1"><code>shutdown</code> <a class="header-anchor" href="#shutdown" aria-hidden="true">#</a></h3><p>Stops listening and all LipSurf generated UI removed.</p>`,16),o=[p];function r(c,i,l,u,d,h){return s(),a("div",null,o)}var m=n(e,[["render",r]]);export{f as __pageData,m as default};

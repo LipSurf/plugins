@@ -1,0 +1,1 @@
+import{_ as n,c as s,o as a,a as t}from"./app.1ef87986.js";const h='{"title":"Plugin-level Settings","description":"","frontmatter":{},"headers":[],"relativePath":"plugin-level-settings.md"}',e={},p=t("",10),o=[p];function i(l,c,u,r,g,d){return a(),s("div",null,o)}var w=n(e,[["render",i]]);export{h as __pageData,w as default};

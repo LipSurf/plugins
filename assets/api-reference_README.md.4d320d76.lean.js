@@ -1,0 +1,1 @@
+import{_ as e,c as t,o as r}from"./app.1ef87986.js";const f='{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"api-reference/README.md"}',a={};function o(c,n,s,p,_,i){return r(),t("div")}var l=e(a,[["render",o]]);export{f as __pageData,l as default};

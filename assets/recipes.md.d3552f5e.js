@@ -1,0 +1,46 @@
+import{_ as n,c as s,o as a,a as t}from"./app.1ef87986.js";const y='{"title":"Recipes","description":"","frontmatter":{},"headers":[{"level":2,"title":"Cross-tab Communication","slug":"cross-tab-communication"}],"relativePath":"recipes.md"}',p={},o=t(`<h1 id="recipes" tabindex="-1">Recipes <a class="header-anchor" href="#recipes" aria-hidden="true">#</a></h1><h2 id="cross-tab-communication" tabindex="-1">Cross-tab Communication <a class="header-anchor" href="#cross-tab-communication" aria-hidden="true">#</a></h2><p>You can send a message to another tab/window using <code>chrome.runtime.sendMessage</code> and <code>init</code>.</p><div class="language-ts"><pre><code><span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token operator">&lt;</span>IPluginBase <span class="token operator">&amp;</span> IPlugin<span class="token operator">&gt;</span><span class="token punctuation">{</span>
+    <span class="token operator">...</span>PluginBase<span class="token punctuation">,</span> <span class="token operator">...</span><span class="token punctuation">{</span>
+        niceName<span class="token operator">:</span> <span class="token string">&#39;Spotify&#39;</span><span class="token punctuation">,</span>
+        <span class="token function-variable function">init</span><span class="token operator">:</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// since we have a global command, init will be run on every page,</span>
+            <span class="token comment">// but we don&#39;t want this listener on non-spotify pages</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>spotifyPlayerUrlRegexMatch<span class="token punctuation">.</span><span class="token function">test</span><span class="token punctuation">(</span>window<span class="token punctuation">.</span>location<span class="token punctuation">.</span>origin<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                chrome<span class="token punctuation">.</span>runtime<span class="token punctuation">.</span>onMessage<span class="token punctuation">.</span><span class="token function">addListener</span><span class="token punctuation">(</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>msg<span class="token punctuation">.</span>type <span class="token operator">===</span> <span class="token string">&#39;lsSpotify&#39;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                        <span class="token keyword">switch</span> <span class="token punctuation">(</span>msg<span class="token punctuation">.</span>control<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                            <span class="token keyword">case</span> SpotifyControlButtons<span class="token punctuation">.</span>Play<span class="token operator">:</span> <span class="token punctuation">{</span>
+                                <span class="token function">clickButton</span><span class="token punctuation">(</span>SpotifyControlButtons<span class="token punctuation">.</span>Play<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token keyword">break</span><span class="token punctuation">;</span>
+                            <span class="token punctuation">}</span>
+                        <span class="token punctuation">}</span>
+                    <span class="token punctuation">}</span>
+                <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+        commands<span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token punctuation">{</span>
+                name<span class="token operator">:</span> <span class="token string">&#39;spotify play&#39;</span><span class="token punctuation">,</span>
+                description<span class="token operator">:</span> <span class="token string">&#39;Play the Spotify web player.&#39;</span><span class="token punctuation">,</span>
+                global<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+                match<span class="token operator">:</span> <span class="token string">&#39;spotify play&#39;</span><span class="token punctuation">,</span>
+                <span class="token function-variable function">fn</span><span class="token operator">:</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">const</span> control <span class="token operator">=</span> SpotifyControlButtons<span class="token punctuation">.</span>Play<span class="token punctuation">;</span> 
+                    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name"><span class="token builtin">Promise</span></span><span class="token punctuation">(</span>resolve <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+                        chrome<span class="token punctuation">.</span>tabs<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span><span class="token punctuation">{</span>url<span class="token operator">:</span> spotifyPlayerUrlMatch<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>tabs<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+                            <span class="token keyword">const</span> tab <span class="token operator">=</span> tabs<span class="token punctuation">.</span>length <span class="token operator">?</span> tabs<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">:</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>tab<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                                chrome<span class="token punctuation">.</span>tabs<span class="token punctuation">.</span><span class="token function">sendMessage</span><span class="token punctuation">(</span>tab<span class="token punctuation">.</span>id<span class="token punctuation">,</span> <span class="token punctuation">{</span>type<span class="token operator">:</span> <span class="token string">&#39;lsSpotify&#39;</span><span class="token punctuation">,</span> control<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+                                    <span class="token function">resolve</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                                <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+                                <span class="token function">resolve</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token punctuation">}</span>
+                        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre></div><p>keywords: talking with another tab, inactive tab, message passing</p>`,5),c=[o];function e(u,l,i,k,r,d){return a(),s("div",null,c)}var f=n(p,[["render",e]]);export{y as __pageData,f as default};
