@@ -6,7 +6,7 @@ HelloWorld.languages!.ja = {
   niceName: "世界のご案内",
   description: "非常に単純のプラグイン",
   commands: {
-    "Hello World": {
+    "Respond": {
       name: "ハロー・ワールド",
       match: "はろーわーるど",
     },
