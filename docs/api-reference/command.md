@@ -194,4 +194,6 @@ Delays for a localized version of a command can be completely different from the
 
 Sometimes we want to adjust the transcript as it is shown on the live transcript. For example if the user says <span class="voice-cmd">go to are meal time videos</span> we would want to show that as <span class="voice-cmd">go to r/mealtimevideos</span>.
 
-Returns the complete "live transcript" that should be shown. `rawInput` is the transcript (eg. "go to are meal time videos") `matchOutput` is an array returned from the match command if [`DynamicMatch`](/api-reference/command.md#dynamicmatch)is used.
+Can be a static string or a function. If a function, should return the complete "live transcript" that should be shown. Parameter `rawInput` is the transcript (eg. "go to are meal time videos") and `matchOutput` is an array returned from the match command if [`DynamicMatch`](/api-reference/command.md#dynamicmatch)is used.
+
+The nice function runs in the context of the background page, unless it's a dynamic match command, in which case just like the dynamic match function, the nice function runs in the context of the webpage.
